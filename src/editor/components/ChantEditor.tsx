@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { deleteNote } from '../commands/delete-note'
 import { moveNoteVertically } from '../commands/move-note'
 import type { ChantDocument } from '../domain/chant-document'
 import { layoutChant } from '../layout/layout-chant'
@@ -30,6 +31,12 @@ export function ChantEditor({ document }: ChantEditorProps) {
             moveNoteVertically(currentDocument, noteId, delta),
           )
         }
+        onDeleteNote={(noteId) => {
+          setChantDocument((currentDocument) =>
+            deleteNote(currentDocument, noteId),
+          )
+          setSelection(clearSelection())
+        }}
         onClearSelection={() => setSelection(clearSelection())}
       />
     </main>

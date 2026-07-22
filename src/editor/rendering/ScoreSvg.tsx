@@ -8,6 +8,7 @@ interface ScoreSvgProps {
   selection: EditorSelection
   onSelectNote: (noteId: string) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
+  onDeleteNote: (noteId: string) => void
   onClearSelection: () => void
 }
 
@@ -16,6 +17,7 @@ export function ScoreSvg({
   selection,
   onSelectNote,
   onMoveNote,
+  onDeleteNote,
   onClearSelection,
 }: ScoreSvgProps) {
   const noteLabel = layout.notes.length === 1 ? 'note' : 'notes'
@@ -39,6 +41,17 @@ export function ScoreSvg({
       event.preventDefault()
       event.stopPropagation()
       onSelectNote(noteId)
+      return
+    }
+
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (isSelected) {
+        onDeleteNote(noteId)
+      }
+
       return
     }
 
