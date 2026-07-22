@@ -71,8 +71,10 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 * `npm run build` runs TypeScript project checks and creates a production bundle in `dist/`.
 * `npm run lint` checks source files with Oxlint.
 * `npm run preview` serves the production build locally for a final smoke test.
+* `npm test` runs the Vitest suite once.
+* `npm run test:watch` runs Vitest in watch mode.
 
-Run `npm run lint` and `npm run build` before completing a coding task.
+Run `npm test`, `npm run lint`, and `npm run build` before completing a coding task.
 
 When automated tests exist, run the relevant tests as well.
 
@@ -145,19 +147,17 @@ Prefer completing one small vertical slice over scaffolding many unfinished syst
 
 ## Testing Guidelines
 
-No automated test framework or coverage requirement is currently configured.
+Vitest is configured for plain TypeScript unit tests. No browser environment,
+component testing library, or coverage requirement is currently configured.
 
 For current changes:
 
-1. Run `npm run lint`.
-2. Run `npm run build`.
-3. Verify the relevant behavior manually with `npm run dev`.
-
-When a test framework is introduced:
+1. Run `npm test`.
+2. Run `npm run lint`.
+3. Run `npm run build`.
+4. Verify the relevant behavior manually with `npm run dev`.
 
 * Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
-* Add an `npm test` script.
-* Document the selected framework and commands in this file.
 * Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
 * Use browser-level tests for important editor interactions.
 
