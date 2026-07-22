@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
+import type { StaffPositionDelta } from '../commands/move-note'
 import type { ChantLayout } from '../layout/layout-chant'
 import type { EditorSelection } from '../state/selection'
 
@@ -6,6 +7,7 @@ interface ScoreSvgProps {
   layout: ChantLayout
   selection: EditorSelection
   onSelectNote: (noteId: string) => void
+  onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onClearSelection: () => void
 }
 
@@ -13,6 +15,7 @@ export function ScoreSvg({
   layout,
   selection,
   onSelectNote,
+  onMoveNote,
   onClearSelection,
 }: ScoreSvgProps) {
   const noteLabel = layout.notes.length === 1 ? 'note' : 'notes'
@@ -30,14 +33,22 @@ export function ScoreSvg({
   function handleNoteKeyDown(
     event: KeyboardEvent<SVGGElement>,
     noteId: string,
+    isSelected: boolean,
   ) {
-    if (event.key !== 'Enter' && event.key !== ' ') {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      event.stopPropagation()
+      onSelectNote(noteId)
+      return
+    }
+
+    if (!isSelected || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
-    onSelectNote(noteId)
+    onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
   }
 
   return (
@@ -91,7 +102,9 @@ export function ScoreSvg({
             aria-label={`Select punctum ${note.noteId}`}
             aria-pressed={isSelected}
             onClick={(event) => handleNoteClick(event, note.noteId)}
-            onKeyDown={(event) => handleNoteKeyDown(event, note.noteId)}
+            onKeyDown={(event) =>
+              handleNoteKeyDown(event, note.noteId, isSelected)
+            }
           >
             <rect
               className="score__note-hit-target"

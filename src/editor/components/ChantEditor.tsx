@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { moveNoteVertically } from '../commands/move-note'
 import type { ChantDocument } from '../domain/chant-document'
 import { layoutChant } from '../layout/layout-chant'
 import { ScoreSvg } from '../rendering/ScoreSvg'
@@ -13,8 +14,9 @@ interface ChantEditorProps {
 }
 
 export function ChantEditor({ document }: ChantEditorProps) {
+  const [chantDocument, setChantDocument] = useState(document)
   const [selection, setSelection] = useState<EditorSelection>(clearSelection)
-  const layout = layoutChant(document)
+  const layout = layoutChant(chantDocument)
 
   return (
     <main className="chant-editor">
@@ -23,6 +25,11 @@ export function ChantEditor({ document }: ChantEditorProps) {
         layout={layout}
         selection={selection}
         onSelectNote={(noteId) => setSelection(selectNote(noteId))}
+        onMoveNote={(noteId, delta) =>
+          setChantDocument((currentDocument) =>
+            moveNoteVertically(currentDocument, noteId, delta),
+          )
+        }
         onClearSelection={() => setSelection(clearSelection())}
       />
     </main>
