@@ -9,6 +9,7 @@ import {
 } from '../domain/chant-document'
 import {
   canInsertPunctumInSingleSystem,
+  getSingleSystemPunctumPlacement,
   layoutChant,
 } from '../layout/layout-chant'
 import { ScoreSvg } from '../rendering/ScoreSvg'
@@ -18,6 +19,11 @@ import {
   redoDocumentEdit,
   undoDocumentEdit,
 } from '../state/document-history'
+import {
+  placePunctumTool,
+  selectTool,
+  type EditorTool,
+} from '../state/editor-tool'
 import {
   clearSelection,
   selectNote,
@@ -46,6 +52,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     createDocumentHistory(initialDocument),
   )
   const [selection, setSelection] = useState<EditorSelection>(clearSelection)
+  const [activeTool, setActiveTool] = useState<EditorTool>(selectTool)
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
   )
@@ -100,6 +107,46 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setPendingFocusNoteId(noteId)
   }
 
+  function handlePlacePunctum(x: number, y: number) {
+    const placement = getSingleSystemPunctumPlacement(
+      x,
+      y,
+      history.present.notes.length,
+    )
+
+    if (!placement || history.present.syllables.length === 0) {
+      return
+    }
+
+    const followingNote = history.present.notes[placement.insertionIndex]
+    const precedingNote = history.present.notes[placement.insertionIndex - 1]
+    const lyricSyllableId =
+      followingNote?.lyricSyllableId ??
+      precedingNote?.lyricSyllableId ??
+      history.present.syllables[0]?.id
+
+    if (!lyricSyllableId) {
+      return
+    }
+
+    const noteId = globalThis.crypto.randomUUID()
+    const punctum: Punctum = {
+      id: noteId,
+      kind: 'punctum',
+      staffPosition: placement.staffPosition,
+      lyricSyllableId,
+    }
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        insertPunctum(document, punctum, placement.insertionIndex),
+      ),
+    )
+    setSelection(selectNote(noteId))
+    setPendingFocusNoteId(noteId)
+    setActiveTool(selectTool())
+  }
+
   useEffect(() => {
     setSelection((currentSelection) => {
       if (
@@ -147,6 +194,29 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       )
   }, [canRedo, canUndo])
 
+  useEffect(() => {
+    if (activeTool.kind !== 'place-punctum') {
+      return
+    }
+
+    function handlePlacementCancel(event: KeyboardEvent) {
+      if (event.key !== 'Escape') {
+        return
+      }
+
+      event.preventDefault()
+      setActiveTool(selectTool())
+    }
+
+    globalThis.document.addEventListener('keydown', handlePlacementCancel)
+
+    return () =>
+      globalThis.document.removeEventListener(
+        'keydown',
+        handlePlacementCancel,
+      )
+  }, [activeTool.kind])
+
   return (
     <main className="chant-editor">
       <h1>{layout.title}</h1>
@@ -158,6 +228,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={handleAddPunctum}
         >
           Add punctum
+        </button>
+        <button
+          type="button"
+          aria-label="Place punctum"
+          aria-pressed={activeTool.kind === 'place-punctum'}
+          disabled={!canInsertPunctum}
+          onClick={() => setActiveTool(placePunctumTool())}
+        >
+          Place punctum
         </button>
         <button
           type="button"
@@ -181,6 +260,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <ScoreSvg
         layout={layout}
         selection={selection}
+        activeTool={activeTool}
         pendingFocusNoteId={pendingFocusNoteId}
         onNoteFocusHandled={(noteId) =>
           setPendingFocusNoteId((currentNoteId) =>
@@ -188,6 +268,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           )
         }
         onSelectNote={(noteId) => setSelection(selectNote(noteId))}
+        onPlacePunctum={({ x, y }) => handlePlacePunctum(x, y)}
         onMoveNote={(noteId, delta) =>
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>

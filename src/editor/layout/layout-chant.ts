@@ -1,7 +1,8 @@
-import type {
-  ChantDocument,
-  StaffLine,
-  StaffPosition,
+import {
+  staffPosition,
+  type ChantDocument,
+  type StaffLine,
+  type StaffPosition,
 } from '../domain/chant-document'
 
 export interface StaffLineLayout {
@@ -44,6 +45,11 @@ export interface ChantLayout {
   lyrics: LyricLayout[]
 }
 
+export interface PunctumPlacement {
+  staffPosition: StaffPosition
+  insertionIndex: number
+}
+
 const canvasWidth = 720
 const canvasHeight = 220
 const staffStartX = 64
@@ -73,6 +79,41 @@ function staffPositionY(position: StaffPosition) {
 
 function staffLineY(line: StaffLine) {
   return bottomStaffY - (line - 1) * staffLineSpacing
+}
+
+/**
+ * Resolves a point within the current fixed single-system MVP layout.
+ * Exact vertical half-step ties snap upward to the higher StaffPosition.
+ */
+export function getSingleSystemPunctumPlacement(
+  x: number,
+  y: number,
+  currentNoteCount: number,
+): PunctumPlacement | null {
+  const minimumPlacementY = staffPositionY(staffPosition(7))
+  const maximumPlacementY = staffPositionY(staffPosition(-1))
+
+  if (
+    !canInsertPunctumInSingleSystem(currentNoteCount) ||
+    x < staffStartX ||
+    x > staffEndX ||
+    y < minimumPlacementY ||
+    y > maximumPlacementY
+  ) {
+    return null
+  }
+
+  const snappedPosition = Math.round((bottomStaffY - y) / staffStep) || 0
+  const unclampedIndex = Math.round((x - noteCenterX) / noteSpacing)
+  const insertionIndex = Math.min(
+    currentNoteCount,
+    Math.max(0, unclampedIndex),
+  )
+
+  return {
+    staffPosition: staffPosition(snappedPosition),
+    insertionIndex,
+  }
 }
 
 export function layoutChant(document: ChantDocument): ChantLayout {

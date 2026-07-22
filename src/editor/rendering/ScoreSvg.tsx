@@ -1,14 +1,22 @@
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import type { StaffPositionDelta } from '../commands/move-note'
 import type { ChantLayout } from '../layout/layout-chant'
+import type { EditorTool } from '../state/editor-tool'
 import type { EditorSelection } from '../state/selection'
+
+export interface SvgPoint {
+  x: number
+  y: number
+}
 
 interface ScoreSvgProps {
   layout: ChantLayout
   selection: EditorSelection
+  activeTool: EditorTool
   pendingFocusNoteId: string | null
   onNoteFocusHandled: (noteId: string) => void
   onSelectNote: (noteId: string) => void
+  onPlacePunctum: (point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
   onClearSelection: () => void
@@ -17,9 +25,11 @@ interface ScoreSvgProps {
 export function ScoreSvg({
   layout,
   selection,
+  activeTool,
   pendingFocusNoteId,
   onNoteFocusHandled,
   onSelectNote,
+  onPlacePunctum,
   onMoveNote,
   onDeleteNote,
   onClearSelection,
@@ -52,11 +62,34 @@ export function ScoreSvg({
     onSelectNote(noteId)
   }
 
+  function handleScoreClick(event: MouseEvent<SVGSVGElement>) {
+    if (activeTool.kind !== 'place-punctum') {
+      onClearSelection()
+      return
+    }
+
+    const screenTransform = event.currentTarget.getScreenCTM()
+
+    if (!screenTransform) {
+      return
+    }
+
+    const localPoint = new DOMPoint(event.clientX, event.clientY).matrixTransform(
+      screenTransform.inverse(),
+    )
+
+    onPlacePunctum({ x: localPoint.x, y: localPoint.y })
+  }
+
   function handleNoteKeyDown(
     event: KeyboardEvent<SVGGElement>,
     noteId: string,
     isSelected: boolean,
   ) {
+    if (activeTool.kind !== 'select') {
+      return
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       event.stopPropagation()
@@ -86,11 +119,11 @@ export function ScoreSvg({
 
   return (
     <svg
-      className="score"
+      className={`score${activeTool.kind === 'place-punctum' ? ' score--placing' : ''}`}
       viewBox={`0 0 ${layout.width} ${layout.height}`}
       role="group"
       aria-labelledby="score-title score-description"
-      onClick={onClearSelection}
+      onClick={handleScoreClick}
     >
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
@@ -138,9 +171,13 @@ export function ScoreSvg({
             }}
             data-note-id={note.noteId}
             role="button"
-            tabIndex={0}
+            tabIndex={activeTool.kind === 'select' ? 0 : -1}
+            pointerEvents={
+              activeTool.kind === 'select' ? 'all' : 'none'
+            }
             aria-label={`Select punctum ${note.noteId}`}
             aria-pressed={isSelected}
+            aria-disabled={activeTool.kind !== 'select'}
             onClick={(event) => handleNoteClick(event, note.noteId)}
             onKeyDown={(event) =>
               handleNoteKeyDown(event, note.noteId, isSelected)
