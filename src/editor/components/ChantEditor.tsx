@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import { deleteNote } from '../commands/delete-note'
+import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
-import type { ChantDocument } from '../domain/chant-document'
-import { layoutChant } from '../layout/layout-chant'
+import {
+  staffPosition,
+  type ChantDocument,
+  type Punctum,
+} from '../domain/chant-document'
+import {
+  canInsertPunctumInSingleSystem,
+  layoutChant,
+} from '../layout/layout-chant'
 import { ScoreSvg } from '../rendering/ScoreSvg'
 import {
   applyDocumentEdit,
@@ -38,9 +46,59 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     createDocumentHistory(initialDocument),
   )
   const [selection, setSelection] = useState<EditorSelection>(clearSelection)
+  const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
+    null,
+  )
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
+  const canInsertPunctum =
+    history.present.syllables.length > 0 &&
+    canInsertPunctumInSingleSystem(history.present.notes.length)
   const layout = layoutChant(history.present)
+
+  function handleAddPunctum() {
+    if (!canInsertPunctum) {
+      return
+    }
+
+    const selectedNoteIndex =
+      selection.kind === 'note'
+        ? history.present.notes.findIndex(
+            (note) => note.id === selection.noteId,
+          )
+        : -1
+    const referenceNote =
+      selectedNoteIndex >= 0
+        ? history.present.notes[selectedNoteIndex]
+        : history.present.notes.at(-1)
+    const firstSyllable = history.present.syllables[0]
+    const lyricSyllableId =
+      referenceNote?.lyricSyllableId ?? firstSyllable?.id
+
+    if (!lyricSyllableId) {
+      return
+    }
+
+    const noteId = globalThis.crypto.randomUUID()
+    const punctum: Punctum = {
+      id: noteId,
+      kind: 'punctum',
+      staffPosition: referenceNote?.staffPosition ?? staffPosition(2),
+      lyricSyllableId,
+    }
+    const insertionIndex =
+      selectedNoteIndex >= 0
+        ? selectedNoteIndex + 1
+        : history.present.notes.length
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        insertPunctum(document, punctum, insertionIndex),
+      ),
+    )
+    setSelection(selectNote(noteId))
+    setPendingFocusNoteId(noteId)
+  }
 
   useEffect(() => {
     setSelection((currentSelection) => {
@@ -92,7 +150,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   return (
     <main className="chant-editor">
       <h1>{layout.title}</h1>
-      <div className="editor-history-controls" aria-label="Edit history">
+      <div className="editor-controls" aria-label="Editor controls">
+        <button
+          type="button"
+          aria-label="Add punctum"
+          disabled={!canInsertPunctum}
+          onClick={handleAddPunctum}
+        >
+          Add punctum
+        </button>
         <button
           type="button"
           aria-label="Undo last edit"
@@ -115,6 +181,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <ScoreSvg
         layout={layout}
         selection={selection}
+        pendingFocusNoteId={pendingFocusNoteId}
+        onNoteFocusHandled={(noteId) =>
+          setPendingFocusNoteId((currentNoteId) =>
+            currentNoteId === noteId ? null : currentNoteId,
+          )
+        }
         onSelectNote={(noteId) => setSelection(selectNote(noteId))}
         onMoveNote={(noteId, delta) =>
           setHistory((currentHistory) =>

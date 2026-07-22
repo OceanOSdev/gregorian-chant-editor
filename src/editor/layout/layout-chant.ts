@@ -52,9 +52,20 @@ const bottomStaffY = 124
 const staffLineSpacing = 24
 const staffStep = staffLineSpacing / 2
 const noteCenterX = 230
+const noteSpacing = 48
 const noteWidth = 15
 const noteHeight = 11
 const lyricY = 180
+
+/** Maximum note count for the current fixed-width, single-system MVP. */
+export const singleSystemNoteCapacity =
+  Math.floor(
+    (staffEndX - noteWidth / 2 - noteCenterX) / noteSpacing,
+  ) + 1
+
+export function canInsertPunctumInSingleSystem(currentNoteCount: number) {
+  return currentNoteCount < singleSystemNoteCapacity
+}
 
 function staffPositionY(position: StaffPosition) {
   return bottomStaffY - position * staffStep
@@ -68,7 +79,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
   const noteCentersBySyllableId = new Map<string, number[]>()
 
   const notes = document.notes.map((note, index) => {
-    const centerX = noteCenterX + index * 48
+    const centerX = noteCenterX + index * noteSpacing
     const centerY = staffPositionY(note.staffPosition)
     const associatedNoteCenters =
       noteCentersBySyllableId.get(note.lyricSyllableId) ?? []

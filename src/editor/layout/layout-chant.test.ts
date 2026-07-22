@@ -3,7 +3,12 @@ import {
   staffPosition,
   type ChantDocument,
 } from '../domain/chant-document'
-import { layoutChant, type PunctumLayout } from './layout-chant'
+import {
+  canInsertPunctumInSingleSystem,
+  layoutChant,
+  singleSystemNoteCapacity,
+  type PunctumLayout,
+} from './layout-chant'
 
 function createDocument(positions: number[]): ChantDocument {
   return {
@@ -110,5 +115,48 @@ describe('layoutChant', () => {
       (noteCenterX(firstNote) + noteCenterX(lastNote)) / 2
 
     expect(lyric.x).toBe(associatedNotesMidpoint)
+  })
+
+  it('fits the maximum single-system note count within the staff', () => {
+    const layout = layoutChant(
+      createDocument(Array.from({ length: singleSystemNoteCapacity }, () => 3)),
+    )
+    const finalNote = layout.notes.at(-1)
+    const staffEndX = layout.staffLines[0]?.x2
+
+    expect(finalNote).toBeDefined()
+    expect(staffEndX).toBeDefined()
+    if (!finalNote || staffEndX === undefined) {
+      return
+    }
+
+    expect(finalNote.x + finalNote.width).toBeLessThanOrEqual(staffEndX)
+  })
+
+  it('places one note beyond the single-system capacity outside the staff', () => {
+    const layout = layoutChant(
+      createDocument(
+        Array.from({ length: singleSystemNoteCapacity + 1 }, () => 3),
+      ),
+    )
+    const excessNote = layout.notes.at(-1)
+    const staffEndX = layout.staffLines[0]?.x2
+
+    expect(excessNote).toBeDefined()
+    expect(staffEndX).toBeDefined()
+    if (!excessNote || staffEndX === undefined) {
+      return
+    }
+
+    expect(excessNote.x + excessNote.width).toBeGreaterThan(staffEndX)
+  })
+
+  it('reports insertion unavailable at single-system capacity', () => {
+    expect(
+      canInsertPunctumInSingleSystem(singleSystemNoteCapacity - 1),
+    ).toBe(true)
+    expect(canInsertPunctumInSingleSystem(singleSystemNoteCapacity)).toBe(
+      false,
+    )
   })
 })

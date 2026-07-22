@@ -1,4 +1,4 @@
-import type { KeyboardEvent, MouseEvent } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import type { StaffPositionDelta } from '../commands/move-note'
 import type { ChantLayout } from '../layout/layout-chant'
 import type { EditorSelection } from '../state/selection'
@@ -6,6 +6,8 @@ import type { EditorSelection } from '../state/selection'
 interface ScoreSvgProps {
   layout: ChantLayout
   selection: EditorSelection
+  pendingFocusNoteId: string | null
+  onNoteFocusHandled: (noteId: string) => void
   onSelectNote: (noteId: string) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
@@ -15,14 +17,32 @@ interface ScoreSvgProps {
 export function ScoreSvg({
   layout,
   selection,
+  pendingFocusNoteId,
+  onNoteFocusHandled,
   onSelectNote,
   onMoveNote,
   onDeleteNote,
   onClearSelection,
 }: ScoreSvgProps) {
+  const noteElements = useRef(new Map<string, SVGGElement>())
   const noteLabel = layout.notes.length === 1 ? 'note' : 'notes'
   const lyricLabel =
     layout.lyrics.length === 1 ? 'lyric syllable' : 'lyric syllables'
+
+  useEffect(() => {
+    if (!pendingFocusNoteId) {
+      return
+    }
+
+    const noteElement = noteElements.current.get(pendingFocusNoteId)
+
+    if (!noteElement) {
+      return
+    }
+
+    noteElement.focus()
+    onNoteFocusHandled(pendingFocusNoteId)
+  }, [onNoteFocusHandled, pendingFocusNoteId])
 
   function handleNoteClick(
     event: MouseEvent<SVGGElement>,
@@ -109,6 +129,13 @@ export function ScoreSvg({
           <g
             className="score__note"
             key={note.noteId}
+            ref={(element) => {
+              if (element) {
+                noteElements.current.set(note.noteId, element)
+              } else {
+                noteElements.current.delete(note.noteId)
+              }
+            }}
             data-note-id={note.noteId}
             role="button"
             tabIndex={0}
