@@ -12,6 +12,34 @@
   text-align: center;
 }
 
+.editor-history-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.editor-history-controls button {
+  padding: 0.4rem 0.85rem;
+  color: #28231e;
+  background: #fffdf8;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.editor-history-controls button:focus-visible {
+  outline: 3px solid #1e64d2;
+  outline-offset: 2px;
+}
+
+.editor-history-controls button:disabled {
+  color: #8a8379;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .score {
   display: block;
   width: 100%;
