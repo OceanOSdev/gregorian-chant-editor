@@ -1,20 +1,52 @@
+import type { KeyboardEvent, MouseEvent } from 'react'
 import type { ChantLayout } from '../layout/layout-chant'
+import type { EditorSelection } from '../state/selection'
 
 interface ScoreSvgProps {
   layout: ChantLayout
+  selection: EditorSelection
+  onSelectNote: (noteId: string) => void
+  onClearSelection: () => void
 }
 
-export function ScoreSvg({ layout }: ScoreSvgProps) {
+export function ScoreSvg({
+  layout,
+  selection,
+  onSelectNote,
+  onClearSelection,
+}: ScoreSvgProps) {
   const noteLabel = layout.notes.length === 1 ? 'note' : 'notes'
   const lyricLabel =
     layout.lyrics.length === 1 ? 'lyric syllable' : 'lyric syllables'
+
+  function handleNoteClick(
+    event: MouseEvent<SVGGElement>,
+    noteId: string,
+  ) {
+    event.stopPropagation()
+    onSelectNote(noteId)
+  }
+
+  function handleNoteKeyDown(
+    event: KeyboardEvent<SVGGElement>,
+    noteId: string,
+  ) {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    onSelectNote(noteId)
+  }
 
   return (
     <svg
       className="score"
       viewBox={`0 0 ${layout.width} ${layout.height}`}
-      role="img"
+      role="group"
       aria-labelledby="score-title score-description"
+      onClick={onClearSelection}
     >
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
@@ -45,18 +77,43 @@ export function ScoreSvg({ layout }: ScoreSvgProps) {
         C
       </text>
 
-      {layout.notes.map((note) => (
-        <rect
-          className="score__punctum"
-          key={note.noteId}
-          data-note-id={note.noteId}
-          x={note.x}
-          y={note.y}
-          width={note.width}
-          height={note.height}
-          rx="1"
-        />
-      ))}
+      {layout.notes.map((note) => {
+        const isSelected =
+          selection.kind === 'note' && selection.noteId === note.noteId
+
+        return (
+          <g
+            className="score__note"
+            key={note.noteId}
+            data-note-id={note.noteId}
+            role="button"
+            tabIndex={0}
+            aria-label={`Select punctum ${note.noteId}`}
+            aria-pressed={isSelected}
+            onClick={(event) => handleNoteClick(event, note.noteId)}
+            onKeyDown={(event) => handleNoteKeyDown(event, note.noteId)}
+          >
+            <rect
+              className="score__note-hit-target"
+              x={note.x - 6}
+              y={note.y - 6}
+              width={note.width + 12}
+              height={note.height + 12}
+              rx="3"
+              aria-hidden="true"
+            />
+            <rect
+              className={`score__punctum${isSelected ? ' score__punctum--selected' : ''}`}
+              x={note.x}
+              y={note.y}
+              width={note.width}
+              height={note.height}
+              rx="1"
+              aria-hidden="true"
+            />
+          </g>
+        )
+      })}
 
       {layout.lyrics.map((lyric) => (
         <text

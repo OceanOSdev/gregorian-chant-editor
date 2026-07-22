@@ -34,6 +34,29 @@
   font-family: Georgia, 'Times New Roman', serif;
 }
 
+.score__note {
+  cursor: pointer;
+  outline: none;
+}
+
+.score__note-hit-target {
+  fill: transparent;
+}
+
+.score__note:focus-visible .score__note-hit-target {
+  fill: rgb(30 100 210 / 15%);
+  stroke: #1e64d2;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
 .score__punctum {
   fill: currentColor;
+  pointer-events: none;
+}
+
+.score__punctum--selected {
+  stroke: #c22f26;
+  stroke-width: 5;
+  vector-effect: non-scaling-stroke;
 }
