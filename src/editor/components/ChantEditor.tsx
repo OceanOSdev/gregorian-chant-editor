@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react'
 import { deleteNote } from '../commands/delete-note'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
+import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
   staffPosition,
   type ChantDocument,
@@ -56,12 +62,60 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
   )
+  const [lyricDraft, setLyricDraft] = useState('')
+  const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null)
+  const skipNextLyricBlurCommit = useRef(false)
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
   const canInsertPunctum =
     history.present.syllables.length > 0 &&
     canInsertPunctumInSingleSystem(history.present.notes.length)
   const layout = layoutChant(history.present)
+  const selectedNote =
+    selection.kind === 'note'
+      ? history.present.notes.find((note) => note.id === selection.noteId)
+      : undefined
+  const selectedSyllable = selectedNote
+    ? history.present.syllables.find(
+        (syllable) => syllable.id === selectedNote.lyricSyllableId,
+      )
+    : undefined
+  const displayedLyricDraft =
+    selectedSyllable?.id === draftSyllableId
+      ? lyricDraft
+      : (selectedSyllable?.text ?? '')
+
+  function commitLyricDraft(text: string) {
+    if (!selectedSyllable) {
+      return
+    }
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        updateLyricSyllableText(document, selectedSyllable.id, text),
+      ),
+    )
+    setLyricDraft(text)
+    setDraftSyllableId(selectedSyllable.id)
+  }
+
+  function handleLyricKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      commitLyricDraft(event.currentTarget.value)
+      return
+    }
+
+    if (event.key !== 'Escape' || !selectedSyllable) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    skipNextLyricBlurCommit.current = true
+    setLyricDraft(selectedSyllable.text)
+    setDraftSyllableId(selectedSyllable.id)
+  }
 
   function handleAddPunctum() {
     if (!canInsertPunctum) {
@@ -163,6 +217,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [history.present])
 
   useEffect(() => {
+    setLyricDraft(selectedSyllable?.text ?? '')
+    setDraftSyllableId(selectedSyllable?.id ?? null)
+    skipNextLyricBlurCommit.current = false
+  }, [selectedSyllable?.id, selectedSyllable?.text])
+
+  useEffect(() => {
     function handleHistoryShortcut(event: KeyboardEvent) {
       if (isEditableTarget(event.target)) {
         return
@@ -257,6 +317,29 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Redo
         </button>
       </div>
+      <section className="editor-properties" aria-label="Properties">
+        <label htmlFor="lyric-syllable">Lyric syllable</label>
+        <input
+          id="lyric-syllable"
+          type="text"
+          value={displayedLyricDraft}
+          disabled={!selectedSyllable}
+          onChange={(event) => {
+            skipNextLyricBlurCommit.current = false
+            setLyricDraft(event.currentTarget.value)
+            setDraftSyllableId(selectedSyllable?.id ?? null)
+          }}
+          onKeyDown={handleLyricKeyDown}
+          onBlur={(event) => {
+            if (skipNextLyricBlurCommit.current) {
+              skipNextLyricBlurCommit.current = false
+              return
+            }
+
+            commitLyricDraft(event.currentTarget.value)
+          }}
+        />
+      </section>
       <ScoreSvg
         layout={layout}
         selection={selection}

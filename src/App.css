@@ -46,6 +46,34 @@
   opacity: 0.65;
 }
 
+.editor-properties {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.editor-properties input {
+  width: min(16rem, 50vw);
+  padding: 0.4rem 0.55rem;
+  color: #28231e;
+  background: #fffdf8;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  font: inherit;
+}
+
+.editor-properties input:focus-visible {
+  outline: 3px solid #1e64d2;
+  outline-offset: 2px;
+}
+
+.editor-properties input:disabled {
+  color: #8a8379;
+  opacity: 0.65;
+}
+
 .score {
   display: block;
   width: 100%;
