@@ -25,8 +25,9 @@ import { countNotes, findNote } from '../domain/neume'
 import {
   canInsertNotesInSingleSystem,
   canInsertPunctumInSingleSystem,
-  getSingleSystemPunctumPlacement,
+  getSingleSystemNeumePlacement,
   layoutChant,
+  type GraphicalNeumeKind,
 } from '../layout/layout-chant'
 import { ScoreSvg } from '../rendering/ScoreSvg'
 import {
@@ -36,6 +37,9 @@ import {
   undoDocumentEdit,
 } from '../state/document-history'
 import {
+  isPlacementTool,
+  placeClivisTool,
+  placePodatusTool,
   placePunctumTool,
   selectTool,
   type EditorTool,
@@ -270,11 +274,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return
     }
 
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
-        insertPodatus(document, podatus, insertion.insertionIndex),
-      ),
-    )
+    setHistory(applyDocumentEdit(history, () => insertedDocument))
     setSelection(selectNote(lowerNoteId))
     setPendingFocusNoteId(lowerNoteId)
     setActiveTool(selectTool())
@@ -326,59 +326,134 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return
     }
 
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
-        insertClivis(document, clivis, insertion.insertionIndex),
-      ),
-    )
+    setHistory(applyDocumentEdit(history, () => insertedDocument))
     setSelection(selectNote(upperNoteId))
     setPendingFocusNoteId(upperNoteId)
     setActiveTool(selectTool())
   }
 
-  function handlePlacePunctum(x: number, y: number) {
-    const placement = getSingleSystemPunctumPlacement(
-      x,
-      y,
+  function handlePlaceNeume(
+    kind: GraphicalNeumeKind,
+    x: number,
+    y: number,
+  ) {
+    if (!activeSyllable) {
+      return
+    }
+
+    const placement = getSingleSystemNeumePlacement(
+      { x, y },
+      kind,
       history.present.neumes,
     )
 
-    if (!placement || !activeSyllable) {
+    if (!placement) {
       return
     }
 
     const insertionIndex = resolveSyllableNeumeInsertionIndex(
       history.present,
       activeSyllable.id,
-      placement.neumeInsertionIndex,
+      placement.preferredNeumeInsertionIndex,
     )
 
     if (insertionIndex === null) {
       return
     }
 
-    const neumeId = globalThis.crypto.randomUUID()
-    const noteId = globalThis.crypto.randomUUID()
-    const punctum: PunctumNeume = {
-      id: neumeId,
-      kind: 'punctum',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: noteId,
-          staffPosition: placement.staffPosition,
-        },
-      ],
+    let nextDocument: ChantDocument
+    let firstNoteId: string
+
+    if (kind === 'punctum') {
+      const [firstStaffPosition] = placement.staffPositions
+      const neumeId = globalThis.crypto.randomUUID()
+
+      firstNoteId = globalThis.crypto.randomUUID()
+      const punctum: PunctumNeume = {
+        id: neumeId,
+        kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+        ],
+      }
+
+      nextDocument = insertPunctum(
+        history.present,
+        punctum,
+        insertionIndex,
+      )
+    } else {
+      const [firstStaffPosition, secondStaffPosition] =
+        placement.staffPositions
+
+      if (secondStaffPosition === undefined) {
+        return
+      }
+
+      const neumeId = globalThis.crypto.randomUUID()
+
+      firstNoteId = globalThis.crypto.randomUUID()
+      const secondNoteId = globalThis.crypto.randomUUID()
+
+      if (kind === 'podatus') {
+        const podatus: PodatusNeume = {
+          id: neumeId,
+          kind,
+          lyricSyllableId: activeSyllable.id,
+          notes: [
+            {
+              id: firstNoteId,
+              staffPosition: firstStaffPosition,
+            },
+            {
+              id: secondNoteId,
+              staffPosition: secondStaffPosition,
+            },
+          ],
+        }
+
+        nextDocument = insertPodatus(
+          history.present,
+          podatus,
+          insertionIndex,
+        )
+      } else {
+        const clivis: ClivisNeume = {
+          id: neumeId,
+          kind,
+          lyricSyllableId: activeSyllable.id,
+          notes: [
+            {
+              id: firstNoteId,
+              staffPosition: firstStaffPosition,
+            },
+            {
+              id: secondNoteId,
+              staffPosition: secondStaffPosition,
+            },
+          ],
+        }
+
+        nextDocument = insertClivis(
+          history.present,
+          clivis,
+          insertionIndex,
+        )
+      }
     }
 
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
-        insertPunctum(document, punctum, insertionIndex),
-      ),
-    )
-    setSelection(selectNote(noteId))
-    setPendingFocusNoteId(noteId)
+    if (nextDocument === history.present) {
+      return
+    }
+
+    setHistory(applyDocumentEdit(history, () => nextDocument))
     setActiveTool(selectTool())
+    setSelection(selectNote(firstNoteId))
+    setPendingFocusNoteId(firstNoteId)
   }
 
   useEffect(() => {
@@ -465,7 +540,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [canRedo, canUndo])
 
   useEffect(() => {
-    if (activeTool.kind !== 'place-punctum') {
+    if (!isPlacementTool(activeTool)) {
       return
     }
 
@@ -485,7 +560,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         'keydown',
         handlePlacementCancel,
       )
-  }, [activeTool.kind])
+  }, [activeTool])
 
   return (
     <main className="chant-editor">
@@ -521,6 +596,24 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={() => setActiveTool(placePunctumTool())}
         >
           Place punctum
+        </button>
+        <button
+          type="button"
+          aria-label="Place podatus"
+          aria-pressed={activeTool.kind === 'place-podatus'}
+          disabled={!canInsertTwoNoteNeume}
+          onClick={() => setActiveTool(placePodatusTool())}
+        >
+          Place podatus
+        </button>
+        <button
+          type="button"
+          aria-label="Place clivis"
+          aria-pressed={activeTool.kind === 'place-clivis'}
+          disabled={!canInsertTwoNoteNeume}
+          onClick={() => setActiveTool(placeClivisTool())}
+        >
+          Place clivis
         </button>
         <button
           type="button"
@@ -603,7 +696,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           )
         }
         onSelectNote={handleSelectNote}
-        onPlacePunctum={({ x, y }) => handlePlacePunctum(x, y)}
+        onPlaceNeume={(kind, { x, y }) =>
+          handlePlaceNeume(kind, x, y)
+        }
         onMoveNote={(noteId, delta) =>
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>

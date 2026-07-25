@@ -1,7 +1,13 @@
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import type { StaffPositionDelta } from '../commands/move-note'
-import type { ChantLayout } from '../layout/layout-chant'
-import type { EditorTool } from '../state/editor-tool'
+import {
+  type ChantLayout,
+  type GraphicalNeumeKind,
+} from '../layout/layout-chant'
+import {
+  isPlacementTool,
+  type EditorTool,
+} from '../state/editor-tool'
 import type { EditorSelection } from '../state/selection'
 import { getNoteAccessibleLabel } from './note-accessible-label'
 
@@ -17,7 +23,7 @@ interface ScoreSvgProps {
   pendingFocusNoteId: string | null
   onNoteFocusHandled: (noteId: string) => void
   onSelectNote: (noteId: string) => void
-  onPlacePunctum: (point: SvgPoint) => void
+  onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
   onClearSelection: () => void
@@ -30,7 +36,7 @@ export function ScoreSvg({
   pendingFocusNoteId,
   onNoteFocusHandled,
   onSelectNote,
-  onPlacePunctum,
+  onPlaceNeume,
   onMoveNote,
   onDeleteNote,
   onClearSelection,
@@ -43,6 +49,7 @@ export function ScoreSvg({
   const noteLabel = noteCount === 1 ? 'note' : 'notes'
   const lyricLabel =
     layout.lyrics.length === 1 ? 'lyric syllable' : 'lyric syllables'
+  const placementActive = isPlacementTool(activeTool)
 
   useEffect(() => {
     if (!pendingFocusNoteId) {
@@ -68,7 +75,7 @@ export function ScoreSvg({
   }
 
   function handleScoreClick(event: MouseEvent<SVGSVGElement>) {
-    if (activeTool.kind !== 'place-punctum') {
+    if (!isPlacementTool(activeTool)) {
       onClearSelection()
       return
     }
@@ -83,7 +90,14 @@ export function ScoreSvg({
       screenTransform.inverse(),
     )
 
-    onPlacePunctum({ x: localPoint.x, y: localPoint.y })
+    const kind =
+      activeTool.kind === 'place-punctum'
+        ? 'punctum'
+        : activeTool.kind === 'place-podatus'
+          ? 'podatus'
+          : 'clivis'
+
+    onPlaceNeume(kind, { x: localPoint.x, y: localPoint.y })
   }
 
   function handleNoteKeyDown(
@@ -91,7 +105,7 @@ export function ScoreSvg({
     noteId: string,
     isSelected: boolean,
   ) {
-    if (activeTool.kind !== 'select') {
+    if (isPlacementTool(activeTool)) {
       return
     }
 
@@ -124,7 +138,7 @@ export function ScoreSvg({
 
   return (
     <svg
-      className={`score${activeTool.kind === 'place-punctum' ? ' score--placing' : ''}`}
+      className={`score${placementActive ? ' score--placing' : ''}`}
       viewBox={`0 0 ${layout.width} ${layout.height}`}
       role="group"
       aria-labelledby="score-title score-description"
@@ -193,13 +207,11 @@ export function ScoreSvg({
                 }}
                 data-note-id={note.noteId}
                 role="button"
-                tabIndex={activeTool.kind === 'select' ? 0 : -1}
-                pointerEvents={
-                  activeTool.kind === 'select' ? 'all' : 'none'
-                }
+                tabIndex={placementActive ? -1 : 0}
+                pointerEvents={placementActive ? 'none' : 'all'}
                 aria-label={accessibleLabel}
                 aria-pressed={isSelected}
-                aria-disabled={activeTool.kind !== 'select'}
+                aria-disabled={placementActive}
                 onClick={(event) => handleNoteClick(event, note.noteId)}
                 onKeyDown={(event) =>
                   handleNoteKeyDown(event, note.noteId, isSelected)
