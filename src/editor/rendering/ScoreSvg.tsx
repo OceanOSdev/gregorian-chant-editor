@@ -1,7 +1,14 @@
-import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react'
 import type { StaffPositionDelta } from '../commands/move-note'
 import {
   type ChantLayout,
+  type GraphicalPlacementPreviewLayout,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant'
 import {
@@ -18,11 +25,14 @@ export interface SvgPoint {
 
 interface ScoreSvgProps {
   layout: ChantLayout
+  placementPreview: GraphicalPlacementPreviewLayout | null
   selection: EditorSelection
   activeTool: EditorTool
   pendingFocusNoteId: string | null
   onNoteFocusHandled: (noteId: string) => void
   onSelectNote: (noteId: string) => void
+  onPlacementPointerMove: (point: SvgPoint) => void
+  onPlacementPointerLeave: () => void
   onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
@@ -31,11 +41,14 @@ interface ScoreSvgProps {
 
 export function ScoreSvg({
   layout,
+  placementPreview,
   selection,
   activeTool,
   pendingFocusNoteId,
   onNoteFocusHandled,
   onSelectNote,
+  onPlacementPointerMove,
+  onPlacementPointerLeave,
   onPlaceNeume,
   onMoveNote,
   onDeleteNote,
@@ -80,24 +93,35 @@ export function ScoreSvg({
       return
     }
 
-    const screenTransform = event.currentTarget.getScreenCTM()
+    const localPoint = getLocalPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY,
+    )
 
-    if (!screenTransform) {
+    if (!localPoint) {
       return
     }
 
-    const localPoint = new DOMPoint(event.clientX, event.clientY).matrixTransform(
-      screenTransform.inverse(),
+    onPlaceNeume(placementKind(activeTool), localPoint)
+  }
+
+  function handlePointerMove(event: PointerEvent<SVGSVGElement>) {
+    if (!isPlacementTool(activeTool)) {
+      return
+    }
+
+    const localPoint = getLocalPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY,
     )
 
-    const kind =
-      activeTool.kind === 'place-punctum'
-        ? 'punctum'
-        : activeTool.kind === 'place-podatus'
-          ? 'podatus'
-          : 'clivis'
-
-    onPlaceNeume(kind, { x: localPoint.x, y: localPoint.y })
+    if (localPoint) {
+      onPlacementPointerMove(localPoint)
+    } else {
+      onPlacementPointerLeave()
+    }
   }
 
   function handleNoteKeyDown(
@@ -143,6 +167,8 @@ export function ScoreSvg({
       role="group"
       aria-labelledby="score-title score-description"
       onClick={handleScoreClick}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => onPlacementPointerLeave()}
     >
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
@@ -172,6 +198,35 @@ export function ScoreSvg({
       >
         C
       </text>
+
+      {placementPreview ? (
+        <g
+          className="score__placement-preview"
+          pointerEvents="none"
+          aria-hidden="true"
+        >
+          {placementPreview.connector ? (
+            <line
+              className="score__placement-preview-connector"
+              x1={placementPreview.connector.x}
+              x2={placementPreview.connector.x}
+              y1={placementPreview.connector.y1}
+              y2={placementPreview.connector.y2}
+            />
+          ) : null}
+          {placementPreview.notes.map((note, index) => (
+            <rect
+              className="score__placement-preview-note"
+              key={index}
+              x={note.x}
+              y={note.y}
+              width={note.width}
+              height={note.height}
+              rx="1"
+            />
+          ))}
+        </g>
+      ) : null}
 
       {layout.neumes.map((neume) => (
         <g key={neume.neumeId} data-neume-id={neume.neumeId}>
@@ -256,4 +311,40 @@ export function ScoreSvg({
       ))}
     </svg>
   )
+}
+
+function placementKind(activeTool: EditorTool): GraphicalNeumeKind {
+  if (activeTool.kind === 'place-punctum') {
+    return 'punctum'
+  }
+
+  if (activeTool.kind === 'place-podatus') {
+    return 'podatus'
+  }
+
+  return 'clivis'
+}
+
+function getLocalPoint(
+  svg: SVGSVGElement,
+  clientX: number,
+  clientY: number,
+): SvgPoint | null {
+  const screenTransform = svg.getScreenCTM()
+
+  if (!screenTransform) {
+    return null
+  }
+
+  try {
+    const localPoint = new DOMPoint(clientX, clientY).matrixTransform(
+      screenTransform.inverse(),
+    )
+
+    return Number.isFinite(localPoint.x) && Number.isFinite(localPoint.y)
+      ? { x: localPoint.x, y: localPoint.y }
+      : null
+  } catch {
+    return null
+  }
 }

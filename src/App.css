@@ -154,6 +154,21 @@
   vector-effect: non-scaling-stroke;
 }
 
+.score__placement-preview {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.score__placement-preview-note {
+  fill: currentColor;
+}
+
+.score__placement-preview-connector {
+  stroke: currentColor;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
 .score__punctum--selected {
   stroke: #c22f26;
   stroke-width: 5;
