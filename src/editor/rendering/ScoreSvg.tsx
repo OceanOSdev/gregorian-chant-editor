@@ -3,6 +3,7 @@ import type { StaffPositionDelta } from '../commands/move-note'
 import type { ChantLayout } from '../layout/layout-chant'
 import type { EditorTool } from '../state/editor-tool'
 import type { EditorSelection } from '../state/selection'
+import { getNoteAccessibleLabel } from './note-accessible-label'
 
 export interface SvgPoint {
   x: number
@@ -174,12 +175,10 @@ export function ScoreSvg({
           {neume.notes.map((note, noteIndex) => {
             const isSelected =
               selection.kind === 'note' && selection.noteId === note.noteId
-            const accessibleLabel =
-              neume.kind === 'podatus'
-                ? noteIndex === 0
-                  ? 'Select lower note of podatus'
-                  : 'Select upper note of podatus'
-                : 'Select punctum'
+            const accessibleLabel = getNoteAccessibleLabel(
+              neume.kind,
+              noteIndex,
+            )
 
             return (
               <g

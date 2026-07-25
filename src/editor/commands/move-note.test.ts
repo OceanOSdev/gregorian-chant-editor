@@ -95,6 +95,79 @@ describe('moveNoteVertically', () => {
     ).toBe(2)
   })
 
+  it.each([
+    { noteId: 'note-clivis-1', delta: 1 as StaffPositionDelta, expected: 6 },
+    { noteId: 'note-clivis-2', delta: -1 as StaffPositionDelta, expected: 2 },
+  ])(
+    'moves either Clivis constituent when the descending contour remains valid',
+    ({ noteId, delta, expected }) => {
+      const document = createDocument()
+      const moved = moveNoteVertically(document, noteId, delta)
+      const movedClivis = moved.neumes[2]
+      const originalClivis = document.neumes[2]
+      const movedIndex = noteId === 'note-clivis-1' ? 0 : 1
+      const otherIndex = movedIndex === 0 ? 1 : 0
+
+      expect(movedClivis?.kind).toBe('clivis')
+      expect(movedClivis?.notes[movedIndex]?.staffPosition).toBe(expected)
+      expect(movedClivis?.notes[otherIndex]).toBe(
+        originalClivis?.notes[otherIndex],
+      )
+    },
+  )
+
+  it.each([
+    { noteId: 'note-clivis-1', delta: -1 as StaffPositionDelta },
+    { noteId: 'note-clivis-2', delta: 1 as StaffPositionDelta },
+  ])(
+    'rejects an equal-pitch Clivis move without history for $noteId',
+    ({ noteId, delta }) => {
+      const document: ChantDocument = {
+        ...createDocument(),
+        neumes: [
+          {
+            ...clivis,
+            notes: [
+              { ...clivis.notes[0], staffPosition: staffPosition(4) },
+              clivis.notes[1],
+            ],
+          },
+        ],
+      }
+      const history = createDocumentHistory(document)
+      const rejectedDocument = moveNoteVertically(document, noteId, delta)
+      const rejectedHistory = applyDocumentEdit(history, (current) =>
+        moveNoteVertically(current, noteId, delta),
+      )
+
+      expect(rejectedDocument).toBe(document)
+      expect(rejectedHistory).toBe(history)
+    },
+  )
+
+  it.each([
+    { noteId: 'note-clivis-1', delta: -1 as StaffPositionDelta },
+    { noteId: 'note-clivis-2', delta: 1 as StaffPositionDelta },
+  ])(
+    'rejects movement of an already reversed Clivis for $noteId',
+    ({ noteId, delta }) => {
+      const document: ChantDocument = {
+        ...createDocument(),
+        neumes: [
+          {
+            ...clivis,
+            notes: [
+              { ...clivis.notes[0], staffPosition: staffPosition(2) },
+              { ...clivis.notes[1], staffPosition: staffPosition(4) },
+            ],
+          },
+        ],
+      }
+
+      expect(moveNoteVertically(document, noteId, delta)).toBe(document)
+    },
+  )
+
   it('rejects equal-pitch and reversed movements with the original document', () => {
     const document = createDocument()
     const nearPodatus: ChantDocument = {
