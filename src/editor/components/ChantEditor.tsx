@@ -10,6 +10,7 @@ import { deleteNote } from '../commands/delete-note'
 import { insertClivis } from '../commands/insert-clivis'
 import { insertPodatus } from '../commands/insert-podatus'
 import { insertPunctum } from '../commands/insert-punctum'
+import { moveNeumeVertically } from '../commands/move-neume'
 import { moveNoteVertically } from '../commands/move-note'
 import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion'
@@ -758,6 +759,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>
               moveNoteVertically(currentDocument, noteId, delta),
+            ),
+          )
+        }
+        onMoveNeume={(neumeId, delta) =>
+          setHistory((currentHistory) =>
+            applyDocumentEdit(currentHistory, (currentDocument) =>
+              moveNeumeVertically(currentDocument, neumeId, delta),
             ),
           )
         }
