@@ -12,6 +12,23 @@ export interface LocatedNote {
   noteIndex: number
 }
 
+export interface LocatedNeume {
+  neume: Neume
+  neumeIndex: number
+}
+
+export function findNeume(
+  document: ChantDocument,
+  neumeId: string,
+): LocatedNeume | null {
+  const neumeIndex = document.neumes.findIndex(
+    (neume) => neume.id === neumeId,
+  )
+  const neume = document.neumes[neumeIndex]
+
+  return neume ? { neume, neumeIndex } : null
+}
+
 export function findNote(
   document: ChantDocument,
   noteId: string,

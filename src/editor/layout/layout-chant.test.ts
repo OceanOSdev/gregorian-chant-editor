@@ -421,4 +421,99 @@ describe('layoutChant', () => {
       ? finalOverflow.x + finalOverflow.width
       : undefined).toBeGreaterThan(staffEndX ?? 0)
   })
+
+  it.each([
+    { neume: punctum('punctum-bounds', 3), kind: 'punctum' },
+    { neume: podatus('podatus-bounds', 2, 4), kind: 'podatus' },
+    { neume: clivis('clivis-bounds', 5, 3), kind: 'clivis' },
+  ])('$kind bounds contain every constituent note', ({ neume }) => {
+    const neumeLayout = layoutChant(createDocument([neume])).neumes[0]
+
+    if (!neumeLayout) {
+      throw new Error('Missing neume layout')
+    }
+
+    for (const note of neumeLayout.notes) {
+      expect(neumeLayout.bounds.x).toBeLessThanOrEqual(note.x)
+      expect(neumeLayout.bounds.y).toBeLessThanOrEqual(note.y)
+      expect(
+        neumeLayout.bounds.x + neumeLayout.bounds.width,
+      ).toBeGreaterThanOrEqual(note.x + note.width)
+      expect(
+        neumeLayout.bounds.y + neumeLayout.bounds.height,
+      ).toBeGreaterThanOrEqual(note.y + note.height)
+    }
+  })
+
+  it.each([
+    podatus('podatus-connector-bounds', 2, 6),
+    clivis('clivis-connector-bounds', 6, 2),
+  ])('includes the $kind connector painted extent in bounds', (neume) => {
+    const neumeLayout = layoutChant(createDocument([neume])).neumes[0]
+    const connector = neumeLayout?.connector
+
+    if (!neumeLayout || !connector) {
+      throw new Error('Missing connector layout')
+    }
+
+    expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5)
+    expect(
+      neumeLayout.bounds.x + neumeLayout.bounds.width,
+    ).toBeGreaterThanOrEqual(connector.x + 1.5)
+    expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
+      Math.min(connector.y1, connector.y2) - 1.5,
+    )
+    expect(
+      neumeLayout.bounds.y + neumeLayout.bounds.height,
+    ).toBeGreaterThanOrEqual(
+      Math.max(connector.y1, connector.y2) + 1.5,
+    )
+  })
+
+  it('adds bounds without changing score, note, lyric, or spacing geometry', () => {
+    const layout = layoutChant(
+      createDocument([
+        podatus('podatus-invariant', 2, 4),
+        punctum('punctum-invariant', 3),
+      ]),
+    )
+    const firstNotes = layout.neumes[0]?.notes
+    const following = layout.neumes[1]?.notes[0]
+
+    if (!firstNotes || !following) {
+      throw new Error('Missing invariant layout')
+    }
+
+    expect(layout.width).toBe(720)
+    expect(layout.height).toBe(220)
+    expect(firstNotes.map(({ x, y }) => ({ x, y }))).toEqual([
+      { x: 222.5, y: 94.5 },
+      { x: 234.5, y: 70.5 },
+    ])
+    expect(following.x).toBe(282.5)
+    expect(layout.lyrics[0]?.x).toBe(260)
+  })
+
+  it('adds geometry only without inventing IDs or selection state', () => {
+    const neumeLayout = layoutChant(
+      createDocument([podatus('identity-bounds', 2, 4)]),
+    ).neumes[0]
+
+    expect(neumeLayout).toMatchObject({
+      neumeId: 'neume-identity-bounds',
+      kind: 'podatus',
+      notes: [
+        { noteId: 'identity-bounds-lower' },
+        { noteId: 'identity-bounds-upper' },
+      ],
+    })
+    expect(Object.keys(neumeLayout?.bounds ?? {})).toEqual([
+      'x',
+      'y',
+      'width',
+      'height',
+    ])
+    expect(neumeLayout).not.toHaveProperty('selection')
+    expect(neumeLayout).not.toHaveProperty('selected')
+  })
 })

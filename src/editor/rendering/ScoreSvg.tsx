@@ -16,7 +16,11 @@ import {
   type EditorTool,
 } from '../state/editor-tool'
 import type { EditorSelection } from '../state/selection'
-import { getNoteAccessibleLabel } from './note-accessible-label'
+import {
+  getNoteAccessibleLabel,
+  getSelectedNeumeDescription,
+  wholeNeumeSelectionInstruction,
+} from './note-accessible-label'
 
 export interface SvgPoint {
   x: number
@@ -31,11 +35,13 @@ interface ScoreSvgProps {
   pendingFocusNoteId: string | null
   onNoteFocusHandled: (noteId: string) => void
   onSelectNote: (noteId: string) => void
+  onSelectNeumeForNote: (noteId: string) => void
   onPlacementPointerMove: (point: SvgPoint) => void
   onPlacementPointerLeave: () => void
   onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
+  onDeleteNeume: (neumeId: string) => void
   onClearSelection: () => void
 }
 
@@ -47,11 +53,13 @@ export function ScoreSvg({
   pendingFocusNoteId,
   onNoteFocusHandled,
   onSelectNote,
+  onSelectNeumeForNote,
   onPlacementPointerMove,
   onPlacementPointerLeave,
   onPlaceNeume,
   onMoveNote,
   onDeleteNote,
+  onDeleteNeume,
   onClearSelection,
 }: ScoreSvgProps) {
   const noteElements = useRef(new Map<string, SVGGElement>())
@@ -84,7 +92,12 @@ export function ScoreSvg({
     noteId: string,
   ) {
     event.stopPropagation()
-    onSelectNote(noteId)
+
+    if (event.shiftKey) {
+      onSelectNeumeForNote(noteId)
+    } else {
+      onSelectNote(noteId)
+    }
   }
 
   function handleScoreClick(event: MouseEvent<SVGSVGElement>) {
@@ -127,7 +140,9 @@ export function ScoreSvg({
   function handleNoteKeyDown(
     event: KeyboardEvent<SVGGElement>,
     noteId: string,
-    isSelected: boolean,
+    neumeId: string,
+    isNoteSelected: boolean,
+    isNeumeSelected: boolean,
   ) {
     if (isPlacementTool(activeTool)) {
       return
@@ -136,7 +151,13 @@ export function ScoreSvg({
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       event.stopPropagation()
-      onSelectNote(noteId)
+
+      if (event.shiftKey) {
+        onSelectNeumeForNote(noteId)
+      } else {
+        onSelectNote(noteId)
+      }
+
       return
     }
 
@@ -144,20 +165,29 @@ export function ScoreSvg({
       event.preventDefault()
       event.stopPropagation()
 
-      if (isSelected) {
+      if (isNoteSelected) {
         onDeleteNote(noteId)
+      } else if (isNeumeSelected) {
+        onDeleteNeume(neumeId)
       }
 
       return
     }
 
-    if (!isSelected || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+      return
+    }
+
+    if (!isNoteSelected && !isNeumeSelected) {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
-    onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
+
+    if (isNoteSelected) {
+      onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
+    }
   }
 
   return (
@@ -174,6 +204,9 @@ export function ScoreSvg({
       <desc id="score-description">
         A four-line Gregorian chant staff with a C clef, {noteCount}{' '}
         {noteLabel}, and {layout.lyrics.length} {lyricLabel}.
+      </desc>
+      <desc id="whole-neume-selection-instruction">
+        {wholeNeumeSelectionInstruction}
       </desc>
 
       {layout.staffLines.map((line) => (
@@ -228,73 +261,107 @@ export function ScoreSvg({
         </g>
       ) : null}
 
-      {layout.neumes.map((neume) => (
-        <g key={neume.neumeId} data-neume-id={neume.neumeId}>
-          {neume.connector ? (
-            <line
-              className="score__neume-connector"
-              x1={neume.connector.x}
-              x2={neume.connector.x}
-              y1={neume.connector.y1}
-              y2={neume.connector.y2}
-              pointerEvents="none"
-              aria-hidden="true"
-            />
-          ) : null}
-          {neume.notes.map((note, noteIndex) => {
-            const isSelected =
-              selection.kind === 'note' && selection.noteId === note.noteId
-            const accessibleLabel = getNoteAccessibleLabel(
-              neume.kind,
-              noteIndex,
-            )
+      {layout.neumes.map((neume) => {
+        const isNeumeSelected =
+          selection.kind === 'neume' &&
+          selection.neumeId === neume.neumeId
+        const selectedDescription =
+          getSelectedNeumeDescription(neume.kind, isNeumeSelected)
+        const selectedDescriptionId = `selected-neume-${neume.neumeId}`
+        const selectionGap = 5
 
-            return (
-              <g
-                className="score__note"
-                key={note.noteId}
-                ref={(element) => {
-                  if (element) {
-                    noteElements.current.set(note.noteId, element)
-                  } else {
-                    noteElements.current.delete(note.noteId)
+        return (
+          <g key={neume.neumeId} data-neume-id={neume.neumeId}>
+            {selectedDescription ? (
+              <desc id={selectedDescriptionId}>{selectedDescription}</desc>
+            ) : null}
+            {isNeumeSelected ? (
+              <rect
+                className="score__neume-selection"
+                data-selected-neume-id={neume.neumeId}
+                x={neume.bounds.x - selectionGap}
+                y={neume.bounds.y - selectionGap}
+                width={neume.bounds.width + selectionGap * 2}
+                height={neume.bounds.height + selectionGap * 2}
+                rx="4"
+                pointerEvents="none"
+                aria-hidden="true"
+              />
+            ) : null}
+            {neume.connector ? (
+              <line
+                className="score__neume-connector"
+                x1={neume.connector.x}
+                x2={neume.connector.x}
+                y1={neume.connector.y1}
+                y2={neume.connector.y2}
+                pointerEvents="none"
+                aria-hidden="true"
+              />
+            ) : null}
+            {neume.notes.map((note, noteIndex) => {
+              const isNoteSelected =
+                selection.kind === 'note' &&
+                selection.noteId === note.noteId
+              const accessibleLabel = getNoteAccessibleLabel(
+                neume.kind,
+                noteIndex,
+              )
+
+              return (
+                <g
+                  className="score__note"
+                  key={note.noteId}
+                  ref={(element) => {
+                    if (element) {
+                      noteElements.current.set(note.noteId, element)
+                    } else {
+                      noteElements.current.delete(note.noteId)
+                    }
+                  }}
+                  data-note-id={note.noteId}
+                  role="button"
+                  tabIndex={placementActive ? -1 : 0}
+                  pointerEvents={placementActive ? 'none' : 'all'}
+                  aria-label={accessibleLabel}
+                  aria-describedby={`whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`}
+                  aria-pressed={isNoteSelected}
+                  aria-disabled={placementActive}
+                  onClick={(event) => handleNoteClick(event, note.noteId)}
+                  onKeyDown={(event) =>
+                    handleNoteKeyDown(
+                      event,
+                      note.noteId,
+                      neume.neumeId,
+                      isNoteSelected,
+                      isNeumeSelected,
+                    )
                   }
-                }}
-                data-note-id={note.noteId}
-                role="button"
-                tabIndex={placementActive ? -1 : 0}
-                pointerEvents={placementActive ? 'none' : 'all'}
-                aria-label={accessibleLabel}
-                aria-pressed={isSelected}
-                aria-disabled={placementActive}
-                onClick={(event) => handleNoteClick(event, note.noteId)}
-                onKeyDown={(event) =>
-                  handleNoteKeyDown(event, note.noteId, isSelected)
-                }
-              >
-                <rect
-                  className="score__note-hit-target"
-                  x={note.x - 6}
-                  y={note.y - 6}
-                  width={note.width + 12}
-                  height={note.height + 12}
-                  rx="3"
-                  aria-hidden="true"
-                />
-                <rect
-                  className={`score__punctum${isSelected ? ' score__punctum--selected' : ''}`}
-                  x={note.x}
-                  y={note.y}
-                  width={note.width}
-                  height={note.height}
-                  rx="1"
-                  aria-hidden="true"
-                />
-              </g>
-            )
-          })}
-        </g>
-      ))}
+                >
+                  <rect
+                    className="score__note-hit-target"
+                    x={note.x - 6}
+                    y={note.y - 6}
+                    width={note.width + 12}
+                    height={note.height + 12}
+                    rx="3"
+                    aria-hidden="true"
+                  />
+                  <rect
+                    className={`score__punctum${isNoteSelected ? ' score__punctum--selected' : ''}`}
+                    x={note.x}
+                    y={note.y}
+                    width={note.width}
+                    height={note.height}
+                    rx="1"
+                    aria-hidden="true"
+                  />
+                </g>
+              )
+            })}
+          </g>
+        )
+      })}
 
       {layout.lyrics.map((lyric) => (
         <text

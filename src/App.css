@@ -154,6 +154,14 @@
   vector-effect: non-scaling-stroke;
 }
 
+.score__neume-selection {
+  fill: rgb(126 73 163 / 8%);
+  stroke: #7e49a3;
+  stroke-dasharray: 5 3;
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+
 .score__placement-preview {
   opacity: 0.5;
   pointer-events: none;

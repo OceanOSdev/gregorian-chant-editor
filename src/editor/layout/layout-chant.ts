@@ -29,6 +29,13 @@ export interface NoteLayout {
   height: number
 }
 
+export interface LayoutBounds {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface NeumeConnectorLayout {
   x: number
   y1: number
@@ -41,6 +48,7 @@ export interface NeumeLayout {
   kind: Neume['kind']
   notes: NoteLayout[]
   connector?: NeumeConnectorLayout
+  bounds: LayoutBounds
 }
 
 export interface LyricLayout {
@@ -105,6 +113,7 @@ const noteCenterX = 230
 const noteSpacing = 48
 const noteWidth = 15
 const noteHeight = 11
+export const neumeConnectorStrokeWidth = 3
 const interNeumeGap = noteSpacing - noteWidth
 const compactTwoNoteCenterOffset = 12
 const lyricY = 180
@@ -152,6 +161,40 @@ export function createTwoNoteConnector(
     x: secondNote.x + 2,
     y1: firstNote.y + firstNote.height / 2,
     y2: secondNote.y + secondNote.height / 2,
+  }
+}
+
+export function getNeumeLayoutBounds(
+  notes: readonly PreviewNoteLayout[],
+  connector?: NeumeConnectorLayout,
+): LayoutBounds {
+  const connectorHalfStroke = neumeConnectorStrokeWidth / 2
+  const minimumX = Math.min(
+    ...notes.map((note) => note.x),
+    ...(connector ? [connector.x - connectorHalfStroke] : []),
+  )
+  const maximumX = Math.max(
+    ...notes.map((note) => note.x + note.width),
+    ...(connector ? [connector.x + connectorHalfStroke] : []),
+  )
+  const minimumY = Math.min(
+    ...notes.map((note) => note.y),
+    ...(connector
+      ? [Math.min(connector.y1, connector.y2) - connectorHalfStroke]
+      : []),
+  )
+  const maximumY = Math.max(
+    ...notes.map((note) => note.y + note.height),
+    ...(connector
+      ? [Math.max(connector.y1, connector.y2) + connectorHalfStroke]
+      : []),
+  )
+
+  return {
+    x: minimumX,
+    y: minimumY,
+    width: maximumX - minimumX,
+    height: maximumY - minimumY,
   }
 }
 
@@ -380,6 +423,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       kind: neume.kind,
       notes,
       ...(connector ? { connector } : {}),
+      bounds: getNeumeLayoutBounds(notes, connector),
     }
   })
 
