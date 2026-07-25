@@ -4,13 +4,16 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
+import { appendLyricSyllable } from '../commands/append-lyric-syllable'
 import { deleteNote } from '../commands/delete-note'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
+import { resolveSyllableNoteInsertionIndex } from '../commands/resolve-syllable-note-insertion'
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
   staffPosition,
   type ChantDocument,
+  type LyricSyllable,
   type Punctum,
 } from '../domain/chant-document'
 import {
@@ -58,45 +61,49 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     createDocumentHistory(initialDocument),
   )
   const [selection, setSelection] = useState<EditorSelection>(clearSelection)
+  const [activeSyllableId, setActiveSyllableId] = useState<string | null>(
+    initialDocument.syllables[0]?.id ?? null,
+  )
   const [activeTool, setActiveTool] = useState<EditorTool>(selectTool)
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
   )
   const [lyricDraft, setLyricDraft] = useState('')
   const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null)
+  const [committedLyricText, setCommittedLyricText] = useState('')
+  const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false)
   const skipNextLyricBlurCommit = useRef(false)
+  const lyricInput = useRef<HTMLInputElement>(null)
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
-  const canInsertPunctum =
-    history.present.syllables.length > 0 &&
-    canInsertPunctumInSingleSystem(history.present.notes.length)
   const layout = layoutChant(history.present)
   const selectedNote =
     selection.kind === 'note'
       ? history.present.notes.find((note) => note.id === selection.noteId)
       : undefined
-  const selectedSyllable = selectedNote
-    ? history.present.syllables.find(
-        (syllable) => syllable.id === selectedNote.lyricSyllableId,
-      )
-    : undefined
+  const activeSyllable = history.present.syllables.find(
+    (syllable) => syllable.id === activeSyllableId,
+  )
+  const canInsertPunctum =
+    Boolean(activeSyllable) &&
+    canInsertPunctumInSingleSystem(history.present.notes.length)
   const displayedLyricDraft =
-    selectedSyllable?.id === draftSyllableId
+    activeSyllable?.id === draftSyllableId
       ? lyricDraft
-      : (selectedSyllable?.text ?? '')
+      : (activeSyllable?.text ?? '')
 
   function commitLyricDraft(text: string) {
-    if (!selectedSyllable) {
+    if (!activeSyllable || draftSyllableId !== activeSyllable.id) {
       return
     }
 
     setHistory((currentHistory) =>
       applyDocumentEdit(currentHistory, (document) =>
-        updateLyricSyllableText(document, selectedSyllable.id, text),
+        updateLyricSyllableText(document, activeSyllable.id, text),
       ),
     )
     setLyricDraft(text)
-    setDraftSyllableId(selectedSyllable.id)
+    setCommittedLyricText(text)
   }
 
   function handleLyricKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
@@ -106,15 +113,47 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return
     }
 
-    if (event.key !== 'Escape' || !selectedSyllable) {
+    if (event.key !== 'Escape' || !activeSyllable) {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
     skipNextLyricBlurCommit.current = true
-    setLyricDraft(selectedSyllable.text)
-    setDraftSyllableId(selectedSyllable.id)
+    setLyricDraft(committedLyricText)
+    setDraftSyllableId(activeSyllable.id)
+  }
+
+  function handleSelectNote(noteId: string) {
+    const note = history.present.notes.find(
+      (candidate) => candidate.id === noteId,
+    )
+
+    if (!note) {
+      return
+    }
+
+    setSelection(selectNote(noteId))
+    setActiveSyllableId(note.lyricSyllableId)
+  }
+
+  function handleSelectSyllable(syllableId: string) {
+    setActiveSyllableId(syllableId)
+    setSelection(clearSelection())
+  }
+
+  function handleAddSyllable() {
+    const syllableId = globalThis.crypto.randomUUID()
+    const syllable: LyricSyllable = { id: syllableId, text: '' }
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        appendLyricSyllable(document, syllable),
+      ),
+    )
+    setActiveSyllableId(syllableId)
+    setSelection(clearSelection())
+    setPendingLyricInputFocus(true)
   }
 
   function handleAddPunctum() {
@@ -122,35 +161,47 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return
     }
 
-    const selectedNoteIndex =
-      selection.kind === 'note'
-        ? history.present.notes.findIndex(
-            (note) => note.id === selection.noteId,
-          )
-        : -1
-    const referenceNote =
-      selectedNoteIndex >= 0
-        ? history.present.notes[selectedNoteIndex]
-        : history.present.notes.at(-1)
-    const firstSyllable = history.present.syllables[0]
-    const lyricSyllableId =
-      referenceNote?.lyricSyllableId ?? firstSyllable?.id
-
-    if (!lyricSyllableId) {
+    if (!activeSyllable) {
       return
     }
+
+    const selectedNoteIndex = selectedNote
+      ? history.present.notes.indexOf(selectedNote)
+      : -1
+    const selectedActiveNote =
+      selectedNote?.lyricSyllableId === activeSyllable.id
+        ? selectedNote
+        : undefined
+    const activeNoteIndexes = history.present.notes.flatMap((note, index) =>
+      note.lyricSyllableId === activeSyllable.id ? [index] : [],
+    )
+    const finalActiveNoteIndex = activeNoteIndexes.at(-1)
+    const preferredIndex = selectedActiveNote
+      ? selectedNoteIndex + 1
+      : (finalActiveNoteIndex ?? history.present.notes.length) + 1
+    const insertionIndex = resolveSyllableNoteInsertionIndex(
+      history.present,
+      activeSyllable.id,
+      preferredIndex,
+    )
+
+    if (insertionIndex === null) {
+      return
+    }
+
+    const referenceNote =
+      selectedActiveNote ??
+      (finalActiveNoteIndex === undefined
+        ? undefined
+        : history.present.notes[finalActiveNoteIndex])
 
     const noteId = globalThis.crypto.randomUUID()
     const punctum: Punctum = {
       id: noteId,
       kind: 'punctum',
       staffPosition: referenceNote?.staffPosition ?? staffPosition(2),
-      lyricSyllableId,
+      lyricSyllableId: activeSyllable.id,
     }
-    const insertionIndex =
-      selectedNoteIndex >= 0
-        ? selectedNoteIndex + 1
-        : history.present.notes.length
 
     setHistory((currentHistory) =>
       applyDocumentEdit(currentHistory, (document) =>
@@ -168,18 +219,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       history.present.notes.length,
     )
 
-    if (!placement || history.present.syllables.length === 0) {
+    if (!placement || !activeSyllable) {
       return
     }
 
-    const followingNote = history.present.notes[placement.insertionIndex]
-    const precedingNote = history.present.notes[placement.insertionIndex - 1]
-    const lyricSyllableId =
-      followingNote?.lyricSyllableId ??
-      precedingNote?.lyricSyllableId ??
-      history.present.syllables[0]?.id
+    const insertionIndex = resolveSyllableNoteInsertionIndex(
+      history.present,
+      activeSyllable.id,
+      placement.insertionIndex,
+    )
 
-    if (!lyricSyllableId) {
+    if (insertionIndex === null) {
       return
     }
 
@@ -188,12 +238,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       id: noteId,
       kind: 'punctum',
       staffPosition: placement.staffPosition,
-      lyricSyllableId,
+      lyricSyllableId: activeSyllable.id,
     }
 
     setHistory((currentHistory) =>
       applyDocumentEdit(currentHistory, (document) =>
-        insertPunctum(document, punctum, placement.insertionIndex),
+        insertPunctum(document, punctum, insertionIndex),
       ),
     )
     setSelection(selectNote(noteId))
@@ -202,6 +252,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   useEffect(() => {
+    const selectedDocumentNote =
+      selection.kind === 'note'
+        ? history.present.notes.find((note) => note.id === selection.noteId)
+        : undefined
+
     setSelection((currentSelection) => {
       if (
         currentSelection.kind === 'note' &&
@@ -214,13 +269,40 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
       return currentSelection
     })
-  }, [history.present])
+
+    setActiveSyllableId((currentSyllableId) => {
+      if (selectedDocumentNote) {
+        return selectedDocumentNote.lyricSyllableId
+      }
+
+      if (
+        currentSyllableId &&
+        history.present.syllables.some(
+          (syllable) => syllable.id === currentSyllableId,
+        )
+      ) {
+        return currentSyllableId
+      }
+
+      return history.present.syllables.at(-1)?.id ?? null
+    })
+  }, [history.present, selection])
 
   useEffect(() => {
-    setLyricDraft(selectedSyllable?.text ?? '')
-    setDraftSyllableId(selectedSyllable?.id ?? null)
+    setLyricDraft(activeSyllable?.text ?? '')
+    setDraftSyllableId(activeSyllable?.id ?? null)
+    setCommittedLyricText(activeSyllable?.text ?? '')
     skipNextLyricBlurCommit.current = false
-  }, [selectedSyllable?.id, selectedSyllable?.text])
+  }, [activeSyllable?.id, activeSyllable?.text])
+
+  useEffect(() => {
+    if (!pendingLyricInputFocus || !activeSyllable) {
+      return
+    }
+
+    lyricInput.current?.focus()
+    setPendingLyricInputFocus(false)
+  }, [activeSyllable, pendingLyricInputFocus])
 
   useEffect(() => {
     function handleHistoryShortcut(event: KeyboardEvent) {
@@ -317,17 +399,45 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Redo
         </button>
       </div>
+      <section className="editor-lyrics" aria-labelledby="lyrics-heading">
+        <h2 id="lyrics-heading">Lyrics</h2>
+        <ol>
+          {history.present.syllables.map((syllable, index) => {
+            const position = index + 1
+            const displayText = syllable.text || '(empty)'
+            const accessibleText = syllable.text || 'empty'
+
+            return (
+              <li key={syllable.id}>
+                <button
+                  type="button"
+                  aria-label={`Syllable ${position}: ${accessibleText}`}
+                  aria-pressed={syllable.id === activeSyllable?.id}
+                  onClick={() => handleSelectSyllable(syllable.id)}
+                >
+                  <span aria-hidden="true">{position}. </span>
+                  {displayText}
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+        <button type="button" onClick={handleAddSyllable}>
+          Add syllable
+        </button>
+      </section>
       <section className="editor-properties" aria-label="Properties">
         <label htmlFor="lyric-syllable">Lyric syllable</label>
         <input
+          ref={lyricInput}
           id="lyric-syllable"
           type="text"
           value={displayedLyricDraft}
-          disabled={!selectedSyllable}
+          disabled={!activeSyllable}
           onChange={(event) => {
             skipNextLyricBlurCommit.current = false
             setLyricDraft(event.currentTarget.value)
-            setDraftSyllableId(selectedSyllable?.id ?? null)
+            setDraftSyllableId(activeSyllable?.id ?? null)
           }}
           onKeyDown={handleLyricKeyDown}
           onBlur={(event) => {
@@ -350,7 +460,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             currentNoteId === noteId ? null : currentNoteId,
           )
         }
-        onSelectNote={(noteId) => setSelection(selectNote(noteId))}
+        onSelectNote={handleSelectNote}
         onPlacePunctum={({ x, y }) => handlePlacePunctum(x, y)}
         onMoveNote={(noteId, delta) =>
           setHistory((currentHistory) =>

@@ -117,6 +117,46 @@ describe('layoutChant', () => {
     expect(lyric.x).toBe(associatedNotesMidpoint)
   })
 
+  it('renders associated syllables once and omits syllables without notes', () => {
+    const document: ChantDocument = {
+      ...createDocument([]),
+      syllables: [
+        { id: 'syllable-1', text: 'Ky-' },
+        { id: 'syllable-2', text: '' },
+        { id: 'syllable-3', text: 'ri-' },
+      ],
+      notes: [
+        {
+          id: 'note-1',
+          kind: 'punctum',
+          staffPosition: staffPosition(2),
+          lyricSyllableId: 'syllable-1',
+        },
+        {
+          id: 'note-2',
+          kind: 'punctum',
+          staffPosition: staffPosition(3),
+          lyricSyllableId: 'syllable-1',
+        },
+        {
+          id: 'note-3',
+          kind: 'punctum',
+          staffPosition: staffPosition(4),
+          lyricSyllableId: 'syllable-3',
+        },
+      ],
+    }
+    const layout = layoutChant(document)
+
+    expect(layout.lyrics.map((lyric) => lyric.syllableId)).toEqual([
+      'syllable-1',
+      'syllable-3',
+    ])
+    expect(
+      layout.lyrics.filter((lyric) => lyric.syllableId === 'syllable-1'),
+    ).toHaveLength(1)
+  })
+
   it('fits the maximum single-system note count within the staff', () => {
     const layout = layoutChant(
       createDocument(Array.from({ length: singleSystemNoteCapacity }, () => 3)),
