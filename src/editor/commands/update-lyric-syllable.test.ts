@@ -17,24 +17,24 @@ function createDocument(): ChantDocument {
       { id: 'syllable-1', text: 'Ky-' },
       { id: 'syllable-2', text: 'ri-' },
     ],
-    notes: [
+    neumes: [
       {
-        id: 'note-1',
+        id: 'neume-1',
         kind: 'punctum',
-        staffPosition: staffPosition(3),
         lyricSyllableId: 'syllable-1',
+        notes: [{ id: 'note-1', staffPosition: staffPosition(3) }],
       },
       {
-        id: 'note-2',
+        id: 'neume-2',
         kind: 'punctum',
-        staffPosition: staffPosition(4),
         lyricSyllableId: 'syllable-1',
+        notes: [{ id: 'note-2', staffPosition: staffPosition(4) }],
       },
       {
-        id: 'note-3',
+        id: 'neume-3',
         kind: 'punctum',
-        staffPosition: staffPosition(5),
         lyricSyllableId: 'syllable-2',
+        notes: [{ id: 'note-3', staffPosition: staffPosition(5) }],
       },
     ],
   }
@@ -51,9 +51,9 @@ describe('updateLyricSyllableText', () => {
 
     expect(updatedDocument.syllables[0]?.text).toBe('Kyr-')
     expect(updatedDocument.syllables[1]).toBe(document.syllables[1])
-    expect(updatedDocument.notes).toBe(document.notes)
-    expect(updatedDocument.notes.map((note) => note.lyricSyllableId)).toEqual(
-      document.notes.map((note) => note.lyricSyllableId),
+    expect(updatedDocument.neumes).toBe(document.neumes)
+    expect(updatedDocument.neumes.map((neume) => neume.lyricSyllableId)).toEqual(
+      document.neumes.map((neume) => neume.lyricSyllableId),
     )
   })
 

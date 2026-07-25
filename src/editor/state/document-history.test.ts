@@ -17,12 +17,12 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-    notes: [
+    neumes: [
       {
-        id: 'note-1',
+        id: 'neume-1',
         kind: 'punctum',
-        staffPosition: staffPosition(3),
         lyricSyllableId: 'syllable-1',
+        notes: [{ id: 'note-1', staffPosition: staffPosition(3) }],
       },
     ],
   }
@@ -37,7 +37,7 @@ describe('document history', () => {
     )
 
     expect(editedHistory.past).toEqual([document])
-    expect(editedHistory.present.notes[0]?.staffPosition).toBe(4)
+    expect(editedHistory.present.neumes[0]?.notes[0]?.staffPosition).toBe(4)
     expect(editedHistory.future).toEqual([])
   })
 
@@ -66,7 +66,7 @@ describe('document history', () => {
     )
 
     expect(replacedHistory.future).toEqual([])
-    expect(replacedHistory.present.notes[0]?.staffPosition).toBe(2)
+    expect(replacedHistory.present.neumes[0]?.notes[0]?.staffPosition).toBe(2)
   })
 
   it('does not create a history entry for a no-op edit', () => {
@@ -114,9 +114,9 @@ describe('document history', () => {
     const undoneHistory = undoDocumentEdit(deletedHistory)
     const redoneHistory = redoDocumentEdit(undoneHistory)
 
-    expect(deletedHistory.present.notes).toHaveLength(0)
-    expect(undoneHistory.present.notes).toHaveLength(1)
-    expect(redoneHistory.present.notes).toHaveLength(0)
+    expect(deletedHistory.present.neumes).toHaveLength(0)
+    expect(undoneHistory.present.neumes).toHaveLength(1)
+    expect(redoneHistory.present.neumes).toHaveLength(0)
   })
 
   it('undoes and redoes note movement', () => {
@@ -127,8 +127,8 @@ describe('document history', () => {
     const undoneHistory = undoDocumentEdit(movedHistory)
     const redoneHistory = redoDocumentEdit(undoneHistory)
 
-    expect(movedHistory.present.notes[0]?.staffPosition).toBe(4)
-    expect(undoneHistory.present.notes[0]?.staffPosition).toBe(3)
-    expect(redoneHistory.present.notes[0]?.staffPosition).toBe(4)
+    expect(movedHistory.present.neumes[0]?.notes[0]?.staffPosition).toBe(4)
+    expect(undoneHistory.present.neumes[0]?.notes[0]?.staffPosition).toBe(3)
+    expect(redoneHistory.present.neumes[0]?.notes[0]?.staffPosition).toBe(4)
   })
 })

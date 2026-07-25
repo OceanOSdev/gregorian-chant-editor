@@ -29,16 +29,37 @@ export interface LyricSyllable {
   text: string
 }
 
-export interface Punctum {
+export interface ChantNote {
+  id: string
+  staffPosition: StaffPosition
+}
+
+export interface PunctumNeume {
   id: string
   kind: 'punctum'
-  staffPosition: StaffPosition
   lyricSyllableId: string
+  notes: [ChantNote]
 }
+
+export interface PodatusNeume {
+  id: string
+  kind: 'podatus'
+  lyricSyllableId: string
+  notes: [ChantNote, ChantNote]
+}
+
+export interface ClivisNeume {
+  id: string
+  kind: 'clivis'
+  lyricSyllableId: string
+  notes: [ChantNote, ChantNote]
+}
+
+export type Neume = PunctumNeume | PodatusNeume | ClivisNeume
 
 export interface ChantDocument {
   title: string
   clef: Clef
   syllables: LyricSyllable[]
-  notes: Punctum[]
+  neumes: Neume[]
 }

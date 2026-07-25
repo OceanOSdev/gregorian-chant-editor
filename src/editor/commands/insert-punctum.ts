@@ -1,19 +1,19 @@
 import type {
   ChantDocument,
-  Punctum,
+  PunctumNeume,
 } from '../domain/chant-document'
 
 export function insertPunctum(
   document: ChantDocument,
-  punctum: Punctum,
+  punctum: PunctumNeume,
   insertionIndex: number,
 ): ChantDocument {
   return {
     ...document,
-    notes: [
-      ...document.notes.slice(0, insertionIndex),
+    neumes: [
+      ...document.neumes.slice(0, insertionIndex),
       punctum,
-      ...document.notes.slice(insertionIndex),
+      ...document.neumes.slice(insertionIndex),
     ],
   }
 }

@@ -13,12 +13,12 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-    notes: [
+    neumes: [
       {
-        id: 'note-1',
+        id: 'neume-1',
         kind: 'punctum',
-        staffPosition: staffPosition(2),
         lyricSyllableId: 'syllable-1',
+        notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
       },
     ],
   }
@@ -35,7 +35,7 @@ describe('appendLyricSyllable', () => {
       newSyllable,
     ])
     expect(appendedDocument.syllables[0]).toBe(document.syllables[0])
-    expect(appendedDocument.notes).toBe(document.notes)
+    expect(appendedDocument.neumes).toBe(document.neumes)
     expect(document.syllables).toHaveLength(1)
   })
 

@@ -1,7 +1,9 @@
 import {
   staffPosition,
   type ChantDocument,
+  type Neume,
 } from '../domain/chant-document'
+import { findNote, isValidNeume } from '../domain/neume'
 
 export type StaffPositionDelta = -1 | 1
 
@@ -10,17 +12,43 @@ export function moveNoteVertically(
   noteId: string,
   delta: StaffPositionDelta,
 ): ChantDocument {
+  const locatedNote = findNote(document, noteId)
+
+  if (!locatedNote) {
+    return document
+  }
+
+  const movedNote = {
+    ...locatedNote.note,
+    staffPosition: staffPosition(locatedNote.note.staffPosition + delta),
+  }
+  let movedNeume: Neume
+
+  if (locatedNote.neume.kind === 'punctum') {
+    movedNeume = {
+      ...locatedNote.neume,
+      notes: [movedNote],
+    }
+  } else {
+    const [firstNote, secondNote] = locatedNote.neume.notes
+
+    movedNeume = {
+      ...locatedNote.neume,
+      notes:
+        locatedNote.noteIndex === 0
+          ? [movedNote, secondNote]
+          : [firstNote, movedNote],
+    }
+  }
+
+  if (!isValidNeume(movedNeume)) {
+    return document
+  }
+
   return {
     ...document,
-    notes: document.notes.map((note) => {
-      if (note.id !== noteId) {
-        return note
-      }
-
-      return {
-        ...note,
-        staffPosition: staffPosition(note.staffPosition + delta),
-      }
-    }),
+    neumes: document.neumes.map((neume, index) =>
+      index === locatedNote.neumeIndex ? movedNeume : neume,
+    ),
   }
 }
