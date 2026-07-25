@@ -198,6 +198,28 @@ export function getNeumeLayoutBounds(
   }
 }
 
+function getNeumeLyricAlignmentX(
+  neumeLayout: NeumeLayout,
+): number | null {
+  switch (neumeLayout.kind) {
+    case 'punctum':
+    case 'podatus': {
+      const firstNote = neumeLayout.notes[0]
+      const alignmentX = firstNote
+        ? firstNote.x + firstNote.width / 2
+        : Number.NaN
+
+      return Number.isFinite(alignmentX) ? alignmentX : null
+    }
+    case 'clivis': {
+      const alignmentX =
+        neumeLayout.bounds.x + neumeLayout.bounds.width / 2
+
+      return Number.isFinite(alignmentX) ? alignmentX : null
+    }
+  }
+}
+
 function getNeumeNoteCenters(neumes: readonly Neume[]) {
   let nextCenterX = noteCenterX
 
@@ -389,21 +411,12 @@ export function getSingleSystemNeumePlacement(
 }
 
 export function layoutChant(document: ChantDocument): ChantLayout {
-  const noteCentersBySyllableId = new Map<string, number[]>()
   const neumeNoteCenters = getNeumeNoteCenters(document.neumes)
 
   const neumes = document.neumes.map((neume, neumeIndex) => {
     const noteCenters = neumeNoteCenters[neumeIndex] ?? []
     const notes = neume.notes.map((note, noteIndex) => {
       const centerX = noteCenters[noteIndex] ?? noteCenterX
-      const associatedNoteCenters =
-        noteCentersBySyllableId.get(neume.lyricSyllableId) ?? []
-
-      associatedNoteCenters.push(centerX)
-      noteCentersBySyllableId.set(
-        neume.lyricSyllableId,
-        associatedNoteCenters,
-      )
 
       return {
         ...createNoteLayout(centerX, note.staffPosition),
@@ -426,18 +439,24 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       bounds: getNeumeLayoutBounds(notes, connector),
     }
   })
+  const firstNeumeBySyllableId = new Map<string, NeumeLayout>()
+
+  for (const neume of neumes) {
+    if (!firstNeumeBySyllableId.has(neume.lyricSyllableId)) {
+      firstNeumeBySyllableId.set(neume.lyricSyllableId, neume)
+    }
+  }
 
   const lyrics = document.syllables.flatMap((syllable) => {
-    const associatedNoteCenters = noteCentersBySyllableId.get(syllable.id)
+    const firstNeume = firstNeumeBySyllableId.get(syllable.id)
 
-    if (!associatedNoteCenters || associatedNoteCenters.length === 0) {
+    if (!firstNeume) {
       return []
     }
 
-    const firstNoteCenter = associatedNoteCenters[0]
-    const lastNoteCenter = associatedNoteCenters.at(-1)
+    const alignmentX = getNeumeLyricAlignmentX(firstNeume)
 
-    if (firstNoteCenter === undefined || lastNoteCenter === undefined) {
+    if (alignmentX === null) {
       return []
     }
 
@@ -445,7 +464,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       {
         syllableId: syllable.id,
         text: syllable.text,
-        x: (firstNoteCenter + lastNoteCenter) / 2,
+        x: alignmentX,
         y: lyricY,
         fontSize: 20,
       },
