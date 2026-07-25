@@ -5,6 +5,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { appendLyricSyllable } from '../commands/append-lyric-syllable'
+import { deleteNeume } from '../commands/delete-neume'
 import { deleteNote } from '../commands/delete-note'
 import { insertClivis } from '../commands/insert-clivis'
 import { insertPodatus } from '../commands/insert-podatus'
@@ -21,7 +22,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
 } from '../domain/chant-document'
-import { countNotes, findNote } from '../domain/neume'
+import { countNotes, findNeume, findNote } from '../domain/neume'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
   canInsertNotesInSingleSystem,
@@ -47,6 +48,9 @@ import {
 } from '../state/editor-tool'
 import {
   clearSelection,
+  reconcileSelection,
+  resolveSelectionSyllableId,
+  selectNeume,
   selectNote,
   type EditorSelection,
 } from '../state/selection'
@@ -178,15 +182,39 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setDraftSyllableId(activeSyllable.id)
   }
 
+  function handleScoreSelection(
+    nextSelection: EditorSelection,
+    focusNoteId?: string,
+  ) {
+    const syllableId = resolveSelectionSyllableId(
+      history.present,
+      nextSelection,
+    )
+
+    if (!syllableId) {
+      return
+    }
+
+    setSelection(nextSelection)
+    setActiveSyllableId(syllableId)
+
+    if (focusNoteId) {
+      setPendingFocusNoteId(focusNoteId)
+    }
+  }
+
   function handleSelectNote(noteId: string) {
+    handleScoreSelection(selectNote(noteId))
+  }
+
+  function handleSelectNeumeForNote(noteId: string) {
     const locatedNote = findNote(history.present, noteId)
 
     if (!locatedNote) {
       return
     }
 
-    setSelection(selectNote(noteId))
-    setActiveSyllableId(locatedNote.neume.lyricSyllableId)
+    handleScoreSelection(selectNeume(locatedNote.neume.id), noteId)
   }
 
   function handleSelectSyllable(syllableId: string) {
@@ -484,25 +512,18 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   useEffect(() => {
-    const selectedDocumentNote =
-      selection.kind === 'note'
-        ? findNote(history.present, selection.noteId)
-        : null
+    const selectedSyllableId = resolveSelectionSyllableId(
+      history.present,
+      selection,
+    )
 
-    setSelection((currentSelection) => {
-      if (
-        currentSelection.kind === 'note' &&
-        !findNote(history.present, currentSelection.noteId)
-      ) {
-        return clearSelection()
-      }
-
-      return currentSelection
-    })
+    setSelection((currentSelection) =>
+      reconcileSelection(history.present, currentSelection),
+    )
 
     setActiveSyllableId((currentSyllableId) => {
-      if (selectedDocumentNote) {
-        return selectedDocumentNote.neume.lyricSyllableId
+      if (selectedSyllableId) {
+        return selectedSyllableId
       }
 
       if (
@@ -567,25 +588,30 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [canRedo, canUndo])
 
   useEffect(() => {
-    if (!isPlacementTool(activeTool)) {
-      return
-    }
-
-    function handlePlacementCancel(event: KeyboardEvent) {
+    function handleSelectionEscape(event: KeyboardEvent) {
       if (event.key !== 'Escape') {
         return
       }
 
+      if (isEditableTarget(event.target)) {
+        return
+      }
+
       event.preventDefault()
-      returnToSelect()
+
+      if (isPlacementTool(activeTool)) {
+        returnToSelect()
+      } else {
+        setSelection(clearSelection())
+      }
     }
 
-    globalThis.document.addEventListener('keydown', handlePlacementCancel)
+    globalThis.document.addEventListener('keydown', handleSelectionEscape)
 
     return () =>
       globalThis.document.removeEventListener(
         'keydown',
-        handlePlacementCancel,
+        handleSelectionEscape,
       )
   }, [activeTool])
 
@@ -724,6 +750,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           )
         }
         onSelectNote={handleSelectNote}
+        onSelectNeumeForNote={handleSelectNeumeForNote}
         onPlacementPointerMove={setHoveredScorePoint}
         onPlacementPointerLeave={() => setHoveredScorePoint(null)}
         onPlaceNeume={handlePlaceNeume}
@@ -738,6 +765,18 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>
               deleteNote(currentDocument, noteId),
+            ),
+          )
+          setSelection(clearSelection())
+        }}
+        onDeleteNeume={(neumeId) => {
+          if (!findNeume(history.present, neumeId)) {
+            return
+          }
+
+          setHistory((currentHistory) =>
+            applyDocumentEdit(currentHistory, (currentDocument) =>
+              deleteNeume(currentDocument, neumeId),
             ),
           )
           setSelection(clearSelection())

@@ -18,3 +18,24 @@ export function getNoteAccessibleLabel(
 
   return 'Select punctum'
 }
+
+export const wholeNeumeSelectionInstruction =
+  'Shift plus Enter or Space selects the whole neume.'
+
+export function getSelectedNeumeDescription(
+  kind: Neume['kind'],
+  isSelected: boolean,
+): string | null {
+  if (!isSelected) {
+    return null
+  }
+
+  const name =
+    kind === 'punctum'
+      ? 'Punctum'
+      : kind === 'podatus'
+        ? 'Podatus'
+        : 'Clivis'
+
+  return `Whole ${name.toLowerCase()} selected. Delete or Backspace removes it.`
+}

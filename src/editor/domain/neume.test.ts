@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  type ChantDocument,
   staffPosition,
   type ClivisNeume,
   type PodatusNeume,
   type PunctumNeume,
 } from './chant-document'
-import { isValidNeume } from './neume'
+import { findNeume, findNote, isValidNeume } from './neume'
 
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
@@ -65,5 +66,29 @@ describe('neume validation', () => {
   it('rejects reversed podatus and clivis structures', () => {
     expect(isValidNeume(podatus(4, 2))).toBe(false)
     expect(isValidNeume(clivis(2, 4))).toBe(false)
+  })
+})
+
+describe('neume lookup', () => {
+  const document: ChantDocument = {
+    title: 'Test chant',
+    clef: { type: 'c', staffLine: 3 },
+    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    neumes: [punctum, podatus(2, 4)],
+  }
+
+  it('finds a neume and its document index', () => {
+    expect(findNeume(document, 'neume-podatus')).toEqual({
+      neume: document.neumes[1],
+      neumeIndex: 1,
+    })
+  })
+
+  it('returns null for a missing neume', () => {
+    expect(findNeume(document, 'missing')).toBeNull()
+  })
+
+  it('resolves a note to its owning neume', () => {
+    expect(findNote(document, 'note-2')?.neume).toBe(document.neumes[1])
   })
 })
