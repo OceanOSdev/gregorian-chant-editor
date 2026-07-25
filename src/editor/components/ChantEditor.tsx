@@ -8,14 +8,15 @@ import { appendLyricSyllable } from '../commands/append-lyric-syllable'
 import { deleteNote } from '../commands/delete-note'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
-import { resolveSyllableNoteInsertionIndex } from '../commands/resolve-syllable-note-insertion'
+import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
   staffPosition,
   type ChantDocument,
   type LyricSyllable,
-  type Punctum,
+  type PunctumNeume,
 } from '../domain/chant-document'
+import { countNotes, findNote } from '../domain/neume'
 import {
   canInsertPunctumInSingleSystem,
   getSingleSystemPunctumPlacement,
@@ -77,16 +78,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
   const layout = layoutChant(history.present)
-  const selectedNote =
+  const selectedLocatedNote =
     selection.kind === 'note'
-      ? history.present.notes.find((note) => note.id === selection.noteId)
-      : undefined
+      ? findNote(history.present, selection.noteId)
+      : null
   const activeSyllable = history.present.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
   )
   const canInsertPunctum =
     Boolean(activeSyllable) &&
-    canInsertPunctumInSingleSystem(history.present.notes.length)
+    canInsertPunctumInSingleSystem(countNotes(history.present.neumes))
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
@@ -125,16 +126,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handleSelectNote(noteId: string) {
-    const note = history.present.notes.find(
-      (candidate) => candidate.id === noteId,
-    )
+    const locatedNote = findNote(history.present, noteId)
 
-    if (!note) {
+    if (!locatedNote) {
       return
     }
 
     setSelection(selectNote(noteId))
-    setActiveSyllableId(note.lyricSyllableId)
+    setActiveSyllableId(locatedNote.neume.lyricSyllableId)
   }
 
   function handleSelectSyllable(syllableId: string) {
@@ -165,21 +164,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return
     }
 
-    const selectedNoteIndex = selectedNote
-      ? history.present.notes.indexOf(selectedNote)
-      : -1
     const selectedActiveNote =
-      selectedNote?.lyricSyllableId === activeSyllable.id
-        ? selectedNote
-        : undefined
-    const activeNoteIndexes = history.present.notes.flatMap((note, index) =>
-      note.lyricSyllableId === activeSyllable.id ? [index] : [],
+      selectedLocatedNote?.neume.lyricSyllableId === activeSyllable.id
+        ? selectedLocatedNote
+        : null
+    const activeNeumeIndexes = history.present.neumes.flatMap(
+      (neume, index) =>
+        neume.lyricSyllableId === activeSyllable.id ? [index] : [],
     )
-    const finalActiveNoteIndex = activeNoteIndexes.at(-1)
+    const finalActiveNeumeIndex = activeNeumeIndexes.at(-1)
     const preferredIndex = selectedActiveNote
-      ? selectedNoteIndex + 1
-      : (finalActiveNoteIndex ?? history.present.notes.length) + 1
-    const insertionIndex = resolveSyllableNoteInsertionIndex(
+      ? selectedActiveNote.neumeIndex + 1
+      : (finalActiveNeumeIndex ?? history.present.neumes.length) + 1
+    const insertionIndex = resolveSyllableNeumeInsertionIndex(
       history.present,
       activeSyllable.id,
       preferredIndex,
@@ -190,17 +187,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     }
 
     const referenceNote =
-      selectedActiveNote ??
-      (finalActiveNoteIndex === undefined
+      selectedActiveNote?.note ??
+      (finalActiveNeumeIndex === undefined
         ? undefined
-        : history.present.notes[finalActiveNoteIndex])
+        : history.present.neumes[finalActiveNeumeIndex]?.notes.at(-1))
 
+    const neumeId = globalThis.crypto.randomUUID()
     const noteId = globalThis.crypto.randomUUID()
-    const punctum: Punctum = {
-      id: noteId,
+    const punctum: PunctumNeume = {
+      id: neumeId,
       kind: 'punctum',
-      staffPosition: referenceNote?.staffPosition ?? staffPosition(2),
       lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: noteId,
+          staffPosition: referenceNote?.staffPosition ?? staffPosition(2),
+        },
+      ],
     }
 
     setHistory((currentHistory) =>
@@ -216,29 +219,35 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     const placement = getSingleSystemPunctumPlacement(
       x,
       y,
-      history.present.notes.length,
+      history.present.neumes,
     )
 
     if (!placement || !activeSyllable) {
       return
     }
 
-    const insertionIndex = resolveSyllableNoteInsertionIndex(
+    const insertionIndex = resolveSyllableNeumeInsertionIndex(
       history.present,
       activeSyllable.id,
-      placement.insertionIndex,
+      placement.neumeInsertionIndex,
     )
 
     if (insertionIndex === null) {
       return
     }
 
+    const neumeId = globalThis.crypto.randomUUID()
     const noteId = globalThis.crypto.randomUUID()
-    const punctum: Punctum = {
-      id: noteId,
+    const punctum: PunctumNeume = {
+      id: neumeId,
       kind: 'punctum',
-      staffPosition: placement.staffPosition,
       lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: noteId,
+          staffPosition: placement.staffPosition,
+        },
+      ],
     }
 
     setHistory((currentHistory) =>
@@ -254,15 +263,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   useEffect(() => {
     const selectedDocumentNote =
       selection.kind === 'note'
-        ? history.present.notes.find((note) => note.id === selection.noteId)
-        : undefined
+        ? findNote(history.present, selection.noteId)
+        : null
 
     setSelection((currentSelection) => {
       if (
         currentSelection.kind === 'note' &&
-        !history.present.notes.some(
-          (note) => note.id === currentSelection.noteId,
-        )
+        !findNote(history.present, currentSelection.noteId)
       ) {
         return clearSelection()
       }
@@ -272,7 +279,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
     setActiveSyllableId((currentSyllableId) => {
       if (selectedDocumentNote) {
-        return selectedDocumentNote.lyricSyllableId
+        return selectedDocumentNote.neume.lyricSyllableId
       }
 
       if (

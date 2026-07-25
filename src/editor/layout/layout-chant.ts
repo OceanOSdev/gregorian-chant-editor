@@ -1,9 +1,11 @@
 import {
   staffPosition,
   type ChantDocument,
+  type Neume,
   type StaffLine,
   type StaffPosition,
 } from '../domain/chant-document'
+import { countNotes } from '../domain/neume'
 
 export interface StaffLineLayout {
   x1: number
@@ -19,12 +21,19 @@ export interface ClefLayout {
   fontSize: number
 }
 
-export interface PunctumLayout {
+export interface NoteLayout {
   noteId: string
   x: number
   y: number
   width: number
   height: number
+}
+
+export interface NeumeLayout {
+  neumeId: string
+  lyricSyllableId: string
+  kind: Neume['kind']
+  notes: NoteLayout[]
 }
 
 export interface LyricLayout {
@@ -41,13 +50,13 @@ export interface ChantLayout {
   height: number
   staffLines: StaffLineLayout[]
   clef: ClefLayout
-  notes: PunctumLayout[]
+  neumes: NeumeLayout[]
   lyrics: LyricLayout[]
 }
 
 export interface PunctumPlacement {
   staffPosition: StaffPosition
-  insertionIndex: number
+  neumeInsertionIndex: number
 }
 
 const canvasWidth = 720
@@ -88,8 +97,9 @@ function staffLineY(line: StaffLine) {
 export function getSingleSystemPunctumPlacement(
   x: number,
   y: number,
-  currentNoteCount: number,
+  neumes: readonly Neume[],
 ): PunctumPlacement | null {
+  const currentNoteCount = countNotes(neumes)
   const minimumPlacementY = staffPositionY(staffPosition(7))
   const maximumPlacementY = staffPositionY(staffPosition(-1))
 
@@ -105,38 +115,67 @@ export function getSingleSystemPunctumPlacement(
 
   const snappedPosition = Math.round((bottomStaffY - y) / staffStep) || 0
   const unclampedIndex = Math.round((x - noteCenterX) / noteSpacing)
-  const insertionIndex = Math.min(
+  const preferredNoteSlot = Math.min(
     currentNoteCount,
     Math.max(0, unclampedIndex),
+  )
+  const neumeBoundaries = neumes.reduce<number[]>(
+    (boundaries, neume) => [
+      ...boundaries,
+      (boundaries.at(-1) ?? 0) + neume.notes.length,
+    ],
+    [0],
+  )
+  const neumeInsertionIndex = neumeBoundaries.reduce(
+    (closestIndex, boundary, index) => {
+      const closestBoundary = neumeBoundaries[closestIndex] ?? 0
+      const distance = Math.abs(boundary - preferredNoteSlot)
+      const closestDistance = Math.abs(closestBoundary - preferredNoteSlot)
+
+      return distance < closestDistance ||
+        (distance === closestDistance && boundary > closestBoundary)
+        ? index
+        : closestIndex
+    },
+    0,
   )
 
   return {
     staffPosition: staffPosition(snappedPosition),
-    insertionIndex,
+    neumeInsertionIndex,
   }
 }
 
 export function layoutChant(document: ChantDocument): ChantLayout {
   const noteCentersBySyllableId = new Map<string, number[]>()
+  let noteIndex = 0
 
-  const notes = document.notes.map((note, index) => {
-    const centerX = noteCenterX + index * noteSpacing
-    const centerY = staffPositionY(note.staffPosition)
-    const associatedNoteCenters =
-      noteCentersBySyllableId.get(note.lyricSyllableId) ?? []
-
-    associatedNoteCenters.push(centerX)
-    noteCentersBySyllableId.set(
-      note.lyricSyllableId,
-      associatedNoteCenters,
-    )
-
+  const neumes = document.neumes.map((neume) => {
     return {
-      noteId: note.id,
-      x: centerX - noteWidth / 2,
-      y: centerY - noteHeight / 2,
-      width: noteWidth,
-      height: noteHeight,
+      neumeId: neume.id,
+      lyricSyllableId: neume.lyricSyllableId,
+      kind: neume.kind,
+      notes: neume.notes.map((note) => {
+        const centerX = noteCenterX + noteIndex * noteSpacing
+        const centerY = staffPositionY(note.staffPosition)
+        const associatedNoteCenters =
+          noteCentersBySyllableId.get(neume.lyricSyllableId) ?? []
+
+        noteIndex += 1
+        associatedNoteCenters.push(centerX)
+        noteCentersBySyllableId.set(
+          neume.lyricSyllableId,
+          associatedNoteCenters,
+        )
+
+        return {
+          noteId: note.id,
+          x: centerX - noteWidth / 2,
+          y: centerY - noteHeight / 2,
+          width: noteWidth,
+          height: noteHeight,
+        }
+      }),
     }
   })
 
@@ -181,7 +220,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       y: staffLineY(document.clef.staffLine),
       fontSize: 38,
     },
-    notes,
+    neumes,
     lyrics,
   }
 }

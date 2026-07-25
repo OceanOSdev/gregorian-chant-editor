@@ -2,142 +2,101 @@ import { describe, expect, it } from 'vitest'
 import {
   staffPosition,
   type ChantDocument,
-  type Punctum,
+  type PunctumNeume,
 } from '../domain/chant-document'
+import { countNotes } from '../domain/neume'
+import {
+  canInsertPunctumInSingleSystem,
+  singleSystemNoteCapacity,
+} from '../layout/layout-chant'
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
 } from '../state/document-history'
-import {
-  canInsertPunctumInSingleSystem,
-  singleSystemNoteCapacity,
-} from '../layout/layout-chant'
 import { insertPunctum } from './insert-punctum'
+
+function createPunctum(id: string, noteId = `${id}-note`): PunctumNeume {
+  return {
+    id,
+    kind: 'punctum',
+    lyricSyllableId: 'syllable-1',
+    notes: [{ id: noteId, staffPosition: staffPosition(3) }],
+  }
+}
 
 function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-    notes: [
-      {
-        id: 'note-1',
-        kind: 'punctum',
-        staffPosition: staffPosition(2),
-        lyricSyllableId: 'syllable-1',
-      },
-      {
-        id: 'note-2',
-        kind: 'punctum',
-        staffPosition: staffPosition(4),
-        lyricSyllableId: 'syllable-1',
-      },
+    neumes: [
+      createPunctum('neume-1', 'note-1'),
+      createPunctum('neume-2', 'note-2'),
     ],
-  }
-}
-
-function createPunctum(id = 'inserted-note'): Punctum {
-  return {
-    id,
-    kind: 'punctum',
-    staffPosition: staffPosition(3),
-    lyricSyllableId: 'syllable-1',
   }
 }
 
 describe('insertPunctum', () => {
   it.each([
-    { position: 'beginning', index: 0, ids: ['inserted-note', 'note-1', 'note-2'] },
-    { position: 'middle', index: 1, ids: ['note-1', 'inserted-note', 'note-2'] },
-    { position: 'end', index: 2, ids: ['note-1', 'note-2', 'inserted-note'] },
-  ])('inserts at the $position while preserving note order', ({ index, ids }) => {
-    const insertedDocument = insertPunctum(
+    { index: 0, ids: ['inserted', 'neume-1', 'neume-2'] },
+    { index: 1, ids: ['neume-1', 'inserted', 'neume-2'] },
+    { index: 2, ids: ['neume-1', 'neume-2', 'inserted'] },
+  ])('inserts at neume boundary $index', ({ index, ids }) => {
+    const inserted = insertPunctum(
       createDocument(),
-      createPunctum(),
+      createPunctum('inserted'),
       index,
     )
 
-    expect(insertedDocument.notes.map((note) => note.id)).toEqual(ids)
+    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids)
   })
 
-  it('does not mutate the original document or existing notes', () => {
+  it('preserves supplied neume and note identities without mutation', () => {
     const document = createDocument()
-    const originalNotes = document.notes
-    const insertedDocument = insertPunctum(
-      document,
-      createPunctum(),
-      1,
-    )
+    const punctum = createPunctum('stable-neume', 'stable-note')
+    const inserted = insertPunctum(document, punctum, 1)
 
-    expect(document.notes).toBe(originalNotes)
-    expect(document.notes.map((note) => note.id)).toEqual(['note-1', 'note-2'])
-    expect(insertedDocument).not.toBe(document)
-    expect(insertedDocument.notes[0]).toBe(document.notes[0])
-    expect(insertedDocument.notes[2]).toBe(document.notes[1])
+    expect(inserted.neumes[1]).toBe(punctum)
+    expect(inserted.neumes[1]?.notes[0]?.id).toBe('stable-note')
+    expect(inserted.neumes[0]).toBe(document.neumes[0])
+    expect(inserted.neumes[2]).toBe(document.neumes[1])
+    expect(document.neumes).toHaveLength(2)
   })
 
-  it('preserves the supplied punctum ID, pitch, and syllable ID', () => {
-    const punctum = createPunctum('stable-note-id')
-    const insertedDocument = insertPunctum(createDocument(), punctum, 1)
-
-    expect(insertedDocument.notes[1]).toBe(punctum)
-    expect(insertedDocument.notes[1]).toMatchObject({
-      id: 'stable-note-id',
-      staffPosition: 3,
-      lyricSyllableId: 'syllable-1',
-    })
-  })
-
-  it('can be undone and redone', () => {
-    const originalDocument = createDocument()
-    const insertedHistory = applyDocumentEdit(
-      createDocumentHistory(originalDocument),
-      (document) => insertPunctum(document, createPunctum(), 1),
+  it('can be undone and redone and clears redo after replacement', () => {
+    const document = createDocument()
+    const inserted = applyDocumentEdit(
+      createDocumentHistory(document),
+      (current) => insertPunctum(current, createPunctum('inserted'), 1),
     )
-    const undoneHistory = undoDocumentEdit(insertedHistory)
-    const redoneHistory = redoDocumentEdit(undoneHistory)
-
-    expect(undoneHistory.present).toBe(originalDocument)
-    expect(redoneHistory.present).toBe(insertedHistory.present)
-    expect(redoneHistory.present.notes[1]?.id).toBe('inserted-note')
-  })
-
-  it('clears redo history when inserted after undo', () => {
-    const firstInsertion = applyDocumentEdit(
-      createDocumentHistory(createDocument()),
-      (document) => insertPunctum(document, createPunctum('first-new-note'), 1),
-    )
-    const undoneHistory = undoDocumentEdit(firstInsertion)
-    const replacementInsertion = applyDocumentEdit(
-      undoneHistory,
-      (document) =>
-        insertPunctum(document, createPunctum('replacement-note'), 1),
+    const undone = undoDocumentEdit(inserted)
+    const redone = redoDocumentEdit(undone)
+    const replacement = applyDocumentEdit(undone, (current) =>
+      insertPunctum(current, createPunctum('replacement'), 1),
     )
 
-    expect(replacementInsertion.future).toEqual([])
-    expect(replacementInsertion.present.notes[1]?.id).toBe('replacement-note')
+    expect(undone.present).toBe(document)
+    expect(redone.present).toBe(inserted.present)
+    expect(replacement.future).toEqual([])
+    expect(replacement.present.neumes[1]?.id).toBe('replacement')
   })
 
-  it('does not create history when insertion is rejected at capacity', () => {
-    const document = {
+  it('does not create history when rendered-note capacity rejects insertion', () => {
+    const document: ChantDocument = {
       ...createDocument(),
-      notes: Array.from({ length: singleSystemNoteCapacity }, (_, index) => ({
-        ...createPunctum(`note-${index + 1}`),
-      })),
+      neumes: Array.from({ length: singleSystemNoteCapacity }, (_, index) =>
+        createPunctum(`neume-${index}`),
+      ),
     }
     const history = createDocumentHistory(document)
-    const rejectedHistory = applyDocumentEdit(history, (currentDocument) =>
-      canInsertPunctumInSingleSystem(currentDocument.notes.length)
-        ? insertPunctum(
-            currentDocument,
-            createPunctum('rejected-note'),
-            currentDocument.notes.length,
-          )
-        : currentDocument,
+    const rejected = applyDocumentEdit(history, (current) =>
+      canInsertPunctumInSingleSystem(countNotes(current.neumes))
+        ? insertPunctum(current, createPunctum('rejected'), current.neumes.length)
+        : current,
     )
 
-    expect(rejectedHistory).toBe(history)
+    expect(rejected).toBe(history)
   })
 })

@@ -12,12 +12,17 @@ export const exampleDocument: ChantDocument = {
       text: 'Al-',
     },
   ],
-  notes: [
+  neumes: [
     {
-      id: 'note-punctum-1',
+      id: 'neume-punctum-1',
       kind: 'punctum',
-      staffPosition: staffPosition(3),
       lyricSyllableId: 'syllable-alle',
+      notes: [
+        {
+          id: 'note-punctum-1',
+          staffPosition: staffPosition(3),
+        },
+      ],
     },
   ],
 }
