@@ -13,14 +13,19 @@ tools.
 The editor currently supports:
 
 - Rendering a crisp, scalable four-line staff in SVG
-- Rendering a placeholder C clef, puncta, and linked lyric syllables
+- Rendering a placeholder C clef, puncta, and multiple ordered lyric syllables
 - Selecting puncta with a pointer or keyboard
+- Selecting an active lyric syllable independently of note selection; selecting
+  a note activates its linked syllable
 - Moving a selected punctum vertically by one staff step with Arrow Up or
   Arrow Down
 - Deleting a selected punctum with Delete or Backspace
-- Adding puncta with an editor control
-- Placing puncta graphically by clicking a valid staff position
-- Editing the lyric syllable linked to a selected note
+- Adding an empty syllable and editing it before it has associated notes
+- Editing the active syllable with the lyric input
+- Adding puncta with an editor control, associated with the active syllable
+- Placing puncta graphically at a valid staff position, associated with the
+  active syllable
+- Keeping notes grouped in lyric-syllable order
 - Undoing and redoing semantic document edits
 - Keyboard-accessible note selection and editing controls
 
@@ -47,14 +52,15 @@ The editor preserves this flow:
 semantic chant document → pure layout data → React/SVG rendering
 ```
 
-The semantic document describes the score without SVG pixel coordinates.
-Note height is represented as a discrete staff-relative position. A pure
-layout function converts those musical positions into rendering coordinates,
-and React renders the resulting layout as SVG.
+The semantic `ChantDocument` contains the musical content without SVG pixel
+coordinates. Note height is represented as a discrete staff-relative position.
+A pure layout function converts those musical positions into rendering
+coordinates, and React renders the resulting layout as SVG.
 
-Selection, active tools, and other interface state remain separate from the
-semantic document. Document changes are immutable TypeScript transformations
-and are recorded as semantic snapshots for undo and redo.
+Note selection remains editor UI state. The active syllable is a separate UI
+target for lyric editing and note insertion; it is not stored in the semantic
+document or its undo/redo history. Document changes are immutable TypeScript
+transformations recorded as semantic snapshots for undo and redo.
 
 ## Project structure
 
@@ -106,7 +112,6 @@ The current test setup does not include browser or component testing.
 
 Prospective near-term work includes:
 
-- Multiple ordered lyric syllables with an explicit insertion target
 - Broader neume support and improved chant glyph rendering
 - More capable spacing and engraving
 - Automatic system wrapping
