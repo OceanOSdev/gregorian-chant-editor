@@ -73,6 +73,27 @@ export interface GraphicalNeumePlacement {
   preferredNeumeInsertionIndex: number
 }
 
+export interface PreviewNoteLayout {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface GraphicalPlacementPreviewLayout {
+  kind: GraphicalNeumeKind
+  notes:
+    | readonly [PreviewNoteLayout]
+    | readonly [PreviewNoteLayout, PreviewNoteLayout]
+  connector?: NeumeConnectorLayout
+}
+
+export interface GraphicalPlacementPreviewInput {
+  kind: GraphicalNeumeKind
+  staffPositions: GraphicalStaffPositions
+  insertionIndex: number
+}
+
 const canvasWidth = 720
 const canvasHeight = 220
 const staffStartX = 64
@@ -111,7 +132,7 @@ export function canInsertNotesInSingleSystem(
   )
 }
 
-function staffPositionY(position: StaffPosition) {
+export function staffPositionY(position: StaffPosition) {
   return bottomStaffY - position * staffStep
 }
 
@@ -123,9 +144,9 @@ function isCompactTwoNoteNeume(neume: Neume) {
   return neume.kind === 'podatus' || neume.kind === 'clivis'
 }
 
-function createTwoNoteConnector(
-  firstNote: NoteLayout,
-  secondNote: NoteLayout,
+export function createTwoNoteConnector(
+  firstNote: PreviewNoteLayout,
+  secondNote: PreviewNoteLayout,
 ): NeumeConnectorLayout {
   return {
     x: secondNote.x + 2,
@@ -151,6 +172,99 @@ function getNeumeNoteCenters(neumes: readonly Neume[]) {
 
     return centers
   })
+}
+
+export function getNeumeBoundaryCenterX(
+  neumes: readonly Neume[],
+  insertionIndex: number,
+): number | null {
+  if (
+    !Number.isInteger(insertionIndex) ||
+    insertionIndex < 0 ||
+    insertionIndex > neumes.length
+  ) {
+    return null
+  }
+
+  const centers = getNeumeNoteCenters(neumes)
+  const followingFirstCenter = centers[insertionIndex]?.[0]
+
+  if (followingFirstCenter !== undefined) {
+    return followingFirstCenter
+  }
+
+  const finalCenter = centers.at(-1)?.at(-1)
+
+  return finalCenter === undefined
+    ? noteCenterX
+    : finalCenter + noteWidth + interNeumeGap
+}
+
+function createNoteLayout(
+  centerX: number,
+  position: StaffPosition,
+): PreviewNoteLayout {
+  return {
+    x: centerX - noteWidth / 2,
+    y: staffPositionY(position) - noteHeight / 2,
+    width: noteWidth,
+    height: noteHeight,
+  }
+}
+
+function createNeumeNoteLayouts(
+  kind: GraphicalNeumeKind,
+  firstCenterX: number,
+  positions: GraphicalStaffPositions,
+):
+  | readonly [PreviewNoteLayout]
+  | readonly [PreviewNoteLayout, PreviewNoteLayout] {
+  const [firstPosition, secondPosition] = positions
+  const firstNote = createNoteLayout(firstCenterX, firstPosition)
+
+  if (kind === 'punctum' || secondPosition === undefined) {
+    return [firstNote]
+  }
+
+  return [
+    firstNote,
+    createNoteLayout(
+      firstCenterX + compactTwoNoteCenterOffset,
+      secondPosition,
+    ),
+  ]
+}
+
+export function layoutGraphicalPlacementPreview(
+  neumes: readonly Neume[],
+  placement: GraphicalPlacementPreviewInput,
+): GraphicalPlacementPreviewLayout | null {
+  const firstCenterX = getNeumeBoundaryCenterX(
+    neumes,
+    placement.insertionIndex,
+  )
+
+  if (firstCenterX === null) {
+    return null
+  }
+
+  const notes = createNeumeNoteLayouts(
+    placement.kind,
+    firstCenterX,
+    placement.staffPositions,
+  )
+  const firstNote = notes[0]
+  const secondNote = notes[1]
+  const connector =
+    placement.kind !== 'punctum' && secondNote
+      ? createTwoNoteConnector(firstNote, secondNote)
+      : undefined
+
+  return {
+    kind: placement.kind,
+    notes,
+    ...(connector ? { connector } : {}),
+  }
 }
 
 function getGraphicalStaffPositions(
@@ -239,7 +353,6 @@ export function layoutChant(document: ChantDocument): ChantLayout {
     const noteCenters = neumeNoteCenters[neumeIndex] ?? []
     const notes = neume.notes.map((note, noteIndex) => {
       const centerX = noteCenters[noteIndex] ?? noteCenterX
-      const centerY = staffPositionY(note.staffPosition)
       const associatedNoteCenters =
         noteCentersBySyllableId.get(neume.lyricSyllableId) ?? []
 
@@ -250,11 +363,8 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       )
 
       return {
+        ...createNoteLayout(centerX, note.staffPosition),
         noteId: note.id,
-        x: centerX - noteWidth / 2,
-        y: centerY - noteHeight / 2,
-        width: noteWidth,
-        height: noteHeight,
       }
     })
     const firstNote = notes[0]

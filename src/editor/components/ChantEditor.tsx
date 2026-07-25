@@ -22,14 +22,15 @@ import {
   type PunctumNeume,
 } from '../domain/chant-document'
 import { countNotes, findNote } from '../domain/neume'
+import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
   canInsertNotesInSingleSystem,
   canInsertPunctumInSingleSystem,
-  getSingleSystemNeumePlacement,
+  layoutGraphicalPlacementPreview,
   layoutChant,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant'
-import { ScoreSvg } from '../rendering/ScoreSvg'
+import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -67,6 +68,22 @@ function isEditableTarget(target: EventTarget | null) {
   )
 }
 
+function getPlacementKind(tool: EditorTool): GraphicalNeumeKind | null {
+  if (tool.kind === 'place-punctum') {
+    return 'punctum'
+  }
+
+  if (tool.kind === 'place-podatus') {
+    return 'podatus'
+  }
+
+  if (tool.kind === 'place-clivis') {
+    return 'clivis'
+  }
+
+  return null
+}
+
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [history, setHistory] = useState(() =>
     createDocumentHistory(initialDocument),
@@ -79,6 +96,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
   )
+  const [hoveredScorePoint, setHoveredScorePoint] =
+    useState<SvgPoint | null>(null)
   const [lyricDraft, setLyricDraft] = useState('')
   const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null)
   const [committedLyricText, setCommittedLyricText] = useState('')
@@ -95,6 +114,22 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const activeSyllable = history.present.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
   )
+  const placementKind = getPlacementKind(activeTool)
+  const resolvedPlacement =
+    placementKind && hoveredScorePoint
+      ? resolveGraphicalNeumePlacement(
+          history.present,
+          activeSyllable?.id ?? null,
+          placementKind,
+          hoveredScorePoint,
+        )
+      : null
+  const placementPreview = resolvedPlacement
+    ? layoutGraphicalPlacementPreview(
+        history.present.neumes,
+        resolvedPlacement,
+      )
+    : null
   const canInsertPunctum =
     Boolean(activeSyllable) &&
     canInsertPunctumInSingleSystem(countNotes(history.present.neumes))
@@ -105,6 +140,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
       : (activeSyllable?.text ?? '')
+
+  function returnToSelect() {
+    setActiveTool(selectTool())
+    setHoveredScorePoint(null)
+  }
 
   function commitLyricDraft(text: string) {
     if (!activeSyllable || draftSyllableId !== activeSyllable.id) {
@@ -277,7 +317,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setHistory(applyDocumentEdit(history, () => insertedDocument))
     setSelection(selectNote(lowerNoteId))
     setPendingFocusNoteId(lowerNoteId)
-    setActiveTool(selectTool())
+    returnToSelect()
   }
 
   function handleAddClivis() {
@@ -329,49 +369,36 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setHistory(applyDocumentEdit(history, () => insertedDocument))
     setSelection(selectNote(upperNoteId))
     setPendingFocusNoteId(upperNoteId)
-    setActiveTool(selectTool())
+    returnToSelect()
   }
 
-  function handlePlaceNeume(
-    kind: GraphicalNeumeKind,
-    x: number,
-    y: number,
-  ) {
+  function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     if (!activeSyllable) {
       return
     }
 
-    const placement = getSingleSystemNeumePlacement(
-      { x, y },
+    const placement = resolveGraphicalNeumePlacement(
+      history.present,
+      activeSyllable.id,
       kind,
-      history.present.neumes,
+      point,
     )
 
     if (!placement) {
       return
     }
 
-    const insertionIndex = resolveSyllableNeumeInsertionIndex(
-      history.present,
-      activeSyllable.id,
-      placement.preferredNeumeInsertionIndex,
-    )
-
-    if (insertionIndex === null) {
-      return
-    }
-
     let nextDocument: ChantDocument
     let firstNoteId: string
 
-    if (kind === 'punctum') {
+    if (placement.kind === 'punctum') {
       const [firstStaffPosition] = placement.staffPositions
       const neumeId = globalThis.crypto.randomUUID()
 
       firstNoteId = globalThis.crypto.randomUUID()
       const punctum: PunctumNeume = {
         id: neumeId,
-        kind,
+        kind: placement.kind,
         lyricSyllableId: activeSyllable.id,
         notes: [
           {
@@ -384,7 +411,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       nextDocument = insertPunctum(
         history.present,
         punctum,
-        insertionIndex,
+        placement.insertionIndex,
       )
     } else {
       const [firstStaffPosition, secondStaffPosition] =
@@ -399,10 +426,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       firstNoteId = globalThis.crypto.randomUUID()
       const secondNoteId = globalThis.crypto.randomUUID()
 
-      if (kind === 'podatus') {
+      if (placement.kind === 'podatus') {
         const podatus: PodatusNeume = {
           id: neumeId,
-          kind,
+          kind: placement.kind,
           lyricSyllableId: activeSyllable.id,
           notes: [
             {
@@ -419,12 +446,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         nextDocument = insertPodatus(
           history.present,
           podatus,
-          insertionIndex,
+          placement.insertionIndex,
         )
       } else {
         const clivis: ClivisNeume = {
           id: neumeId,
-          kind,
+          kind: placement.kind,
           lyricSyllableId: activeSyllable.id,
           notes: [
             {
@@ -441,7 +468,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         nextDocument = insertClivis(
           history.present,
           clivis,
-          insertionIndex,
+          placement.insertionIndex,
         )
       }
     }
@@ -451,7 +478,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     }
 
     setHistory(applyDocumentEdit(history, () => nextDocument))
-    setActiveTool(selectTool())
+    returnToSelect()
     setSelection(selectNote(firstNoteId))
     setPendingFocusNoteId(firstNoteId)
   }
@@ -550,7 +577,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       }
 
       event.preventDefault()
-      setActiveTool(selectTool())
+      returnToSelect()
     }
 
     globalThis.document.addEventListener('keydown', handlePlacementCancel)
@@ -687,6 +714,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       </section>
       <ScoreSvg
         layout={layout}
+        placementPreview={placementPreview}
         selection={selection}
         activeTool={activeTool}
         pendingFocusNoteId={pendingFocusNoteId}
@@ -696,9 +724,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           )
         }
         onSelectNote={handleSelectNote}
-        onPlaceNeume={(kind, { x, y }) =>
-          handlePlaceNeume(kind, x, y)
-        }
+        onPlacementPointerMove={setHoveredScorePoint}
+        onPlacementPointerLeave={() => setHoveredScorePoint(null)}
+        onPlaceNeume={handlePlaceNeume}
         onMoveNote={(noteId, delta) =>
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>
