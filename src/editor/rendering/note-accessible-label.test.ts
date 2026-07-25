@@ -42,17 +42,17 @@ describe('getNoteAccessibleLabel', () => {
     {
       kind: 'punctum' as const,
       description:
-        'Whole punctum selected. Delete or Backspace removes it.',
+        'Whole punctum selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
     {
       kind: 'podatus' as const,
       description:
-        'Whole podatus selected. Delete or Backspace removes it.',
+        'Whole podatus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
     {
       kind: 'clivis' as const,
       description:
-        'Whole clivis selected. Delete or Backspace removes it.',
+        'Whole clivis selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
   ])(
     'describes selected $kind state',

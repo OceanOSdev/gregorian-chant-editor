@@ -40,6 +40,7 @@ interface ScoreSvgProps {
   onPlacementPointerLeave: () => void
   onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
+  onMoveNeume: (neumeId: string, delta: StaffPositionDelta) => void
   onDeleteNote: (noteId: string) => void
   onDeleteNeume: (neumeId: string) => void
   onClearSelection: () => void
@@ -58,6 +59,7 @@ export function ScoreSvg({
   onPlacementPointerLeave,
   onPlaceNeume,
   onMoveNote,
+  onMoveNeume,
   onDeleteNote,
   onDeleteNeume,
   onClearSelection,
@@ -187,6 +189,8 @@ export function ScoreSvg({
 
     if (isNoteSelected) {
       onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
+    } else if (isNeumeSelected) {
+      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1)
     }
   }
 

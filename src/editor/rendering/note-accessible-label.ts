@@ -37,5 +37,5 @@ export function getSelectedNeumeDescription(
         ? 'Podatus'
         : 'Clivis'
 
-  return `Whole ${name.toLowerCase()} selected. Delete or Backspace removes it.`
+  return `Whole ${name.toLowerCase()} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`
 }
