@@ -6,18 +6,22 @@ import {
 } from 'react'
 import { appendLyricSyllable } from '../commands/append-lyric-syllable'
 import { deleteNote } from '../commands/delete-note'
+import { insertPodatus } from '../commands/insert-podatus'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
 import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
+import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion'
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
   staffPosition,
   type ChantDocument,
   type LyricSyllable,
+  type PodatusNeume,
   type PunctumNeume,
 } from '../domain/chant-document'
 import { countNotes, findNote } from '../domain/neume'
 import {
+  canInsertNotesInSingleSystem,
   canInsertPunctumInSingleSystem,
   getSingleSystemPunctumPlacement,
   layoutChant,
@@ -88,6 +92,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canInsertPunctum =
     Boolean(activeSyllable) &&
     canInsertPunctumInSingleSystem(countNotes(history.present.neumes))
+  const canInsertPodatus =
+    Boolean(activeSyllable) &&
+    canInsertNotesInSingleSystem(countNotes(history.present.neumes), 2)
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
@@ -213,6 +220,59 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     )
     setSelection(selectNote(noteId))
     setPendingFocusNoteId(noteId)
+  }
+
+  function handleAddPodatus() {
+    if (!canInsertPodatus || !activeSyllable) {
+      return
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+    )
+
+    if (!insertion) {
+      return
+    }
+
+    const neumeId = globalThis.crypto.randomUUID()
+    const lowerNoteId = globalThis.crypto.randomUUID()
+    const upperNoteId = globalThis.crypto.randomUUID()
+    const podatus: PodatusNeume = {
+      id: neumeId,
+      kind: 'podatus',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: lowerNoteId,
+          staffPosition: insertion.lowerStaffPosition,
+        },
+        {
+          id: upperNoteId,
+          staffPosition: staffPosition(insertion.lowerStaffPosition + 1),
+        },
+      ],
+    }
+    const insertedDocument = insertPodatus(
+      history.present,
+      podatus,
+      insertion.insertionIndex,
+    )
+
+    if (insertedDocument === history.present) {
+      return
+    }
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        insertPodatus(document, podatus, insertion.insertionIndex),
+      ),
+    )
+    setSelection(selectNote(lowerNoteId))
+    setPendingFocusNoteId(lowerNoteId)
+    setActiveTool(selectTool())
   }
 
   function handlePlacePunctum(x: number, y: number) {
@@ -377,6 +437,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={handleAddPunctum}
         >
           Add punctum
+        </button>
+        <button
+          type="button"
+          disabled={!canInsertPodatus}
+          onClick={handleAddPodatus}
+        >
+          Add podatus
         </button>
         <button
           type="button"

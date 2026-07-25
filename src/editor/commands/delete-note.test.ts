@@ -65,6 +65,7 @@ describe('deleteNote', () => {
 
   it.each([
     { noteId: 'note-podatus-1', neumeId: 'neume-podatus', survivor: 'note-podatus-2' },
+    { noteId: 'note-podatus-2', neumeId: 'neume-podatus', survivor: 'note-podatus-1' },
     { noteId: 'note-clivis-2', neumeId: 'neume-clivis', survivor: 'note-clivis-1' },
   ])(
     'normalizes a two-note neume to punctum and preserves identities',

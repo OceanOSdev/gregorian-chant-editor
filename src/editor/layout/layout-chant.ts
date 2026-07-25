@@ -29,11 +29,18 @@ export interface NoteLayout {
   height: number
 }
 
+export interface NeumeConnectorLayout {
+  x: number
+  y1: number
+  y2: number
+}
+
 export interface NeumeLayout {
   neumeId: string
   lyricSyllableId: string
   kind: Neume['kind']
   notes: NoteLayout[]
+  connector?: NeumeConnectorLayout
 }
 
 export interface LyricLayout {
@@ -70,6 +77,8 @@ const noteCenterX = 230
 const noteSpacing = 48
 const noteWidth = 15
 const noteHeight = 11
+const interNeumeGap = noteSpacing - noteWidth
+const podatusNoteCenterOffset = 12
 const lyricY = 180
 
 /** Maximum note count for the current fixed-width, single-system MVP. */
@@ -79,7 +88,20 @@ export const singleSystemNoteCapacity =
   ) + 1
 
 export function canInsertPunctumInSingleSystem(currentNoteCount: number) {
-  return currentNoteCount < singleSystemNoteCapacity
+  return canInsertNotesInSingleSystem(currentNoteCount, 1)
+}
+
+export function canInsertNotesInSingleSystem(
+  currentNoteCount: number,
+  addedNoteCount: number,
+) {
+  return (
+    Number.isInteger(currentNoteCount) &&
+    Number.isInteger(addedNoteCount) &&
+    currentNoteCount >= 0 &&
+    addedNoteCount >= 0 &&
+    currentNoteCount + addedNoteCount <= singleSystemNoteCapacity
+  )
 }
 
 function staffPositionY(position: StaffPosition) {
@@ -88,6 +110,25 @@ function staffPositionY(position: StaffPosition) {
 
 function staffLineY(line: StaffLine) {
   return bottomStaffY - (line - 1) * staffLineSpacing
+}
+
+function getNeumeNoteCenters(neumes: readonly Neume[]) {
+  let nextCenterX = noteCenterX
+
+  return neumes.map((neume) => {
+    const centers = neume.notes.map((_, noteIndex) =>
+      neume.kind === 'podatus'
+        ? nextCenterX + noteIndex * podatusNoteCenterOffset
+        : nextCenterX + noteIndex * noteSpacing,
+    )
+    const finalCenter = centers.at(-1)
+
+    if (finalCenter !== undefined) {
+      nextCenterX = finalCenter + noteWidth + interNeumeGap
+    }
+
+    return centers
+  })
 }
 
 /**
@@ -114,31 +155,28 @@ export function getSingleSystemPunctumPlacement(
   }
 
   const snappedPosition = Math.round((bottomStaffY - y) / staffStep) || 0
-  const unclampedIndex = Math.round((x - noteCenterX) / noteSpacing)
-  const preferredNoteSlot = Math.min(
-    currentNoteCount,
-    Math.max(0, unclampedIndex),
-  )
-  const neumeBoundaries = neumes.reduce<number[]>(
-    (boundaries, neume) => [
-      ...boundaries,
-      (boundaries.at(-1) ?? 0) + neume.notes.length,
-    ],
-    [0],
-  )
-  const neumeInsertionIndex = neumeBoundaries.reduce(
-    (closestIndex, boundary, index) => {
-      const closestBoundary = neumeBoundaries[closestIndex] ?? 0
-      const distance = Math.abs(boundary - preferredNoteSlot)
-      const closestDistance = Math.abs(closestBoundary - preferredNoteSlot)
+  const neumeCenters = getNeumeNoteCenters(neumes)
+  let neumeInsertionIndex = neumes.length
 
-      return distance < closestDistance ||
-        (distance === closestDistance && boundary > closestBoundary)
-        ? index
-        : closestIndex
-    },
-    0,
-  )
+  for (const [index, centers] of neumeCenters.entries()) {
+    const firstCenter = centers[0]
+    const finalCenter = centers.at(-1)
+
+    if (firstCenter === undefined || finalCenter === undefined) {
+      continue
+    }
+
+    if (x <= firstCenter) {
+      neumeInsertionIndex = index
+      break
+    }
+
+    if (x <= finalCenter) {
+      neumeInsertionIndex =
+        x <= (firstCenter + finalCenter) / 2 ? index : index + 1
+      break
+    }
+  }
 
   return {
     staffPosition: staffPosition(snappedPosition),
@@ -148,34 +186,47 @@ export function getSingleSystemPunctumPlacement(
 
 export function layoutChant(document: ChantDocument): ChantLayout {
   const noteCentersBySyllableId = new Map<string, number[]>()
-  let noteIndex = 0
+  const neumeNoteCenters = getNeumeNoteCenters(document.neumes)
 
-  const neumes = document.neumes.map((neume) => {
+  const neumes = document.neumes.map((neume, neumeIndex) => {
+    const noteCenters = neumeNoteCenters[neumeIndex] ?? []
+    const notes = neume.notes.map((note, noteIndex) => {
+      const centerX = noteCenters[noteIndex] ?? noteCenterX
+      const centerY = staffPositionY(note.staffPosition)
+      const associatedNoteCenters =
+        noteCentersBySyllableId.get(neume.lyricSyllableId) ?? []
+
+      associatedNoteCenters.push(centerX)
+      noteCentersBySyllableId.set(
+        neume.lyricSyllableId,
+        associatedNoteCenters,
+      )
+
+      return {
+        noteId: note.id,
+        x: centerX - noteWidth / 2,
+        y: centerY - noteHeight / 2,
+        width: noteWidth,
+        height: noteHeight,
+      }
+    })
+    const lowerNote = notes[0]
+    const upperNote = notes[1]
+    const connector =
+      neume.kind === 'podatus' && lowerNote && upperNote
+        ? {
+            x: upperNote.x + 2,
+            y1: upperNote.y + upperNote.height / 2,
+            y2: lowerNote.y + lowerNote.height / 2,
+          }
+        : undefined
+
     return {
       neumeId: neume.id,
       lyricSyllableId: neume.lyricSyllableId,
       kind: neume.kind,
-      notes: neume.notes.map((note) => {
-        const centerX = noteCenterX + noteIndex * noteSpacing
-        const centerY = staffPositionY(note.staffPosition)
-        const associatedNoteCenters =
-          noteCentersBySyllableId.get(neume.lyricSyllableId) ?? []
-
-        noteIndex += 1
-        associatedNoteCenters.push(centerX)
-        noteCentersBySyllableId.set(
-          neume.lyricSyllableId,
-          associatedNoteCenters,
-        )
-
-        return {
-          noteId: note.id,
-          x: centerX - noteWidth / 2,
-          y: centerY - noteHeight / 2,
-          width: noteWidth,
-          height: noteHeight,
-        }
-      }),
+      notes,
+      ...(connector ? { connector } : {}),
     }
   })
 
