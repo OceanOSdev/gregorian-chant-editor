@@ -6,6 +6,7 @@ import {
 } from 'react'
 import { appendLyricSyllable } from '../commands/append-lyric-syllable'
 import { deleteNote } from '../commands/delete-note'
+import { insertClivis } from '../commands/insert-clivis'
 import { insertPodatus } from '../commands/insert-podatus'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNoteVertically } from '../commands/move-note'
@@ -15,6 +16,7 @@ import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
   staffPosition,
   type ChantDocument,
+  type ClivisNeume,
   type LyricSyllable,
   type PodatusNeume,
   type PunctumNeume,
@@ -92,7 +94,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canInsertPunctum =
     Boolean(activeSyllable) &&
     canInsertPunctumInSingleSystem(countNotes(history.present.neumes))
-  const canInsertPodatus =
+  const canInsertTwoNoteNeume =
     Boolean(activeSyllable) &&
     canInsertNotesInSingleSystem(countNotes(history.present.neumes), 2)
   const displayedLyricDraft =
@@ -223,7 +225,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handleAddPodatus() {
-    if (!canInsertPodatus || !activeSyllable) {
+    if (!canInsertTwoNoteNeume || !activeSyllable) {
       return
     }
 
@@ -231,6 +233,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       history.present,
       activeSyllable.id,
       selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(2),
     )
 
     if (!insertion) {
@@ -247,11 +250,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       notes: [
         {
           id: lowerNoteId,
-          staffPosition: insertion.lowerStaffPosition,
+          staffPosition: insertion.referenceStaffPosition,
         },
         {
           id: upperNoteId,
-          staffPosition: staffPosition(insertion.lowerStaffPosition + 1),
+          staffPosition: staffPosition(
+            insertion.referenceStaffPosition + 1,
+          ),
         },
       ],
     }
@@ -272,6 +277,62 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     )
     setSelection(selectNote(lowerNoteId))
     setPendingFocusNoteId(lowerNoteId)
+    setActiveTool(selectTool())
+  }
+
+  function handleAddClivis() {
+    if (!canInsertTwoNoteNeume || !activeSyllable) {
+      return
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(3),
+    )
+
+    if (!insertion) {
+      return
+    }
+
+    const neumeId = globalThis.crypto.randomUUID()
+    const upperNoteId = globalThis.crypto.randomUUID()
+    const lowerNoteId = globalThis.crypto.randomUUID()
+    const clivis: ClivisNeume = {
+      id: neumeId,
+      kind: 'clivis',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: upperNoteId,
+          staffPosition: insertion.referenceStaffPosition,
+        },
+        {
+          id: lowerNoteId,
+          staffPosition: staffPosition(
+            insertion.referenceStaffPosition - 1,
+          ),
+        },
+      ],
+    }
+    const insertedDocument = insertClivis(
+      history.present,
+      clivis,
+      insertion.insertionIndex,
+    )
+
+    if (insertedDocument === history.present) {
+      return
+    }
+
+    setHistory((currentHistory) =>
+      applyDocumentEdit(currentHistory, (document) =>
+        insertClivis(document, clivis, insertion.insertionIndex),
+      ),
+    )
+    setSelection(selectNote(upperNoteId))
+    setPendingFocusNoteId(upperNoteId)
     setActiveTool(selectTool())
   }
 
@@ -440,10 +501,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         </button>
         <button
           type="button"
-          disabled={!canInsertPodatus}
+          disabled={!canInsertTwoNoteNeume}
           onClick={handleAddPodatus}
         >
           Add podatus
+        </button>
+        <button
+          type="button"
+          disabled={!canInsertTwoNoteNeume}
+          onClick={handleAddClivis}
+        >
+          Add clivis
         </button>
         <button
           type="button"

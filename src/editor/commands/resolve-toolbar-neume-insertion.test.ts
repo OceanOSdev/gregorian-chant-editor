@@ -51,10 +51,11 @@ describe('resolveToolbarNeumeInsertion', () => {
         createDocument(),
         'syllable-1',
         'note-1',
+        staffPosition(2),
       ),
     ).toEqual({
       insertionIndex: 1,
-      lowerStaffPosition: 1,
+      referenceStaffPosition: 1,
     })
   })
 
@@ -64,10 +65,11 @@ describe('resolveToolbarNeumeInsertion', () => {
         createDocument(),
         'syllable-1',
         null,
+        staffPosition(2),
       ),
     ).toEqual({
       insertionIndex: 2,
-      lowerStaffPosition: 5,
+      referenceStaffPosition: 5,
     })
   })
 
@@ -77,10 +79,11 @@ describe('resolveToolbarNeumeInsertion', () => {
         createDocument(),
         'syllable-1',
         'note-2',
+        staffPosition(2),
       ),
     ).toEqual({
       insertionIndex: 2,
-      lowerStaffPosition: 5,
+      referenceStaffPosition: 5,
     })
   })
 
@@ -90,10 +93,11 @@ describe('resolveToolbarNeumeInsertion', () => {
         createDocument(),
         'syllable-empty',
         null,
+        staffPosition(2),
       ),
     ).toEqual({
       insertionIndex: 2,
-      lowerStaffPosition: 2,
+      referenceStaffPosition: 2,
     })
   })
 
@@ -103,6 +107,7 @@ describe('resolveToolbarNeumeInsertion', () => {
         createDocument(),
         'unknown',
         null,
+        staffPosition(2),
       ),
     ).toBeNull()
   })
@@ -112,12 +117,81 @@ describe('resolveToolbarNeumeInsertion', () => {
       createDocument(),
       'syllable-1',
       'note-1',
+      staffPosition(2),
     )
 
     expect(
       context
-        ? staffPosition(context.lowerStaffPosition + 1)
+        ? staffPosition(context.referenceStaffPosition + 1)
         : undefined,
     ).toBe(2)
+  })
+
+  it('uses the supplied Clivis fallback for an empty middle syllable', () => {
+    const context = resolveToolbarNeumeInsertion(
+      createDocument(),
+      'syllable-empty',
+      null,
+      staffPosition(3),
+    )
+
+    expect(context).toEqual({
+      insertionIndex: 2,
+      referenceStaffPosition: 3,
+    })
+    expect(
+      context
+        ? [
+            context.referenceStaffPosition,
+            staffPosition(context.referenceStaffPosition - 1),
+          ]
+        : undefined,
+    ).toEqual([3, 2])
+  })
+
+  it('inserts after the whole selected multi-note neume', () => {
+    expect(
+      resolveToolbarNeumeInsertion(
+        createDocument(),
+        'syllable-1',
+        'note-lower',
+        staffPosition(3),
+      ),
+    ).toEqual({
+      insertionIndex: 2,
+      referenceStaffPosition: 3,
+    })
+  })
+
+  it('does not insert inside a selected Clivis', () => {
+    const document = createDocument()
+    const withClivis: ChantDocument = {
+      ...document,
+      neumes: document.neumes.map((neume) =>
+        neume.id === 'neume-podatus'
+          ? {
+              id: 'neume-clivis',
+              kind: 'clivis',
+              lyricSyllableId: 'syllable-1',
+              notes: [
+                { id: 'note-clivis-upper', staffPosition: staffPosition(5) },
+                { id: 'note-clivis-lower', staffPosition: staffPosition(3) },
+              ],
+            }
+          : neume,
+      ),
+    }
+
+    expect(
+      resolveToolbarNeumeInsertion(
+        withClivis,
+        'syllable-1',
+        'note-clivis-lower',
+        staffPosition(3),
+      ),
+    ).toEqual({
+      insertionIndex: 2,
+      referenceStaffPosition: 3,
+    })
   })
 })

@@ -1,5 +1,4 @@
 import {
-  staffPosition,
   type ChantDocument,
   type StaffPosition,
 } from '../domain/chant-document'
@@ -8,13 +7,14 @@ import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-ins
 
 export interface ToolbarNeumeInsertion {
   insertionIndex: number
-  lowerStaffPosition: StaffPosition
+  referenceStaffPosition: StaffPosition
 }
 
 export function resolveToolbarNeumeInsertion(
   document: ChantDocument,
   activeSyllableId: string,
   selectedNoteId: string | null,
+  emptySyllableFallback: StaffPosition,
 ): ToolbarNeumeInsertion | null {
   const activeSyllable = document.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
@@ -55,9 +55,9 @@ export function resolveToolbarNeumeInsertion(
 
   return {
     insertionIndex,
-    lowerStaffPosition:
+    referenceStaffPosition:
       selectedActiveNote?.note.staffPosition ??
       finalActiveNote?.staffPosition ??
-      staffPosition(2),
+      emptySyllableFallback,
   }
 }

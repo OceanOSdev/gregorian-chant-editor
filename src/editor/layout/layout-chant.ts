@@ -78,7 +78,7 @@ const noteSpacing = 48
 const noteWidth = 15
 const noteHeight = 11
 const interNeumeGap = noteSpacing - noteWidth
-const podatusNoteCenterOffset = 12
+const compactTwoNoteCenterOffset = 12
 const lyricY = 180
 
 /** Maximum note count for the current fixed-width, single-system MVP. */
@@ -112,13 +112,28 @@ function staffLineY(line: StaffLine) {
   return bottomStaffY - (line - 1) * staffLineSpacing
 }
 
+function isCompactTwoNoteNeume(neume: Neume) {
+  return neume.kind === 'podatus' || neume.kind === 'clivis'
+}
+
+function createTwoNoteConnector(
+  firstNote: NoteLayout,
+  secondNote: NoteLayout,
+): NeumeConnectorLayout {
+  return {
+    x: secondNote.x + 2,
+    y1: firstNote.y + firstNote.height / 2,
+    y2: secondNote.y + secondNote.height / 2,
+  }
+}
+
 function getNeumeNoteCenters(neumes: readonly Neume[]) {
   let nextCenterX = noteCenterX
 
   return neumes.map((neume) => {
     const centers = neume.notes.map((_, noteIndex) =>
-      neume.kind === 'podatus'
-        ? nextCenterX + noteIndex * podatusNoteCenterOffset
+      isCompactTwoNoteNeume(neume)
+        ? nextCenterX + noteIndex * compactTwoNoteCenterOffset
         : nextCenterX + noteIndex * noteSpacing,
     )
     const finalCenter = centers.at(-1)
@@ -210,15 +225,11 @@ export function layoutChant(document: ChantDocument): ChantLayout {
         height: noteHeight,
       }
     })
-    const lowerNote = notes[0]
-    const upperNote = notes[1]
+    const firstNote = notes[0]
+    const secondNote = notes[1]
     const connector =
-      neume.kind === 'podatus' && lowerNote && upperNote
-        ? {
-            x: upperNote.x + 2,
-            y1: upperNote.y + upperNote.height / 2,
-            y2: lowerNote.y + lowerNote.height / 2,
-          }
+      isCompactTwoNoteNeume(neume) && firstNote && secondNote
+        ? createTwoNoteConnector(firstNote, secondNote)
         : undefined
 
     return {

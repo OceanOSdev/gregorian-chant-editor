@@ -1,13 +1,13 @@
 import type {
   ChantDocument,
-  PodatusNeume,
+  ClivisNeume,
 } from '../domain/chant-document'
 import { insertTwoNoteNeume } from './insert-two-note-neume'
 
-export function insertPodatus(
+export function insertClivis(
   document: ChantDocument,
-  podatus: PodatusNeume,
+  clivis: ClivisNeume,
   insertionIndex: number,
 ): ChantDocument {
-  return insertTwoNoteNeume(document, podatus, insertionIndex)
+  return insertTwoNoteNeume(document, clivis, insertionIndex)
 }

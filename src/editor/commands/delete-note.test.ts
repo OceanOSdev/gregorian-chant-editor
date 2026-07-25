@@ -64,21 +64,54 @@ describe('deleteNote', () => {
   })
 
   it.each([
-    { noteId: 'note-podatus-1', neumeId: 'neume-podatus', survivor: 'note-podatus-2' },
-    { noteId: 'note-podatus-2', neumeId: 'neume-podatus', survivor: 'note-podatus-1' },
-    { noteId: 'note-clivis-2', neumeId: 'neume-clivis', survivor: 'note-clivis-1' },
+    {
+      noteId: 'note-podatus-1',
+      neumeId: 'neume-podatus',
+      survivor: 'note-podatus-2',
+      survivorPosition: 4,
+    },
+    {
+      noteId: 'note-podatus-2',
+      neumeId: 'neume-podatus',
+      survivor: 'note-podatus-1',
+      survivorPosition: 2,
+    },
+    {
+      noteId: 'note-clivis-1',
+      neumeId: 'neume-clivis',
+      survivor: 'note-clivis-2',
+      survivorPosition: 3,
+    },
+    {
+      noteId: 'note-clivis-2',
+      neumeId: 'neume-clivis',
+      survivor: 'note-clivis-1',
+      survivorPosition: 5,
+    },
   ])(
     'normalizes a two-note neume to punctum and preserves identities',
-    ({ noteId, neumeId, survivor }) => {
-      const deleted = deleteNote(createDocument(), noteId)
+    ({ noteId, neumeId, survivor, survivorPosition }) => {
+      const document = createDocument()
+      const originalIndex = document.neumes.findIndex(
+        (neume) => neume.id === neumeId,
+      )
+      const survivorNote = document.neumes[originalIndex]?.notes.find(
+        (note) => note.id === survivor,
+      )
+      const deleted = deleteNote(document, noteId)
       const normalized = deleted.neumes.find((neume) => neume.id === neumeId)
 
+      expect(deleted.neumes[originalIndex]).toBe(normalized)
       expect(normalized).toMatchObject({
         id: neumeId,
         kind: 'punctum',
         lyricSyllableId: 'syllable-shared',
       })
-      expect(normalized?.notes[0]?.id).toBe(survivor)
+      expect(normalized?.notes[0]).toBe(survivorNote)
+      expect(normalized?.notes[0]).toMatchObject({
+        id: survivor,
+        staffPosition: survivorPosition,
+      })
     },
   )
 
@@ -132,4 +165,30 @@ describe('deleteNote', () => {
     expect(redone.present.neumes[1]?.kind).toBe('punctum')
     expect(redone.present.neumes[1]?.notes[0]?.id).toBe('note-podatus-2')
   })
+
+  it.each([
+    { deletedNoteId: 'note-clivis-1', survivingNoteId: 'note-clivis-2' },
+    { deletedNoteId: 'note-clivis-2', survivingNoteId: 'note-clivis-1' },
+  ])(
+    'undoes and redoes Clivis normalization after deleting $deletedNoteId',
+    ({ deletedNoteId, survivingNoteId }) => {
+      const document = createDocument()
+      const deleted = applyDocumentEdit(
+        createDocumentHistory(document),
+        (current) => deleteNote(current, deletedNoteId),
+      )
+      const undone = undoDocumentEdit(deleted)
+      const redone = redoDocumentEdit(undone)
+
+      expect(undone.present.neumes[2]).toBe(clivis)
+      expect(redone.present.neumes[2]).toMatchObject({
+        id: 'neume-clivis',
+        kind: 'punctum',
+        lyricSyllableId: 'syllable-shared',
+      })
+      expect(redone.present.neumes[2]?.notes[0]?.id).toBe(survivingNoteId)
+      expect(redone.present.neumes[0]).toBe(document.neumes[0])
+      expect(redone.present.neumes[1]).toBe(document.neumes[1])
+    },
+  )
 })

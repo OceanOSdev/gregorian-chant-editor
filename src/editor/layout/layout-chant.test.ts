@@ -44,6 +44,29 @@ function podatus(
   }
 }
 
+function clivis(
+  id: string,
+  upperPosition: number,
+  lowerPosition: number,
+  syllableId = 'syllable-1',
+): Neume {
+  return {
+    id: `neume-${id}`,
+    kind: 'clivis',
+    lyricSyllableId: syllableId,
+    notes: [
+      {
+        id: `${id}-upper`,
+        staffPosition: staffPosition(upperPosition),
+      },
+      {
+        id: `${id}-lower`,
+        staffPosition: staffPosition(lowerPosition),
+      },
+    ],
+  }
+}
+
 function createDocument(neumes: Neume[]): ChantDocument {
   return {
     title: 'Test chant',
@@ -131,6 +154,32 @@ describe('layoutChant', () => {
     )
   })
 
+  it('uses compact spacing and the expected visual contour for both two-note kinds', () => {
+    const layout = layoutChant(
+      createDocument([
+        podatus('podatus', 2, 4),
+        clivis('clivis', 5, 3),
+      ]),
+    )
+    const podatusNotes = layout.neumes[0]?.notes
+    const clivisNotes = layout.neumes[1]?.notes
+    const podatusFirst = podatusNotes?.[0]
+    const podatusSecond = podatusNotes?.[1]
+    const clivisFirst = clivisNotes?.[0]
+    const clivisSecond = clivisNotes?.[1]
+
+    if (!podatusFirst || !podatusSecond || !clivisFirst || !clivisSecond) {
+      throw new Error('Missing two-note neume layout')
+    }
+
+    expect(noteCenterX(podatusSecond) - noteCenterX(podatusFirst)).toBe(12)
+    expect(noteCenterX(clivisSecond) - noteCenterX(clivisFirst)).toBe(12)
+    expect(noteCenterY(podatusSecond)).toBeLessThan(
+      noteCenterY(podatusFirst),
+    )
+    expect(noteCenterY(clivisFirst)).toBeLessThan(noteCenterY(clivisSecond))
+  })
+
   it('places the following neume after the compact rendered width and normal gap', () => {
     const layout = layoutChant(
       createDocument([
@@ -154,29 +203,55 @@ describe('layoutChant', () => {
     expect(noteCenterX(following) - noteCenterX(lower)).toBeLessThan(96)
   })
 
-  it('provides aligned connector geometry only for Podatus', () => {
+  it('provides aligned connector geometry for both two-note kinds', () => {
     const layout = layoutChant(
       createDocument([
         punctum('punctum', 3),
         podatus('podatus', 2, 4),
+        clivis('clivis', 5, 3),
       ]),
     )
     const punctumLayout = layout.neumes[0]
     const podatusLayout = layout.neumes[1]
-    const lower = podatusLayout?.notes[0]
-    const upper = podatusLayout?.notes[1]
-    const connector = podatusLayout?.connector
+    const clivisLayout = layout.neumes[2]
 
     expect(punctumLayout?.connector).toBeUndefined()
-    expect(connector).toBeDefined()
-    if (!lower || !upper || !connector) {
-      throw new Error('Missing Podatus geometry')
+    for (const twoNoteLayout of [podatusLayout, clivisLayout]) {
+      const first = twoNoteLayout?.notes[0]
+      const second = twoNoteLayout?.notes[1]
+      const connector = twoNoteLayout?.connector
+
+      if (!first || !second || !connector) {
+        throw new Error('Missing two-note neume geometry')
+      }
+
+      expect(connector.x).toBeGreaterThanOrEqual(second.x)
+      expect(connector.x).toBeLessThanOrEqual(second.x + second.width)
+      expect(connector.y1).toBe(noteCenterY(first))
+      expect(connector.y2).toBe(noteCenterY(second))
+    }
+  })
+
+  it('places a following neume after compact Clivis width and the normal gap', () => {
+    const layout = layoutChant(
+      createDocument([
+        clivis('clivis', 4, 2),
+        punctum('following', 3),
+      ]),
+    )
+    const clivisNotes = layout.neumes[0]?.notes
+    const following = layout.neumes[1]?.notes[0]
+    const upper = clivisNotes?.[0]
+    const lower = clivisNotes?.[1]
+
+    if (!upper || !lower || !following) {
+      throw new Error('Missing Clivis layout')
     }
 
-    expect(connector.x).toBeGreaterThanOrEqual(upper.x)
-    expect(connector.x).toBeLessThanOrEqual(upper.x + upper.width)
-    expect(connector.y1).toBe(noteCenterY(upper))
-    expect(connector.y2).toBe(noteCenterY(lower))
+    const normalInterNeumeGap = 48 - upper.width
+
+    expect(following.x - (lower.x + lower.width)).toBe(normalInterNeumeGap)
+    expect(noteCenterX(following) - noteCenterX(upper)).toBeLessThan(96)
   })
 
   it('centers one lyric across notes in multiple associated neumes', () => {
@@ -207,6 +282,26 @@ describe('layoutChant', () => {
       createDocument([
         podatus('podatus', 2, 3),
         punctum('following', 4),
+      ]),
+    )
+    const notes = layout.neumes.flatMap((neume) => neume.notes)
+    const firstNote = notes[0]
+    const lastNote = notes.at(-1)
+
+    if (!firstNote || !lastNote) {
+      throw new Error('Missing note layout')
+    }
+
+    expect(layout.lyrics[0]?.x).toBe(
+      (noteCenterX(firstNote) + noteCenterX(lastNote)) / 2,
+    )
+  })
+
+  it('centers lyrics using actual compact Clivis note centers', () => {
+    const layout = layoutChant(
+      createDocument([
+        clivis('clivis', 4, 3),
+        punctum('following', 2),
       ]),
     )
     const notes = layout.neumes.flatMap((neume) => neume.notes)
@@ -254,6 +349,34 @@ describe('layoutChant', () => {
     expect(
       canInsertPunctumInSingleSystem(countNotes(neumes.slice(0, -1))),
     ).toBe(true)
+  })
+
+  it('counts compact Clivis notes as two capacity units', () => {
+    const puncta = Array.from(
+      { length: singleSystemNoteCapacity - 2 },
+      (_, index) => punctum(`note-${index + 3}`, 3),
+    )
+    const neumes = [clivis('clivis', 4, 3), ...puncta]
+
+    expect(countNotes(neumes)).toBe(singleSystemNoteCapacity)
+    expect(canInsertPunctumInSingleSystem(countNotes(neumes))).toBe(false)
+  })
+
+  it('preserves ordinary spacing between separate puncta', () => {
+    const layout = layoutChant(
+      createDocument([
+        punctum('first', 2),
+        punctum('second', 3),
+      ]),
+    )
+    const first = layout.neumes[0]?.notes[0]
+    const second = layout.neumes[1]?.notes[0]
+
+    if (!first || !second) {
+      throw new Error('Missing punctum layout')
+    }
+
+    expect(noteCenterX(second) - noteCenterX(first)).toBe(48)
   })
 
   it('preserves nested Podatus neume and note identities', () => {
