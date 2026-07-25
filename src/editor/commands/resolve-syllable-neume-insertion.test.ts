@@ -75,6 +75,25 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
     ).toBe(4)
   })
 
+  it('places an empty first syllable before every populated group', () => {
+    const document = createDocument()
+    const withEmptyFirst: ChantDocument = {
+      ...document,
+      syllables: [
+        { id: 'syllable-empty-first', text: '' },
+        ...document.syllables,
+      ],
+    }
+
+    expect(
+      resolveSyllableNeumeInsertionIndex(
+        withEmptyFirst,
+        'syllable-empty-first',
+        document.neumes.length,
+      ),
+    ).toBe(0)
+  })
+
   it('preserves multiple neume order and contiguous syllable groups', () => {
     const document = createDocument()
     const insertionIndex = resolveSyllableNeumeInsertionIndex(
@@ -107,6 +126,13 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
       'neume-note-3',
       'neume-note-4',
     ])
+    expect(
+      inserted.neumes
+        .map((neume, index) =>
+          neume.lyricSyllableId === 'syllable-3' ? index : -1,
+        )
+        .filter((index) => index >= 0),
+    ).toEqual([1, 2, 3])
   })
 
   it('rejects an unknown syllable without creating history', () => {

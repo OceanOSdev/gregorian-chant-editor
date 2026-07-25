@@ -61,9 +61,16 @@ export interface ChantLayout {
   lyrics: LyricLayout[]
 }
 
-export interface PunctumPlacement {
-  staffPosition: StaffPosition
-  neumeInsertionIndex: number
+export type GraphicalNeumeKind = Neume['kind']
+
+export type GraphicalStaffPositions =
+  | readonly [StaffPosition]
+  | readonly [StaffPosition, StaffPosition]
+
+export interface GraphicalNeumePlacement {
+  firstStaffPosition: StaffPosition
+  staffPositions: GraphicalStaffPositions
+  preferredNeumeInsertionIndex: number
 }
 
 const canvasWidth = 720
@@ -146,30 +153,54 @@ function getNeumeNoteCenters(neumes: readonly Neume[]) {
   })
 }
 
+function getGraphicalStaffPositions(
+  kind: GraphicalNeumeKind,
+  firstStaffPosition: StaffPosition,
+): GraphicalStaffPositions {
+  if (kind === 'podatus') {
+    return [
+      firstStaffPosition,
+      staffPosition(firstStaffPosition + 1),
+    ]
+  }
+
+  if (kind === 'clivis') {
+    return [
+      firstStaffPosition,
+      staffPosition(firstStaffPosition - 1),
+    ]
+  }
+
+  return [firstStaffPosition]
+}
+
 /**
  * Resolves a point within the current fixed single-system MVP layout.
  * Exact vertical half-step ties snap upward to the higher StaffPosition.
  */
-export function getSingleSystemPunctumPlacement(
-  x: number,
-  y: number,
+export function getSingleSystemNeumePlacement(
+  point: { x: number; y: number },
+  kind: GraphicalNeumeKind,
   neumes: readonly Neume[],
-): PunctumPlacement | null {
+): GraphicalNeumePlacement | null {
   const currentNoteCount = countNotes(neumes)
+  const addedNoteCount = kind === 'punctum' ? 1 : 2
   const minimumPlacementY = staffPositionY(staffPosition(7))
   const maximumPlacementY = staffPositionY(staffPosition(-1))
 
   if (
-    !canInsertPunctumInSingleSystem(currentNoteCount) ||
-    x < staffStartX ||
-    x > staffEndX ||
-    y < minimumPlacementY ||
-    y > maximumPlacementY
+    !canInsertNotesInSingleSystem(currentNoteCount, addedNoteCount) ||
+    point.x < staffStartX ||
+    point.x > staffEndX ||
+    point.y < minimumPlacementY ||
+    point.y > maximumPlacementY
   ) {
     return null
   }
 
-  const snappedPosition = Math.round((bottomStaffY - y) / staffStep) || 0
+  const snappedPosition =
+    Math.round((bottomStaffY - point.y) / staffStep) || 0
+  const firstStaffPosition = staffPosition(snappedPosition)
   const neumeCenters = getNeumeNoteCenters(neumes)
   let neumeInsertionIndex = neumes.length
 
@@ -181,21 +212,22 @@ export function getSingleSystemPunctumPlacement(
       continue
     }
 
-    if (x <= firstCenter) {
+    if (point.x <= firstCenter) {
       neumeInsertionIndex = index
       break
     }
 
-    if (x <= finalCenter) {
+    if (point.x <= finalCenter) {
       neumeInsertionIndex =
-        x <= (firstCenter + finalCenter) / 2 ? index : index + 1
+        point.x <= (firstCenter + finalCenter) / 2 ? index : index + 1
       break
     }
   }
 
   return {
-    staffPosition: staffPosition(snappedPosition),
-    neumeInsertionIndex,
+    firstStaffPosition,
+    staffPositions: getGraphicalStaffPositions(kind, firstStaffPosition),
+    preferredNeumeInsertionIndex: neumeInsertionIndex,
   }
 }
 
