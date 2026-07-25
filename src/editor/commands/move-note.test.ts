@@ -7,6 +7,10 @@ import {
   type PunctumNeume,
 } from '../domain/chant-document'
 import { layoutChant } from '../layout/layout-chant'
+import {
+  applyDocumentEdit,
+  createDocumentHistory,
+} from '../state/document-history'
 import { moveNoteVertically, type StaffPositionDelta } from './move-note'
 
 const punctum: PunctumNeume = {
@@ -78,6 +82,10 @@ describe('moveNoteVertically', () => {
 
   it('accepts valid movement inside podatus and clivis neumes', () => {
     expect(
+      moveNoteVertically(createDocument(), 'note-podatus-1', -1)
+        .neumes[1]?.notes[0]?.staffPosition,
+    ).toBe(1)
+    expect(
       moveNoteVertically(createDocument(), 'note-podatus-2', 1)
         .neumes[1]?.notes[1]?.staffPosition,
     ).toBe(5)
@@ -108,6 +116,53 @@ describe('moveNoteVertically', () => {
     expect(
       moveNoteVertically(nearPodatus, 'note-podatus-1', 1),
     ).toBe(nearPodatus)
+
+    const reversedLowerMove: ChantDocument = {
+      ...document,
+      neumes: [
+        {
+          ...podatus,
+          notes: [
+            {
+              ...podatus.notes[0],
+              staffPosition: staffPosition(4),
+            },
+            {
+              ...podatus.notes[1],
+              staffPosition: staffPosition(3),
+            },
+          ],
+        },
+      ],
+    }
+
+    expect(
+      moveNoteVertically(reversedLowerMove, 'note-podatus-1', 1),
+    ).toBe(reversedLowerMove)
+  })
+
+  it('does not create history for a rejected equal-pitch movement', () => {
+    const document: ChantDocument = {
+      ...createDocument(),
+      neumes: [
+        {
+          ...podatus,
+          notes: [
+            podatus.notes[0],
+            {
+              ...podatus.notes[1],
+              staffPosition: staffPosition(3),
+            },
+          ],
+        },
+      ],
+    }
+    const history = createDocumentHistory(document)
+    const rejected = applyDocumentEdit(history, (current) =>
+      moveNoteVertically(current, 'note-podatus-1', 1),
+    )
+
+    expect(rejected).toBe(history)
   })
 
   it('returns the original document for an unknown note', () => {

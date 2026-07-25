@@ -160,9 +160,26 @@ export function ScoreSvg({
 
       {layout.neumes.map((neume) => (
         <g key={neume.neumeId} data-neume-id={neume.neumeId}>
-          {neume.notes.map((note) => {
+          {neume.connector ? (
+            <line
+              className="score__neume-connector"
+              x1={neume.connector.x}
+              x2={neume.connector.x}
+              y1={neume.connector.y1}
+              y2={neume.connector.y2}
+              pointerEvents="none"
+              aria-hidden="true"
+            />
+          ) : null}
+          {neume.notes.map((note, noteIndex) => {
             const isSelected =
               selection.kind === 'note' && selection.noteId === note.noteId
+            const accessibleLabel =
+              neume.kind === 'podatus'
+                ? noteIndex === 0
+                  ? 'Select lower note of podatus'
+                  : 'Select upper note of podatus'
+                : 'Select punctum'
 
             return (
               <g
@@ -181,7 +198,7 @@ export function ScoreSvg({
                 pointerEvents={
                   activeTool.kind === 'select' ? 'all' : 'none'
                 }
-                aria-label={`Select punctum ${note.noteId}`}
+                aria-label={accessibleLabel}
                 aria-pressed={isSelected}
                 aria-disabled={activeTool.kind !== 'select'}
                 onClick={(event) => handleNoteClick(event, note.noteId)}
