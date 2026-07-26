@@ -128,14 +128,17 @@ normally and with whitespace ignored to identify any non-mechanical change.
 ## Continuous integration
 
 The `CI` GitHub Actions workflow runs for pull requests and pushes to `main`.
-Its `Verify` job installs locked dependencies with `npm ci`, then runs the same
-format check, lint, tests, and build commands shown above as separate named
-steps. The hosted status check is normally reported as `CI / Verify`.
+Its parallel `Format`, `Lint`, `Test`, and `Build` jobs each install locked
+dependencies with `npm ci`, then run the corresponding command shown above.
+The hosted status checks are normally reported as `CI / Format`, `CI / Lint`,
+`CI / Test`, and `CI / Build`. The jobs intentionally repeat setup rather than
+sharing `node_modules`, keeping each result independent and immediately
+visible.
 
 Reviewing the workflow structure or YAML locally does not prove hosted
 execution. After pushing, confirm the workflow runs successfully and that a
 newer push cancels an obsolete run for the same branch or pull request before
-requiring `CI / Verify` in branch protection.
+requiring all four CI checks in branch protection.
 
 ## Extension checklists
 
