@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   isPlacementTool,
   placeClivisTool,
@@ -6,7 +6,7 @@ import {
   placePunctumTool,
   placeScandicusTool,
   selectTool,
-} from './editor-tool'
+} from './editor-tool';
 
 describe('editor tools', () => {
   it.each([
@@ -15,13 +15,13 @@ describe('editor tools', () => {
     { createTool: placeClivisTool, kind: 'place-clivis' },
     { createTool: placeScandicusTool, kind: 'place-scandicus' },
   ])('constructs and recognizes $kind', ({ createTool, kind }) => {
-    const tool = createTool()
+    const tool = createTool();
 
-    expect(tool).toEqual({ kind })
-    expect(isPlacementTool(tool)).toBe(true)
-  })
+    expect(tool).toEqual({ kind });
+    expect(isPlacementTool(tool)).toBe(true);
+  });
 
   it('does not recognize Select as a placement tool', () => {
-    expect(isPlacementTool(selectTool())).toBe(false)
-  })
-})
+    expect(isPlacementTool(selectTool())).toBe(false);
+  });
+});

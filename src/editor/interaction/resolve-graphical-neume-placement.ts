@@ -1,5 +1,5 @@
-import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
-import type { ChantDocument, StaffPosition } from '../domain/chant-document'
+import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion';
+import type { ChantDocument, StaffPosition } from '../domain/chant-document';
 import {
   canGraphicalNeumeFitNormalSystem,
   getSystemNeumePlacement,
@@ -7,30 +7,30 @@ import {
   type ChantLayout,
   type GraphicalNeumeKind,
   type GraphicalPlacementPreviewLayout,
-} from '../layout/layout-chant'
+} from '../layout/layout-chant';
 
 interface ResolvedPlacementBase {
-  insertionIndex: number
-  preview: GraphicalPlacementPreviewLayout
+  insertionIndex: number;
+  preview: GraphicalPlacementPreviewLayout;
 }
 
 export type ResolvedGraphicalNeumePlacement =
   | (ResolvedPlacementBase & {
-      kind: 'punctum'
-      staffPositions: readonly [StaffPosition]
+      kind: 'punctum';
+      staffPositions: readonly [StaffPosition];
     })
   | (ResolvedPlacementBase & {
-      kind: 'podatus'
-      staffPositions: readonly [StaffPosition, StaffPosition]
+      kind: 'podatus';
+      staffPositions: readonly [StaffPosition, StaffPosition];
     })
   | (ResolvedPlacementBase & {
-      kind: 'clivis'
-      staffPositions: readonly [StaffPosition, StaffPosition]
+      kind: 'clivis';
+      staffPositions: readonly [StaffPosition, StaffPosition];
     })
   | (ResolvedPlacementBase & {
-      kind: 'scandicus'
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition]
-    })
+      kind: 'scandicus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+    });
 
 /**
  * Couples system hit testing, a global whole-neume boundary, active-syllable
@@ -49,40 +49,40 @@ export function resolveGraphicalNeumePlacement(
     !Number.isFinite(point.y) ||
     !document.syllables.some((syllable) => syllable.id === activeSyllableId)
   ) {
-    return null
+    return null;
   }
 
   const matchingSystems = layout.systems.filter(
     (system) => point.y >= system.y && point.y <= system.y + system.height,
-  )
+  );
 
   if (matchingSystems.length !== 1) {
-    return null
+    return null;
   }
 
-  const system = matchingSystems[0]
+  const system = matchingSystems[0];
 
   if (!system) {
-    return null
+    return null;
   }
 
-  const placement = getSystemNeumePlacement(point, kind, system)
+  const placement = getSystemNeumePlacement(point, kind, system);
 
   if (!placement) {
-    return null
+    return null;
   }
 
   const insertionIndex = resolveSyllableNeumeInsertionIndex(
     document,
     activeSyllableId,
     placement.preferredNeumeInsertionIndex,
-  )
+  );
 
   if (
     insertionIndex === null ||
     !canGraphicalNeumeFitNormalSystem(placement.kind, placement.staffPositions)
   ) {
-    return null
+    return null;
   }
 
   const preview = (() => {
@@ -92,30 +92,30 @@ export function resolveGraphicalNeumePlacement(
           kind: placement.kind,
           staffPositions: placement.staffPositions,
           insertionIndex,
-        })
+        });
       case 'podatus':
         return layoutGraphicalPlacementPreview(document.neumes, {
           kind: placement.kind,
           staffPositions: placement.staffPositions,
           insertionIndex,
-        })
+        });
       case 'clivis':
         return layoutGraphicalPlacementPreview(document.neumes, {
           kind: placement.kind,
           staffPositions: placement.staffPositions,
           insertionIndex,
-        })
+        });
       case 'scandicus':
         return layoutGraphicalPlacementPreview(document.neumes, {
           kind: placement.kind,
           staffPositions: placement.staffPositions,
           insertionIndex,
-        })
+        });
     }
-  })()
+  })();
 
   if (!preview || preview.kind !== placement.kind) {
-    return null
+    return null;
   }
 
   switch (placement.kind) {
@@ -125,27 +125,27 @@ export function resolveGraphicalNeumePlacement(
         staffPositions: placement.staffPositions,
         insertionIndex,
         preview,
-      }
+      };
     case 'podatus':
       return {
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
         preview,
-      }
+      };
     case 'clivis':
       return {
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
         preview,
-      }
+      };
     case 'scandicus':
       return {
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
         preview,
-      }
+      };
   }
 }

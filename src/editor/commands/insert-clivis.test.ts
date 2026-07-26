@@ -1,18 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantNote,
   type ChantDocument,
   type ClivisNeume,
   type PunctumNeume,
-} from '../domain/chant-document'
+} from '../domain/chant-document';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
-import { insertClivis } from './insert-clivis'
+} from '../state/document-history';
+import { insertClivis } from './insert-clivis';
 
 function punctum(id: string): PunctumNeume {
   return {
@@ -20,7 +20,7 @@ function punctum(id: string): PunctumNeume {
     kind: 'punctum',
     lyricSyllableId: 'syllable-1',
     notes: [{ id, staffPosition: staffPosition(3) }],
-  }
+  };
 }
 
 function clivis(
@@ -36,7 +36,7 @@ function clivis(
       { id: upperNoteId, staffPosition: staffPosition(3) },
       { id: lowerNoteId, staffPosition: staffPosition(2) },
     ],
-  }
+  };
 }
 
 function createDocument(): ChantDocument {
@@ -45,7 +45,7 @@ function createDocument(): ChantDocument {
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
     neumes: [punctum('note-1'), punctum('note-2')],
-  }
+  };
 }
 
 describe('insertClivis', () => {
@@ -54,29 +54,29 @@ describe('insertClivis', () => {
     { index: 1, ids: ['neume-note-1', 'inserted', 'neume-note-2'] },
     { index: 2, ids: ['neume-note-1', 'neume-note-2', 'inserted'] },
   ])('inserts at neume boundary $index', ({ index, ids }) => {
-    const inserted = insertClivis(createDocument(), clivis('inserted'), index)
+    const inserted = insertClivis(createDocument(), clivis('inserted'), index);
 
-    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids)
-  })
+    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids);
+  });
 
   it('preserves supplied identities and unrelated references immutably', () => {
-    const document = createDocument()
+    const document = createDocument();
     const insertedClivis = clivis(
       'stable-neume',
       'stable-upper',
       'stable-lower',
-    )
-    const inserted = insertClivis(document, insertedClivis, 1)
+    );
+    const inserted = insertClivis(document, insertedClivis, 1);
 
-    expect(inserted.neumes[1]).toBe(insertedClivis)
+    expect(inserted.neumes[1]).toBe(insertedClivis);
     expect(inserted.neumes[1]?.notes.map((note) => note.id)).toEqual([
       'stable-upper',
       'stable-lower',
-    ])
-    expect(inserted.neumes[0]).toBe(document.neumes[0])
-    expect(inserted.neumes[2]).toBe(document.neumes[1])
-    expect(document.neumes).toHaveLength(2)
-  })
+    ]);
+    expect(inserted.neumes[0]).toBe(document.neumes[0]);
+    expect(inserted.neumes[2]).toBe(document.neumes[1]);
+    expect(document.neumes).toHaveLength(2);
+  });
 
   it.each([
     { name: 'negative boundary', insertionIndex: -1, candidate: clivis() },
@@ -127,32 +127,32 @@ describe('insertClivis', () => {
   ])(
     'returns the original document for $name',
     ({ insertionIndex, candidate }) => {
-      const document = createDocument()
+      const document = createDocument();
 
-      expect(insertClivis(document, candidate, insertionIndex)).toBe(document)
+      expect(insertClivis(document, candidate, insertionIndex)).toBe(document);
     },
-  )
+  );
 
   it('undoes and redoes the complete Clivis with the same IDs', () => {
-    const document = createDocument()
+    const document = createDocument();
     const insertedClivis = clivis(
       'stable-neume',
       'stable-upper',
       'stable-lower',
-    )
+    );
     const inserted = applyDocumentEdit(
       createDocumentHistory(document),
       (current) => insertClivis(current, insertedClivis, 1),
-    )
-    const undone = undoDocumentEdit(inserted)
-    const redone = redoDocumentEdit(undone)
+    );
+    const undone = undoDocumentEdit(inserted);
+    const redone = redoDocumentEdit(undone);
 
-    expect(inserted.past).toHaveLength(1)
-    expect(undone.present).toBe(document)
-    expect(redone.present.neumes[1]).toBe(insertedClivis)
+    expect(inserted.past).toHaveLength(1);
+    expect(undone.present).toBe(document);
+    expect(redone.present.neumes[1]).toBe(insertedClivis);
     expect(redone.present.neumes[1]?.notes.map((note) => note.id)).toEqual([
       'stable-upper',
       'stable-lower',
-    ])
-  })
-})
+    ]);
+  });
+});

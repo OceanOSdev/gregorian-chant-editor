@@ -1,5 +1,5 @@
-import type { ChantDocument } from '../domain/chant-document'
-import { findNote } from '../domain/neume'
+import type { ChantDocument } from '../domain/chant-document';
+import { findNote } from '../domain/neume';
 
 /** Restores focus only when the invoking stable note ID survives the edit. */
 export function getSurvivingFocusNoteId(
@@ -8,5 +8,5 @@ export function getSurvivingFocusNoteId(
 ) {
   return invokingNoteId && findNote(document, invokingNoteId)
     ? invokingNoteId
-    : null
+    : null;
 }

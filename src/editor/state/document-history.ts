@@ -1,12 +1,12 @@
-import type { ChantDocument } from '../domain/chant-document'
+import type { ChantDocument } from '../domain/chant-document';
 
 export interface DocumentHistory {
-  readonly past: readonly ChantDocument[]
-  readonly present: ChantDocument
-  readonly future: readonly ChantDocument[]
+  readonly past: readonly ChantDocument[];
+  readonly present: ChantDocument;
+  readonly future: readonly ChantDocument[];
 }
 
-export type DocumentEdit = (document: ChantDocument) => ChantDocument
+export type DocumentEdit = (document: ChantDocument) => ChantDocument;
 
 export function createDocumentHistory(
   document: ChantDocument,
@@ -15,7 +15,7 @@ export function createDocumentHistory(
     past: [],
     present: document,
     future: [],
-  }
+  };
 }
 
 /**
@@ -26,43 +26,43 @@ export function applyDocumentEdit(
   history: DocumentHistory,
   edit: DocumentEdit,
 ): DocumentHistory {
-  const nextDocument = edit(history.present)
+  const nextDocument = edit(history.present);
 
   if (nextDocument === history.present) {
-    return history
+    return history;
   }
 
   return {
     past: [...history.past, history.present],
     present: nextDocument,
     future: [],
-  }
+  };
 }
 
 export function undoDocumentEdit(history: DocumentHistory): DocumentHistory {
-  const previousDocument = history.past.at(-1)
+  const previousDocument = history.past.at(-1);
 
   if (!previousDocument) {
-    return history
+    return history;
   }
 
   return {
     past: history.past.slice(0, -1),
     present: previousDocument,
     future: [history.present, ...history.future],
-  }
+  };
 }
 
 export function redoDocumentEdit(history: DocumentHistory): DocumentHistory {
-  const nextDocument = history.future[0]
+  const nextDocument = history.future[0];
 
   if (!nextDocument) {
-    return history
+    return history;
   }
 
   return {
     past: [...history.past, history.present],
     present: nextDocument,
     future: history.future.slice(1),
-  }
+  };
 }

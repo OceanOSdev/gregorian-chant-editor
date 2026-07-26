@@ -1,5 +1,5 @@
-import type { ChantDocument, ScandicusNeume } from '../domain/chant-document'
-import { isValidNeume } from '../domain/neume'
+import type { ChantDocument, ScandicusNeume } from '../domain/chant-document';
+import { isValidNeume } from '../domain/neume';
 
 /**
  * Accepts only a complete boundary, an existing syllable, three unique
@@ -10,19 +10,19 @@ export function insertScandicus(
   scandicus: ScandicusNeume,
   insertionIndex: number,
 ): ChantDocument {
-  const [firstNote, secondNote, thirdNote] = scandicus.notes
-  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id]
+  const [firstNote, secondNote, thirdNote] = scandicus.notes;
+  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id];
   const hasUniqueCandidateNoteIds =
     candidateNoteIds.every((id) => id !== undefined) &&
-    new Set(candidateNoteIds).size === 3
+    new Set(candidateNoteIds).size === 3;
   const hasIdCollision = document.neumes.some(
     (neume) =>
       neume.id === scandicus.id ||
       neume.notes.some((note) => candidateNoteIds.includes(note.id)),
-  )
+  );
   const hasSyllable = document.syllables.some(
     (syllable) => syllable.id === scandicus.lyricSyllableId,
-  )
+  );
 
   if (
     !Number.isInteger(insertionIndex) ||
@@ -33,7 +33,7 @@ export function insertScandicus(
     hasIdCollision ||
     !isValidNeume(scandicus)
   ) {
-    return document
+    return document;
   }
 
   return {
@@ -43,5 +43,5 @@ export function insertScandicus(
       scandicus,
       ...document.neumes.slice(insertionIndex),
     ],
-  }
+  };
 }

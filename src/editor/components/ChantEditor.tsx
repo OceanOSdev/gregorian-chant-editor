@@ -3,18 +3,18 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
-} from 'react'
-import { appendLyricSyllable } from '../commands/append-lyric-syllable'
-import { deleteNeume } from '../commands/delete-neume'
-import { deleteNote } from '../commands/delete-note'
-import { insertClivis } from '../commands/insert-clivis'
-import { insertPodatus } from '../commands/insert-podatus'
-import { insertPunctum } from '../commands/insert-punctum'
-import { insertScandicus } from '../commands/insert-scandicus'
-import { moveNeumeVertically } from '../commands/move-neume'
-import { moveNoteVertically } from '../commands/move-note'
-import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion'
-import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
+} from 'react';
+import { appendLyricSyllable } from '../commands/append-lyric-syllable';
+import { deleteNeume } from '../commands/delete-neume';
+import { deleteNote } from '../commands/delete-note';
+import { insertClivis } from '../commands/insert-clivis';
+import { insertPodatus } from '../commands/insert-podatus';
+import { insertPunctum } from '../commands/insert-punctum';
+import { insertScandicus } from '../commands/insert-scandicus';
+import { moveNeumeVertically } from '../commands/move-neume';
+import { moveNoteVertically } from '../commands/move-note';
+import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
+import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
 import {
   staffPosition,
   type ChantDocument,
@@ -23,19 +23,19 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
-} from '../domain/chant-document'
-import { findNeume, findNote } from '../domain/neume'
-import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
-import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing'
-import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
-import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant'
-import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg'
+} from '../domain/chant-document';
+import { findNeume, findNote } from '../domain/neume';
+import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
+import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing';
+import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
+import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
+import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
+} from '../state/document-history';
 import {
   isPlacementTool,
   placeClivisTool,
@@ -44,7 +44,7 @@ import {
   placeScandicusTool,
   selectTool,
   type EditorTool,
-} from '../state/editor-tool'
+} from '../state/editor-tool';
 import {
   clearSelection,
   reconcileSelection,
@@ -52,15 +52,15 @@ import {
   selectNeume,
   selectNote,
   type EditorSelection,
-} from '../state/selection'
+} from '../state/selection';
 
 interface ChantEditorProps {
-  document: ChantDocument
+  document: ChantDocument;
 }
 
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
-    return false
+    return false;
   }
 
   return (
@@ -68,47 +68,47 @@ function isEditableTarget(target: EventTarget | null) {
     target.tagName === 'INPUT' ||
     target.tagName === 'TEXTAREA' ||
     target.tagName === 'SELECT'
-  )
+  );
 }
 
 function getFocusedScoreNoteId() {
-  const focused = globalThis.document.activeElement
+  const focused = globalThis.document.activeElement;
 
   if (!(focused instanceof Element)) {
-    return null
+    return null;
   }
 
-  return focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null
+  return focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null;
 }
 
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [history, setHistory] = useState(() =>
     createDocumentHistory(initialDocument),
-  )
-  const [selection, setSelection] = useState<EditorSelection>(clearSelection)
+  );
+  const [selection, setSelection] = useState<EditorSelection>(clearSelection);
   const [activeSyllableId, setActiveSyllableId] = useState<string | null>(
     initialDocument.syllables[0]?.id ?? null,
-  )
-  const [activeTool, setActiveTool] = useState<EditorTool>(selectTool)
+  );
+  const [activeTool, setActiveTool] = useState<EditorTool>(selectTool);
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
-  )
+  );
   const [hoveredScorePoint, setHoveredScorePoint] = useState<SvgPoint | null>(
     null,
-  )
-  const [lyricDraft, setLyricDraft] = useState('')
-  const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null)
-  const [committedLyricText, setCommittedLyricText] = useState('')
-  const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false)
-  const skipNextLyricBlurCommit = useRef(false)
-  const lyricInput = useRef<HTMLInputElement>(null)
-  const canUndo = history.past.length > 0
-  const canRedo = history.future.length > 0
-  const layout = layoutChant(history.present)
+  );
+  const [lyricDraft, setLyricDraft] = useState('');
+  const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null);
+  const [committedLyricText, setCommittedLyricText] = useState('');
+  const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false);
+  const skipNextLyricBlurCommit = useRef(false);
+  const lyricInput = useRef<HTMLInputElement>(null);
+  const canUndo = history.past.length > 0;
+  const canRedo = history.future.length > 0;
+  const layout = layoutChant(history.present);
   const activeSyllable = history.present.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
-  )
-  const placementKind = getGraphicalNeumeKind(activeTool)
+  );
+  const placementKind = getGraphicalNeumeKind(activeTool);
   const resolvedPlacement =
     placementKind && hoveredScorePoint
       ? resolveGraphicalNeumePlacement(
@@ -118,69 +118,69 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           placementKind,
           hoveredScorePoint,
         )
-      : null
-  const placementPreview = resolvedPlacement?.preview ?? null
-  const canInsertNeume = Boolean(activeSyllable)
+      : null;
+  const placementPreview = resolvedPlacement?.preview ?? null;
+  const canInsertNeume = Boolean(activeSyllable);
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
-      : (activeSyllable?.text ?? '')
+      : (activeSyllable?.text ?? '');
 
   function returnToSelect() {
-    setActiveTool(selectTool())
-    setHoveredScorePoint(null)
+    setActiveTool(selectTool());
+    setHoveredScorePoint(null);
   }
 
   function applyHistoryNavigation(
     navigate: typeof undoDocumentEdit | typeof redoDocumentEdit,
   ) {
-    const focusedNoteId = getFocusedScoreNoteId()
-    const nextHistory = navigate(history)
+    const focusedNoteId = getFocusedScoreNoteId();
+    const nextHistory = navigate(history);
 
     if (nextHistory === history) {
-      return
+      return;
     }
 
-    setHistory(nextHistory)
+    setHistory(nextHistory);
     setPendingFocusNoteId(
       getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-    )
+    );
   }
 
   // Draft text follows the active syllable, while committed text is the Escape
   // rollback point. A draft is committed explicitly or when the input blurs.
   function commitLyricDraft(text: string) {
     if (!activeSyllable || draftSyllableId !== activeSyllable.id) {
-      return
+      return;
     }
 
     setHistory((currentHistory) =>
       applyDocumentEdit(currentHistory, (document) =>
         updateLyricSyllableText(document, activeSyllable.id, text),
       ),
-    )
-    setLyricDraft(text)
-    setCommittedLyricText(text)
+    );
+    setLyricDraft(text);
+    setCommittedLyricText(text);
   }
 
   function handleLyricKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
-      event.preventDefault()
-      commitLyricDraft(event.currentTarget.value)
-      return
+      event.preventDefault();
+      commitLyricDraft(event.currentTarget.value);
+      return;
     }
 
     if (event.key !== 'Escape' || !activeSyllable) {
-      return
+      return;
     }
 
-    event.preventDefault()
-    event.stopPropagation()
+    event.preventDefault();
+    event.stopPropagation();
     // Escape restores the last semantic value; do not let the resulting blur
     // immediately commit the abandoned draft again.
-    skipNextLyricBlurCommit.current = true
-    setLyricDraft(committedLyricText)
-    setDraftSyllableId(activeSyllable.id)
+    skipNextLyricBlurCommit.current = true;
+    setLyricDraft(committedLyricText);
+    setDraftSyllableId(activeSyllable.id);
   }
 
   function handleScoreSelection(
@@ -190,56 +190,56 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     const syllableId = resolveSelectionSyllableId(
       history.present,
       nextSelection,
-    )
+    );
 
     if (!syllableId) {
-      return
+      return;
     }
 
-    setSelection(nextSelection)
-    setActiveSyllableId(syllableId)
+    setSelection(nextSelection);
+    setActiveSyllableId(syllableId);
 
     if (focusNoteId) {
-      setPendingFocusNoteId(focusNoteId)
+      setPendingFocusNoteId(focusNoteId);
     }
   }
 
   function handleSelectNote(noteId: string) {
-    handleScoreSelection(selectNote(noteId))
+    handleScoreSelection(selectNote(noteId));
   }
 
   function handleSelectNeumeForNote(noteId: string) {
-    const locatedNote = findNote(history.present, noteId)
+    const locatedNote = findNote(history.present, noteId);
 
     if (!locatedNote) {
-      return
+      return;
     }
 
-    handleScoreSelection(selectNeume(locatedNote.neume.id), noteId)
+    handleScoreSelection(selectNeume(locatedNote.neume.id), noteId);
   }
 
   function handleSelectSyllable(syllableId: string) {
-    setActiveSyllableId(syllableId)
-    setSelection(clearSelection())
+    setActiveSyllableId(syllableId);
+    setSelection(clearSelection());
   }
 
   function handleAddSyllable() {
-    const syllableId = globalThis.crypto.randomUUID()
-    const syllable: LyricSyllable = { id: syllableId, text: '' }
+    const syllableId = globalThis.crypto.randomUUID();
+    const syllable: LyricSyllable = { id: syllableId, text: '' };
 
     setHistory((currentHistory) =>
       applyDocumentEdit(currentHistory, (document) =>
         appendLyricSyllable(document, syllable),
       ),
-    )
-    setActiveSyllableId(syllableId)
-    setSelection(clearSelection())
-    setPendingLyricInputFocus(true)
+    );
+    setActiveSyllableId(syllableId);
+    setSelection(clearSelection());
+    setPendingLyricInputFocus(true);
   }
 
   function handleAddPunctum() {
     if (!activeSyllable) {
-      return
+      return;
     }
 
     const insertion = resolveToolbarNeumeInsertion(
@@ -247,14 +247,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       activeSyllable.id,
       selection.kind === 'note' ? selection.noteId : null,
       staffPosition(2),
-    )
+    );
 
     if (!insertion) {
-      return
+      return;
     }
 
-    const neumeId = globalThis.crypto.randomUUID()
-    const noteId = globalThis.crypto.randomUUID()
+    const neumeId = globalThis.crypto.randomUUID();
+    const noteId = globalThis.crypto.randomUUID();
     const punctum: PunctumNeume = {
       id: neumeId,
       kind: 'punctum',
@@ -265,26 +265,26 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           staffPosition: insertion.referenceStaffPosition,
         },
       ],
-    }
+    };
 
     const insertedDocument = insertPunctum(
       history.present,
       punctum,
       insertion.insertionIndex,
-    )
+    );
 
     if (insertedDocument === history.present) {
-      return
+      return;
     }
 
-    setHistory(applyDocumentEdit(history, () => insertedDocument))
-    setSelection(selectNote(noteId))
-    setPendingFocusNoteId(noteId)
+    setHistory(applyDocumentEdit(history, () => insertedDocument));
+    setSelection(selectNote(noteId));
+    setPendingFocusNoteId(noteId);
   }
 
   function handleAddPodatus() {
     if (!activeSyllable) {
-      return
+      return;
     }
 
     const insertion = resolveToolbarNeumeInsertion(
@@ -292,15 +292,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       activeSyllable.id,
       selection.kind === 'note' ? selection.noteId : null,
       staffPosition(2),
-    )
+    );
 
     if (!insertion) {
-      return
+      return;
     }
 
-    const neumeId = globalThis.crypto.randomUUID()
-    const lowerNoteId = globalThis.crypto.randomUUID()
-    const upperNoteId = globalThis.crypto.randomUUID()
+    const neumeId = globalThis.crypto.randomUUID();
+    const lowerNoteId = globalThis.crypto.randomUUID();
+    const upperNoteId = globalThis.crypto.randomUUID();
     const podatus: PodatusNeume = {
       id: neumeId,
       kind: 'podatus',
@@ -315,26 +315,26 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           staffPosition: staffPosition(insertion.referenceStaffPosition + 1),
         },
       ],
-    }
+    };
     const insertedDocument = insertPodatus(
       history.present,
       podatus,
       insertion.insertionIndex,
-    )
+    );
 
     if (insertedDocument === history.present) {
-      return
+      return;
     }
 
-    setHistory(applyDocumentEdit(history, () => insertedDocument))
-    setSelection(selectNote(lowerNoteId))
-    setPendingFocusNoteId(lowerNoteId)
-    returnToSelect()
+    setHistory(applyDocumentEdit(history, () => insertedDocument));
+    setSelection(selectNote(lowerNoteId));
+    setPendingFocusNoteId(lowerNoteId);
+    returnToSelect();
   }
 
   function handleAddClivis() {
     if (!activeSyllable) {
-      return
+      return;
     }
 
     const insertion = resolveToolbarNeumeInsertion(
@@ -342,15 +342,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       activeSyllable.id,
       selection.kind === 'note' ? selection.noteId : null,
       staffPosition(3),
-    )
+    );
 
     if (!insertion) {
-      return
+      return;
     }
 
-    const neumeId = globalThis.crypto.randomUUID()
-    const upperNoteId = globalThis.crypto.randomUUID()
-    const lowerNoteId = globalThis.crypto.randomUUID()
+    const neumeId = globalThis.crypto.randomUUID();
+    const upperNoteId = globalThis.crypto.randomUUID();
+    const lowerNoteId = globalThis.crypto.randomUUID();
     const clivis: ClivisNeume = {
       id: neumeId,
       kind: 'clivis',
@@ -365,26 +365,26 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           staffPosition: staffPosition(insertion.referenceStaffPosition - 1),
         },
       ],
-    }
+    };
     const insertedDocument = insertClivis(
       history.present,
       clivis,
       insertion.insertionIndex,
-    )
+    );
 
     if (insertedDocument === history.present) {
-      return
+      return;
     }
 
-    setHistory(applyDocumentEdit(history, () => insertedDocument))
-    setSelection(selectNote(upperNoteId))
-    setPendingFocusNoteId(upperNoteId)
-    returnToSelect()
+    setHistory(applyDocumentEdit(history, () => insertedDocument));
+    setSelection(selectNote(upperNoteId));
+    setPendingFocusNoteId(upperNoteId);
+    returnToSelect();
   }
 
   function handleAddScandicus() {
     if (!activeSyllable) {
-      return
+      return;
     }
 
     const insertion = resolveToolbarNeumeInsertion(
@@ -392,17 +392,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       activeSyllable.id,
       selection.kind === 'note' ? selection.noteId : null,
       staffPosition(2),
-    )
+    );
 
     if (!insertion) {
-      return
+      return;
     }
 
-    const neumeId = globalThis.crypto.randomUUID()
-    const firstNoteId = globalThis.crypto.randomUUID()
-    const secondNoteId = globalThis.crypto.randomUUID()
-    const thirdNoteId = globalThis.crypto.randomUUID()
-    const firstStaffPosition = insertion.referenceStaffPosition
+    const neumeId = globalThis.crypto.randomUUID();
+    const firstNoteId = globalThis.crypto.randomUUID();
+    const secondNoteId = globalThis.crypto.randomUUID();
+    const thirdNoteId = globalThis.crypto.randomUUID();
+    const firstStaffPosition = insertion.referenceStaffPosition;
     const scandicus: ScandicusNeume = {
       id: neumeId,
       kind: 'scandicus',
@@ -421,28 +421,28 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           staffPosition: staffPosition(firstStaffPosition + 2),
         },
       ],
-    }
+    };
     const nextDocument = insertScandicus(
       history.present,
       scandicus,
       insertion.insertionIndex,
-    )
+    );
 
     if (nextDocument === history.present) {
-      return
+      return;
     }
 
-    setHistory(applyDocumentEdit(history, () => nextDocument))
-    setSelection(selectNote(firstNoteId))
-    setPendingFocusNoteId(firstNoteId)
-    returnToSelect()
+    setHistory(applyDocumentEdit(history, () => nextDocument));
+    setSelection(selectNote(firstNoteId));
+    setPendingFocusNoteId(firstNoteId);
+    returnToSelect();
   }
 
   // The resolver supplies validated semantic intent and post-reflow preview
   // geometry. Stable IDs are allocated only when that intent is committed.
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     if (!activeSyllable) {
-      return
+      return;
     }
 
     const placement = resolveGraphicalNeumePlacement(
@@ -451,20 +451,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       activeSyllable.id,
       kind,
       point,
-    )
+    );
 
     if (!placement) {
-      return
+      return;
     }
 
-    let nextDocument: ChantDocument
-    let firstNoteId: string
+    let nextDocument: ChantDocument;
+    let firstNoteId: string;
 
     if (placement.kind === 'punctum') {
-      const [firstStaffPosition] = placement.staffPositions
-      const neumeId = globalThis.crypto.randomUUID()
+      const [firstStaffPosition] = placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
 
-      firstNoteId = globalThis.crypto.randomUUID()
+      firstNoteId = globalThis.crypto.randomUUID();
       const punctum: PunctumNeume = {
         id: neumeId,
         kind: placement.kind,
@@ -475,19 +475,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             staffPosition: firstStaffPosition,
           },
         ],
-      }
+      };
 
       nextDocument = insertPunctum(
         history.present,
         punctum,
         placement.insertionIndex,
-      )
+      );
     } else if (placement.kind === 'podatus') {
-      const [firstStaffPosition, secondStaffPosition] = placement.staffPositions
-      const neumeId = globalThis.crypto.randomUUID()
+      const [firstStaffPosition, secondStaffPosition] =
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
 
-      firstNoteId = globalThis.crypto.randomUUID()
-      const secondNoteId = globalThis.crypto.randomUUID()
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
       const podatus: PodatusNeume = {
         id: neumeId,
         kind: placement.kind,
@@ -502,19 +503,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             staffPosition: secondStaffPosition,
           },
         ],
-      }
+      };
 
       nextDocument = insertPodatus(
         history.present,
         podatus,
         placement.insertionIndex,
-      )
+      );
     } else if (placement.kind === 'clivis') {
-      const [firstStaffPosition, secondStaffPosition] = placement.staffPositions
-      const neumeId = globalThis.crypto.randomUUID()
+      const [firstStaffPosition, secondStaffPosition] =
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
 
-      firstNoteId = globalThis.crypto.randomUUID()
-      const secondNoteId = globalThis.crypto.randomUUID()
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
       const clivis: ClivisNeume = {
         id: neumeId,
         kind: placement.kind,
@@ -529,21 +531,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             staffPosition: secondStaffPosition,
           },
         ],
-      }
+      };
 
       nextDocument = insertClivis(
         history.present,
         clivis,
         placement.insertionIndex,
-      )
+      );
     } else {
       const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
-        placement.staffPositions
-      const neumeId = globalThis.crypto.randomUUID()
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
 
-      firstNoteId = globalThis.crypto.randomUUID()
-      const secondNoteId = globalThis.crypto.randomUUID()
-      const thirdNoteId = globalThis.crypto.randomUUID()
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
+      const thirdNoteId = globalThis.crypto.randomUUID();
       const scandicus: ScandicusNeume = {
         id: neumeId,
         kind: placement.kind,
@@ -562,23 +564,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             staffPosition: thirdStaffPosition,
           },
         ],
-      }
+      };
 
       nextDocument = insertScandicus(
         history.present,
         scandicus,
         placement.insertionIndex,
-      )
+      );
     }
 
     if (nextDocument === history.present) {
-      return
+      return;
     }
 
-    setHistory(applyDocumentEdit(history, () => nextDocument))
-    returnToSelect()
-    setSelection(selectNote(firstNoteId))
-    setPendingFocusNoteId(firstNoteId)
+    setHistory(applyDocumentEdit(history, () => nextDocument));
+    returnToSelect();
+    setSelection(selectNote(firstNoteId));
+    setPendingFocusNoteId(firstNoteId);
   }
 
   // Selection owns active-syllable precedence. Otherwise preserve a still-valid
@@ -587,15 +589,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     const selectedSyllableId = resolveSelectionSyllableId(
       history.present,
       selection,
-    )
+    );
 
     setSelection((currentSelection) =>
       reconcileSelection(history.present, currentSelection),
-    )
+    );
 
     setActiveSyllableId((currentSyllableId) => {
       if (selectedSyllableId) {
-        return selectedSyllableId
+        return selectedSyllableId;
       }
 
       if (
@@ -604,102 +606,103 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           (syllable) => syllable.id === currentSyllableId,
         )
       ) {
-        return currentSyllableId
+        return currentSyllableId;
       }
 
-      return history.present.syllables.at(-1)?.id ?? null
-    })
-  }, [history.present, selection])
+      return history.present.syllables.at(-1)?.id ?? null;
+    });
+  }, [history.present, selection]);
 
   useEffect(() => {
-    setLyricDraft(activeSyllable?.text ?? '')
-    setDraftSyllableId(activeSyllable?.id ?? null)
-    setCommittedLyricText(activeSyllable?.text ?? '')
-    skipNextLyricBlurCommit.current = false
-  }, [activeSyllable?.id, activeSyllable?.text])
+    setLyricDraft(activeSyllable?.text ?? '');
+    setDraftSyllableId(activeSyllable?.id ?? null);
+    setCommittedLyricText(activeSyllable?.text ?? '');
+    skipNextLyricBlurCommit.current = false;
+  }, [activeSyllable?.id, activeSyllable?.text]);
 
   useEffect(() => {
     if (!pendingLyricInputFocus || !activeSyllable) {
-      return
+      return;
     }
 
-    lyricInput.current?.focus()
-    setPendingLyricInputFocus(false)
-  }, [activeSyllable, pendingLyricInputFocus])
+    lyricInput.current?.focus();
+    setPendingLyricInputFocus(false);
+  }, [activeSyllable, pendingLyricInputFocus]);
 
   useEffect(() => {
     function handleHistoryShortcut(event: KeyboardEvent) {
       if (isEditableTarget(event.target)) {
-        return
+        return;
       }
 
-      const key = event.key.toLowerCase()
-      const usesCommandModifier = event.ctrlKey || event.metaKey
-      const requestsUndo = usesCommandModifier && key === 'z' && !event.shiftKey
+      const key = event.key.toLowerCase();
+      const usesCommandModifier = event.ctrlKey || event.metaKey;
+      const requestsUndo =
+        usesCommandModifier && key === 'z' && !event.shiftKey;
       const requestsRedo =
         (usesCommandModifier && key === 'z' && event.shiftKey) ||
-        (event.ctrlKey && key === 'y')
+        (event.ctrlKey && key === 'y');
 
       if (requestsUndo && canUndo) {
-        event.preventDefault()
+        event.preventDefault();
         // Capture semantic focus before navigation; keyed rendering may move
         // the surviving note to a different system and DOM parent.
-        const focusedNoteId = getFocusedScoreNoteId()
+        const focusedNoteId = getFocusedScoreNoteId();
         setHistory((currentHistory) => {
-          const nextHistory = undoDocumentEdit(currentHistory)
+          const nextHistory = undoDocumentEdit(currentHistory);
 
           setPendingFocusNoteId(
             getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-          )
+          );
 
-          return nextHistory
-        })
+          return nextHistory;
+        });
       } else if (requestsRedo && canRedo) {
-        event.preventDefault()
+        event.preventDefault();
         // Redo uses the same stable-ID restoration path as undo.
-        const focusedNoteId = getFocusedScoreNoteId()
+        const focusedNoteId = getFocusedScoreNoteId();
         setHistory((currentHistory) => {
-          const nextHistory = redoDocumentEdit(currentHistory)
+          const nextHistory = redoDocumentEdit(currentHistory);
 
           setPendingFocusNoteId(
             getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-          )
+          );
 
-          return nextHistory
-        })
+          return nextHistory;
+        });
       }
     }
 
-    globalThis.document.addEventListener('keydown', handleHistoryShortcut)
+    globalThis.document.addEventListener('keydown', handleHistoryShortcut);
 
     return () =>
-      globalThis.document.removeEventListener('keydown', handleHistoryShortcut)
-  }, [canRedo, canUndo])
+      globalThis.document.removeEventListener('keydown', handleHistoryShortcut);
+  }, [canRedo, canUndo]);
 
   useEffect(() => {
     function handleSelectionEscape(event: KeyboardEvent) {
       if (event.key !== 'Escape') {
-        return
+        return;
       }
 
       if (isEditableTarget(event.target)) {
-        return
+        return;
       }
 
-      event.preventDefault()
+      event.preventDefault();
 
       if (isPlacementTool(activeTool)) {
-        returnToSelect()
+        returnToSelect();
       } else {
-        setSelection(clearSelection())
+        setSelection(clearSelection());
       }
     }
 
-    globalThis.document.addEventListener('keydown', handleSelectionEscape)
+    globalThis.document.addEventListener('keydown', handleSelectionEscape);
 
     return () =>
-      globalThis.document.removeEventListener('keydown', handleSelectionEscape)
-  }, [activeTool])
+      globalThis.document.removeEventListener('keydown', handleSelectionEscape);
+  }, [activeTool]);
 
   return (
     <main className="chant-editor">
@@ -794,9 +797,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <h2 id="lyrics-heading">Lyrics</h2>
         <ol>
           {history.present.syllables.map((syllable, index) => {
-            const position = index + 1
-            const displayText = syllable.text || '(empty)'
-            const accessibleText = syllable.text || 'empty'
+            const position = index + 1;
+            const displayText = syllable.text || '(empty)';
+            const accessibleText = syllable.text || 'empty';
 
             return (
               <li key={syllable.id}>
@@ -810,7 +813,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                   {displayText}
                 </button>
               </li>
-            )
+            );
           })}
         </ol>
         <button type="button" onClick={handleAddSyllable}>
@@ -826,18 +829,18 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           value={displayedLyricDraft}
           disabled={!activeSyllable}
           onChange={(event) => {
-            skipNextLyricBlurCommit.current = false
-            setLyricDraft(event.currentTarget.value)
-            setDraftSyllableId(activeSyllable?.id ?? null)
+            skipNextLyricBlurCommit.current = false;
+            setLyricDraft(event.currentTarget.value);
+            setDraftSyllableId(activeSyllable?.id ?? null);
           }}
           onKeyDown={handleLyricKeyDown}
           onBlur={(event) => {
             if (skipNextLyricBlurCommit.current) {
-              skipNextLyricBlurCommit.current = false
-              return
+              skipNextLyricBlurCommit.current = false;
+              return;
             }
 
-            commitLyricDraft(event.currentTarget.value)
+            commitLyricDraft(event.currentTarget.value);
           }}
         />
       </section>
@@ -860,53 +863,53 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         onMoveNote={(noteId, delta) => {
           const nextHistory = applyDocumentEdit(history, (currentDocument) =>
             moveNoteVertically(currentDocument, noteId, delta),
-          )
+          );
 
           if (nextHistory === history) {
-            return
+            return;
           }
 
-          setHistory(nextHistory)
+          setHistory(nextHistory);
           setPendingFocusNoteId(
             getSurvivingFocusNoteId(nextHistory.present, noteId),
-          )
+          );
         }}
         onMoveNeume={(neumeId, delta, invokingNoteId) => {
           const nextHistory = applyDocumentEdit(history, (currentDocument) =>
             moveNeumeVertically(currentDocument, neumeId, delta),
-          )
+          );
 
           if (nextHistory === history) {
-            return
+            return;
           }
 
-          setHistory(nextHistory)
+          setHistory(nextHistory);
           setPendingFocusNoteId(
             getSurvivingFocusNoteId(nextHistory.present, invokingNoteId),
-          )
+          );
         }}
         onDeleteNote={(noteId) => {
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>
               deleteNote(currentDocument, noteId),
             ),
-          )
-          setSelection(clearSelection())
+          );
+          setSelection(clearSelection());
         }}
         onDeleteNeume={(neumeId) => {
           if (!findNeume(history.present, neumeId)) {
-            return
+            return;
           }
 
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>
               deleteNeume(currentDocument, neumeId),
             ),
-          )
-          setSelection(clearSelection())
+          );
+          setSelection(clearSelection());
         }}
         onClearSelection={() => setSelection(clearSelection())}
       />
     </main>
-  )
+  );
 }

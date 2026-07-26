@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   getNoteAccessibleLabel,
   getSelectedNeumeDescription,
   wholeNeumeSelectionInstruction,
-} from './note-accessible-label'
+} from './note-accessible-label';
 
 describe('getNoteAccessibleLabel', () => {
   it.each([
@@ -44,14 +44,14 @@ describe('getNoteAccessibleLabel', () => {
       label: 'Select highest note of scandicus',
     },
   ])('labels $kind note $noteIndex', ({ kind, noteIndex, label }) => {
-    expect(getNoteAccessibleLabel(kind, noteIndex)).toBe(label)
-  })
+    expect(getNoteAccessibleLabel(kind, noteIndex)).toBe(label);
+  });
 
   it('provides a concise whole-neume keyboard instruction', () => {
     expect(wholeNeumeSelectionInstruction).toBe(
       'Shift plus Enter or Space selects the whole neume.',
-    )
-  })
+    );
+  });
 
   it.each([
     {
@@ -75,10 +75,10 @@ describe('getNoteAccessibleLabel', () => {
         'Whole scandicus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
   ])('describes selected $kind state', ({ kind, description }) => {
-    expect(getSelectedNeumeDescription(kind, true)).toBe(description)
-  })
+    expect(getSelectedNeumeDescription(kind, true)).toBe(description);
+  });
 
   it('omits selected-neume status for an unrelated constituent', () => {
-    expect(getSelectedNeumeDescription('podatus', false)).toBeNull()
-  })
-})
+    expect(getSelectedNeumeDescription('podatus', false)).toBeNull();
+  });
+});

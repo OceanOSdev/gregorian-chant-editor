@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantDocument,
   type PunctumNeume,
-} from '../domain/chant-document'
+} from '../domain/chant-document';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
-import { insertPunctum } from './insert-punctum'
+} from '../state/document-history';
+import { insertPunctum } from './insert-punctum';
 
 function createPunctum(id: string, noteId = `${id}-note`): PunctumNeume {
   return {
@@ -18,7 +18,7 @@ function createPunctum(id: string, noteId = `${id}-note`): PunctumNeume {
     kind: 'punctum',
     lyricSyllableId: 'syllable-1',
     notes: [{ id: noteId, staffPosition: staffPosition(3) }],
-  }
+  };
 }
 
 function createDocument(): ChantDocument {
@@ -30,7 +30,7 @@ function createDocument(): ChantDocument {
       createPunctum('neume-1', 'note-1'),
       createPunctum('neume-2', 'note-2'),
     ],
-  }
+  };
 }
 
 describe('insertPunctum', () => {
@@ -43,38 +43,38 @@ describe('insertPunctum', () => {
       createDocument(),
       createPunctum('inserted'),
       index,
-    )
+    );
 
-    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids)
-  })
+    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids);
+  });
 
   it('preserves supplied neume and note identities without mutation', () => {
-    const document = createDocument()
-    const punctum = createPunctum('stable-neume', 'stable-note')
-    const inserted = insertPunctum(document, punctum, 1)
+    const document = createDocument();
+    const punctum = createPunctum('stable-neume', 'stable-note');
+    const inserted = insertPunctum(document, punctum, 1);
 
-    expect(inserted.neumes[1]).toBe(punctum)
-    expect(inserted.neumes[1]?.notes[0]?.id).toBe('stable-note')
-    expect(inserted.neumes[0]).toBe(document.neumes[0])
-    expect(inserted.neumes[2]).toBe(document.neumes[1])
-    expect(document.neumes).toHaveLength(2)
-  })
+    expect(inserted.neumes[1]).toBe(punctum);
+    expect(inserted.neumes[1]?.notes[0]?.id).toBe('stable-note');
+    expect(inserted.neumes[0]).toBe(document.neumes[0]);
+    expect(inserted.neumes[2]).toBe(document.neumes[1]);
+    expect(document.neumes).toHaveLength(2);
+  });
 
   it('can be undone and redone and clears redo after replacement', () => {
-    const document = createDocument()
+    const document = createDocument();
     const inserted = applyDocumentEdit(
       createDocumentHistory(document),
       (current) => insertPunctum(current, createPunctum('inserted'), 1),
-    )
-    const undone = undoDocumentEdit(inserted)
-    const redone = redoDocumentEdit(undone)
+    );
+    const undone = undoDocumentEdit(inserted);
+    const redone = redoDocumentEdit(undone);
     const replacement = applyDocumentEdit(undone, (current) =>
       insertPunctum(current, createPunctum('replacement'), 1),
-    )
+    );
 
-    expect(undone.present).toBe(document)
-    expect(redone.present).toBe(inserted.present)
-    expect(replacement.future).toEqual([])
-    expect(replacement.present.neumes[1]?.id).toBe('replacement')
-  })
-})
+    expect(undone.present).toBe(document);
+    expect(redone.present).toBe(inserted.present);
+    expect(replacement.future).toEqual([]);
+    expect(replacement.present.neumes[1]?.id).toBe('replacement');
+  });
+});

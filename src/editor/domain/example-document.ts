@@ -1,4 +1,4 @@
-import { staffPosition, type ChantDocument } from './chant-document'
+import { staffPosition, type ChantDocument } from './chant-document';
 
 export const exampleDocument: ChantDocument = {
   title: 'Gregorian Chant Editor',
@@ -25,4 +25,4 @@ export const exampleDocument: ChantDocument = {
       ],
     },
   ],
-}
+};

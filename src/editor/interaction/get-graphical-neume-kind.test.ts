@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   placeClivisTool,
   placePodatusTool,
   placePunctumTool,
   placeScandicusTool,
   selectTool,
-} from '../state/editor-tool'
-import { getGraphicalNeumeKind } from './get-graphical-neume-kind'
+} from '../state/editor-tool';
+import { getGraphicalNeumeKind } from './get-graphical-neume-kind';
 
 describe('getGraphicalNeumeKind', () => {
   it.each([
@@ -15,10 +15,10 @@ describe('getGraphicalNeumeKind', () => {
     { tool: placeClivisTool(), kind: 'clivis' },
     { tool: placeScandicusTool(), kind: 'scandicus' },
   ] as const)('maps $tool.kind to $kind', ({ tool, kind }) => {
-    expect(getGraphicalNeumeKind(tool)).toBe(kind)
-  })
+    expect(getGraphicalNeumeKind(tool)).toBe(kind);
+  });
 
   it('maps Select to null instead of falling back to a graphical kind', () => {
-    expect(getGraphicalNeumeKind(selectTool())).toBeNull()
-  })
-})
+    expect(getGraphicalNeumeKind(selectTool())).toBeNull();
+  });
+});

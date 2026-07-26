@@ -3,14 +3,14 @@ import {
   type ChantDocument,
   type ChantNote,
   type Neume,
-} from '../domain/chant-document'
-import { findNeume, isValidNeume } from '../domain/neume'
+} from '../domain/chant-document';
+import { findNeume, isValidNeume } from '../domain/neume';
 
 function moveNote(note: ChantNote, delta: number): ChantNote {
   return {
     ...note,
     staffPosition: staffPosition(note.staffPosition + delta),
-  }
+  };
 }
 
 export function moveNeumeVertically(
@@ -19,43 +19,43 @@ export function moveNeumeVertically(
   delta: number,
 ): ChantDocument {
   if (!Number.isInteger(delta)) {
-    throw new TypeError('Neume movement deltas must be integers')
+    throw new TypeError('Neume movement deltas must be integers');
   }
 
   if (delta === 0) {
-    return document
+    return document;
   }
 
-  const locatedNeume = findNeume(document, neumeId)
+  const locatedNeume = findNeume(document, neumeId);
 
   if (!locatedNeume) {
-    return document
+    return document;
   }
 
-  let movedNeume: Neume
+  let movedNeume: Neume;
 
   switch (locatedNeume.neume.kind) {
     case 'punctum': {
-      const [note] = locatedNeume.neume.notes
+      const [note] = locatedNeume.neume.notes;
 
       movedNeume = {
         ...locatedNeume.neume,
         notes: [moveNote(note, delta)],
-      }
-      break
+      };
+      break;
     }
     case 'podatus':
     case 'clivis': {
-      const [firstNote, secondNote] = locatedNeume.neume.notes
+      const [firstNote, secondNote] = locatedNeume.neume.notes;
 
       movedNeume = {
         ...locatedNeume.neume,
         notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
-      }
-      break
+      };
+      break;
     }
     case 'scandicus': {
-      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes
+      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes;
 
       movedNeume = {
         ...locatedNeume.neume,
@@ -64,13 +64,13 @@ export function moveNeumeVertically(
           moveNote(secondNote, delta),
           moveNote(thirdNote, delta),
         ],
-      }
-      break
+      };
+      break;
     }
   }
 
   if (!isValidNeume(movedNeume)) {
-    return document
+    return document;
   }
 
   return {
@@ -78,5 +78,5 @@ export function moveNeumeVertically(
     neumes: document.neumes.map((neume, index) =>
       index === locatedNeume.neumeIndex ? movedNeume : neume,
     ),
-  }
+  };
 }

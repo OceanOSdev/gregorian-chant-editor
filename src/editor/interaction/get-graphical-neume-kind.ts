@@ -1,5 +1,5 @@
-import type { GraphicalNeumeKind } from '../layout/layout-chant'
-import type { EditorTool } from '../state/editor-tool'
+import type { GraphicalNeumeKind } from '../layout/layout-chant';
+import type { EditorTool } from '../state/editor-tool';
 
 /**
  * Explicitly whitelists graphical kinds; semantic union membership alone does
@@ -10,14 +10,14 @@ export function getGraphicalNeumeKind(
 ): GraphicalNeumeKind | null {
   switch (tool.kind) {
     case 'select':
-      return null
+      return null;
     case 'place-punctum':
-      return 'punctum'
+      return 'punctum';
     case 'place-podatus':
-      return 'podatus'
+      return 'podatus';
     case 'place-clivis':
-      return 'clivis'
+      return 'clivis';
     case 'place-scandicus':
-      return 'scandicus'
+      return 'scandicus';
   }
 }
