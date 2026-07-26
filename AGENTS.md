@@ -12,9 +12,9 @@ This repository is a React 19 application built with TypeScript and Vite.
 
 Application entry points and global files live directly under `src/`:
 
-* `main.tsx` mounts the application.
-* `App.tsx` contains the root application component.
-* `App.css` and `index.css` contain application and global styles.
+- `main.tsx` mounts the application.
+- `App.tsx` contains the root application component.
+- `App.css` and `index.css` contain application and global styles.
 
 Imported images belong in `src/assets/`. Files that must retain stable public URLs belong in `public/`.
 
@@ -47,15 +47,15 @@ Not every directory above must exist immediately. Add directories only when the 
 
 Read the guide that owns a subsystem before changing its documented contract:
 
-* [Architecture](docs/architecture.md)
-* [Domain model](docs/domain-model.md)
-* [Layout and rendering](docs/layout-and-rendering.md)
-* [Editor interactions](docs/editor-interactions.md)
-* [Commands and history](docs/commands-and-history.md)
-* [Testing](docs/testing.md)
-* [Glossary](docs/glossary.md)
-* [Roadmap and limitations](docs/roadmap.md)
-* Architecture decisions:
+- [Architecture](docs/architecture.md)
+- [Domain model](docs/domain-model.md)
+- [Layout and rendering](docs/layout-and-rendering.md)
+- [Editor interactions](docs/editor-interactions.md)
+- [Commands and history](docs/commands-and-history.md)
+- [Testing](docs/testing.md)
+- [Glossary](docs/glossary.md)
+- [Roadmap and limitations](docs/roadmap.md)
+- Architecture decisions:
   [state separation](docs/decisions/001-separate-semantic-and-derived-state.md),
   [stable identities](docs/decisions/002-stable-semantic-identities.md),
   [explicit neume types](docs/decisions/003-explicit-neume-types.md), and
@@ -91,15 +91,20 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 
 ## Build, Test, and Development Commands
 
-* `npm install` installs the dependency versions recorded in `package-lock.json`.
-* `npm run dev` starts the Vite development server with hot module replacement.
-* `npm run build` runs TypeScript project checks and creates a production bundle in `dist/`.
-* `npm run lint` checks source files with Oxlint.
-* `npm run preview` serves the production build locally for a final smoke test.
-* `npm test` runs the Vitest suite once.
-* `npm run test:watch` runs Vitest in watch mode.
+- `npm ci` installs the exact dependency tree recorded in `package-lock.json`.
+- `npm install` is reserved for intentional dependency changes.
+- `npm run dev` starts the Vite development server with hot module replacement.
+- `npm run build` runs TypeScript project checks and creates a production bundle in `dist/`.
+- `npm run format` applies Prettier formatting across the repository.
+- `npm run format:check` checks formatting without changing files.
+- `npm run lint` checks source files with Oxlint.
+- `npm run preview` serves the production build locally for a final smoke test.
+- `npm test` runs the Vitest suite once.
+- `npm run test:watch` runs Vitest in watch mode.
 
-Run `npm test`, `npm run lint`, and `npm run build` before completing a coding task.
+Run `npm run format:check`, `npm run lint`, `npm test`, and `npm run build`
+before completing a coding task. See the [testing guide](docs/testing.md) for
+the authoritative setup and verification workflow.
 
 When automated tests exist, run the relevant tests as well.
 
@@ -107,12 +112,12 @@ When automated tests exist, run the relevant tests as well.
 
 Follow the existing TypeScript and TSX style:
 
-* Two-space indentation
-* Single quotes
-* No semicolons
-* PascalCase for React components and their files
-* camelCase for functions and variables
-* Descriptive kebab-case names for static assets
+- Two-space indentation
+- Single quotes
+- No semicolons
+- PascalCase for React components and their files
+- camelCase for functions and variables
+- Descriptive kebab-case names for static assets
 
 Use function components and React hooks.
 
@@ -156,18 +161,18 @@ Implement only the requested milestone.
 
 Do not add the following unless explicitly requested:
 
-* Authentication
-* A backend
-* Cloud storage
-* Collaboration
-* Audio or MIDI playback
-* PDF export
-* Every Gregorian neume
-* Every historical notation tradition
-* Manual system breaks, pagination, or alternate wrapping policies beyond the
+- Authentication
+- A backend
+- Cloud storage
+- Collaboration
+- Audio or MIDI playback
+- PDF export
+- Every Gregorian neume
+- Every historical notation tradition
+- Manual system breaks, pagination, or alternate wrapping policies beyond the
   current measured whole-neume wrapping
-* Complex state-management libraries
-* A broad UI component library
+- Complex state-management libraries
+- A broad UI component library
 
 Prefer completing one small vertical slice over scaffolding many unfinished systems.
 
@@ -178,14 +183,15 @@ component testing library, or coverage requirement is currently configured.
 
 For current changes:
 
-1. Run `npm test`.
+1. Run `npm run format:check`.
 2. Run `npm run lint`.
-3. Run `npm run build`.
-4. Verify the relevant behavior manually with `npm run dev`.
+3. Run `npm test`.
+4. Run `npm run build`.
+5. Verify the relevant behavior manually with `npm run dev`.
 
-* Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
-* Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
-* Use browser-level tests for important editor interactions.
+- Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
+- Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
+- Use browser-level tests for important editor interactions.
 
 Do not rely exclusively on React component tests for logic that can be tested as plain TypeScript.
 
@@ -193,31 +199,32 @@ Do not rely exclusively on React component tests for logic that can be tested as
 
 Use concise Conventional Commit-style subjects:
 
-* `feat: render initial chant staff`
-* `fix: preserve editor selection`
-* `docs: describe semantic document model`
-* `refactor: separate layout from rendering`
-* `test: cover note movement command`
+- `feat: render initial chant staff`
+- `fix: preserve editor selection`
+- `docs: describe semantic document model`
+- `refactor: separate layout from rendering`
+- `test: cover note movement command`
 
 Keep unrelated changes in separate commits.
 
 When pull requests become available, they should:
 
-* Explain the user-visible or architectural change.
-* List the verification performed.
-* Link relevant issues.
-* Include screenshots or short recordings for meaningful UI changes.
+- Explain the user-visible or architectural change.
+- List the verification performed.
+- Link relevant issues.
+- Include screenshots or short recordings for meaningful UI changes.
 
 ## Completion Requirements
 
 Before completing a coding task:
 
 1. Review the changed files for unnecessary scope expansion.
-2. Run the linter.
-3. Run the production build.
-4. Run relevant automated tests when available.
-5. Verify significant UI behavior manually when practical.
-6. Summarize the changed files.
-7. Explain any architectural decisions or remaining limitations.
+2. Run the formatting check.
+3. Run the linter.
+4. Run relevant automated tests.
+5. Run the production build.
+6. Verify significant UI behavior manually when practical.
+7. Summarize the changed files.
+8. Explain any architectural decisions or remaining limitations.
 
 Do not claim that verification passed unless the corresponding command was actually run successfully.

@@ -143,7 +143,12 @@ describe('layoutChant', () => {
       .map((line) => line.y)
       .sort((first, second) => first - second)
 
-    if (!lower || !upper || staffYs[0] === undefined || staffYs[1] === undefined) {
+    if (
+      !lower ||
+      !upper ||
+      staffYs[0] === undefined ||
+      staffYs[1] === undefined
+    ) {
       throw new Error('Missing layout geometry')
     }
 
@@ -160,23 +165,24 @@ describe('layoutChant', () => {
       lyricSyllableId: 'syllable-1',
       kind: 'punctum',
     })
-    expect(layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]?.noteId).toBe('note-1')
+    expect(
+      layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]?.noteId,
+    ).toBe('note-1')
   })
 
   it('places Podatus notes closer than notes in separate neumes', () => {
     const separateLayout = layoutChant(
-      createDocument([
-        punctum('separate-1', 2),
-        punctum('separate-2', 4),
-      ]),
+      createDocument([punctum('separate-1', 2), punctum('separate-2', 4)]),
     )
     const podatusLayout = layoutChant(
       createDocument([podatus('podatus', 2, 4)]),
     )
-    const separateNotes = separateLayout.systems.flatMap((system) => system.neumes).flatMap(
-      (neume) => neume.notes,
-    )
-    const podatusNotes = podatusLayout.systems.flatMap((system) => system.neumes)[0]?.notes
+    const separateNotes = separateLayout.systems
+      .flatMap((system) => system.neumes)
+      .flatMap((neume) => neume.notes)
+    const podatusNotes = podatusLayout.systems.flatMap(
+      (system) => system.neumes,
+    )[0]?.notes
     const separateFirst = separateNotes[0]
     const separateSecond = separateNotes[1]
     const lower = podatusNotes?.[0]
@@ -193,13 +199,12 @@ describe('layoutChant', () => {
 
   it('uses compact spacing and the expected visual contour for both two-note kinds', () => {
     const layout = layoutChant(
-      createDocument([
-        podatus('podatus', 2, 4),
-        clivis('clivis', 5, 3),
-      ]),
+      createDocument([podatus('podatus', 2, 4), clivis('clivis', 5, 3)]),
     )
-    const podatusNotes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-    const clivisNotes = layout.systems.flatMap((system) => system.neumes)[1]?.notes
+    const podatusNotes = layout.systems.flatMap((system) => system.neumes)[0]
+      ?.notes
+    const clivisNotes = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes
     const podatusFirst = podatusNotes?.[0]
     const podatusSecond = podatusNotes?.[1]
     const clivisFirst = clivisNotes?.[0]
@@ -211,21 +216,18 @@ describe('layoutChant', () => {
 
     expect(noteCenterX(podatusSecond) - noteCenterX(podatusFirst)).toBe(12)
     expect(noteCenterX(clivisSecond) - noteCenterX(clivisFirst)).toBe(12)
-    expect(noteCenterY(podatusSecond)).toBeLessThan(
-      noteCenterY(podatusFirst),
-    )
+    expect(noteCenterY(podatusSecond)).toBeLessThan(noteCenterY(podatusFirst))
     expect(noteCenterY(clivisFirst)).toBeLessThan(noteCenterY(clivisSecond))
   })
 
   it('places the following neume after the compact rendered width and normal gap', () => {
     const layout = layoutChant(
-      createDocument([
-        podatus('podatus', 2, 4),
-        punctum('following', 3),
-      ]),
+      createDocument([podatus('podatus', 2, 4), punctum('following', 3)]),
     )
-    const podatusNotes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-    const following = layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]
+    const podatusNotes = layout.systems.flatMap((system) => system.neumes)[0]
+      ?.notes
+    const following = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes[0]
     const lower = podatusNotes?.[0]
     const upper = podatusNotes?.[1]
 
@@ -314,13 +316,12 @@ describe('layoutChant', () => {
   })
 
   it('places a following neume after the final Scandicus note and exposes no interior boundary', () => {
-    const neumes = [
-      scandicus('scandicus', 2, 4, 7),
-      punctum('following', 3),
-    ]
+    const neumes = [scandicus('scandicus', 2, 4, 7), punctum('following', 3)]
     const layout = layoutChant(createDocument(neumes))
-    const scandicusNotes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-    const following = layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]
+    const scandicusNotes = layout.systems.flatMap((system) => system.neumes)[0]
+      ?.notes
+    const following = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes[0]
     const final = scandicusNotes?.[2]
 
     if (!scandicusNotes || !following || !final) {
@@ -337,13 +338,12 @@ describe('layoutChant', () => {
 
   it('places a following neume after compact Clivis width and the normal gap', () => {
     const layout = layoutChant(
-      createDocument([
-        clivis('clivis', 4, 2),
-        punctum('following', 3),
-      ]),
+      createDocument([clivis('clivis', 4, 2), punctum('following', 3)]),
     )
-    const clivisNotes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-    const following = layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]
+    const clivisNotes = layout.systems.flatMap((system) => system.neumes)[0]
+      ?.notes
+    const following = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes[0]
     const upper = clivisNotes?.[0]
     const lower = clivisNotes?.[1]
 
@@ -358,16 +358,16 @@ describe('layoutChant', () => {
   })
 
   it('aligns a Punctum lyric to its sole note center', () => {
-    const layout = layoutChant(
-      createDocument([punctum('punctum', 2)]),
-    )
+    const layout = layoutChant(createDocument([punctum('punctum', 2)]))
     const note = layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]
 
     if (!note) {
       throw new Error('Missing Punctum note layout')
     }
 
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(noteCenterX(note))
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+      noteCenterX(note),
+    )
   })
 
   it('uses only the first Punctum for several neumes on one syllable', () => {
@@ -378,7 +378,9 @@ describe('layoutChant', () => {
         punctum('note-3', 4),
       ]),
     )
-    const notes = layout.systems.flatMap((system) => system.neumes).flatMap((neume) => neume.notes)
+    const notes = layout.systems
+      .flatMap((system) => system.neumes)
+      .flatMap((neume) => neume.notes)
     const lyric = layout.systems.flatMap((system) => system.lyrics)[0]
     const firstNote = notes[0]
     const lastNote = notes[2]
@@ -408,20 +410,22 @@ describe('layoutChant', () => {
       throw new Error('Missing Podatus layout')
     }
 
-    const boundsCenter =
-      podatusLayout.bounds.x + podatusLayout.bounds.width / 2
+    const boundsCenter = podatusLayout.bounds.x + podatusLayout.bounds.width / 2
 
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(noteCenterX(firstNote))
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(noteCenterX(secondNote))
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(boundsCenter)
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+      noteCenterX(firstNote),
+    )
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
+      noteCenterX(secondNote),
+    )
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
+      boundsCenter,
+    )
   })
 
   it('aligns a first Scandicus lyric to its first note only', () => {
     const layout = layoutChant(
-      createDocument([
-        scandicus('scandicus', 2, 4, 7),
-        punctum('later', 3),
-      ]),
+      createDocument([scandicus('scandicus', 2, 4, 7), punctum('later', 3)]),
     )
     const neumeLayout = layout.systems.flatMap((system) => system.neumes)[0]
     const first = neumeLayout?.notes[0]
@@ -432,9 +436,15 @@ describe('layoutChant', () => {
       throw new Error('Missing Scandicus lyric layout')
     }
 
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(noteCenterX(first))
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(noteCenterX(middle))
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(noteCenterX(final))
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+      noteCenterX(first),
+    )
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
+      noteCenterX(middle),
+    )
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
+      noteCenterX(final),
+    )
     expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
       neumeLayout.bounds.x + neumeLayout.bounds.width / 2,
     )
@@ -456,12 +466,12 @@ describe('layoutChant', () => {
       throw new Error('Missing Clivis layout')
     }
 
-    const boundsCenter =
-      clivisLayout.bounds.x + clivisLayout.bounds.width / 2
-    const noteMidpoint =
-      (noteCenterX(firstNote) + noteCenterX(secondNote)) / 2
+    const boundsCenter = clivisLayout.bounds.x + clivisLayout.bounds.width / 2
+    const noteMidpoint = (noteCenterX(firstNote) + noteCenterX(secondNote)) / 2
 
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(boundsCenter)
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+      boundsCenter,
+    )
     expect(boundsCenter).toBe(noteMidpoint)
   })
 
@@ -474,14 +484,11 @@ describe('layoutChant', () => {
       ...initial,
       neumes: [...initial.neumes, clivis('appended', 5, 3)],
     }
-    const moved = moveNeumeVertically(
-      appended,
-      'neume-later',
-      1,
-    )
+    const moved = moveNeumeVertically(appended, 'neume-later', 1)
     const deleted = deleteNeume(moved, 'neume-appended')
     const lyricXs = [initial, appended, moved, deleted].map(
-      (document) => layoutChant(document).systems.flatMap((system) => system.lyrics)[0]?.x,
+      (document) =>
+        layoutChant(document).systems.flatMap((system) => system.lyrics)[0]?.x,
     )
 
     expect(new Set(lyricXs).size).toBe(1)
@@ -492,25 +499,27 @@ describe('layoutChant', () => {
       podatus('old-first', 2, 4),
       clivis('next', 5, 3),
     ])
-    const inserted = insertPunctum(
-      initial,
-      punctum('inserted-first', 3),
-      0,
-    )
+    const inserted = insertPunctum(initial, punctum('inserted-first', 3), 0)
     const afterFirstDeletion = deleteNeume(initial, 'neume-old-first')
-    const insertedNote = layoutChant(inserted).systems.flatMap((system) => system.neumes)[0]?.notes[0]
-    const nextNeume = layoutChant(afterFirstDeletion).systems.flatMap((system) => system.neumes)[0]
+    const insertedNote = layoutChant(inserted).systems.flatMap(
+      (system) => system.neumes,
+    )[0]?.notes[0]
+    const nextNeume = layoutChant(afterFirstDeletion).systems.flatMap(
+      (system) => system.neumes,
+    )[0]
 
     if (!insertedNote || !nextNeume) {
       throw new Error('Missing reanchored layout')
     }
 
-    expect(layoutChant(inserted).systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
-      noteCenterX(insertedNote),
-    )
-    expect(layoutChant(afterFirstDeletion).systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
-      nextNeume.bounds.x + nextNeume.bounds.width / 2,
-    )
+    expect(
+      layoutChant(inserted).systems.flatMap((system) => system.lyrics)[0]?.x,
+    ).toBe(noteCenterX(insertedNote))
+    expect(
+      layoutChant(afterFirstDeletion).systems.flatMap(
+        (system) => system.lyrics,
+      )[0]?.x,
+    ).toBe(nextNeume.bounds.x + nextNeume.bounds.width / 2)
   })
 
   it('derives insertion anchors again through undo and redo', () => {
@@ -518,19 +527,28 @@ describe('layoutChant', () => {
       podatus('old-first', 2, 4),
       punctum('later', 3),
     ])
-    const initialAnchor = layoutChant(initial).systems.flatMap((system) => system.lyrics)[0]?.x
+    const initialAnchor = layoutChant(initial).systems.flatMap(
+      (system) => system.lyrics,
+    )[0]?.x
     const insertedHistory = applyDocumentEdit(
       createDocumentHistory(initial),
-      (document) =>
-        insertClivis(document, clivis('new-first', 5, 3), 0),
+      (document) => insertClivis(document, clivis('new-first', 5, 3), 0),
     )
-    const insertedAnchor = layoutChant(insertedHistory.present).systems.flatMap((system) => system.lyrics)[0]?.x
+    const insertedAnchor = layoutChant(insertedHistory.present).systems.flatMap(
+      (system) => system.lyrics,
+    )[0]?.x
     const undone = undoDocumentEdit(insertedHistory)
     const redone = redoDocumentEdit(undone)
 
     expect(insertedAnchor).not.toBe(initialAnchor)
-    expect(layoutChant(undone.present).systems.flatMap((system) => system.lyrics)[0]?.x).toBe(initialAnchor)
-    expect(layoutChant(redone.present).systems.flatMap((system) => system.lyrics)[0]?.x).toBe(insertedAnchor)
+    expect(
+      layoutChant(undone.present).systems.flatMap((system) => system.lyrics)[0]
+        ?.x,
+    ).toBe(initialAnchor)
+    expect(
+      layoutChant(redone.present).systems.flatMap((system) => system.lyrics)[0]
+        ?.x,
+    ).toBe(insertedAnchor)
   })
 
   it.each([
@@ -575,7 +593,9 @@ describe('layoutChant', () => {
 
       expect(firstNeume?.kind).toBe('punctum')
       expect(survivor.noteId).toBe(survivingNoteId)
-      expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(noteCenterX(survivor))
+      expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+        noteCenterX(survivor),
+      )
     },
   )
 
@@ -583,7 +603,9 @@ describe('layoutChant', () => {
     const document = createDocument([punctum('only', 2)])
     const deleted = deleteNeume(document, 'neume-only')
 
-    expect(layoutChant(deleted).systems.flatMap((system) => system.lyrics)).toEqual([])
+    expect(
+      layoutChant(deleted).systems.flatMap((system) => system.lyrics),
+    ).toEqual([])
     expect(deleted.syllables).toBe(document.syllables)
   })
 
@@ -603,7 +625,9 @@ describe('layoutChant', () => {
     }
 
     expect(
-      layoutChant(document).systems.flatMap((system) => system.lyrics).map((lyric) => lyric.syllableId),
+      layoutChant(document)
+        .systems.flatMap((system) => system.lyrics)
+        .map((lyric) => lyric.syllableId),
     ).toEqual(['syllable-1', 'syllable-3'])
   })
 
@@ -622,14 +646,17 @@ describe('layoutChant', () => {
         punctum('whitespace', 4, 'syllable-whitespace'),
       ],
     }
-    const lyrics = layoutChant(document).systems.flatMap((system) => system.lyrics)
+    const lyrics = layoutChant(document).systems.flatMap(
+      (system) => system.lyrics,
+    )
 
-    expect(lyrics.map(({ syllableId, text }) => ({ syllableId, text })))
-      .toEqual([
-        { syllableId: 'syllable-empty', text: '' },
-        { syllableId: 'syllable-punctuation', text: '—' },
-        { syllableId: 'syllable-whitespace', text: ' ' },
-      ])
+    expect(
+      lyrics.map(({ syllableId, text }) => ({ syllableId, text })),
+    ).toEqual([
+      { syllableId: 'syllable-empty', text: '' },
+      { syllableId: 'syllable-punctuation', text: '—' },
+      { syllableId: 'syllable-whitespace', text: ' ' },
+    ])
     expect(document.syllables.at(-1)?.id).toBe('syllable-unassociated')
   })
 
@@ -649,8 +676,12 @@ describe('layoutChant', () => {
       ],
     }
     const layout = layoutChant(document)
-    const firstSyllableNeume = layout.systems.flatMap((system) => system.neumes)[1]
-    const secondSyllableNeume = layout.systems.flatMap((system) => system.neumes)[0]
+    const firstSyllableNeume = layout.systems.flatMap(
+      (system) => system.neumes,
+    )[1]
+    const secondSyllableNeume = layout.systems.flatMap(
+      (system) => system.neumes,
+    )[0]
     const firstSyllableNote = firstSyllableNeume?.notes[0]
     const secondSyllableNote = secondSyllableNeume?.notes[0]
 
@@ -658,24 +689,26 @@ describe('layoutChant', () => {
       throw new Error('Missing multiple-syllable geometry')
     }
 
-    expect(layout.systems.flatMap((system) => system.lyrics).map((lyric) => lyric.syllableId)).toEqual([
-      'syllable-1',
-      'syllable-2',
-    ])
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(noteCenterX(firstSyllableNote))
-    expect(layout.systems.flatMap((system) => system.lyrics)[1]?.x).toBe(noteCenterX(secondSyllableNote))
+    expect(
+      layout.systems
+        .flatMap((system) => system.lyrics)
+        .map((lyric) => lyric.syllableId),
+    ).toEqual(['syllable-1', 'syllable-2'])
+    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
+      noteCenterX(firstSyllableNote),
+    )
+    expect(layout.systems.flatMap((system) => system.lyrics)[1]?.x).toBe(
+      noteCenterX(secondSyllableNote),
+    )
   })
-
 
   it('preserves ordinary spacing between separate puncta', () => {
     const layout = layoutChant(
-      createDocument([
-        punctum('first', 2),
-        punctum('second', 3),
-      ]),
+      createDocument([punctum('first', 2), punctum('second', 3)]),
     )
     const first = layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]
-    const second = layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]
+    const second = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes[0]
 
     if (!first || !second) {
       throw new Error('Missing punctum layout')
@@ -685,34 +718,29 @@ describe('layoutChant', () => {
   })
 
   it('preserves nested Podatus neume and note identities', () => {
-    const layout = layoutChant(
-      createDocument([podatus('stable', 2, 3)]),
-    )
+    const layout = layoutChant(createDocument([podatus('stable', 2, 3)]))
 
     expect(layout.systems.flatMap((system) => system.neumes)[0]).toMatchObject({
       neumeId: 'neume-stable',
       lyricSyllableId: 'syllable-1',
       kind: 'podatus',
     })
-    expect(layout.systems.flatMap((system) => system.neumes)[0]?.notes.map((note) => note.noteId)).toEqual([
-      'stable-lower',
-      'stable-upper',
-    ])
+    expect(
+      layout.systems
+        .flatMap((system) => system.neumes)[0]
+        ?.notes.map((note) => note.noteId),
+    ).toEqual(['stable-lower', 'stable-upper'])
   })
 
   it('wraps a long document without a semantic capacity limit', () => {
     const atCapacity = layoutChant(
       createDocument(
-        Array.from({ length: 9 }, (_, index) =>
-          punctum(`note-${index}`, 3),
-        ),
+        Array.from({ length: 9 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     )
     const overflow = layoutChant(
       createDocument(
-        Array.from({ length: 10 }, (_, index) =>
-          punctum(`note-${index}`, 3),
-        ),
+        Array.from({ length: 10 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     )
     const staffEndX = atCapacity.systems[0]?.staffLines[0]?.x2
@@ -721,12 +749,16 @@ describe('layoutChant', () => {
 
     expect(atCapacity.systems).toHaveLength(1)
     expect(overflow.systems).toHaveLength(2)
-    expect(finalAtCapacity && staffEndX !== undefined
-      ? finalAtCapacity.x + finalAtCapacity.width
-      : undefined).toBeLessThanOrEqual(staffEndX ?? 0)
-    expect(finalOverflow && staffEndX !== undefined
-      ? finalOverflow.x + finalOverflow.width
-      : undefined).toBeLessThanOrEqual(staffEndX ?? 0)
+    expect(
+      finalAtCapacity && staffEndX !== undefined
+        ? finalAtCapacity.x + finalAtCapacity.width
+        : undefined,
+    ).toBeLessThanOrEqual(staffEndX ?? 0)
+    expect(
+      finalOverflow && staffEndX !== undefined
+        ? finalOverflow.x + finalOverflow.width
+        : undefined,
+    ).toBeLessThanOrEqual(staffEndX ?? 0)
   })
 
   it.each([
@@ -738,7 +770,9 @@ describe('layoutChant', () => {
       kind: 'scandicus',
     },
   ])('$kind bounds contain every constituent note', ({ neume }) => {
-    const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap((system) => system.neumes)[0]
+    const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap(
+      (system) => system.neumes,
+    )[0]
 
     if (!neumeLayout) {
       throw new Error('Missing neume layout')
@@ -761,7 +795,9 @@ describe('layoutChant', () => {
     clivis('clivis-connector-bounds', 6, 2),
     scandicus('scandicus-connector-bounds', 1, 4, 7),
   ])('includes the $kind connector painted extent in bounds', (neume) => {
-    const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap((system) => system.neumes)[0]
+    const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap(
+      (system) => system.neumes,
+    )[0]
 
     if (!neumeLayout || neumeLayout.connectors.length === 0) {
       throw new Error('Missing connector layout')
@@ -777,9 +813,7 @@ describe('layoutChant', () => {
       )
       expect(
         neumeLayout.bounds.y + neumeLayout.bounds.height,
-      ).toBeGreaterThanOrEqual(
-        Math.max(connector.y1, connector.y2) + 1.5,
-      )
+      ).toBeGreaterThanOrEqual(Math.max(connector.y1, connector.y2) + 1.5)
     }
   })
 
@@ -790,8 +824,10 @@ describe('layoutChant', () => {
         punctum('punctum-invariant', 3),
       ]),
     )
-    const firstNotes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-    const following = layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]
+    const firstNotes = layout.systems.flatMap((system) => system.neumes)[0]
+      ?.notes
+    const following = layout.systems.flatMap((system) => system.neumes)[1]
+      ?.notes[0]
 
     if (!firstNotes || !following) {
       throw new Error('Missing invariant layout')

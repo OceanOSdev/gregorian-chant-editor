@@ -1,7 +1,4 @@
-import type {
-  ChantDocument,
-  ClivisNeume,
-} from '../domain/chant-document'
+import type { ChantDocument, ClivisNeume } from '../domain/chant-document'
 import { insertTwoNoteNeume } from './insert-two-note-neume'
 
 export function insertClivis(

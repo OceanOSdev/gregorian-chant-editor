@@ -6,12 +6,14 @@ const document: ChantDocument = {
   title: 'Test',
   clef: { type: 'c', staffLine: 3 },
   syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-  neumes: [{
-    id: 'neume-1',
-    kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
-    notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
-  }],
+  neumes: [
+    {
+      id: 'neume-1',
+      kind: 'punctum',
+      lyricSyllableId: 'syllable-1',
+      notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
+    },
+  ],
 }
 
 describe('multi-system focus targets', () => {

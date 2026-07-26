@@ -1,7 +1,4 @@
-import type {
-  ChantDocument,
-  LyricSyllable,
-} from '../domain/chant-document'
+import type { ChantDocument, LyricSyllable } from '../domain/chant-document'
 
 export function appendLyricSyllable(
   document: ChantDocument,

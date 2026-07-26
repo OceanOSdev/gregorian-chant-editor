@@ -52,9 +52,9 @@ describe('updateLyricSyllableText', () => {
     expect(updatedDocument.syllables[0]?.text).toBe('Kyr-')
     expect(updatedDocument.syllables[1]).toBe(document.syllables[1])
     expect(updatedDocument.neumes).toBe(document.neumes)
-    expect(updatedDocument.neumes.map((neume) => neume.lyricSyllableId)).toEqual(
-      document.neumes.map((neume) => neume.lyricSyllableId),
-    )
+    expect(
+      updatedDocument.neumes.map((neume) => neume.lyricSyllableId),
+    ).toEqual(document.neumes.map((neume) => neume.lyricSyllableId))
   })
 
   it('does not mutate the original document', () => {
@@ -77,9 +77,9 @@ describe('updateLyricSyllableText', () => {
   it('returns the original document for an unknown syllable', () => {
     const document = createDocument()
 
-    expect(
-      updateLyricSyllableText(document, 'unknown-syllable', 'text'),
-    ).toBe(document)
+    expect(updateLyricSyllableText(document, 'unknown-syllable', 'text')).toBe(
+      document,
+    )
   })
 
   it('returns the original document when the text is unchanged', () => {
@@ -119,9 +119,9 @@ describe('updateLyricSyllableText', () => {
     const layout = layoutChant(
       updateLyricSyllableText(createDocument(), 'syllable-1', 'Kyr-'),
     )
-    const updatedLyrics = layout.systems.flatMap((system) => system.lyrics).filter(
-      (lyric) => lyric.syllableId === 'syllable-1',
-    )
+    const updatedLyrics = layout.systems
+      .flatMap((system) => system.lyrics)
+      .filter((lyric) => lyric.syllableId === 'syllable-1')
 
     expect(updatedLyrics).toHaveLength(1)
     expect(updatedLyrics[0]?.text).toBe('Kyr-')

@@ -83,11 +83,7 @@ export interface ChantLayout {
   systems: readonly ChantSystemLayout[]
 }
 
-export type GraphicalNeumeKind =
-  | 'punctum'
-  | 'podatus'
-  | 'clivis'
-  | 'scandicus'
+export type GraphicalNeumeKind = 'punctum' | 'podatus' | 'clivis' | 'scandicus'
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
@@ -116,11 +112,7 @@ export type GraphicalNeumePlacement =
   | {
       kind: 'scandicus'
       firstStaffPosition: StaffPosition
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ]
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition]
       preferredNeumeInsertionIndex: number
     }
 
@@ -144,15 +136,8 @@ export type GraphicalPlacementPreviewLayout =
     }
   | {
       kind: 'scandicus'
-      notes: readonly [
-        PreviewNoteLayout,
-        PreviewNoteLayout,
-        PreviewNoteLayout,
-      ]
-      connectors: readonly [
-        NeumeConnectorLayout,
-        NeumeConnectorLayout,
-      ]
+      notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout]
+      connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout]
     }
 
 export type GraphicalPlacementPreviewInput =
@@ -173,11 +158,7 @@ export type GraphicalPlacementPreviewInput =
     }
   | {
       kind: 'scandicus'
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ]
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition]
       insertionIndex: number
     }
 
@@ -271,28 +252,22 @@ export function getNeumeLayoutBounds(
   const connectorHalfStroke = neumeConnectorStrokeWidth / 2
   const minimumX = Math.min(
     ...notes.map((note) => note.x),
-    ...connectors.map(
-      (connector) => connector.x - connectorHalfStroke,
-    ),
+    ...connectors.map((connector) => connector.x - connectorHalfStroke),
   )
   const maximumX = Math.max(
     ...notes.map((note) => note.x + note.width),
-    ...connectors.map(
-      (connector) => connector.x + connectorHalfStroke,
-    ),
+    ...connectors.map((connector) => connector.x + connectorHalfStroke),
   )
   const minimumY = Math.min(
     ...notes.map((note) => note.y),
     ...connectors.map(
-      (connector) =>
-        Math.min(connector.y1, connector.y2) - connectorHalfStroke,
+      (connector) => Math.min(connector.y1, connector.y2) - connectorHalfStroke,
     ),
   )
   const maximumY = Math.max(
     ...notes.map((note) => note.y + note.height),
     ...connectors.map(
-      (connector) =>
-        Math.max(connector.y1, connector.y2) + connectorHalfStroke,
+      (connector) => Math.max(connector.y1, connector.y2) + connectorHalfStroke,
     ),
   )
 
@@ -357,8 +332,7 @@ function layoutRawNeume(
     notes,
     connectors,
     bounds: getNeumeLayoutBounds(notes, connectors),
-    finalNoteCenterX:
-      firstCenterX + (offsets.at(-1) ?? 0),
+    finalNoteCenterX: firstCenterX + (offsets.at(-1) ?? 0),
   }
 }
 
@@ -473,9 +447,7 @@ export function wrapNeumes(
   return systems
 }
 
-function getNeumeLyricAlignmentX(
-  neumeLayout: NeumeLayout,
-): number | null {
+function getNeumeLyricAlignmentX(neumeLayout: NeumeLayout): number | null {
   // Ascending kinds and Punctum use their first note; Clivis uses its complete
   // raw bounds because its compact descending shape extends to the right.
   switch (neumeLayout.kind) {
@@ -490,8 +462,7 @@ function getNeumeLyricAlignmentX(
       return Number.isFinite(alignmentX) ? alignmentX : null
     }
     case 'clivis': {
-      const alignmentX =
-        neumeLayout.bounds.x + neumeLayout.bounds.width / 2
+      const alignmentX = neumeLayout.bounds.x + neumeLayout.bounds.width / 2
 
       return Number.isFinite(alignmentX) ? alignmentX : null
     }
@@ -551,11 +522,7 @@ function createNeumeNoteLayouts(
 ):
   | readonly [PreviewNoteLayout]
   | readonly [PreviewNoteLayout, PreviewNoteLayout]
-  | readonly [
-      PreviewNoteLayout,
-      PreviewNoteLayout,
-      PreviewNoteLayout,
-    ] {
+  | readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout] {
   const geometry = layoutRawNeume(
     placement.kind,
     placement.staffPositions,
@@ -603,10 +570,9 @@ export function layoutGraphicalPlacementPreview(
   }
 
   const candidate = { placement }
-  const items: (
-    | { neume: Neume }
-    | typeof candidate
-  )[] = neumes.map((neume) => ({ neume }))
+  const items: ({ neume: Neume } | typeof candidate)[] = neumes.map(
+    (neume) => ({ neume }),
+  )
   items.splice(placement.insertionIndex, 0, candidate)
   let systemIndex = 0
   let nextCenterX = firstNeumeCenterX
@@ -615,9 +581,10 @@ export function layoutGraphicalPlacementPreview(
 
   for (const item of items) {
     const kind = 'neume' in item ? item.neume.kind : item.placement.kind
-    const staffPositions = 'neume' in item
-      ? item.neume.notes.map((note) => note.staffPosition)
-      : item.placement.staffPositions
+    const staffPositions =
+      'neume' in item
+        ? item.neume.notes.map((note) => note.staffPosition)
+        : item.placement.staffPositions
     let bottomStaffY =
       firstSystemBottomStaffY + systemIndex * systemVerticalAdvance
     let geometry = layoutRawNeume(
@@ -636,20 +603,11 @@ export function layoutGraphicalPlacementPreview(
       systemHasItems = false
       bottomStaffY =
         firstSystemBottomStaffY + systemIndex * systemVerticalAdvance
-      geometry = layoutRawNeume(
-        kind,
-        staffPositions,
-        nextCenterX,
-        bottomStaffY,
-      )
+      geometry = layoutRawNeume(kind, staffPositions, nextCenterX, bottomStaffY)
     }
 
     if (item === candidate) {
-      notes = createNeumeNoteLayouts(
-        nextCenterX,
-        item.placement,
-        bottomStaffY,
-      )
+      notes = createNeumeNoteLayouts(nextCenterX, item.placement, bottomStaffY)
     }
 
     nextCenterX = getNextNeumeCenterX(geometry)
@@ -764,22 +722,17 @@ export function getSystemNeumePlacement(
   kind: GraphicalNeumeKind,
   system: ChantSystemLayout,
 ): GraphicalNeumePlacement | null {
-  const bottomStaffY = system.staffLines.length > 0
-    ? Math.max(...system.staffLines.map((line) => line.y))
-    : undefined
+  const bottomStaffY =
+    system.staffLines.length > 0
+      ? Math.max(...system.staffLines.map((line) => line.y))
+      : undefined
 
   if (bottomStaffY === undefined) {
     return null
   }
 
-  const minimumPlacementY = staffPositionY(
-    staffPosition(7),
-    bottomStaffY,
-  )
-  const maximumPlacementY = staffPositionY(
-    staffPosition(-1),
-    bottomStaffY,
-  )
+  const minimumPlacementY = staffPositionY(staffPosition(7), bottomStaffY)
+  const maximumPlacementY = staffPositionY(staffPosition(-1), bottomStaffY)
 
   if (
     !Number.isFinite(point.x) ||
@@ -792,8 +745,7 @@ export function getSystemNeumePlacement(
     return null
   }
 
-  const snappedPosition =
-    Math.round((bottomStaffY - point.y) / staffStep) || 0
+  const snappedPosition = Math.round((bottomStaffY - point.y) / staffStep) || 0
   const firstStaffPosition = staffPosition(snappedPosition)
   let neumeInsertionIndex = system.neumes.length
 
@@ -838,25 +790,15 @@ function layoutCommittedNeume(
   }
 }
 
-function layoutSystemNeumes(
-  neumes: readonly Neume[],
-  bottomStaffY: number,
-) {
+function layoutSystemNeumes(neumes: readonly Neume[], bottomStaffY: number) {
   let nextCenterX = firstNeumeCenterX
 
   return neumes.map((neume) => {
-    const layout = layoutCommittedNeume(
-      neume,
-      nextCenterX,
-      bottomStaffY,
-    )
+    const layout = layoutCommittedNeume(neume, nextCenterX, bottomStaffY)
     const offsets = getNeumeNoteCenterOffsets(neume.kind)
 
     nextCenterX =
-      nextCenterX +
-      (offsets.at(-1) ?? 0) +
-      noteWidth +
-      interNeumeGap
+      nextCenterX + (offsets.at(-1) ?? 0) + noteWidth + interNeumeGap
 
     return layout
   })
@@ -929,9 +871,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       syllableId: syllable.id,
       text: syllable.text,
       x: alignmentX,
-      y:
-        firstSystemLyricBaselineY +
-        first.systemIndex * systemVerticalAdvance,
+      y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
       fontSize: 20,
     })
   }

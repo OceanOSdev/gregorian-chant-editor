@@ -1,8 +1,5 @@
 import type { ChantDocument } from '../domain/chant-document'
-import {
-  findNote,
-  normalizeNeumeAfterNoteDeletion,
-} from '../domain/neume'
+import { findNote, normalizeNeumeAfterNoteDeletion } from '../domain/neume'
 
 export function deleteNote(
   document: ChantDocument,
@@ -25,8 +22,6 @@ export function deleteNote(
       ? document.neumes.map((neume, index) =>
           index === locatedNote.neumeIndex ? normalizedNeume : neume,
         )
-      : document.neumes.filter(
-          (_, index) => index !== locatedNote.neumeIndex,
-        ),
+      : document.neumes.filter((_, index) => index !== locatedNote.neumeIndex),
   }
 }

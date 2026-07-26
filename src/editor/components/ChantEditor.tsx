@@ -26,14 +26,9 @@ import {
 } from '../domain/chant-document'
 import { findNeume, findNote } from '../domain/neume'
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
-import {
-  getSurvivingFocusNoteId,
-} from '../interaction/multi-system-editing'
+import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
-import {
-  layoutChant,
-  type GraphicalNeumeKind,
-} from '../layout/layout-chant'
+import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant'
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg'
 import {
   applyDocumentEdit,
@@ -98,8 +93,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
     null,
   )
-  const [hoveredScorePoint, setHoveredScorePoint] =
-    useState<SvgPoint | null>(null)
+  const [hoveredScorePoint, setHoveredScorePoint] = useState<SvgPoint | null>(
+    null,
+  )
   const [lyricDraft, setLyricDraft] = useState('')
   const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null)
   const [committedLyricText, setCommittedLyricText] = useState('')
@@ -316,9 +312,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         },
         {
           id: upperNoteId,
-          staffPosition: staffPosition(
-            insertion.referenceStaffPosition + 1,
-          ),
+          staffPosition: staffPosition(insertion.referenceStaffPosition + 1),
         },
       ],
     }
@@ -368,9 +362,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         },
         {
           id: lowerNoteId,
-          staffPosition: staffPosition(
-            insertion.referenceStaffPosition - 1,
-          ),
+          staffPosition: staffPosition(insertion.referenceStaffPosition - 1),
         },
       ],
     }
@@ -491,8 +483,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         placement.insertionIndex,
       )
     } else if (placement.kind === 'podatus') {
-      const [firstStaffPosition, secondStaffPosition] =
-        placement.staffPositions
+      const [firstStaffPosition, secondStaffPosition] = placement.staffPositions
       const neumeId = globalThis.crypto.randomUUID()
 
       firstNoteId = globalThis.crypto.randomUUID()
@@ -519,8 +510,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         placement.insertionIndex,
       )
     } else if (placement.kind === 'clivis') {
-      const [firstStaffPosition, secondStaffPosition] =
-        placement.staffPositions
+      const [firstStaffPosition, secondStaffPosition] = placement.staffPositions
       const neumeId = globalThis.crypto.randomUUID()
 
       firstNoteId = globalThis.crypto.randomUUID()
@@ -547,11 +537,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         placement.insertionIndex,
       )
     } else {
-      const [
-        firstStaffPosition,
-        secondStaffPosition,
-        thirdStaffPosition,
-      ] = placement.staffPositions
+      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
+        placement.staffPositions
       const neumeId = globalThis.crypto.randomUUID()
 
       firstNoteId = globalThis.crypto.randomUUID()
@@ -648,8 +635,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
       const key = event.key.toLowerCase()
       const usesCommandModifier = event.ctrlKey || event.metaKey
-      const requestsUndo =
-        usesCommandModifier && key === 'z' && !event.shiftKey
+      const requestsUndo = usesCommandModifier && key === 'z' && !event.shiftKey
       const requestsRedo =
         (usesCommandModifier && key === 'z' && event.shiftKey) ||
         (event.ctrlKey && key === 'y')
@@ -663,10 +649,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           const nextHistory = undoDocumentEdit(currentHistory)
 
           setPendingFocusNoteId(
-            getSurvivingFocusNoteId(
-              nextHistory.present,
-              focusedNoteId,
-            ),
+            getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
           )
 
           return nextHistory
@@ -679,10 +662,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           const nextHistory = redoDocumentEdit(currentHistory)
 
           setPendingFocusNoteId(
-            getSurvivingFocusNoteId(
-              nextHistory.present,
-              focusedNoteId,
-            ),
+            getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
           )
 
           return nextHistory
@@ -693,10 +673,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     globalThis.document.addEventListener('keydown', handleHistoryShortcut)
 
     return () =>
-      globalThis.document.removeEventListener(
-        'keydown',
-        handleHistoryShortcut,
-      )
+      globalThis.document.removeEventListener('keydown', handleHistoryShortcut)
   }, [canRedo, canUndo])
 
   useEffect(() => {
@@ -721,10 +698,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     globalThis.document.addEventListener('keydown', handleSelectionEscape)
 
     return () =>
-      globalThis.document.removeEventListener(
-        'keydown',
-        handleSelectionEscape,
-      )
+      globalThis.document.removeEventListener('keydown', handleSelectionEscape)
   }, [activeTool])
 
   return (
@@ -884,10 +858,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         onPlacementPointerLeave={() => setHoveredScorePoint(null)}
         onPlaceNeume={handlePlaceNeume}
         onMoveNote={(noteId, delta) => {
-          const nextHistory = applyDocumentEdit(
-            history,
-            (currentDocument) =>
-              moveNoteVertically(currentDocument, noteId, delta),
+          const nextHistory = applyDocumentEdit(history, (currentDocument) =>
+            moveNoteVertically(currentDocument, noteId, delta),
           )
 
           if (nextHistory === history) {
@@ -900,10 +872,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           )
         }}
         onMoveNeume={(neumeId, delta, invokingNoteId) => {
-          const nextHistory = applyDocumentEdit(
-            history,
-            (currentDocument) =>
-              moveNeumeVertically(currentDocument, neumeId, delta),
+          const nextHistory = applyDocumentEdit(history, (currentDocument) =>
+            moveNeumeVertically(currentDocument, neumeId, delta),
           )
 
           if (nextHistory === history) {
@@ -912,10 +882,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
           setHistory(nextHistory)
           setPendingFocusNoteId(
-            getSurvivingFocusNoteId(
-              nextHistory.present,
-              invokingNoteId,
-            ),
+            getSurvivingFocusNoteId(nextHistory.present, invokingNoteId),
           )
         }}
         onDeleteNote={(noteId) => {

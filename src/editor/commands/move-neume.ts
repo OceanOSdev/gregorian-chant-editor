@@ -50,16 +50,12 @@ export function moveNeumeVertically(
 
       movedNeume = {
         ...locatedNeume.neume,
-        notes: [
-          moveNote(firstNote, delta),
-          moveNote(secondNote, delta),
-        ],
+        notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
       }
       break
     }
     case 'scandicus': {
-      const [firstNote, secondNote, thirdNote] =
-        locatedNeume.neume.notes
+      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes
 
       movedNeume = {
         ...locatedNeume.neume,

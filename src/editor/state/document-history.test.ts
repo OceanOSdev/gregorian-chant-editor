@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { deleteNote } from '../commands/delete-note'
 import { moveNoteVertically } from '../commands/move-note'
-import {
-  staffPosition,
-  type ChantDocument,
-} from '../domain/chant-document'
+import { staffPosition, type ChantDocument } from '../domain/chant-document'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -45,8 +42,7 @@ describe('document history', () => {
     const document = createDocument()
     const editedHistory = applyDocumentEdit(
       createDocumentHistory(document),
-      (currentDocument) =>
-        moveNoteVertically(currentDocument, 'note-1', 1),
+      (currentDocument) => moveNoteVertically(currentDocument, 'note-1', 1),
     )
     const undoneHistory = undoDocumentEdit(editedHistory)
     const redoneHistory = redoDocumentEdit(undoneHistory)
@@ -81,9 +77,8 @@ describe('document history', () => {
 
   it('does not mutate history inputs', () => {
     const initialHistory = createDocumentHistory(createDocument())
-    const editedHistory = applyDocumentEdit(
-      initialHistory,
-      (document) => moveNoteVertically(document, 'note-1', 1),
+    const editedHistory = applyDocumentEdit(initialHistory, (document) =>
+      moveNoteVertically(document, 'note-1', 1),
     )
     const originalPast = editedHistory.past
     const originalFuture = editedHistory.future

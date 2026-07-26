@@ -53,11 +53,7 @@ describe('insertPodatus', () => {
     { index: 1, ids: ['neume-note-1', 'inserted', 'neume-note-2'] },
     { index: 2, ids: ['neume-note-1', 'neume-note-2', 'inserted'] },
   ])('inserts at neume boundary $index', ({ index, ids }) => {
-    const inserted = insertPodatus(
-      createDocument(),
-      podatus('inserted'),
-      index,
-    )
+    const inserted = insertPodatus(createDocument(), podatus('inserted'), index)
 
     expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids)
   })
@@ -114,11 +110,7 @@ describe('insertPodatus', () => {
       const document = createDocument()
 
       expect(
-        insertPodatus(
-          document,
-          candidate as PodatusNeume,
-          insertionIndex,
-        ),
+        insertPodatus(document, candidate as PodatusNeume, insertionIndex),
       ).toBe(document)
     },
   )
@@ -141,5 +133,4 @@ describe('insertPodatus', () => {
     expect(undone.present).toBe(document)
     expect(redone.present.neumes[1]).toBe(insertedPodatus)
   })
-
 })

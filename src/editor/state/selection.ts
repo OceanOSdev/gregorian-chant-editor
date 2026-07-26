@@ -45,9 +45,7 @@ export function resolveSelectionSyllableId(
   }
 
   if (selection.kind === 'neume') {
-    return (
-      findNeume(document, selection.neumeId)?.neume.lyricSyllableId ?? null
-    )
+    return findNeume(document, selection.neumeId)?.neume.lyricSyllableId ?? null
   }
 
   return null

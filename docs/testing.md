@@ -70,17 +70,36 @@ Manually verify important changes involving:
 
 ## Commands
 
-Install the locked dependencies:
+The exact supported Node.js version is declared in the repository-root
+`.nvmrc`. Contributors using nvm can activate it before installation:
 
 ```bash
-npm install
+nvm use
+npm ci
 ```
 
-Run the standard verification:
+`npm ci` installs the exact dependency tree recorded in `package-lock.json`.
+Use `npm install` only when intentionally adding, removing, or updating a
+dependency so npm can update the manifest and lockfile together.
+
+Apply deterministic formatting with:
 
 ```bash
-npm test
+npm run format
+```
+
+Check formatting without modifying files with:
+
+```bash
+npm run format:check
+```
+
+Run the standard local verification in this order:
+
+```bash
+npm run format:check
 npm run lint
+npm test
 npm run build
 ```
 
@@ -92,7 +111,34 @@ npm run dev
 npm run preview
 ```
 
+`npm test` invokes `vitest run`, runs the suite once, and exits.
+`npm run test:watch` remains active and reruns tests while files change; do not
+use it for the standard verification gate or CI.
+
 `npm run dev` is the normal manual-interaction environment.
+
+## Formatting changes
+
+Prettier owns mechanical formatting, while Oxlint owns code-quality,
+correctness, and framework diagnostics. Keep formatting-only changes
+mechanical: do not combine a repository formatting pass with refactoring,
+renaming, cleanup, test changes, or feature work. Review a formatting baseline
+normally and with whitespace ignored to identify any non-mechanical change.
+
+## Continuous integration
+
+The `CI` GitHub Actions workflow runs for pull requests and pushes to `main`.
+Its parallel `Format`, `Lint`, `Test`, and `Build` jobs each install locked
+dependencies with `npm ci`, then run the corresponding command shown above.
+The hosted status checks are normally reported as `CI / Format`, `CI / Lint`,
+`CI / Test`, and `CI / Build`. The jobs intentionally repeat setup rather than
+sharing `node_modules`, keeping each result independent and immediately
+visible.
+
+Reviewing the workflow structure or YAML locally does not prove hosted
+execution. After pushing, confirm the workflow runs successfully and that a
+newer push cancels an obsolete run for the same branch or pull request before
+requiring all four CI checks in branch protection.
 
 ## Extension checklists
 

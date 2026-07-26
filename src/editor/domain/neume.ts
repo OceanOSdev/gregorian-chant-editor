@@ -22,9 +22,7 @@ export function findNeume(
   document: ChantDocument,
   neumeId: string,
 ): LocatedNeume | null {
-  const neumeIndex = document.neumes.findIndex(
-    (neume) => neume.id === neumeId,
-  )
+  const neumeIndex = document.neumes.findIndex((neume) => neume.id === neumeId)
   const neume = document.neumes[neumeIndex]
 
   return neume ? { neume, neumeIndex } : null

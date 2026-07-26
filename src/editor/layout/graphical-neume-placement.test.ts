@@ -44,11 +44,7 @@ function resolve(
     throw new Error('Missing system geometry')
   }
 
-  return getSystemNeumePlacement(
-    { x, y: bottom - position * 12 },
-    kind,
-    system,
-  )
+  return getSystemNeumePlacement({ x, y: bottom - position * 12 }, kind, system)
 }
 
 describe('system graphical neume placement', () => {
@@ -58,8 +54,9 @@ describe('system graphical neume placement', () => {
     ['clivis', [2, 1]],
     ['scandicus', [2, 3, 4]],
   ] as const)('keeps the %s tuple cardinality', (kind, positions) => {
-    expect(resolve(documentWith([]), 0, kind, 300)?.staffPositions)
-      .toEqual(positions)
+    expect(resolve(documentWith([]), 0, kind, 300)?.staffPositions).toEqual(
+      positions,
+    )
   })
 
   it('uses system-local pitch snapping with ties upward', () => {
@@ -76,11 +73,8 @@ describe('system graphical neume placement', () => {
       }
 
       expect(
-        getSystemNeumePlacement(
-          { x: 300, y: bottom - 6 },
-          'punctum',
-          system,
-        )?.staffPositions,
+        getSystemNeumePlacement({ x: 300, y: bottom - 6 }, 'punctum', system)
+          ?.staffPositions,
       ).toEqual([1])
     }
   })
@@ -101,17 +95,15 @@ describe('system graphical neume placement', () => {
       ? first.bounds.x + first.bounds.width / 2
       : Number.NaN
 
-    expect(resolve(document, 1, 'punctum', midpoint))
-      .toMatchObject({ preferredNeumeInsertionIndex: later.startNeumeIndex })
-    expect(resolve(document, 1, 'punctum', midpoint + 0.001))
-      .toMatchObject({
-        preferredNeumeInsertionIndex: later.startNeumeIndex + 1,
-      })
-    expect(resolve(document, 1, 'punctum', 656))
-      .toMatchObject({
-        preferredNeumeInsertionIndex:
-          later.startNeumeIndex + later.neumes.length,
-      })
+    expect(resolve(document, 1, 'punctum', midpoint)).toMatchObject({
+      preferredNeumeInsertionIndex: later.startNeumeIndex,
+    })
+    expect(resolve(document, 1, 'punctum', midpoint + 0.001)).toMatchObject({
+      preferredNeumeInsertionIndex: later.startNeumeIndex + 1,
+    })
+    expect(resolve(document, 1, 'punctum', 656)).toMatchObject({
+      preferredNeumeInsertionIndex: later.startNeumeIndex + later.neumes.length,
+    })
   })
 
   it('rejects invalid and out-of-region points', () => {
@@ -122,11 +114,9 @@ describe('system graphical neume placement', () => {
       throw new Error('Missing empty system')
     }
 
-    expect(getSystemNeumePlacement(
-      { x: Number.NaN, y: 100 },
-      'punctum',
-      system,
-    )).toBeNull()
+    expect(
+      getSystemNeumePlacement({ x: Number.NaN, y: 100 }, 'punctum', system),
+    ).toBeNull()
     expect(resolve(document, 0, 'punctum', 63)).toBeNull()
     expect(resolve(document, 0, 'punctum', 657)).toBeNull()
     expect(resolve(document, 0, 'punctum', 300, 8)).toBeNull()
