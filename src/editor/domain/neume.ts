@@ -2,6 +2,7 @@ import type {
   ChantDocument,
   ChantNote,
   Neume,
+  PodatusNeume,
   PunctumNeume,
 } from './chant-document'
 
@@ -50,41 +51,79 @@ export function countNotes(neumes: readonly Neume[]): number {
 }
 
 export function isValidNeume(neume: Neume): boolean {
-  if (neume.kind === 'punctum') {
-    return neume.notes.length === 1
+  switch (neume.kind) {
+    case 'punctum':
+      return neume.notes.length === 1 && Boolean(neume.notes[0])
+    case 'podatus':
+    case 'clivis': {
+      if (neume.notes.length !== 2) {
+        return false
+      }
+
+      const [firstNote, secondNote] = neume.notes
+
+      if (!firstNote || !secondNote) {
+        return false
+      }
+
+      return neume.kind === 'podatus'
+        ? firstNote.staffPosition < secondNote.staffPosition
+        : firstNote.staffPosition > secondNote.staffPosition
+    }
+    case 'scandicus': {
+      if (neume.notes.length !== 3) {
+        return false
+      }
+
+      const [firstNote, secondNote, thirdNote] = neume.notes
+
+      return (
+        Boolean(firstNote && secondNote && thirdNote) &&
+        firstNote.staffPosition < secondNote.staffPosition &&
+        secondNote.staffPosition < thirdNote.staffPosition
+      )
+    }
   }
-
-  if (neume.notes.length !== 2) {
-    return false
-  }
-
-  const [firstNote, secondNote] = neume.notes
-
-  if (!firstNote || !secondNote) {
-    return false
-  }
-
-  return neume.kind === 'podatus'
-    ? secondNote.staffPosition > firstNote.staffPosition
-    : secondNote.staffPosition < firstNote.staffPosition
 }
 
 export function normalizeNeumeAfterNoteDeletion(
   neume: Neume,
   noteId: string,
 ): Neume | null {
-  const survivingNotes = neume.notes.filter((note) => note.id !== noteId)
+  const noteIndex = neume.notes.findIndex((note) => note.id === noteId)
 
-  if (survivingNotes.length === neume.notes.length) {
+  if (noteIndex < 0) {
     return neume
   }
 
-  const survivingNote = survivingNotes[0]
-
-  if (!survivingNote) {
+  if (neume.kind === 'punctum') {
     return null
   }
 
+  if (neume.kind === 'scandicus') {
+    const [firstNote, secondNote, thirdNote] = neume.notes
+    let survivingNotes: [ChantNote, ChantNote]
+
+    if (noteIndex === 0) {
+      survivingNotes = [secondNote, thirdNote]
+    } else if (noteIndex === 1) {
+      survivingNotes = [firstNote, thirdNote]
+    } else {
+      survivingNotes = [firstNote, secondNote]
+    }
+
+    const podatus: PodatusNeume = {
+      id: neume.id,
+      kind: 'podatus',
+      lyricSyllableId: neume.lyricSyllableId,
+      notes: survivingNotes,
+    }
+
+    return podatus
+  }
+
+  const [firstNote, secondNote] = neume.notes
+  const survivingNote = noteIndex === 0 ? secondNote : firstNote
   const punctum: PunctumNeume = {
     id: neume.id,
     kind: 'punctum',

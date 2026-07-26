@@ -16,6 +16,16 @@ export function getNoteAccessibleLabel(
       : 'Select lower note of clivis'
   }
 
+  if (kind === 'scandicus') {
+    if (noteIndex === 0) {
+      return 'Select lowest note of scandicus'
+    }
+
+    return noteIndex === 1
+      ? 'Select middle note of scandicus'
+      : 'Select highest note of scandicus'
+  }
+
   return 'Select punctum'
 }
 
@@ -30,12 +40,5 @@ export function getSelectedNeumeDescription(
     return null
   }
 
-  const name =
-    kind === 'punctum'
-      ? 'Punctum'
-      : kind === 'podatus'
-        ? 'Podatus'
-        : 'Clivis'
-
-  return `Whole ${name.toLowerCase()} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`
+  return `Whole ${kind} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`
 }

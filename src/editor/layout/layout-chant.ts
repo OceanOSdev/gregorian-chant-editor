@@ -118,7 +118,7 @@ const noteWidth = 15
 const noteHeight = 11
 export const neumeConnectorStrokeWidth = 3
 const interNeumeGap = noteSpacing - noteWidth
-const compactTwoNoteCenterOffset = 12
+const compactNoteCenterOffset = 12
 const lyricY = 180
 
 /** Maximum note count for the current fixed-width, single-system MVP. */
@@ -152,8 +152,15 @@ function staffLineY(line: StaffLine) {
   return bottomStaffY - (line - 1) * staffLineSpacing
 }
 
-function isCompactTwoNoteNeume(neume: Neume) {
-  return neume.kind === 'podatus' || neume.kind === 'clivis'
+function isCompactNeume(neume: Neume) {
+  switch (neume.kind) {
+    case 'punctum':
+      return false
+    case 'podatus':
+    case 'clivis':
+    case 'scandicus':
+      return true
+  }
 }
 
 export function createTwoNoteConnector(
@@ -212,7 +219,8 @@ function getNeumeLyricAlignmentX(
 ): number | null {
   switch (neumeLayout.kind) {
     case 'punctum':
-    case 'podatus': {
+    case 'podatus':
+    case 'scandicus': {
       const firstNote = neumeLayout.notes[0]
       const alignmentX = firstNote
         ? firstNote.x + firstNote.width / 2
@@ -234,8 +242,8 @@ function getNeumeNoteCenters(neumes: readonly Neume[]) {
 
   return neumes.map((neume) => {
     const centers = neume.notes.map((_, noteIndex) =>
-      isCompactTwoNoteNeume(neume)
-        ? nextCenterX + noteIndex * compactTwoNoteCenterOffset
+      isCompactNeume(neume)
+        ? nextCenterX + noteIndex * compactNoteCenterOffset
         : nextCenterX + noteIndex * noteSpacing,
     )
     const finalCenter = centers.at(-1)
@@ -303,7 +311,7 @@ function createNeumeNoteLayouts(
   return [
     firstNote,
     createNoteLayout(
-      firstCenterX + compactTwoNoteCenterOffset,
+      firstCenterX + compactNoteCenterOffset,
       secondPosition,
     ),
   ]
@@ -434,10 +442,30 @@ export function layoutChant(document: ChantDocument): ChantLayout {
     })
     const firstNote = notes[0]
     const secondNote = notes[1]
-    const connectors =
-      isCompactTwoNoteNeume(neume) && firstNote && secondNote
-        ? [createTwoNoteConnector(firstNote, secondNote)]
-        : []
+    const thirdNote = notes[2]
+    let connectors: readonly NeumeConnectorLayout[]
+
+    switch (neume.kind) {
+      case 'punctum':
+        connectors = []
+        break
+      case 'podatus':
+      case 'clivis':
+        connectors =
+          firstNote && secondNote
+            ? [createTwoNoteConnector(firstNote, secondNote)]
+            : []
+        break
+      case 'scandicus':
+        connectors =
+          firstNote && secondNote && thirdNote
+            ? [
+                createTwoNoteConnector(firstNote, secondNote),
+                createTwoNoteConnector(secondNote, thirdNote),
+              ]
+            : []
+        break
+    }
 
     return {
       neumeId: neume.id,

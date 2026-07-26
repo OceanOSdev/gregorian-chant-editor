@@ -5,6 +5,7 @@ import {
   type ClivisNeume,
   type PodatusNeume,
   type PunctumNeume,
+  type ScandicusNeume,
 } from '../domain/chant-document'
 import { layoutChant } from '../layout/layout-chant'
 import {
@@ -37,13 +38,23 @@ const clivis: ClivisNeume = {
     { id: 'note-clivis-2', staffPosition: staffPosition(3) },
   ],
 }
+const scandicus: ScandicusNeume = {
+  id: 'neume-scandicus',
+  kind: 'scandicus',
+  lyricSyllableId: 'syllable-1',
+  notes: [
+    { id: 'note-scandicus-1', staffPosition: staffPosition(2) },
+    { id: 'note-scandicus-2', staffPosition: staffPosition(4) },
+    { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
+  ],
+}
 
 function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-    neumes: [punctum, podatus, clivis],
+    neumes: [punctum, podatus, clivis, scandicus],
   }
 }
 
@@ -243,6 +254,92 @@ describe('moveNoteVertically', () => {
 
     expect(moveNoteVertically(document, 'unknown', 1)).toBe(document)
   })
+
+  it.each([
+    { noteId: 'note-scandicus-1', delta: -1 as StaffPositionDelta, expected: [1, 4, 6] },
+    { noteId: 'note-scandicus-2', delta: 1 as StaffPositionDelta, expected: [2, 5, 6] },
+    { noteId: 'note-scandicus-3', delta: 1 as StaffPositionDelta, expected: [2, 4, 7] },
+  ])(
+    'moves $noteId independently while preserving strict ascent',
+    ({ noteId, delta, expected }) => {
+      const document = createDocument()
+      const moved = moveNoteVertically(document, noteId, delta)
+      const movedScandicus = moved.neumes[3]
+
+      expect(
+        movedScandicus?.notes.map((note) => note.staffPosition),
+      ).toEqual(expected)
+      expect(movedScandicus).toMatchObject({
+        id: 'neume-scandicus',
+        kind: 'scandicus',
+        lyricSyllableId: 'syllable-1',
+      })
+      expect(movedScandicus?.notes.map((note) => note.id)).toEqual([
+        'note-scandicus-1',
+        'note-scandicus-2',
+        'note-scandicus-3',
+      ])
+    },
+  )
+
+  it('allows a larger valid interval after moving the middle note', () => {
+    const document: ChantDocument = {
+      ...createDocument(),
+      neumes: [
+        {
+          ...scandicus,
+          notes: [
+            scandicus.notes[0],
+            { ...scandicus.notes[1], staffPosition: staffPosition(3) },
+            { ...scandicus.notes[2], staffPosition: staffPosition(5) },
+          ],
+        },
+      ],
+    }
+    const moved = moveNoteVertically(
+      document,
+      'note-scandicus-2',
+      1,
+    )
+
+    expect(moved.neumes[0]?.notes.map((note) => note.staffPosition)).toEqual([
+      2,
+      4,
+      5,
+    ])
+  })
+
+  it.each([
+    { positions: [2, 3, 5] as const, noteId: 'note-scandicus-1', delta: 1 as StaffPositionDelta },
+    { positions: [2, 3, 5] as const, noteId: 'note-scandicus-2', delta: -1 as StaffPositionDelta },
+    { positions: [2, 4, 5] as const, noteId: 'note-scandicus-2', delta: 1 as StaffPositionDelta },
+    { positions: [2, 4, 5] as const, noteId: 'note-scandicus-3', delta: -1 as StaffPositionDelta },
+  ])(
+    'rejects equal adjacent Scandicus movement without history',
+    ({ positions, noteId, delta }) => {
+      const document: ChantDocument = {
+        ...createDocument(),
+        neumes: [
+          {
+            ...scandicus,
+            notes: [
+              { ...scandicus.notes[0], staffPosition: staffPosition(positions[0]) },
+              { ...scandicus.notes[1], staffPosition: staffPosition(positions[1]) },
+              { ...scandicus.notes[2], staffPosition: staffPosition(positions[2]) },
+            ],
+          },
+        ],
+      }
+      const history = createDocumentHistory(document)
+
+      expect(moveNoteVertically(document, noteId, delta)).toBe(document)
+      expect(
+        applyDocumentEdit(history, (current) =>
+          moveNoteVertically(current, noteId, delta),
+        ),
+      ).toBe(history)
+    },
+  )
 
   it('preserves the existing rendered vertical movement', () => {
     const document = createDocument()

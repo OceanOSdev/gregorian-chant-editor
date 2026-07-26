@@ -55,7 +55,18 @@ export interface ClivisNeume {
   notes: [ChantNote, ChantNote]
 }
 
-export type Neume = PunctumNeume | PodatusNeume | ClivisNeume
+export interface ScandicusNeume {
+  id: string
+  kind: 'scandicus'
+  lyricSyllableId: string
+  notes: [ChantNote, ChantNote, ChantNote]
+}
+
+export type Neume =
+  | PunctumNeume
+  | PodatusNeume
+  | ClivisNeume
+  | ScandicusNeume
 
 export interface ChantDocument {
   title: string

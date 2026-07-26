@@ -28,6 +28,21 @@ describe('getNoteAccessibleLabel', () => {
       noteIndex: 1,
       label: 'Select lower note of clivis',
     },
+    {
+      kind: 'scandicus' as const,
+      noteIndex: 0,
+      label: 'Select lowest note of scandicus',
+    },
+    {
+      kind: 'scandicus' as const,
+      noteIndex: 1,
+      label: 'Select middle note of scandicus',
+    },
+    {
+      kind: 'scandicus' as const,
+      noteIndex: 2,
+      label: 'Select highest note of scandicus',
+    },
   ])('labels $kind note $noteIndex', ({ kind, noteIndex, label }) => {
     expect(getNoteAccessibleLabel(kind, noteIndex)).toBe(label)
   })
@@ -53,6 +68,11 @@ describe('getNoteAccessibleLabel', () => {
       kind: 'clivis' as const,
       description:
         'Whole clivis selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
+    },
+    {
+      kind: 'scandicus' as const,
+      description:
+        'Whole scandicus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
   ])(
     'describes selected $kind state',
