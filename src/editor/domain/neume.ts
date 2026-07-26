@@ -50,6 +50,10 @@ export function countNotes(neumes: readonly Neume[]): number {
   return neumes.reduce((count, neume) => count + neume.notes.length, 0)
 }
 
+/**
+ * Defensively checks runtime cardinality and pitch order even though the
+ * semantic interfaces express each supported neume with a tuple.
+ */
 export function isValidNeume(neume: Neume): boolean {
   switch (neume.kind) {
     case 'punctum':
@@ -86,6 +90,10 @@ export function isValidNeume(neume: Neume): boolean {
   }
 }
 
+/**
+ * Preserves the owning neume ID and every surviving note ID while reducing
+ * Scandicus to Podatus, a two-note neume to Punctum, or Punctum to no neume.
+ */
 export function normalizeNeumeAfterNoteDeletion(
   neume: Neume,
   noteId: string,

@@ -84,6 +84,7 @@ export function ScoreSvg({
       return
     }
 
+    // Stable IDs recover the current element after keyed notes move systems.
     noteElement.focus()
     onNoteFocusHandled(pendingFocusNoteId)
   }, [onNoteFocusHandled, pendingFocusNoteId])
@@ -403,6 +404,10 @@ export function ScoreSvg({
   )
 }
 
+/**
+ * Converts browser client coordinates to score-absolute SVG coordinates.
+ * A missing or non-invertible screen transform safely cancels interaction.
+ */
 function getLocalPoint(
   svg: SVGSVGElement,
   clientX: number,

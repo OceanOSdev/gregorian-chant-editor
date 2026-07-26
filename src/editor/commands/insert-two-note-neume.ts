@@ -7,6 +7,10 @@ import { isValidNeume } from '../domain/neume'
 
 export type TwoNoteNeume = PodatusNeume | ClivisNeume
 
+/**
+ * Accepts only a complete boundary, an existing syllable, collision-free
+ * identities, and a runtime-valid Podatus or Clivis contour.
+ */
 export function insertTwoNoteNeume(
   document: ChantDocument,
   neume: TwoNoteNeume,

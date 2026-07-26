@@ -43,6 +43,31 @@ Co-locate component-specific styles and tests with the component when practical.
 
 Not every directory above must exist immediately. Add directories only when the current milestone requires them.
 
+## Documentation Map
+
+Read the guide that owns a subsystem before changing its documented contract:
+
+* [Architecture](docs/architecture.md)
+* [Domain model](docs/domain-model.md)
+* [Layout and rendering](docs/layout-and-rendering.md)
+* [Editor interactions](docs/editor-interactions.md)
+* [Commands and history](docs/commands-and-history.md)
+* [Testing](docs/testing.md)
+* [Glossary](docs/glossary.md)
+* [Roadmap and limitations](docs/roadmap.md)
+* Architecture decisions:
+  [state separation](docs/decisions/001-separate-semantic-and-derived-state.md),
+  [stable identities](docs/decisions/002-stable-semantic-identities.md),
+  [explicit neume types](docs/decisions/003-explicit-neume-types.md), and
+  [geometry-derived wrapping](docs/decisions/004-derive-wrapping-from-rendered-geometry.md)
+
+When a documented contract changes, update its owning guide in the same
+change. When a durable architectural decision changes, update the relevant ADR
+or explicitly review whether a new decision record is warranted. Keep the
+guides linked and avoid copying one authoritative explanation into several
+files. Use the [testing guide](docs/testing.md) for test seams and manual
+verification responsibilities.
+
 ## Architectural Boundaries
 
 Keep these concerns separate:
@@ -139,7 +164,8 @@ Do not add the following unless explicitly requested:
 * PDF export
 * Every Gregorian neume
 * Every historical notation tradition
-* Automatic line wrapping
+* Manual system breaks, pagination, or alternate wrapping policies beyond the
+  current measured whole-neume wrapping
 * Complex state-management libraries
 * A broad UI component library
 

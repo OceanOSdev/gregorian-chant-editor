@@ -1,5 +1,14 @@
 # MVP
 
+> **Historical milestone:** This document records the original first vertical
+> slice. It is not the current capability or architecture reference. See the
+> [README](../README.md), [architecture overview](architecture.md),
+> [domain model](domain-model.md), and
+> [layout and rendering](layout-and-rendering.md),
+> [editor interactions](editor-interactions.md), and
+> [commands and history](commands-and-history.md) for the implemented editor
+> today.
+
 ## Goal
 
 Build the smallest complete vertical slice of a browser-based Gregorian chant editor.

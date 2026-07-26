@@ -34,6 +34,7 @@ export interface ChantNote {
   staffPosition: StaffPosition
 }
 
+/** A single-note neume. */
 export interface PunctumNeume {
   id: string
   kind: 'punctum'
@@ -41,6 +42,7 @@ export interface PunctumNeume {
   notes: [ChantNote]
 }
 
+/** Two notes in semantic order from lower to strictly higher. */
 export interface PodatusNeume {
   id: string
   kind: 'podatus'
@@ -48,6 +50,7 @@ export interface PodatusNeume {
   notes: [ChantNote, ChantNote]
 }
 
+/** Two notes in semantic order from higher to strictly lower. */
 export interface ClivisNeume {
   id: string
   kind: 'clivis'
@@ -55,6 +58,7 @@ export interface ClivisNeume {
   notes: [ChantNote, ChantNote]
 }
 
+/** Three notes in semantic order with each pitch strictly ascending. */
 export interface ScandicusNeume {
   id: string
   kind: 'scandicus'

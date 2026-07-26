@@ -1,6 +1,7 @@
 import type { ChantDocument } from '../domain/chant-document'
 import { findNeume, findNote } from '../domain/neume'
 
+/** Transient selection stores stable semantic IDs, never layout objects. */
 export type EditorSelection =
   | { kind: 'none' }
   | { kind: 'note'; noteId: string }
@@ -18,6 +19,7 @@ export function selectNeume(neumeId: string): EditorSelection {
   return { kind: 'neume', neumeId }
 }
 
+/** Clears selection only when its stable semantic target no longer exists. */
 export function reconcileSelection(
   document: ChantDocument,
   selection: EditorSelection,

@@ -18,6 +18,10 @@ export function createDocumentHistory(
   }
 }
 
+/**
+ * Applies the edit once. Returning the exact present document signals rejection
+ * or a no-op and preserves the exact history without creating an entry.
+ */
 export function applyDocumentEdit(
   history: DocumentHistory,
   edit: DocumentEdit,

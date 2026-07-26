@@ -4,6 +4,10 @@ import type {
 } from '../domain/chant-document'
 import { isValidNeume } from '../domain/neume'
 
+/**
+ * Accepts only a complete boundary, an existing syllable, three unique
+ * collision-free note IDs, and a runtime-valid ascending Scandicus.
+ */
 export function insertScandicus(
   document: ChantDocument,
   scandicus: ScandicusNeume,

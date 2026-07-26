@@ -24,6 +24,8 @@ export function moveNoteVertically(
   }
   let movedNeume: Neume
 
+  // Rebuild the owning kind's fixed tuple before validation so movement never
+  // weakens its cardinality or semantic note order.
   switch (locatedNote.neume.kind) {
     case 'punctum':
       movedNeume = {

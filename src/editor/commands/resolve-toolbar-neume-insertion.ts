@@ -10,6 +10,10 @@ export interface ToolbarNeumeInsertion {
   referenceStaffPosition: StaffPosition
 }
 
+/**
+ * Resolves a complete-neume boundary and reference pitch. An active-syllable
+ * selection wins, followed by its final note, then the empty-syllable fallback.
+ */
 export function resolveToolbarNeumeInsertion(
   document: ChantDocument,
   activeSyllableId: string,

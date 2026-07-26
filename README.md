@@ -1,79 +1,101 @@
 # Gregorian Chant Editor
 
 Gregorian Chant Editor is an experimental browser-based graphical editor for
-four-line Gregorian chant notation. It is built with React, TypeScript, Vite,
-and SVG.
+four-line Gregorian chant notation. It uses React, TypeScript, Vite, and SVG,
+and currently focuses on a narrow modern square-notation profile.
 
-The project is at an early stage. It demonstrates a small, working editing
-flow, but it is not yet a complete replacement for mature chant engraving
-tools.
+The project is a working architectural and interaction foundation, not a
+replacement for mature chant engraving software. Its internal formats and
+interface may still change.
 
 ## Current capabilities
 
 The editor currently supports:
 
-- Rendering a crisp, scalable four-line staff in SVG
-- Rendering a placeholder C clef, puncta, and multiple ordered lyric syllables
-- Selecting puncta with a pointer or keyboard
-- Selecting an active lyric syllable independently of note selection; selecting
-  a note activates its linked syllable
-- Moving a selected punctum vertically by one staff step with Arrow Up or
-  Arrow Down
-- Deleting a selected punctum with Delete or Backspace
-- Adding an empty syllable and editing it before it has associated notes
-- Editing the active syllable with the lyric input
-- Adding puncta with an editor control, associated with the active syllable
-- Placing puncta graphically at a valid staff position, associated with the
-  active syllable
-- Keeping notes grouped in lyric-syllable order
-- Undoing and redoing semantic document edits
-- Keyboard-accessible note selection and editing controls
+- semantic lyric syllables associated with ordered neumes;
+- Punctum, Podatus, Clivis, and Scandicus neumes;
+- note selection and whole-neume selection with pointer or keyboard controls;
+- vertical movement of an individual note or a complete neume;
+- individual-note deletion with neume normalization, and whole-neume deletion;
+- lyric editing plus neume insertion from toolbar controls;
+- graphical placement with a post-reflow preview on any rendered system;
+- active-syllable insertion constraints that preserve semantic ordering;
+- immutable semantic edits with atomic undo and redo;
+- measured, whole-neume automatic wrapping across multiple systems;
+- stable semantic identity when notation reflows;
+- repeated four-line staffs and C clefs in a responsive SVG with dynamic height;
+- accessible note controls and score summaries.
 
-The current notation and engraving model is intentionally narrow:
+There is no explicit global semantic creation cap. That is not a performance
+guarantee: practical browser and memory limits still apply.
 
-- The clef and punctum use placeholder glyphs rather than finished chant
-  typography.
-- The score is a fixed-width, single system with a limited note capacity.
-- Only puncta are modeled; the broader Gregorian neume vocabulary is not
-  supported.
-- There is no automatic line or system wrapping.
-- There is no GABC import or export.
-- Documents are not persisted, and there is no backend.
+## Current limitations
 
-## Screenshot
+- The noteheads, connectors, and C clef are placeholder engraving rather than
+  publication-quality chant typography.
+- Only Punctum, Podatus, Clivis, and Scandicus are modeled.
+- Graphical placement uses fixed pitch contours for those four kinds.
+- Lyric rendering centers the complete text string; it has no vowel-aware
+  alignment, automatic hyphenation, collision avoidance, word-spacing logic,
+  or continuation marks.
+- There are no manual system breaks, persistence, GABC import/export, backend,
+  or browser/component automation tests.
 
-<!-- Add an editor screenshot here when a stable screenshot is available. -->
+See the [roadmap](docs/roadmap.md) for non-binding possibilities and a fuller
+account of current limits.
 
 ## Architecture
 
 The editor preserves this flow:
 
 ```text
-semantic chant document → pure layout data → React/SVG rendering
+ChantDocument
+    ↓
+pure semantic commands
+    ↓
+layoutChant
+    ↓
+ChantLayout
+    ↓
+ScoreSvg
 ```
 
-The semantic `ChantDocument` contains the musical content without SVG pixel
-coordinates. Note height is represented as a discrete staff-relative position.
-A pure layout function converts those musical positions into rendering
-coordinates, and React renders the resulting layout as SVG.
+The semantic document contains musical meaning but no pixels, system
+assignments, SVG data, or transient editor state. Layout and system wrapping
+are derived. `ChantEditor` coordinates history, tools, selection, drafts,
+pointer state, and focus around the pure semantic and layout layers.
 
-Note selection remains editor UI state. The active syllable is a separate UI
-target for lyric editing and note insertion; it is not stored in the semantic
-document or its undo/redo history. Document changes are immutable TypeScript
-transformations recorded as semantic snapshots for undo and redo.
+Read the [architecture overview](docs/architecture.md) for the subsystem map
+and boundaries.
 
 ## Project structure
 
 Editor code is organized by responsibility under `src/editor/`:
 
-- `domain/` — semantic chant document types and example data
-- `commands/` — immutable note and lyric transformations
-- `layout/` — pure score layout and graphical placement calculations
-- `rendering/` — React and SVG score rendering
-- `components/` — editor-level React composition and controls
-- `state/` — selection, tools, and document history
+- `domain/` — semantic document types, neume invariants, and lookup helpers;
+- `commands/` — immutable semantic transformations and insertion resolvers;
+- `state/` — document history, selection, and editor tools;
+- `interaction/` — pure graphical-placement and focus resolvers;
+- `layout/` — score layout, engraving geometry, wrapping, and previews;
+- `rendering/` — SVG rendering and accessibility descriptions;
+- `components/` — editor orchestration and controls.
 
 Application entry points and global styles live directly under `src/`.
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Domain model](docs/domain-model.md)
+- [Layout and rendering](docs/layout-and-rendering.md)
+- [Editor interactions](docs/editor-interactions.md)
+- [Commands and history](docs/commands-and-history.md)
+- [Testing](docs/testing.md)
+- [Glossary](docs/glossary.md)
+- [Roadmap and limitations](docs/roadmap.md)
+- [Architecture decisions](docs/decisions/001-separate-semantic-and-derived-state.md)
+
+The [MVP document](docs/mvp.md) is retained as a historical record of the
+original first milestone, not as the current capability reference.
 
 ## Getting started
 
@@ -97,43 +119,16 @@ Vite prints the local development-server URL after startup.
 | `npm run test:watch` | Run Vitest in watch mode |
 | `npm run preview` | Serve the production build locally |
 
-## Testing
-
-Vitest covers plain TypeScript command, document-history, selection, and
-layout behavior.
-
-```bash
-npm test
-```
-
-The current test setup does not include browser or component testing.
-
-## Roadmap
-
-Prospective near-term work includes:
-
-- Broader neume support and improved chant glyph rendering
-- More capable spacing and engraving
-- Automatic system wrapping
-- GABC import and export
-- Local document persistence
-- Printable or exportable output
-
-These items are directional rather than committed release promises.
-
-## Development status
-
-Gregorian Chant Editor is under active development. Its internal document
-format, architecture, engraving behavior, and user interface may change.
-
 ## Contributing
 
-Please open an issue before undertaking major architectural work. Keep
-semantic modeling, layout, rendering, and interaction concerns separate, and
-run the following checks before submitting changes:
+Read [AGENTS.md](AGENTS.md) and the guide that owns the subsystem before making
+architectural changes. Run:
 
 ```bash
 npm test
 npm run lint
 npm run build
 ```
+
+See the [testing guide](docs/testing.md) for test seams and manual browser
+checks.
