@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantDocument,
@@ -6,22 +6,22 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
-} from '../domain/chant-document'
-import { layoutChant } from '../layout/layout-chant'
+} from '../domain/chant-document';
+import { layoutChant } from '../layout/layout-chant';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
-import { deleteNote } from './delete-note'
+} from '../state/document-history';
+import { deleteNote } from './delete-note';
 
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
   kind: 'punctum',
   lyricSyllableId: 'syllable-alone',
   notes: [{ id: 'note-punctum', staffPosition: staffPosition(2) }],
-}
+};
 const podatus: PodatusNeume = {
   id: 'neume-podatus',
   kind: 'podatus',
@@ -30,7 +30,7 @@ const podatus: PodatusNeume = {
     { id: 'note-podatus-1', staffPosition: staffPosition(2) },
     { id: 'note-podatus-2', staffPosition: staffPosition(4) },
   ],
-}
+};
 const clivis: ClivisNeume = {
   id: 'neume-clivis',
   kind: 'clivis',
@@ -39,7 +39,7 @@ const clivis: ClivisNeume = {
     { id: 'note-clivis-1', staffPosition: staffPosition(5) },
     { id: 'note-clivis-2', staffPosition: staffPosition(3) },
   ],
-}
+};
 const scandicus: ScandicusNeume = {
   id: 'neume-scandicus',
   kind: 'scandicus',
@@ -49,7 +49,7 @@ const scandicus: ScandicusNeume = {
     { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
     { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
   ],
-}
+};
 
 function createDocument(): ChantDocument {
   return {
@@ -60,20 +60,20 @@ function createDocument(): ChantDocument {
       { id: 'syllable-shared', text: 'ri-' },
     ],
     neumes: [punctum, podatus, clivis, scandicus],
-  }
+  };
 }
 
 describe('deleteNote', () => {
   it('removes the neume when its final punctum note is deleted', () => {
-    const deleted = deleteNote(createDocument(), 'note-punctum')
+    const deleted = deleteNote(createDocument(), 'note-punctum');
 
     expect(deleted.neumes.map((neume) => neume.id)).toEqual([
       'neume-podatus',
       'neume-clivis',
       'neume-scandicus',
-    ])
-    expect(deleted.syllables).toHaveLength(2)
-  })
+    ]);
+    expect(deleted.syllables).toHaveLength(2);
+  });
 
   it.each([
     {
@@ -103,29 +103,29 @@ describe('deleteNote', () => {
   ])(
     'normalizes a two-note neume to punctum and preserves identities',
     ({ noteId, neumeId, survivor, survivorPosition }) => {
-      const document = createDocument()
+      const document = createDocument();
       const originalIndex = document.neumes.findIndex(
         (neume) => neume.id === neumeId,
-      )
+      );
       const survivorNote = document.neumes[originalIndex]?.notes.find(
         (note) => note.id === survivor,
-      )
-      const deleted = deleteNote(document, noteId)
-      const normalized = deleted.neumes.find((neume) => neume.id === neumeId)
+      );
+      const deleted = deleteNote(document, noteId);
+      const normalized = deleted.neumes.find((neume) => neume.id === neumeId);
 
-      expect(deleted.neumes[originalIndex]).toBe(normalized)
+      expect(deleted.neumes[originalIndex]).toBe(normalized);
       expect(normalized).toMatchObject({
         id: neumeId,
         kind: 'punctum',
         lyricSyllableId: 'syllable-shared',
-      })
-      expect(normalized?.notes[0]).toBe(survivorNote)
+      });
+      expect(normalized?.notes[0]).toBe(survivorNote);
       expect(normalized?.notes[0]).toMatchObject({
         id: survivor,
         staffPosition: survivorPosition,
-      })
+      });
     },
-  )
+  );
 
   it.each([
     {
@@ -143,82 +143,82 @@ describe('deleteNote', () => {
   ])(
     'normalizes Scandicus after deleting $deletedNoteId',
     ({ deletedNoteId, survivingIds }) => {
-      const document = createDocument()
+      const document = createDocument();
       const originalSurvivors = scandicus.notes.filter((note) =>
         survivingIds.includes(note.id),
-      )
+      );
       const deleted = applyDocumentEdit(
         createDocumentHistory(document),
         (current) => deleteNote(current, deletedNoteId),
-      )
-      const normalized = deleted.present.neumes[3]
-      const undone = undoDocumentEdit(deleted)
-      const redone = redoDocumentEdit(undone)
+      );
+      const normalized = deleted.present.neumes[3];
+      const undone = undoDocumentEdit(deleted);
+      const redone = redoDocumentEdit(undone);
 
-      expect(deleted.past).toHaveLength(1)
+      expect(deleted.past).toHaveLength(1);
       expect(normalized).toMatchObject({
         id: 'neume-scandicus',
         kind: 'podatus',
         lyricSyllableId: 'syllable-shared',
-      })
-      expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds)
-      expect(normalized?.notes[0]).toBe(originalSurvivors[0])
-      expect(normalized?.notes[1]).toBe(originalSurvivors[1])
-      expect(undone.present.neumes[3]).toBe(scandicus)
-      expect(redone.present.neumes[3]).toBe(normalized)
+      });
+      expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds);
+      expect(normalized?.notes[0]).toBe(originalSurvivors[0]);
+      expect(normalized?.notes[1]).toBe(originalSurvivors[1]);
+      expect(undone.present.neumes[3]).toBe(scandicus);
+      expect(redone.present.neumes[3]).toBe(normalized);
     },
-  )
+  );
 
   it('preserves unrelated references and does not mutate the input', () => {
-    const document = createDocument()
-    const deleted = deleteNote(document, 'note-podatus-1')
+    const document = createDocument();
+    const deleted = deleteNote(document, 'note-podatus-1');
 
-    expect(deleted.neumes[0]).toBe(document.neumes[0])
-    expect(deleted.neumes[2]).toBe(document.neumes[2])
-    expect(deleted.neumes).not.toBe(document.neumes)
-    expect(document.neumes[1]?.kind).toBe('podatus')
-  })
+    expect(deleted.neumes[0]).toBe(document.neumes[0]);
+    expect(deleted.neumes[2]).toBe(document.neumes[2]);
+    expect(deleted.neumes).not.toBe(document.neumes);
+    expect(document.neumes[1]?.kind).toBe('podatus');
+  });
 
   it('returns the original document for an unknown note', () => {
-    const document = createDocument()
+    const document = createDocument();
 
-    expect(deleteNote(document, 'unknown')).toBe(document)
-  })
+    expect(deleteNote(document, 'unknown')).toBe(document);
+  });
 
   it('updates lyric layout according to remaining associated notes', () => {
     const withoutAlone = layoutChant(
       deleteNote(createDocument(), 'note-punctum'),
-    )
+    );
     const normalizedShared = layoutChant(
       deleteNote(createDocument(), 'note-podatus-1'),
-    )
+    );
 
     expect(
       withoutAlone.systems
         .flatMap((system) => system.lyrics)
         .some((lyric) => lyric.syllableId === 'syllable-alone'),
-    ).toBe(false)
+    ).toBe(false);
     expect(
       normalizedShared.systems
         .flatMap((system) => system.lyrics)
         .filter((lyric) => lyric.syllableId === 'syllable-shared'),
-    ).toHaveLength(1)
-  })
+    ).toHaveLength(1);
+  });
 
   it('undoes and redoes normalized deletion', () => {
-    const document = createDocument()
+    const document = createDocument();
     const deleted = applyDocumentEdit(
       createDocumentHistory(document),
       (current) => deleteNote(current, 'note-podatus-1'),
-    )
-    const undone = undoDocumentEdit(deleted)
-    const redone = redoDocumentEdit(undone)
+    );
+    const undone = undoDocumentEdit(deleted);
+    const redone = redoDocumentEdit(undone);
 
-    expect(undone.present.neumes[1]?.kind).toBe('podatus')
-    expect(undone.present.neumes[1]?.notes).toHaveLength(2)
-    expect(redone.present.neumes[1]?.kind).toBe('punctum')
-    expect(redone.present.neumes[1]?.notes[0]?.id).toBe('note-podatus-2')
-  })
+    expect(undone.present.neumes[1]?.kind).toBe('podatus');
+    expect(undone.present.neumes[1]?.notes).toHaveLength(2);
+    expect(redone.present.neumes[1]?.kind).toBe('punctum');
+    expect(redone.present.neumes[1]?.notes[0]?.id).toBe('note-podatus-2');
+  });
 
   it.each([
     { deletedNoteId: 'note-clivis-1', survivingNoteId: 'note-clivis-2' },
@@ -226,23 +226,23 @@ describe('deleteNote', () => {
   ])(
     'undoes and redoes Clivis normalization after deleting $deletedNoteId',
     ({ deletedNoteId, survivingNoteId }) => {
-      const document = createDocument()
+      const document = createDocument();
       const deleted = applyDocumentEdit(
         createDocumentHistory(document),
         (current) => deleteNote(current, deletedNoteId),
-      )
-      const undone = undoDocumentEdit(deleted)
-      const redone = redoDocumentEdit(undone)
+      );
+      const undone = undoDocumentEdit(deleted);
+      const redone = redoDocumentEdit(undone);
 
-      expect(undone.present.neumes[2]).toBe(clivis)
+      expect(undone.present.neumes[2]).toBe(clivis);
       expect(redone.present.neumes[2]).toMatchObject({
         id: 'neume-clivis',
         kind: 'punctum',
         lyricSyllableId: 'syllable-shared',
-      })
-      expect(redone.present.neumes[2]?.notes[0]?.id).toBe(survivingNoteId)
-      expect(redone.present.neumes[0]).toBe(document.neumes[0])
-      expect(redone.present.neumes[1]).toBe(document.neumes[1])
+      });
+      expect(redone.present.neumes[2]?.notes[0]?.id).toBe(survivingNoteId);
+      expect(redone.present.neumes[0]).toBe(document.neumes[0]);
+      expect(redone.present.neumes[1]).toBe(document.neumes[1]);
     },
-  )
-})
+  );
+});

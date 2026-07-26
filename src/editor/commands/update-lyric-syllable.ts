@@ -1,4 +1,4 @@
-import type { ChantDocument } from '../domain/chant-document'
+import type { ChantDocument } from '../domain/chant-document';
 
 export function updateLyricSyllableText(
   document: ChantDocument,
@@ -7,15 +7,15 @@ export function updateLyricSyllableText(
 ): ChantDocument {
   const syllableIndex = document.syllables.findIndex(
     (syllable) => syllable.id === syllableId,
-  )
-  const syllable = document.syllables[syllableIndex]
+  );
+  const syllable = document.syllables[syllableIndex];
 
   if (!syllable || syllable.text === text) {
-    return document
+    return document;
   }
 
-  const syllables = [...document.syllables]
-  syllables[syllableIndex] = { ...syllable, text }
+  const syllables = [...document.syllables];
+  syllables[syllableIndex] = { ...syllable, text };
 
-  return { ...document, syllables }
+  return { ...document, syllables };
 }

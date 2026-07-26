@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { staffPosition, type ChantDocument } from '../domain/chant-document'
+import { describe, expect, it } from 'vitest';
+import { staffPosition, type ChantDocument } from '../domain/chant-document';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
-import { appendLyricSyllable } from './append-lyric-syllable'
+} from '../state/document-history';
+import { appendLyricSyllable } from './append-lyric-syllable';
 
 function createDocument(): ChantDocument {
   return {
@@ -21,34 +21,34 @@ function createDocument(): ChantDocument {
         notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
       },
     ],
-  }
+  };
 }
 
 describe('appendLyricSyllable', () => {
   it('appends a syllable while preserving existing entities', () => {
-    const document = createDocument()
-    const newSyllable = { id: 'syllable-2', text: '' }
-    const appendedDocument = appendLyricSyllable(document, newSyllable)
+    const document = createDocument();
+    const newSyllable = { id: 'syllable-2', text: '' };
+    const appendedDocument = appendLyricSyllable(document, newSyllable);
 
     expect(appendedDocument.syllables).toEqual([
       document.syllables[0],
       newSyllable,
-    ])
-    expect(appendedDocument.syllables[0]).toBe(document.syllables[0])
-    expect(appendedDocument.neumes).toBe(document.neumes)
-    expect(document.syllables).toHaveLength(1)
-  })
+    ]);
+    expect(appendedDocument.syllables[0]).toBe(document.syllables[0]);
+    expect(appendedDocument.neumes).toBe(document.neumes);
+    expect(document.syllables).toHaveLength(1);
+  });
 
   it('returns the original document for a duplicate ID', () => {
-    const document = createDocument()
+    const document = createDocument();
 
     expect(appendLyricSyllable(document, { id: 'syllable-1', text: '' })).toBe(
       document,
-    )
-  })
+    );
+  });
 
   it('can be undone and redone', () => {
-    const document = createDocument()
+    const document = createDocument();
     const appendedHistory = applyDocumentEdit(
       createDocumentHistory(document),
       (currentDocument) =>
@@ -56,27 +56,27 @@ describe('appendLyricSyllable', () => {
           id: 'syllable-2',
           text: '',
         }),
-    )
-    const undoneHistory = undoDocumentEdit(appendedHistory)
-    const redoneHistory = redoDocumentEdit(undoneHistory)
+    );
+    const undoneHistory = undoDocumentEdit(appendedHistory);
+    const redoneHistory = redoDocumentEdit(undoneHistory);
 
-    expect(appendedHistory.present.syllables).toHaveLength(2)
-    expect(undoneHistory.present).toBe(document)
-    expect(redoneHistory.present).toBe(appendedHistory.present)
-  })
+    expect(appendedHistory.present.syllables).toHaveLength(2);
+    expect(undoneHistory.present).toBe(document);
+    expect(redoneHistory.present).toBe(appendedHistory.present);
+  });
 
   it('clears redo history when appending after undo', () => {
     const firstAppend = applyDocumentEdit(
       createDocumentHistory(createDocument()),
       (document) =>
         appendLyricSyllable(document, { id: 'syllable-2', text: '' }),
-    )
-    const undoneHistory = undoDocumentEdit(firstAppend)
+    );
+    const undoneHistory = undoDocumentEdit(firstAppend);
     const replacementAppend = applyDocumentEdit(undoneHistory, (document) =>
       appendLyricSyllable(document, { id: 'syllable-3', text: '' }),
-    )
+    );
 
-    expect(replacementAppend.future).toEqual([])
-    expect(replacementAppend.present.syllables.at(-1)?.id).toBe('syllable-3')
-  })
-})
+    expect(replacementAppend.future).toEqual([]);
+    expect(replacementAppend.present.syllables.at(-1)?.id).toBe('syllable-3');
+  });
+});

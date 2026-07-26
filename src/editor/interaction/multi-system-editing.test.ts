@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { staffPosition, type ChantDocument } from '../domain/chant-document'
-import { getSurvivingFocusNoteId } from './multi-system-editing'
+import { describe, expect, it } from 'vitest';
+import { staffPosition, type ChantDocument } from '../domain/chant-document';
+import { getSurvivingFocusNoteId } from './multi-system-editing';
 
 const document: ChantDocument = {
   title: 'Test',
@@ -14,12 +14,12 @@ const document: ChantDocument = {
       notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
     },
   ],
-}
+};
 
 describe('multi-system focus targets', () => {
   it('restores only a grounded invoking note that survives', () => {
-    expect(getSurvivingFocusNoteId(document, 'note-1')).toBe('note-1')
-    expect(getSurvivingFocusNoteId(document, 'deleted')).toBeNull()
-    expect(getSurvivingFocusNoteId(document, null)).toBeNull()
-  })
-})
+    expect(getSurvivingFocusNoteId(document, 'note-1')).toBe('note-1');
+    expect(getSurvivingFocusNoteId(document, 'deleted')).toBeNull();
+    expect(getSurvivingFocusNoteId(document, null)).toBeNull();
+  });
+});

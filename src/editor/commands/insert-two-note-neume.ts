@@ -2,10 +2,10 @@ import type {
   ChantDocument,
   ClivisNeume,
   PodatusNeume,
-} from '../domain/chant-document'
-import { isValidNeume } from '../domain/neume'
+} from '../domain/chant-document';
+import { isValidNeume } from '../domain/neume';
 
-export type TwoNoteNeume = PodatusNeume | ClivisNeume
+export type TwoNoteNeume = PodatusNeume | ClivisNeume;
 
 /**
  * Accepts only a complete boundary, an existing syllable, collision-free
@@ -16,7 +16,7 @@ export function insertTwoNoteNeume(
   neume: TwoNoteNeume,
   insertionIndex: number,
 ): ChantDocument {
-  const [firstNote, secondNote] = neume.notes
+  const [firstNote, secondNote] = neume.notes;
   const hasDuplicateId =
     firstNote.id === secondNote.id ||
     document.neumes.some(
@@ -25,10 +25,10 @@ export function insertTwoNoteNeume(
         existingNeume.notes.some(
           (note) => note.id === firstNote.id || note.id === secondNote.id,
         ),
-    )
+    );
   const hasSyllable = document.syllables.some(
     (syllable) => syllable.id === neume.lyricSyllableId,
-  )
+  );
 
   if (
     !Number.isInteger(insertionIndex) ||
@@ -38,7 +38,7 @@ export function insertTwoNoteNeume(
     hasDuplicateId ||
     !isValidNeume(neume)
   ) {
-    return document
+    return document;
   }
 
   return {
@@ -48,5 +48,5 @@ export function insertTwoNoteNeume(
       neume,
       ...document.neumes.slice(insertionIndex),
     ],
-  }
+  };
 }

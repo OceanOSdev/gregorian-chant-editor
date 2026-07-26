@@ -1,4 +1,4 @@
-import type { ChantDocument, PunctumNeume } from '../domain/chant-document'
+import type { ChantDocument, PunctumNeume } from '../domain/chant-document';
 
 export function insertPunctum(
   document: ChantDocument,
@@ -12,5 +12,5 @@ export function insertPunctum(
       punctum,
       ...document.neumes.slice(insertionIndex),
     ],
-  }
+  };
 }

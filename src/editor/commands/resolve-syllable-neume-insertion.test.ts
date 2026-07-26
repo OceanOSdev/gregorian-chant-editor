@@ -1,15 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantDocument,
   type PunctumNeume,
-} from '../domain/chant-document'
+} from '../domain/chant-document';
 import {
   applyDocumentEdit,
   createDocumentHistory,
-} from '../state/document-history'
-import { insertPunctum } from './insert-punctum'
-import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-insertion'
+} from '../state/document-history';
+import { insertPunctum } from './insert-punctum';
+import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-insertion';
 
 function punctum(id: string, lyricSyllableId: string): PunctumNeume {
   return {
@@ -17,7 +17,7 @@ function punctum(id: string, lyricSyllableId: string): PunctumNeume {
     kind: 'punctum',
     lyricSyllableId,
     notes: [{ id, staffPosition: staffPosition(2) }],
-  }
+  };
 }
 
 function createDocument(): ChantDocument {
@@ -38,7 +38,7 @@ function createDocument(): ChantDocument {
       punctum('note-3', 'syllable-3'),
       punctum('note-4', 'syllable-5'),
     ],
-  }
+  };
 }
 
 describe('resolveSyllableNeumeInsertionIndex', () => {
@@ -57,33 +57,33 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
           'syllable-3',
           preferredIndex,
         ),
-      ).toBe(expectedIndex)
+      ).toBe(expectedIndex);
     },
-  )
+  );
 
   it('places empty syllables before, between, and after existing groups', () => {
-    const document = createDocument()
+    const document = createDocument();
 
     expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-2', 4)).toBe(
       1,
-    )
+    );
     expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-4', 0)).toBe(
       3,
-    )
+    );
     expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-6', 0)).toBe(
       4,
-    )
-  })
+    );
+  });
 
   it('places an empty first syllable before every populated group', () => {
-    const document = createDocument()
+    const document = createDocument();
     const withEmptyFirst: ChantDocument = {
       ...document,
       syllables: [
         { id: 'syllable-empty-first', text: '' },
         ...document.syllables,
       ],
-    }
+    };
 
     expect(
       resolveSyllableNeumeInsertionIndex(
@@ -91,26 +91,26 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
         'syllable-empty-first',
         document.neumes.length,
       ),
-    ).toBe(0)
-  })
+    ).toBe(0);
+  });
 
   it('preserves multiple neume order and contiguous syllable groups', () => {
-    const document = createDocument()
+    const document = createDocument();
     const insertionIndex = resolveSyllableNeumeInsertionIndex(
       document,
       'syllable-3',
       2,
-    )
+    );
 
     if (insertionIndex === null) {
-      throw new Error('Expected an insertion boundary')
+      throw new Error('Expected an insertion boundary');
     }
 
     const inserted = insertPunctum(
       document,
       punctum('inserted-note', 'syllable-3'),
       insertionIndex,
-    )
+    );
 
     expect(inserted.neumes.map((neume) => neume.lyricSyllableId)).toEqual([
       'syllable-1',
@@ -118,34 +118,34 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
       'syllable-3',
       'syllable-3',
       'syllable-5',
-    ])
+    ]);
     expect(inserted.neumes.map((neume) => neume.id)).toEqual([
       'neume-note-1',
       'neume-note-2',
       'neume-inserted-note',
       'neume-note-3',
       'neume-note-4',
-    ])
+    ]);
     expect(
       inserted.neumes
         .map((neume, index) =>
           neume.lyricSyllableId === 'syllable-3' ? index : -1,
         )
         .filter((index) => index >= 0),
-    ).toEqual([1, 2, 3])
-  })
+    ).toEqual([1, 2, 3]);
+  });
 
   it('rejects an unknown syllable without creating history', () => {
-    const document = createDocument()
-    const history = createDocumentHistory(document)
+    const document = createDocument();
+    const history = createDocumentHistory(document);
     const rejected = applyDocumentEdit(history, (current) => {
-      const index = resolveSyllableNeumeInsertionIndex(current, 'unknown', 0)
+      const index = resolveSyllableNeumeInsertionIndex(current, 'unknown', 0);
 
       return index === null
         ? current
-        : insertPunctum(current, punctum('rejected', 'unknown'), index)
-    })
+        : insertPunctum(current, punctum('rejected', 'unknown'), index);
+    });
 
-    expect(rejected).toBe(history)
-  })
-})
+    expect(rejected).toBe(history);
+  });
+});

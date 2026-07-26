@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantDocument,
   type Neume,
-} from '../domain/chant-document'
-import { resolveToolbarNeumeInsertion } from './resolve-toolbar-neume-insertion'
+} from '../domain/chant-document';
+import { resolveToolbarNeumeInsertion } from './resolve-toolbar-neume-insertion';
 
 function punctum(id: string, syllableId: string, position: number): Neume {
   return {
@@ -12,7 +12,7 @@ function punctum(id: string, syllableId: string, position: number): Neume {
     kind: 'punctum',
     lyricSyllableId: syllableId,
     notes: [{ id, staffPosition: staffPosition(position) }],
-  }
+  };
 }
 
 function createDocument(): ChantDocument {
@@ -37,7 +37,7 @@ function createDocument(): ChantDocument {
       },
       punctum('note-2', 'syllable-2', 4),
     ],
-  }
+  };
 }
 
 describe('resolveToolbarNeumeInsertion', () => {
@@ -52,8 +52,8 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 1,
       referenceStaffPosition: 1,
-    })
-  })
+    });
+  });
 
   it('uses the final note of the active syllable as the fallback', () => {
     expect(
@@ -66,8 +66,8 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 5,
-    })
-  })
+    });
+  });
 
   it('ignores a selection outside the active syllable', () => {
     expect(
@@ -80,8 +80,8 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 5,
-    })
-  })
+    });
+  });
 
   it('uses position 2 and the resolved boundary for an empty syllable', () => {
     expect(
@@ -94,8 +94,8 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 2,
-    })
-  })
+    });
+  });
 
   it('rejects an unknown active syllable', () => {
     expect(
@@ -105,8 +105,8 @@ describe('resolveToolbarNeumeInsertion', () => {
         null,
         staffPosition(2),
       ),
-    ).toBeNull()
-  })
+    ).toBeNull();
+  });
 
   it('supports constructing an upper pitch exactly one step higher', () => {
     const context = resolveToolbarNeumeInsertion(
@@ -114,12 +114,12 @@ describe('resolveToolbarNeumeInsertion', () => {
       'syllable-1',
       'note-1',
       staffPosition(2),
-    )
+    );
 
     expect(
       context ? staffPosition(context.referenceStaffPosition + 1) : undefined,
-    ).toBe(2)
-  })
+    ).toBe(2);
+  });
 
   it('uses the supplied Clivis fallback for an empty middle syllable', () => {
     const context = resolveToolbarNeumeInsertion(
@@ -127,12 +127,12 @@ describe('resolveToolbarNeumeInsertion', () => {
       'syllable-empty',
       null,
       staffPosition(3),
-    )
+    );
 
     expect(context).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 3,
-    })
+    });
     expect(
       context
         ? [
@@ -140,8 +140,8 @@ describe('resolveToolbarNeumeInsertion', () => {
             staffPosition(context.referenceStaffPosition - 1),
           ]
         : undefined,
-    ).toEqual([3, 2])
-  })
+    ).toEqual([3, 2]);
+  });
 
   it('inserts after the whole selected multi-note neume', () => {
     expect(
@@ -154,11 +154,11 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 3,
-    })
-  })
+    });
+  });
 
   it('does not insert inside a selected Clivis', () => {
-    const document = createDocument()
+    const document = createDocument();
     const withClivis: ChantDocument = {
       ...document,
       neumes: document.neumes.map((neume) =>
@@ -174,7 +174,7 @@ describe('resolveToolbarNeumeInsertion', () => {
             }
           : neume,
       ),
-    }
+    };
 
     expect(
       resolveToolbarNeumeInsertion(
@@ -186,6 +186,6 @@ describe('resolveToolbarNeumeInsertion', () => {
     ).toEqual({
       insertionIndex: 2,
       referenceStaffPosition: 3,
-    })
-  })
-})
+    });
+  });
+});

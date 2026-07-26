@@ -4,49 +4,49 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
-} from 'react'
-import type { StaffPositionDelta } from '../commands/move-note'
-import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
+} from 'react';
+import type { StaffPositionDelta } from '../commands/move-note';
+import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   type ChantLayout,
   type GraphicalPlacementPreviewLayout,
   type GraphicalNeumeKind,
-} from '../layout/layout-chant'
-import { isPlacementTool, type EditorTool } from '../state/editor-tool'
-import type { EditorSelection } from '../state/selection'
+} from '../layout/layout-chant';
+import { isPlacementTool, type EditorTool } from '../state/editor-tool';
+import type { EditorSelection } from '../state/selection';
 import {
   getNoteAccessibleLabel,
   getSelectedNeumeDescription,
   wholeNeumeSelectionInstruction,
-} from './note-accessible-label'
-import { getScoreAccessibleDescription } from './score-accessible-description'
+} from './note-accessible-label';
+import { getScoreAccessibleDescription } from './score-accessible-description';
 
 export interface SvgPoint {
-  x: number
-  y: number
+  x: number;
+  y: number;
 }
 
 interface ScoreSvgProps {
-  layout: ChantLayout
-  placementPreview: GraphicalPlacementPreviewLayout | null
-  selection: EditorSelection
-  activeTool: EditorTool
-  pendingFocusNoteId: string | null
-  onNoteFocusHandled: (noteId: string) => void
-  onSelectNote: (noteId: string) => void
-  onSelectNeumeForNote: (noteId: string) => void
-  onPlacementPointerMove: (point: SvgPoint) => void
-  onPlacementPointerLeave: () => void
-  onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
-  onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
+  layout: ChantLayout;
+  placementPreview: GraphicalPlacementPreviewLayout | null;
+  selection: EditorSelection;
+  activeTool: EditorTool;
+  pendingFocusNoteId: string | null;
+  onNoteFocusHandled: (noteId: string) => void;
+  onSelectNote: (noteId: string) => void;
+  onSelectNeumeForNote: (noteId: string) => void;
+  onPlacementPointerMove: (point: SvgPoint) => void;
+  onPlacementPointerLeave: () => void;
+  onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void;
+  onMoveNote: (noteId: string, delta: StaffPositionDelta) => void;
   onMoveNeume: (
     neumeId: string,
     delta: StaffPositionDelta,
     invokingNoteId: string,
-  ) => void
-  onDeleteNote: (noteId: string) => void
-  onDeleteNeume: (neumeId: string) => void
-  onClearSelection: () => void
+  ) => void;
+  onDeleteNote: (noteId: string) => void;
+  onDeleteNeume: (neumeId: string) => void;
+  onClearSelection: () => void;
 }
 
 export function ScoreSvg({
@@ -67,73 +67,73 @@ export function ScoreSvg({
   onDeleteNeume,
   onClearSelection,
 }: ScoreSvgProps) {
-  const noteElements = useRef(new Map<string, SVGGElement>())
-  const placementActive = isPlacementTool(activeTool)
+  const noteElements = useRef(new Map<string, SVGGElement>());
+  const placementActive = isPlacementTool(activeTool);
 
   useEffect(() => {
     if (!pendingFocusNoteId) {
-      return
+      return;
     }
 
-    const noteElement = noteElements.current.get(pendingFocusNoteId)
+    const noteElement = noteElements.current.get(pendingFocusNoteId);
 
     if (!noteElement) {
-      return
+      return;
     }
 
     // Stable IDs recover the current element after keyed notes move systems.
-    noteElement.focus()
-    onNoteFocusHandled(pendingFocusNoteId)
-  }, [onNoteFocusHandled, pendingFocusNoteId])
+    noteElement.focus();
+    onNoteFocusHandled(pendingFocusNoteId);
+  }, [onNoteFocusHandled, pendingFocusNoteId]);
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
-    event.stopPropagation()
+    event.stopPropagation();
 
     if (event.shiftKey) {
-      onSelectNeumeForNote(noteId)
+      onSelectNeumeForNote(noteId);
     } else {
-      onSelectNote(noteId)
+      onSelectNote(noteId);
     }
   }
 
   function handleScoreClick(event: MouseEvent<SVGSVGElement>) {
     if (!isPlacementTool(activeTool)) {
-      onClearSelection()
-      return
+      onClearSelection();
+      return;
     }
 
     const localPoint = getLocalPoint(
       event.currentTarget,
       event.clientX,
       event.clientY,
-    )
+    );
 
     if (!localPoint) {
-      return
+      return;
     }
 
-    const kind = getGraphicalNeumeKind(activeTool)
+    const kind = getGraphicalNeumeKind(activeTool);
 
     if (kind) {
-      onPlaceNeume(kind, localPoint)
+      onPlaceNeume(kind, localPoint);
     }
   }
 
   function handlePointerMove(event: PointerEvent<SVGSVGElement>) {
     if (!isPlacementTool(activeTool)) {
-      return
+      return;
     }
 
     const localPoint = getLocalPoint(
       event.currentTarget,
       event.clientX,
       event.clientY,
-    )
+    );
 
     if (localPoint) {
-      onPlacementPointerMove(localPoint)
+      onPlacementPointerMove(localPoint);
     } else {
-      onPlacementPointerLeave()
+      onPlacementPointerLeave();
     }
   }
 
@@ -145,50 +145,50 @@ export function ScoreSvg({
     isNeumeSelected: boolean,
   ) {
     if (isPlacementTool(activeTool)) {
-      return
+      return;
     }
 
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      event.stopPropagation()
+      event.preventDefault();
+      event.stopPropagation();
 
       if (event.shiftKey) {
-        onSelectNeumeForNote(noteId)
+        onSelectNeumeForNote(noteId);
       } else {
-        onSelectNote(noteId)
+        onSelectNote(noteId);
       }
 
-      return
+      return;
     }
 
     if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault()
-      event.stopPropagation()
+      event.preventDefault();
+      event.stopPropagation();
 
       if (isNoteSelected) {
-        onDeleteNote(noteId)
+        onDeleteNote(noteId);
       } else if (isNeumeSelected) {
-        onDeleteNeume(neumeId)
+        onDeleteNeume(neumeId);
       }
 
-      return
+      return;
     }
 
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
-      return
+      return;
     }
 
     if (!isNoteSelected && !isNeumeSelected) {
-      return
+      return;
     }
 
-    event.preventDefault()
-    event.stopPropagation()
+    event.preventDefault();
+    event.stopPropagation();
 
     if (isNoteSelected) {
-      onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
+      onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1);
     } else if (isNeumeSelected) {
-      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1, noteId)
+      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1, noteId);
     }
   }
 
@@ -237,13 +237,13 @@ export function ScoreSvg({
 
           {system.neumes.map((neume) => {
             const isNeumeSelected =
-              selection.kind === 'neume' && selection.neumeId === neume.neumeId
+              selection.kind === 'neume' && selection.neumeId === neume.neumeId;
             const selectedDescription = getSelectedNeumeDescription(
               neume.kind,
               isNeumeSelected,
-            )
-            const selectedDescriptionId = `selected-neume-${neume.neumeId}`
-            const selectionGap = 5
+            );
+            const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
+            const selectionGap = 5;
 
             return (
               <g key={neume.neumeId} data-neume-id={neume.neumeId}>
@@ -278,11 +278,11 @@ export function ScoreSvg({
                 {neume.notes.map((note, noteIndex) => {
                   const isNoteSelected =
                     selection.kind === 'note' &&
-                    selection.noteId === note.noteId
+                    selection.noteId === note.noteId;
                   const accessibleLabel = getNoteAccessibleLabel(
                     neume.kind,
                     noteIndex,
-                  )
+                  );
 
                   return (
                     <g
@@ -290,9 +290,9 @@ export function ScoreSvg({
                       key={note.noteId}
                       ref={(element) => {
                         if (element) {
-                          noteElements.current.set(note.noteId, element)
+                          noteElements.current.set(note.noteId, element);
                         } else {
-                          noteElements.current.delete(note.noteId)
+                          noteElements.current.delete(note.noteId);
                         }
                       }}
                       data-note-id={note.noteId}
@@ -333,10 +333,10 @@ export function ScoreSvg({
                         aria-hidden="true"
                       />
                     </g>
-                  )
+                  );
                 })}
               </g>
-            )
+            );
           })}
 
           {system.lyrics.map((lyric) => (
@@ -387,7 +387,7 @@ export function ScoreSvg({
         </g>
       ) : null}
     </svg>
-  )
+  );
 }
 
 /**
@@ -399,21 +399,21 @@ function getLocalPoint(
   clientX: number,
   clientY: number,
 ): SvgPoint | null {
-  const screenTransform = svg.getScreenCTM()
+  const screenTransform = svg.getScreenCTM();
 
   if (!screenTransform) {
-    return null
+    return null;
   }
 
   try {
     const localPoint = new DOMPoint(clientX, clientY).matrixTransform(
       screenTransform.inverse(),
-    )
+    );
 
     return Number.isFinite(localPoint.x) && Number.isFinite(localPoint.y)
       ? { x: localPoint.x, y: localPoint.y }
-      : null
+      : null;
   } catch {
-    return null
+    return null;
   }
 }

@@ -1,13 +1,13 @@
 import {
   type ChantDocument,
   type StaffPosition,
-} from '../domain/chant-document'
-import { findNote } from '../domain/neume'
-import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-insertion'
+} from '../domain/chant-document';
+import { findNote } from '../domain/neume';
+import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-insertion';
 
 export interface ToolbarNeumeInsertion {
-  insertionIndex: number
-  referenceStaffPosition: StaffPosition
+  insertionIndex: number;
+  referenceStaffPosition: StaffPosition;
 }
 
 /**
@@ -22,40 +22,40 @@ export function resolveToolbarNeumeInsertion(
 ): ToolbarNeumeInsertion | null {
   const activeSyllable = document.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
-  )
+  );
 
   if (!activeSyllable) {
-    return null
+    return null;
   }
 
   const selectedNote = selectedNoteId
     ? findNote(document, selectedNoteId)
-    : null
+    : null;
   const selectedActiveNote =
     selectedNote?.neume.lyricSyllableId === activeSyllable.id
       ? selectedNote
-      : null
+      : null;
   const activeNeumeIndexes = document.neumes.flatMap((neume, index) =>
     neume.lyricSyllableId === activeSyllable.id ? [index] : [],
-  )
-  const finalActiveNeumeIndex = activeNeumeIndexes.at(-1)
+  );
+  const finalActiveNeumeIndex = activeNeumeIndexes.at(-1);
   const preferredIndex = selectedActiveNote
     ? selectedActiveNote.neumeIndex + 1
-    : (finalActiveNeumeIndex ?? document.neumes.length) + 1
+    : (finalActiveNeumeIndex ?? document.neumes.length) + 1;
   const insertionIndex = resolveSyllableNeumeInsertionIndex(
     document,
     activeSyllable.id,
     preferredIndex,
-  )
+  );
 
   if (insertionIndex === null) {
-    return null
+    return null;
   }
 
   const finalActiveNote =
     finalActiveNeumeIndex === undefined
       ? undefined
-      : document.neumes[finalActiveNeumeIndex]?.notes.at(-1)
+      : document.neumes[finalActiveNeumeIndex]?.notes.at(-1);
 
   return {
     insertionIndex,
@@ -63,5 +63,5 @@ export function resolveToolbarNeumeInsertion(
       selectedActiveNote?.note.staffPosition ??
       finalActiveNote?.staffPosition ??
       emptySyllableFallback,
-  }
+  };
 }

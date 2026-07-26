@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { deleteNote } from '../commands/delete-note'
-import { staffPosition, type ChantDocument } from '../domain/chant-document'
+import { describe, expect, it } from 'vitest';
+import { deleteNote } from '../commands/delete-note';
+import { staffPosition, type ChantDocument } from '../domain/chant-document';
 import {
   clearSelection,
   reconcileSelection,
@@ -8,7 +8,7 @@ import {
   selectNeume,
   selectNote,
   type EditorSelection,
-} from './selection'
+} from './selection';
 
 function createDocument(): ChantDocument {
   return {
@@ -45,7 +45,7 @@ function createDocument(): ChantDocument {
         ],
       },
     ],
-  }
+  };
 }
 
 describe('selection', () => {
@@ -53,82 +53,82 @@ describe('selection', () => {
     expect(selectNote('note-1')).toEqual({
       kind: 'note',
       noteId: 'note-1',
-    })
+    });
     expect(selectNeume('neume-1')).toEqual({
       kind: 'neume',
       neumeId: 'neume-1',
-    })
-  })
+    });
+  });
 
   it.each([selectNote('note-1'), selectNeume('neume-1')])(
     'clears a $kind selection',
     () => {
-      expect(clearSelection()).toEqual({ kind: 'none' })
+      expect(clearSelection()).toEqual({ kind: 'none' });
     },
-  )
+  );
 
   it('clears stale note and neume selections', () => {
-    const document = createDocument()
+    const document = createDocument();
 
     expect(reconcileSelection(document, selectNote('missing-note'))).toEqual({
       kind: 'none',
-    })
+    });
     expect(reconcileSelection(document, selectNeume('missing-neume'))).toEqual({
       kind: 'none',
-    })
-  })
+    });
+  });
 
   it.each([selectNote('note-1'), selectNeume('neume-1'), clearSelection()])(
     'returns the exact valid $kind selection object',
     (selection) => {
-      expect(reconcileSelection(createDocument(), selection)).toBe(selection)
+      expect(reconcileSelection(createDocument(), selection)).toBe(selection);
     },
-  )
+  );
 
   it('preserves valid selections across unrelated edits', () => {
-    const document = createDocument()
-    const noteSelection = selectNote('note-1')
-    const neumeSelection = selectNeume('neume-1')
-    const editedDocument = deleteNote(document, 'note-3')
+    const document = createDocument();
+    const noteSelection = selectNote('note-1');
+    const neumeSelection = selectNeume('neume-1');
+    const editedDocument = deleteNote(document, 'note-3');
 
     expect(reconcileSelection(editedDocument, noteSelection)).toBe(
       noteSelection,
-    )
+    );
     expect(reconcileSelection(editedDocument, neumeSelection)).toBe(
       neumeSelection,
-    )
-  })
+    );
+  });
 
   it('resolves every Scandicus constituent and its whole neume by stable ID', () => {
-    const document = createDocument()
+    const document = createDocument();
 
     for (const noteId of ['note-4', 'note-5', 'note-6']) {
       expect(resolveSelectionSyllableId(document, selectNote(noteId))).toBe(
         'syllable-2',
-      )
+      );
       expect(reconcileSelection(document, selectNote(noteId))).toEqual(
         selectNote(noteId),
-      )
+      );
     }
 
     expect(resolveSelectionSyllableId(document, selectNeume('neume-3'))).toBe(
       'syllable-2',
-    )
-  })
+    );
+  });
 
   it('preserves the selected neume and surviving note after normalization', () => {
-    const document = deleteNote(createDocument(), 'note-1')
-    const neumeSelection = selectNeume('neume-1')
-    const noteSelection = selectNote('note-2')
+    const document = deleteNote(createDocument(), 'note-1');
+    const neumeSelection = selectNeume('neume-1');
+    const noteSelection = selectNote('note-2');
 
-    expect(document.neumes[0]?.kind).toBe('punctum')
-    expect(reconcileSelection(document, neumeSelection)).toBe(neumeSelection)
-    expect(reconcileSelection(document, noteSelection)).toBe(noteSelection)
-  })
+    expect(document.neumes[0]?.kind).toBe('punctum');
+    expect(reconcileSelection(document, neumeSelection)).toBe(neumeSelection);
+    expect(reconcileSelection(document, noteSelection)).toBe(noteSelection);
+  });
 
   it.each<{
-    selection: EditorSelection
-    syllableId: string | null
+    selection: EditorSelection;
+    syllableId: string | null;
   }>([
     { selection: selectNote('note-1'), syllableId: 'syllable-1' },
     { selection: selectNeume('neume-2'), syllableId: 'syllable-2' },
@@ -140,7 +140,7 @@ describe('selection', () => {
     ({ selection, syllableId }) => {
       expect(resolveSelectionSyllableId(createDocument(), selection)).toBe(
         syllableId,
-      )
+      );
     },
-  )
-})
+  );
+});

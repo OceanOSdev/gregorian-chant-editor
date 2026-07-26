@@ -1,19 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
   type ChantDocument,
   type PunctumNeume,
   type ScandicusNeume,
-} from '../domain/chant-document'
-import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
-import { layoutChant } from '../layout/layout-chant'
+} from '../domain/chant-document';
+import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
+import { layoutChant } from '../layout/layout-chant';
 import {
   applyDocumentEdit,
   createDocumentHistory,
   redoDocumentEdit,
   undoDocumentEdit,
-} from '../state/document-history'
-import { insertScandicus } from './insert-scandicus'
+} from '../state/document-history';
+import { insertScandicus } from './insert-scandicus';
 
 function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
   return {
@@ -21,7 +21,7 @@ function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
     kind: 'punctum' as const,
     lyricSyllableId: syllableId,
     notes: [{ id, staffPosition: staffPosition(2) }],
-  }
+  };
 }
 
 function createDocument(): ChantDocument {
@@ -33,7 +33,7 @@ function createDocument(): ChantDocument {
       { id: 'syllable-2', text: 'ri-' },
     ],
     neumes: [punctum('before', 'syllable-1'), punctum('after', 'syllable-2')],
-  }
+  };
 }
 
 function scandicus(
@@ -48,7 +48,7 @@ function scandicus(
       { id: 'note-scandicus-2', staffPosition: staffPosition(positions[1]) },
       { id: 'note-scandicus-3', staffPosition: staffPosition(positions[2]) },
     ],
-  }
+  };
 }
 
 describe('insertScandicus', () => {
@@ -57,11 +57,11 @@ describe('insertScandicus', () => {
     { index: 1, ids: ['neume-before', 'neume-scandicus', 'neume-after'] },
     { index: 2, ids: ['neume-before', 'neume-after', 'neume-scandicus'] },
   ])('inserts one complete Scandicus at boundary $index', ({ index, ids }) => {
-    const candidate = scandicus()
-    const inserted = insertScandicus(createDocument(), candidate, index)
+    const candidate = scandicus();
+    const inserted = insertScandicus(createDocument(), candidate, index);
 
-    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids)
-    expect(inserted.neumes[index]).toBe(candidate)
+    expect(inserted.neumes.map((neume) => neume.id)).toEqual(ids);
+    expect(inserted.neumes[index]).toBe(candidate);
     expect(inserted.neumes[index]).toMatchObject({
       kind: 'scandicus',
       lyricSyllableId: 'syllable-1',
@@ -70,13 +70,13 @@ describe('insertScandicus', () => {
         { id: 'note-scandicus-2', staffPosition: 3 },
         { id: 'note-scandicus-3', staffPosition: 4 },
       ],
-    })
-  })
+    });
+  });
 
   it.each<{
-    name: string
-    index: number
-    candidate: ScandicusNeume
+    name: string;
+    index: number;
+    candidate: ScandicusNeume;
   }>([
     { name: 'negative boundary', index: -1, candidate: scandicus() },
     { name: 'past-end boundary', index: 3, candidate: scandicus() },
@@ -119,38 +119,38 @@ describe('insertScandicus', () => {
       },
     },
   ])('returns the original document for $name', ({ index, candidate }) => {
-    const document = createDocument()
+    const document = createDocument();
 
-    expect(insertScandicus(document, candidate, index)).toBe(document)
-  })
+    expect(insertScandicus(document, candidate, index)).toBe(document);
+  });
 
   it('creates one history entry with atomic identity-preserving undo and redo', () => {
-    const document = createDocument()
-    const candidate = scandicus([2, 4, 7])
+    const document = createDocument();
+    const candidate = scandicus([2, 4, 7]);
     const inserted = applyDocumentEdit(
       createDocumentHistory(document),
       (current) => insertScandicus(current, candidate, 1),
-    )
-    const undone = undoDocumentEdit(inserted)
-    const redone = redoDocumentEdit(undone)
+    );
+    const undone = undoDocumentEdit(inserted);
+    const redone = redoDocumentEdit(undone);
 
-    expect(inserted.past).toEqual([document])
-    expect(inserted.present.neumes[1]).toBe(candidate)
-    expect(undone.present).toBe(document)
-    expect(redone.present).toBe(inserted.present)
-    expect(redone.present.neumes[1]).toBe(candidate)
-  })
+    expect(inserted.past).toEqual([document]);
+    expect(inserted.present.neumes[1]).toBe(candidate);
+    expect(undone.present).toBe(document);
+    expect(redone.present).toBe(inserted.present);
+    expect(redone.present.neumes[1]).toBe(candidate);
+  });
 
   it('applies one canonically resolved graphical Scandicus with stable identity', () => {
-    const document = createDocument()
-    const layout = layoutChant(document)
-    const staffLine = layout.systems[0]?.staffLines[0]
+    const document = createDocument();
+    const layout = layoutChant(document);
+    const staffLine = layout.systems[0]?.staffLines[0];
     const bottomStaffY = Math.max(
       ...layout.systems[0]?.staffLines.map((line) => line.y),
-    )
+    );
 
     if (!staffLine) {
-      throw new Error('Missing staff geometry')
+      throw new Error('Missing staff geometry');
     }
 
     const placement = resolveGraphicalNeumePlacement(
@@ -159,13 +159,13 @@ describe('insertScandicus', () => {
       'syllable-1',
       'scandicus',
       { x: staffLine.x2, y: bottomStaffY - 24 },
-    )
+    );
 
     if (!placement || placement.kind !== 'scandicus') {
-      throw new Error('Missing graphical Scandicus placement')
+      throw new Error('Missing graphical Scandicus placement');
     }
 
-    const [first, second, third] = placement.staffPositions
+    const [first, second, third] = placement.staffPositions;
     const candidate: ScandicusNeume = {
       id: 'graphical-scandicus',
       kind: 'scandicus',
@@ -175,21 +175,21 @@ describe('insertScandicus', () => {
         { id: 'graphical-second', staffPosition: second },
         { id: 'graphical-third', staffPosition: third },
       ],
-    }
+    };
     const acceptedDocument = insertScandicus(
       document,
       candidate,
       placement.insertionIndex,
-    )
+    );
     const edited = applyDocumentEdit(
       createDocumentHistory(document),
       () => acceptedDocument,
-    )
-    const undone = undoDocumentEdit(edited)
-    const redone = redoDocumentEdit(undone)
-    const restored = redone.present.neumes[placement.insertionIndex]
+    );
+    const undone = undoDocumentEdit(edited);
+    const redone = redoDocumentEdit(undone);
+    const restored = redone.present.neumes[placement.insertionIndex];
 
-    expect(edited.past).toEqual([document])
+    expect(edited.past).toEqual([document]);
     expect(restored).toEqual({
       id: 'graphical-scandicus',
       kind: 'scandicus',
@@ -199,19 +199,19 @@ describe('insertScandicus', () => {
         { id: 'graphical-second', staffPosition: 3 },
         { id: 'graphical-third', staffPosition: 4 },
       ],
-    })
-    expect(undone.present).toBe(document)
-    expect(redone.present).toBe(edited.present)
-    expect(restored).toBe(candidate)
-  })
+    });
+    expect(undone.present).toBe(document);
+    expect(redone.present).toBe(edited.present);
+    expect(restored).toBe(candidate);
+  });
 
   it('does not create history for a rejected insertion', () => {
-    const history = createDocumentHistory(createDocument())
+    const history = createDocumentHistory(createDocument());
 
     expect(
       applyDocumentEdit(history, (document) =>
         insertScandicus(document, scandicus(), -1),
       ),
-    ).toBe(history)
-  })
-})
+    ).toBe(history);
+  });
+});
