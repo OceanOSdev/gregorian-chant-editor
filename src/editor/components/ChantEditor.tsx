@@ -27,6 +27,11 @@ import {
 } from '../domain/chant-document'
 import { countNotes, findNeume, findNote } from '../domain/neume'
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
+import {
+  canUseGraphicalPlacement,
+  getSurvivingFocusNoteId,
+  shouldCancelGraphicalPlacement,
+} from '../interaction/multi-system-editing'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
   canInsertNotesInSingleSystem,
@@ -100,6 +105,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
   const layout = layoutChant(history.present)
+  const graphicalPlacementAvailable = canUseGraphicalPlacement(layout)
   const selectedLocatedNote =
     selection.kind === 'note'
       ? findNote(history.present, selection.noteId)
@@ -109,7 +115,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   )
   const placementKind = getGraphicalNeumeKind(activeTool)
   const resolvedPlacement =
-    placementKind && hoveredScorePoint
+    graphicalPlacementAvailable && placementKind && hoveredScorePoint
       ? resolveGraphicalNeumePlacement(
           history.present,
           activeSyllable?.id ?? null,
@@ -449,7 +455,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
-    if (!activeSyllable) {
+    if (!graphicalPlacementAvailable || !activeSyllable) {
       return
     }
 
@@ -594,6 +600,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   useEffect(() => {
+    if (!shouldCancelGraphicalPlacement(layout, activeTool)) {
+      return
+    }
+
+    setActiveTool(selectTool())
+    setHoveredScorePoint(null)
+  }, [activeTool, layout])
+
+  useEffect(() => {
     const selectedSyllableId = resolveSelectionSyllableId(
       history.present,
       selection,
@@ -735,7 +750,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place punctum"
           aria-pressed={activeTool.kind === 'place-punctum'}
-          disabled={!canInsertPunctum}
+          disabled={!canInsertPunctum || !graphicalPlacementAvailable}
           onClick={() => setActiveTool(placePunctumTool())}
         >
           Place punctum
@@ -744,7 +759,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place podatus"
           aria-pressed={activeTool.kind === 'place-podatus'}
-          disabled={!canInsertTwoNoteNeume}
+          disabled={
+            !canInsertTwoNoteNeume || !graphicalPlacementAvailable
+          }
           onClick={() => setActiveTool(placePodatusTool())}
         >
           Place podatus
@@ -753,7 +770,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place clivis"
           aria-pressed={activeTool.kind === 'place-clivis'}
-          disabled={!canInsertTwoNoteNeume}
+          disabled={
+            !canInsertTwoNoteNeume || !graphicalPlacementAvailable
+          }
           onClick={() => setActiveTool(placeClivisTool())}
         >
           Place clivis
@@ -762,7 +781,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place scandicus"
           aria-pressed={activeTool.kind === 'place-scandicus'}
-          disabled={!canInsertScandicus}
+          disabled={!canInsertScandicus || !graphicalPlacementAvailable}
           onClick={() => setActiveTool(placeScandicusTool())}
         >
           Place scandicus
@@ -853,20 +872,41 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         onPlacementPointerMove={setHoveredScorePoint}
         onPlacementPointerLeave={() => setHoveredScorePoint(null)}
         onPlaceNeume={handlePlaceNeume}
-        onMoveNote={(noteId, delta) =>
-          setHistory((currentHistory) =>
-            applyDocumentEdit(currentHistory, (currentDocument) =>
+        onMoveNote={(noteId, delta) => {
+          const nextHistory = applyDocumentEdit(
+            history,
+            (currentDocument) =>
               moveNoteVertically(currentDocument, noteId, delta),
-            ),
           )
-        }
-        onMoveNeume={(neumeId, delta) =>
-          setHistory((currentHistory) =>
-            applyDocumentEdit(currentHistory, (currentDocument) =>
+
+          if (nextHistory === history) {
+            return
+          }
+
+          setHistory(nextHistory)
+          setPendingFocusNoteId(
+            getSurvivingFocusNoteId(nextHistory.present, noteId),
+          )
+        }}
+        onMoveNeume={(neumeId, delta, invokingNoteId) => {
+          const nextHistory = applyDocumentEdit(
+            history,
+            (currentDocument) =>
               moveNeumeVertically(currentDocument, neumeId, delta),
+          )
+
+          if (nextHistory === history) {
+            return
+          }
+
+          setHistory(nextHistory)
+          setPendingFocusNoteId(
+            getSurvivingFocusNoteId(
+              nextHistory.present,
+              invokingNoteId,
             ),
           )
-        }
+        }}
         onDeleteNote={(noteId) => {
           setHistory((currentHistory) =>
             applyDocumentEdit(currentHistory, (currentDocument) =>

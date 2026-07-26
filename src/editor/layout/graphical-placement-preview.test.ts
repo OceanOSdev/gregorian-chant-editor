@@ -148,7 +148,7 @@ function expectPreviewMatchesCommitted(
       inserted,
       ...existing.slice(insertionIndex),
     ]),
-  ).neumes[insertionIndex]
+  ).systems.flatMap((system) => system.neumes)[insertionIndex]
 
   expect(preview?.notes).toEqual(
     committed?.notes.map(({ noteId: _noteId, ...geometry }) => geometry),
@@ -301,13 +301,13 @@ describe('graphical placement preview layout', () => {
     const layout = layoutChant(documentWith(neumes))
 
     expect(getNeumeBoundaryCenterX(neumes, 0)).toBe(
-      layout.neumes[0]?.notes[0]?.x + 7.5,
+      layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]?.x + 7.5,
     )
     expect(getNeumeBoundaryCenterX(neumes, 1)).toBe(
-      layout.neumes[1]?.notes[0]?.x + 7.5,
+      layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]?.x + 7.5,
     )
     expect(getNeumeBoundaryCenterX(neumes, 2)).toBeGreaterThan(
-      layout.neumes[1]?.notes[1]?.x ?? 0,
+      layout.systems.flatMap((system) => system.neumes)[1]?.notes[1]?.x ?? 0,
     )
   })
 

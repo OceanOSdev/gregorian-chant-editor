@@ -68,8 +68,8 @@ function createDocument(neumes: Neume[] = []): ChantDocument {
 
 function geometry(document: ChantDocument) {
   const layout = layoutChant(document)
-  const bottomStaffY = Math.max(...layout.staffLines.map((line) => line.y))
-  const firstStaffLine = layout.staffLines[0]
+  const bottomStaffY = Math.max(...layout.systems[0]?.staffLines.map((line) => line.y))
+  const firstStaffLine = layout.systems[0]?.staffLines[0]
 
   if (!firstStaffLine) {
     throw new Error('Missing staff geometry')
@@ -233,7 +233,7 @@ describe('resolveGraphicalNeumePlacement', () => {
         existing,
         punctum('after', 'syllable-2'),
       ])
-      const existingLayout = layoutChant(document).neumes[1]
+      const existingLayout = layoutChant(document).systems.flatMap((system) => system.neumes)[1]
       const first = existingLayout?.notes[0]
       const second = existingLayout?.notes[1]
 
@@ -261,7 +261,7 @@ describe('resolveGraphicalNeumePlacement', () => {
       scandicus('existing'),
       punctum('last', 'syllable-2'),
     ])
-    const existingLayout = layoutChant(document).neumes[1]
+    const existingLayout = layoutChant(document).systems.flatMap((system) => system.neumes)[1]
     const middle = existingLayout?.notes[1]
 
     if (!middle) {

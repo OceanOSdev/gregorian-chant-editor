@@ -194,12 +194,12 @@ describe('deleteNote', () => {
     )
 
     expect(
-      withoutAlone.lyrics.some(
+      withoutAlone.systems.flatMap((system) => system.lyrics).some(
         (lyric) => lyric.syllableId === 'syllable-alone',
       ),
     ).toBe(false)
     expect(
-      normalizedShared.lyrics.filter(
+      normalizedShared.systems.flatMap((system) => system.lyrics).filter(
         (lyric) => lyric.syllableId === 'syllable-shared',
       ),
     ).toHaveLength(1)

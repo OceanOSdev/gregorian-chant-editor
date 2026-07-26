@@ -59,7 +59,7 @@ function createDocument(): ChantDocument {
 }
 
 function noteCenterY(document: ChantDocument, noteId: string) {
-  const note = layoutChant(document).neumes
+  const note = layoutChant(document).systems.flatMap((system) => system.neumes)
     .flatMap((neume) => neume.notes)
     .find((candidate) => candidate.noteId === noteId)
 
@@ -345,8 +345,8 @@ describe('moveNoteVertically', () => {
     const document = createDocument()
     const moved = moveNoteVertically(document, 'note-punctum', 1)
     const staffLineDistance = Math.abs(
-      layoutChant(document).staffLines[0]?.y -
-        layoutChant(document).staffLines[1]?.y,
+      layoutChant(document).systems[0]?.staffLines[0]?.y -
+        layoutChant(document).systems[0]?.staffLines[1]?.y,
     )
 
     expect(

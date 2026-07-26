@@ -59,14 +59,24 @@ export interface LyricLayout {
   fontSize: number
 }
 
+export interface ChantSystemLayout {
+  index: number
+  x: number
+  y: number
+  width: number
+  height: number
+  staffLines: readonly StaffLineLayout[]
+  clef: ClefLayout
+  neumes: readonly NeumeLayout[]
+  lyrics: readonly LyricLayout[]
+  startNeumeIndex: number
+}
+
 export interface ChantLayout {
   title: string
   width: number
   height: number
-  staffLines: StaffLineLayout[]
-  clef: ClefLayout
-  neumes: NeumeLayout[]
-  lyrics: LyricLayout[]
+  systems: readonly ChantSystemLayout[]
 }
 
 export type GraphicalNeumeKind =
@@ -167,26 +177,33 @@ export type GraphicalPlacementPreviewInput =
       insertionIndex: number
     }
 
-const canvasWidth = 720
-const canvasHeight = 220
-const staffStartX = 64
-const staffEndX = 656
-const bottomStaffY = 124
-const staffLineSpacing = 24
-const staffStep = staffLineSpacing / 2
-const noteCenterX = 230
-const noteSpacing = 48
-const noteWidth = 15
-const noteHeight = 11
+export const scoreWidth = 720
+export const systemWidth = scoreWidth
+export const systemHeight = 220
+export const systemGap = 24
+export const systemVerticalAdvance = systemHeight + systemGap
+export const svgTopPadding = 0
+export const svgBottomPadding = 0
+export const firstSystemTopY = svgTopPadding
+export const firstSystemBottomY = firstSystemTopY + systemHeight
+export const staffStartX = 64
+export const staffEndX = 656
+export const firstNeumeCenterX = 230
+export const clefX = 100
+export const firstSystemBottomStaffY = 124
+export const staffLineSpacing = 24
+export const staffStep = staffLineSpacing / 2
+export const firstSystemLyricBaselineY = 180
+export const noteWidth = 15
+export const noteHeight = 11
 export const neumeConnectorStrokeWidth = 3
-const interNeumeGap = noteSpacing - noteWidth
-const compactNoteCenterOffset = 12
-const lyricY = 180
+export const interNeumeGap = 33
+export const compactNoteCenterOffset = 12
 
 /** Maximum note count for the current fixed-width, single-system MVP. */
 export const singleSystemNoteCapacity =
   Math.floor(
-    (staffEndX - noteWidth / 2 - noteCenterX) / noteSpacing,
+    (staffEndX - noteWidth / 2 - firstNeumeCenterX) / 48,
   ) + 1
 
 export function canInsertPunctumInSingleSystem(currentNoteCount: number) {
@@ -206,22 +223,48 @@ export function canInsertNotesInSingleSystem(
   )
 }
 
-export function staffPositionY(position: StaffPosition) {
+/**
+ * Converts semantic pitch to an absolute y coordinate in the score.
+ * Callers laying out later systems supply that system's bottom-staff y.
+ */
+export function staffPositionY(
+  position: StaffPosition,
+  bottomStaffY = firstSystemBottomStaffY,
+) {
   return bottomStaffY - position * staffStep
 }
 
-function staffLineY(line: StaffLine) {
+function staffLineY(line: StaffLine, bottomStaffY: number) {
   return bottomStaffY - (line - 1) * staffLineSpacing
 }
 
-function isCompactNeume(neume: Neume) {
-  switch (neume.kind) {
+export function getNeumeNoteCenterOffsets(
+  kind: Neume['kind'],
+): readonly number[] {
+  switch (kind) {
     case 'punctum':
-      return false
+      return [0]
     case 'podatus':
     case 'clivis':
+      return [0, compactNoteCenterOffset]
     case 'scandicus':
-      return true
+      return [0, compactNoteCenterOffset, compactNoteCenterOffset * 2]
+  }
+}
+
+/**
+ * Creates a note rectangle in absolute score coordinates.
+ */
+export function createNoteLayout(
+  centerX: number,
+  position: StaffPosition,
+  bottomStaffY = firstSystemBottomStaffY,
+): PreviewNoteLayout {
+  return {
+    x: centerX - noteWidth / 2,
+    y: staffPositionY(position, bottomStaffY) - noteHeight / 2,
+    width: noteWidth,
+    height: noteHeight,
   }
 }
 
@@ -276,6 +319,156 @@ export function getNeumeLayoutBounds(
   }
 }
 
+function createConnectorLayouts(
+  kind: Neume['kind'],
+  notes: readonly PreviewNoteLayout[],
+): readonly NeumeConnectorLayout[] {
+  const firstNote = notes[0]
+  const secondNote = notes[1]
+  const thirdNote = notes[2]
+
+  if (kind === 'punctum' || !firstNote || !secondNote) {
+    return []
+  }
+
+  if (kind === 'scandicus' && thirdNote) {
+    return [
+      createTwoNoteConnector(firstNote, secondNote),
+      createTwoNoteConnector(secondNote, thirdNote),
+    ]
+  }
+
+  return [createTwoNoteConnector(firstNote, secondNote)]
+}
+
+interface RawNeumeGeometry {
+  notes: readonly PreviewNoteLayout[]
+  connectors: readonly NeumeConnectorLayout[]
+  bounds: LayoutBounds
+  finalNoteCenterX: number
+}
+
+/**
+ * Lays out one complete neume in absolute score coordinates. Committed
+ * layout, wrapping measurement, and previews share this width model.
+ */
+function layoutRawNeume(
+  kind: Neume['kind'],
+  staffPositions: readonly StaffPosition[],
+  firstCenterX: number,
+  bottomStaffY: number,
+): RawNeumeGeometry {
+  const offsets = getNeumeNoteCenterOffsets(kind)
+  const notes = staffPositions.map((position, index) =>
+    createNoteLayout(
+      firstCenterX + (offsets[index] ?? 0),
+      position,
+      bottomStaffY,
+    ),
+  )
+  const connectors = createConnectorLayouts(kind, notes)
+
+  return {
+    notes,
+    connectors,
+    bounds: getNeumeLayoutBounds(notes, connectors),
+    finalNoteCenterX:
+      firstCenterX + (offsets.at(-1) ?? 0),
+  }
+}
+
+/**
+ * Measures the complete rendered horizontal extent of a semantic neume
+ * using the same note and connector geometry as committed layout.
+ */
+export function measureNeumeWidth(neume: Neume): number {
+  const geometry = layoutRawNeume(
+    neume.kind,
+    neume.notes.map((note) => note.staffPosition),
+    0,
+    firstSystemBottomStaffY,
+  )
+
+  return geometry.bounds.width
+}
+
+function getNextNeumeCenterX(geometry: RawNeumeGeometry) {
+  return geometry.finalNoteCenterX + noteWidth + interNeumeGap
+}
+
+interface WrappedSystem {
+  startNeumeIndex: number
+  neumes: readonly Neume[]
+}
+
+/**
+ * Wraps complete semantic neumes in order using rendered bounds. Supplying
+ * a smaller usable boundary is useful for focused safety tests.
+ */
+export function wrapNeumes(
+  neumes: readonly Neume[],
+  usableRightBoundary = staffEndX,
+): readonly WrappedSystem[] {
+  if (neumes.length === 0) {
+    return [{ startNeumeIndex: 0, neumes: [] }]
+  }
+
+  const systems: WrappedSystem[] = []
+  let currentNeumes: Neume[] = []
+  let currentStartIndex = 0
+  let nextCenterX = firstNeumeCenterX
+
+  for (const [neumeIndex, neume] of neumes.entries()) {
+    let geometry = layoutRawNeume(
+      neume.kind,
+      neume.notes.map((note) => note.staffPosition),
+      nextCenterX,
+      firstSystemBottomStaffY,
+    )
+
+    if (
+      geometry.bounds.x + geometry.bounds.width > usableRightBoundary &&
+      currentNeumes.length > 0
+    ) {
+      systems.push({
+        startNeumeIndex: currentStartIndex,
+        neumes: currentNeumes,
+      })
+      currentStartIndex = neumeIndex
+      currentNeumes = []
+      nextCenterX = firstNeumeCenterX
+      geometry = layoutRawNeume(
+        neume.kind,
+        neume.notes.map((note) => note.staffPosition),
+        nextCenterX,
+        firstSystemBottomStaffY,
+      )
+    }
+
+    currentNeumes.push(neume)
+    nextCenterX = getNextNeumeCenterX(geometry)
+
+    if (geometry.bounds.x + geometry.bounds.width > usableRightBoundary) {
+      systems.push({
+        startNeumeIndex: currentStartIndex,
+        neumes: currentNeumes,
+      })
+      currentStartIndex = neumeIndex + 1
+      currentNeumes = []
+      nextCenterX = firstNeumeCenterX
+    }
+  }
+
+  if (currentNeumes.length > 0) {
+    systems.push({
+      startNeumeIndex: currentStartIndex,
+      neumes: currentNeumes,
+    })
+  }
+
+  return systems
+}
+
 function getNeumeLyricAlignmentX(
   neumeLayout: NeumeLayout,
 ): number | null {
@@ -300,14 +493,11 @@ function getNeumeLyricAlignmentX(
 }
 
 function getNeumeNoteCenters(neumes: readonly Neume[]) {
-  let nextCenterX = noteCenterX
+  let nextCenterX = firstNeumeCenterX
 
   return neumes.map((neume) => {
-    const centers = neume.notes.map((_, noteIndex) =>
-      isCompactNeume(neume)
-        ? nextCenterX + noteIndex * compactNoteCenterOffset
-        : nextCenterX + noteIndex * noteSpacing,
-    )
+    const offsets = getNeumeNoteCenterOffsets(neume.kind)
+    const centers = offsets.map((offset) => nextCenterX + offset)
     const finalCenter = centers.at(-1)
 
     if (finalCenter !== undefined) {
@@ -340,20 +530,8 @@ export function getNeumeBoundaryCenterX(
   const finalCenter = centers.at(-1)?.at(-1)
 
   return finalCenter === undefined
-    ? noteCenterX
+    ? firstNeumeCenterX
     : finalCenter + noteWidth + interNeumeGap
-}
-
-function createNoteLayout(
-  centerX: number,
-  position: StaffPosition,
-): PreviewNoteLayout {
-  return {
-    x: centerX - noteWidth / 2,
-    y: staffPositionY(position) - noteHeight / 2,
-    width: noteWidth,
-    height: noteHeight,
-  }
 }
 
 function createNeumeNoteLayouts(
@@ -367,41 +545,35 @@ function createNeumeNoteLayouts(
       PreviewNoteLayout,
       PreviewNoteLayout,
     ] {
-  const [firstPosition] = placement.staffPositions
-  const firstNote = createNoteLayout(firstCenterX, firstPosition)
+  const geometry = layoutRawNeume(
+    placement.kind,
+    placement.staffPositions,
+    firstCenterX,
+    firstSystemBottomStaffY,
+  )
+  const [firstNote, secondNote, thirdNote] = geometry.notes
 
-  switch (placement.kind) {
-    case 'punctum':
-      return [firstNote]
-    case 'podatus':
-    case 'clivis': {
-      const [, secondPosition] = placement.staffPositions
-
-      return [
-        firstNote,
-        createNoteLayout(
-          firstCenterX + compactNoteCenterOffset,
-          secondPosition,
-        ),
-      ]
-    }
-    case 'scandicus': {
-      const [, secondPosition, thirdPosition] =
-        placement.staffPositions
-
-      return [
-        firstNote,
-        createNoteLayout(
-          firstCenterX + compactNoteCenterOffset,
-          secondPosition,
-        ),
-        createNoteLayout(
-          firstCenterX + compactNoteCenterOffset * 2,
-          thirdPosition,
-        ),
-      ]
-    }
+  if (!firstNote) {
+    throw new Error('A graphical neume must contain a first note')
   }
+
+  if (placement.kind === 'punctum') {
+    return [firstNote]
+  }
+
+  if (!secondNote) {
+    throw new Error('A multi-note graphical neume must contain two notes')
+  }
+
+  if (placement.kind === 'scandicus') {
+    if (!thirdNote) {
+      throw new Error('A Scandicus must contain three notes')
+    }
+
+    return [firstNote, secondNote, thirdNote]
+  }
+
+  return [firstNote, secondNote]
 }
 
 export function layoutGraphicalPlacementPreview(
@@ -535,7 +707,7 @@ export function getSingleSystemNeumePlacement(
   }
 
   const snappedPosition =
-    Math.round((bottomStaffY - point.y) / staffStep) || 0
+    Math.round((firstSystemBottomStaffY - point.y) / staffStep) || 0
   const firstStaffPosition = staffPosition(snappedPosition)
   const neumeCenters = getNeumeNoteCenters(neumes)
   let neumeInsertionIndex = neumes.length
@@ -567,104 +739,140 @@ export function getSingleSystemNeumePlacement(
   )
 }
 
-export function layoutChant(document: ChantDocument): ChantLayout {
-  const neumeNoteCenters = getNeumeNoteCenters(document.neumes)
+function layoutCommittedNeume(
+  neume: Neume,
+  firstCenterX: number,
+  bottomStaffY: number,
+): NeumeLayout {
+  const geometry = layoutRawNeume(
+    neume.kind,
+    neume.notes.map((note) => note.staffPosition),
+    firstCenterX,
+    bottomStaffY,
+  )
 
-  const neumes = document.neumes.map((neume, neumeIndex) => {
-    const noteCenters = neumeNoteCenters[neumeIndex] ?? []
-    const notes = neume.notes.map((note, noteIndex) => {
-      const centerX = noteCenters[noteIndex] ?? noteCenterX
+  return {
+    neumeId: neume.id,
+    lyricSyllableId: neume.lyricSyllableId,
+    kind: neume.kind,
+    notes: geometry.notes.map((note, noteIndex) => ({
+      ...note,
+      noteId: neume.notes[noteIndex]?.id ?? '',
+    })),
+    connectors: geometry.connectors,
+    bounds: geometry.bounds,
+  }
+}
+
+function layoutSystemNeumes(
+  neumes: readonly Neume[],
+  bottomStaffY: number,
+) {
+  let nextCenterX = firstNeumeCenterX
+
+  return neumes.map((neume) => {
+    const layout = layoutCommittedNeume(
+      neume,
+      nextCenterX,
+      bottomStaffY,
+    )
+    const offsets = getNeumeNoteCenterOffsets(neume.kind)
+
+    nextCenterX =
+      nextCenterX +
+      (offsets.at(-1) ?? 0) +
+      noteWidth +
+      interNeumeGap
+
+    return layout
+  })
+}
+
+export function layoutChant(document: ChantDocument): ChantLayout {
+  const wrappedSystems = wrapNeumes(document.neumes)
+  const systemsWithoutLyrics = wrappedSystems.map(
+    ({ startNeumeIndex, neumes }, index): ChantSystemLayout => {
+      const y = firstSystemTopY + index * systemVerticalAdvance
+      const bottomStaffY = firstSystemBottomStaffY + y
 
       return {
-        ...createNoteLayout(centerX, note.staffPosition),
-        noteId: note.id,
+        index,
+        x: 0,
+        y,
+        width: systemWidth,
+        height: systemHeight,
+        staffLines: ([1, 2, 3, 4] as const).map((line) => ({
+          x1: staffStartX,
+          x2: staffEndX,
+          y: staffLineY(line, bottomStaffY),
+        })),
+        clef: {
+          type: document.clef.type,
+          staffLine: document.clef.staffLine,
+          x: clefX,
+          y: staffLineY(document.clef.staffLine, bottomStaffY),
+          fontSize: 38,
+        },
+        neumes: layoutSystemNeumes(neumes, bottomStaffY),
+        lyrics: [],
+        startNeumeIndex,
       }
-    })
-    const firstNote = notes[0]
-    const secondNote = notes[1]
-    const thirdNote = notes[2]
-    let connectors: readonly NeumeConnectorLayout[]
+    },
+  )
+  const firstNeumeBySyllableId = new Map<
+    string,
+    { neume: NeumeLayout; systemIndex: number }
+  >()
 
-    switch (neume.kind) {
-      case 'punctum':
-        connectors = []
-        break
-      case 'podatus':
-      case 'clivis':
-        connectors =
-          firstNote && secondNote
-            ? [createTwoNoteConnector(firstNote, secondNote)]
-            : []
-        break
-      case 'scandicus':
-        connectors =
-          firstNote && secondNote && thirdNote
-            ? [
-                createTwoNoteConnector(firstNote, secondNote),
-                createTwoNoteConnector(secondNote, thirdNote),
-              ]
-            : []
-        break
-    }
-
-    return {
-      neumeId: neume.id,
-      lyricSyllableId: neume.lyricSyllableId,
-      kind: neume.kind,
-      notes,
-      connectors,
-      bounds: getNeumeLayoutBounds(notes, connectors),
-    }
-  })
-  const firstNeumeBySyllableId = new Map<string, NeumeLayout>()
-
-  for (const neume of neumes) {
-    if (!firstNeumeBySyllableId.has(neume.lyricSyllableId)) {
-      firstNeumeBySyllableId.set(neume.lyricSyllableId, neume)
+  for (const system of systemsWithoutLyrics) {
+    for (const neume of system.neumes) {
+      if (!firstNeumeBySyllableId.has(neume.lyricSyllableId)) {
+        firstNeumeBySyllableId.set(neume.lyricSyllableId, {
+          neume,
+          systemIndex: system.index,
+        })
+      }
     }
   }
 
-  const lyrics = document.syllables.flatMap((syllable) => {
-    const firstNeume = firstNeumeBySyllableId.get(syllable.id)
+  const lyricsBySystem = systemsWithoutLyrics.map(() => [] as LyricLayout[])
 
-    if (!firstNeume) {
-      return []
+  for (const syllable of document.syllables) {
+    const first = firstNeumeBySyllableId.get(syllable.id)
+
+    if (!first) {
+      continue
     }
 
-    const alignmentX = getNeumeLyricAlignmentX(firstNeume)
+    const alignmentX = getNeumeLyricAlignmentX(first.neume)
 
     if (alignmentX === null) {
-      return []
+      continue
     }
 
-    return [
-      {
-        syllableId: syllable.id,
-        text: syllable.text,
-        x: alignmentX,
-        y: lyricY,
-        fontSize: 20,
-      },
-    ]
-  })
+    lyricsBySystem[first.systemIndex]?.push({
+      syllableId: syllable.id,
+      text: syllable.text,
+      x: alignmentX,
+      y:
+        firstSystemLyricBaselineY +
+        first.systemIndex * systemVerticalAdvance,
+      fontSize: 20,
+    })
+  }
+
+  const systems = systemsWithoutLyrics.map((system) => ({
+    ...system,
+    lyrics: lyricsBySystem[system.index] ?? [],
+  }))
 
   return {
     title: document.title,
-    width: canvasWidth,
-    height: canvasHeight,
-    staffLines: ([1, 2, 3, 4] as const).map((line) => ({
-      x1: staffStartX,
-      x2: staffEndX,
-      y: staffLineY(line),
-    })),
-    clef: {
-      type: document.clef.type,
-      staffLine: document.clef.staffLine,
-      x: 100,
-      y: staffLineY(document.clef.staffLine),
-      fontSize: 38,
-    },
-    neumes,
-    lyrics,
+    width: scoreWidth,
+    height:
+      firstSystemBottomY +
+      (systems.length - 1) * systemVerticalAdvance +
+      svgBottomPadding,
+    systems,
   }
 }
