@@ -5,13 +5,8 @@ import {
   type PunctumNeume,
   type ScandicusNeume,
 } from '../domain/chant-document'
-import { countNotes } from '../domain/neume'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
-import {
-  canInsertNotesInSingleSystem,
-  layoutChant,
-  singleSystemNoteCapacity,
-} from '../layout/layout-chant'
+import { layoutChant } from '../layout/layout-chant'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -135,22 +130,6 @@ describe('insertScandicus', () => {
     expect(insertScandicus(document, candidate, index)).toBe(document)
   })
 
-  it('charges three shared capacity units without changing other costs', () => {
-    expect(canInsertNotesInSingleSystem(singleSystemNoteCapacity - 3, 3)).toBe(
-      true,
-    )
-    expect(canInsertNotesInSingleSystem(singleSystemNoteCapacity - 2, 3)).toBe(
-      false,
-    )
-    expect(canInsertNotesInSingleSystem(singleSystemNoteCapacity - 2, 2)).toBe(
-      true,
-    )
-    expect(canInsertNotesInSingleSystem(singleSystemNoteCapacity - 1, 1)).toBe(
-      true,
-    )
-    expect(countNotes([scandicus()])).toBe(3)
-  })
-
   it('creates one history entry with atomic identity-preserving undo and redo', () => {
     const document = createDocument()
     const candidate = scandicus([2, 4, 7])
@@ -182,6 +161,7 @@ describe('insertScandicus', () => {
 
     const placement = resolveGraphicalNeumePlacement(
       document,
+      layout,
       'syllable-1',
       'scandicus',
       { x: staffLine.x2, y: bottomStaffY - 24 },

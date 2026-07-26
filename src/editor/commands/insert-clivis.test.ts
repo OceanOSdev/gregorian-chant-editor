@@ -6,12 +6,6 @@ import {
   type ClivisNeume,
   type PunctumNeume,
 } from '../domain/chant-document'
-import { countNotes } from '../domain/neume'
-import {
-  canInsertNotesInSingleSystem,
-  canInsertPunctumInSingleSystem,
-  singleSystemNoteCapacity,
-} from '../layout/layout-chant'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -162,43 +156,4 @@ describe('insertClivis', () => {
     ])
   })
 
-  it('allows exactly two remaining capacity units', () => {
-    const document: ChantDocument = {
-      ...createDocument(),
-      neumes: Array.from(
-        { length: singleSystemNoteCapacity - 2 },
-        (_, index) => punctum(`note-${index}`),
-      ),
-    }
-    const inserted = canInsertNotesInSingleSystem(
-      countNotes(document.neumes),
-      2,
-    )
-      ? insertClivis(document, clivis(), document.neumes.length)
-      : document
-
-    expect(countNotes(inserted.neumes)).toBe(singleSystemNoteCapacity)
-    expect(inserted).not.toBe(document)
-  })
-
-  it('rejects one remaining unit without history while punctum remains available', () => {
-    const document: ChantDocument = {
-      ...createDocument(),
-      neumes: Array.from(
-        { length: singleSystemNoteCapacity - 1 },
-        (_, index) => punctum(`note-${index}`),
-      ),
-    }
-    const history = createDocumentHistory(document)
-    const noteCount = countNotes(document.neumes)
-    const rejected = applyDocumentEdit(history, (current) =>
-      canInsertNotesInSingleSystem(countNotes(current.neumes), 2)
-        ? insertClivis(current, clivis(), current.neumes.length)
-        : current,
-    )
-
-    expect(canInsertPunctumInSingleSystem(noteCount)).toBe(true)
-    expect(canInsertNotesInSingleSystem(noteCount, 2)).toBe(false)
-    expect(rejected).toBe(history)
-  })
 })

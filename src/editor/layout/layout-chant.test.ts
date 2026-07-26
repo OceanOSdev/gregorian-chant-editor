@@ -13,7 +13,6 @@ import { deleteNote } from '../commands/delete-note'
 import { insertClivis } from '../commands/insert-clivis'
 import { insertPunctum } from '../commands/insert-punctum'
 import { moveNeumeVertically } from '../commands/move-neume'
-import { countNotes } from '../domain/neume'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -21,10 +20,8 @@ import {
   undoDocumentEdit,
 } from '../state/document-history'
 import {
-  canInsertPunctumInSingleSystem,
   getNeumeBoundaryCenterX,
   layoutChant,
-  singleSystemNoteCapacity,
   type NoteLayout,
 } from './layout-chant'
 
@@ -669,30 +666,6 @@ describe('layoutChant', () => {
     expect(layout.systems.flatMap((system) => system.lyrics)[1]?.x).toBe(noteCenterX(secondSyllableNote))
   })
 
-  it('bases fixed-system capacity on total nested notes', () => {
-    const puncta = Array.from(
-      { length: singleSystemNoteCapacity - 2 },
-      (_, index) => punctum(`note-${index + 3}`, 3),
-    )
-    const neumes = [podatus('podatus', 2, 4), ...puncta]
-
-    expect(countNotes(neumes)).toBe(singleSystemNoteCapacity)
-    expect(canInsertPunctumInSingleSystem(countNotes(neumes))).toBe(false)
-    expect(
-      canInsertPunctumInSingleSystem(countNotes(neumes.slice(0, -1))),
-    ).toBe(true)
-  })
-
-  it('counts compact Clivis notes as two capacity units', () => {
-    const puncta = Array.from(
-      { length: singleSystemNoteCapacity - 2 },
-      (_, index) => punctum(`note-${index + 3}`, 3),
-    )
-    const neumes = [clivis('clivis', 4, 3), ...puncta]
-
-    expect(countNotes(neumes)).toBe(singleSystemNoteCapacity)
-    expect(canInsertPunctumInSingleSystem(countNotes(neumes))).toBe(false)
-  })
 
   it('preserves ordinary spacing between separate puncta', () => {
     const layout = layoutChant(
@@ -727,17 +700,17 @@ describe('layoutChant', () => {
     ])
   })
 
-  it('fits the old capacity on one system and wraps the next note', () => {
+  it('wraps a long document without a semantic capacity limit', () => {
     const atCapacity = layoutChant(
       createDocument(
-        Array.from({ length: singleSystemNoteCapacity }, (_, index) =>
+        Array.from({ length: 9 }, (_, index) =>
           punctum(`note-${index}`, 3),
         ),
       ),
     )
     const overflow = layoutChant(
       createDocument(
-        Array.from({ length: singleSystemNoteCapacity + 1 }, (_, index) =>
+        Array.from({ length: 10 }, (_, index) =>
           punctum(`note-${index}`, 3),
         ),
       ),

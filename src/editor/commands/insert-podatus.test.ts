@@ -5,12 +5,6 @@ import {
   type PodatusNeume,
   type PunctumNeume,
 } from '../domain/chant-document'
-import { countNotes } from '../domain/neume'
-import {
-  canInsertNotesInSingleSystem,
-  canInsertPunctumInSingleSystem,
-  singleSystemNoteCapacity,
-} from '../layout/layout-chant'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -148,41 +142,4 @@ describe('insertPodatus', () => {
     expect(redone.present.neumes[1]).toBe(insertedPodatus)
   })
 
-  it('allows exactly two remaining units and counts a Podatus as two', () => {
-    const document: ChantDocument = {
-      ...createDocument(),
-      neumes: Array.from(
-        { length: singleSystemNoteCapacity - 2 },
-        (_, index) => punctum(`note-${index}`),
-      ),
-    }
-    const currentNoteCount = countNotes(document.neumes)
-    const inserted = canInsertNotesInSingleSystem(currentNoteCount, 2)
-      ? insertPodatus(document, podatus(), document.neumes.length)
-      : document
-
-    expect(countNotes(inserted.neumes)).toBe(singleSystemNoteCapacity)
-    expect(inserted).not.toBe(document)
-  })
-
-  it('rejects one remaining unit without history while punctum remains available', () => {
-    const document: ChantDocument = {
-      ...createDocument(),
-      neumes: Array.from(
-        { length: singleSystemNoteCapacity - 1 },
-        (_, index) => punctum(`note-${index}`),
-      ),
-    }
-    const history = createDocumentHistory(document)
-    const currentNoteCount = countNotes(document.neumes)
-    const rejected = applyDocumentEdit(history, (current) =>
-      canInsertNotesInSingleSystem(countNotes(current.neumes), 2)
-        ? insertPodatus(current, podatus(), current.neumes.length)
-        : current,
-    )
-
-    expect(canInsertPunctumInSingleSystem(currentNoteCount)).toBe(true)
-    expect(canInsertNotesInSingleSystem(currentNoteCount, 2)).toBe(false)
-    expect(rejected).toBe(history)
-  })
 })
