@@ -4,11 +4,6 @@ import {
   type ChantDocument,
   type PunctumNeume,
 } from '../domain/chant-document'
-import { countNotes } from '../domain/neume'
-import {
-  canInsertPunctumInSingleSystem,
-  singleSystemNoteCapacity,
-} from '../layout/layout-chant'
 import {
   applyDocumentEdit,
   createDocumentHistory,
@@ -83,20 +78,4 @@ describe('insertPunctum', () => {
     expect(replacement.present.neumes[1]?.id).toBe('replacement')
   })
 
-  it('does not create history when rendered-note capacity rejects insertion', () => {
-    const document: ChantDocument = {
-      ...createDocument(),
-      neumes: Array.from({ length: singleSystemNoteCapacity }, (_, index) =>
-        createPunctum(`neume-${index}`),
-      ),
-    }
-    const history = createDocumentHistory(document)
-    const rejected = applyDocumentEdit(history, (current) =>
-      canInsertPunctumInSingleSystem(countNotes(current.neumes))
-        ? insertPunctum(current, createPunctum('rejected'), current.neumes.length)
-        : current,
-    )
-
-    expect(rejected).toBe(history)
-  })
 })

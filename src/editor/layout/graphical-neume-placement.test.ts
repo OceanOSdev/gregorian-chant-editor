@@ -3,16 +3,14 @@ import {
   staffPosition,
   type ChantDocument,
   type Neume,
-  type PunctumNeume,
 } from '../domain/chant-document'
 import {
-  getSingleSystemNeumePlacement,
+  getSystemNeumePlacement,
   layoutChant,
-  singleSystemNoteCapacity,
   type GraphicalNeumeKind,
 } from './layout-chant'
 
-function punctum(id: string): PunctumNeume {
+function punctum(id: string): Neume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
@@ -21,398 +19,117 @@ function punctum(id: string): PunctumNeume {
   }
 }
 
-function podatus(id: string): Neume {
+function documentWith(neumes: Neume[]): ChantDocument {
   return {
-    id: `neume-${id}`,
-    kind: 'podatus',
-    lyricSyllableId: 'syllable-1',
-    notes: [
-      { id: `${id}-lower`, staffPosition: staffPosition(2) },
-      { id: `${id}-upper`, staffPosition: staffPosition(3) },
-    ],
-  }
-}
-
-function clivis(id: string): Neume {
-  return {
-    id: `neume-${id}`,
-    kind: 'clivis',
-    lyricSyllableId: 'syllable-1',
-    notes: [
-      { id: `${id}-upper`, staffPosition: staffPosition(3) },
-      { id: `${id}-lower`, staffPosition: staffPosition(2) },
-    ],
-  }
-}
-
-function scandicus(id: string): Neume {
-  return {
-    id: `neume-${id}`,
-    kind: 'scandicus',
-    lyricSyllableId: 'syllable-1',
-    notes: [
-      { id: `${id}-first`, staffPosition: staffPosition(2) },
-      { id: `${id}-middle`, staffPosition: staffPosition(3) },
-      { id: `${id}-final`, staffPosition: staffPosition(4) },
-    ],
-  }
-}
-
-function createDocument(neumes: Neume[]): ChantDocument {
-  return {
-    title: 'Test chant',
+    title: 'Test',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
     neumes,
   }
 }
 
-function placementGeometry(neumes: Neume[] = [
-  punctum('note-1'),
-  punctum('note-2'),
-  punctum('note-3'),
-]) {
-  const layout = layoutChant(createDocument(neumes))
-  const staffYs = layout.systems[0]?.staffLines
-    .map((line) => line.y)
-    .sort((first, second) => first - second)
-  const staffStartX = layout.systems[0]?.staffLines[0]?.x1
-  const staffEndX = layout.systems[0]?.staffLines[0]?.x2
-  const topStaffY = staffYs[0]
-  const nextStaffY = staffYs[1]
-  const bottomStaffY = staffYs.at(-1)
-
-  if (
-    staffStartX === undefined ||
-    staffEndX === undefined ||
-    topStaffY === undefined ||
-    nextStaffY === undefined ||
-    bottomStaffY === undefined
-  ) {
-    throw new Error('Missing fixed-system geometry')
-  }
-
-  return {
-    layout,
-    staffStartX,
-    staffEndX,
-    topStaffY,
-    bottomStaffY,
-    staffStep: (nextStaffY - topStaffY) / 2,
-    staffMiddleX: (staffStartX + staffEndX) / 2,
-  }
-}
-
-function placeAtPosition(
+function resolve(
+  document: ChantDocument,
+  systemIndex: number,
   kind: GraphicalNeumeKind,
-  position: number,
-  neumes: Neume[] = [],
+  x: number,
+  position = 2,
 ) {
-  const { bottomStaffY, staffMiddleX, staffStep } =
-    placementGeometry(neumes)
+  const system = layoutChant(document).systems[systemIndex]
+  const bottom = system
+    ? Math.max(...system.staffLines.map((line) => line.y))
+    : undefined
 
-  return getSingleSystemNeumePlacement(
-    {
-      x: staffMiddleX,
-      y: bottomStaffY - position * staffStep,
-    },
+  if (!system || bottom === undefined) {
+    throw new Error('Missing system geometry')
+  }
+
+  return getSystemNeumePlacement(
+    { x, y: bottom - position * 12 },
     kind,
-    neumes,
+    system,
   )
 }
 
-function noteCenterX(note: { x: number; width: number }) {
-  return note.x + note.width / 2
-}
-
-describe('single-system graphical neume placement', () => {
+describe('system graphical neume placement', () => {
   it.each([
-    { kind: 'punctum' as const, positions: [2] },
-    { kind: 'podatus' as const, positions: [2, 3] },
-    { kind: 'clivis' as const, positions: [2, 1] },
-    { kind: 'scandicus' as const, positions: [2, 3, 4] },
-  ])('derives the complete $kind pitch tuple', ({ kind, positions }) => {
-    const placement = placeAtPosition(kind, 2)
-
-    expect(placement?.firstStaffPosition).toBe(2)
-    expect(placement?.staffPositions).toEqual(positions)
+    ['punctum', [2]],
+    ['podatus', [2, 3]],
+    ['clivis', [2, 1]],
+    ['scandicus', [2, 3, 4]],
+  ] as const)('keeps the %s tuple cardinality', (kind, positions) => {
+    expect(resolve(documentWith([]), 0, kind, 300)?.staffPositions)
+      .toEqual(positions)
   })
 
-  it('snaps lines, spaces, and vertical halfway ties upward', () => {
-    const { bottomStaffY, staffMiddleX, staffStep } = placementGeometry()
+  it('uses system-local pitch snapping with ties upward', () => {
+    const document = documentWith(
+      Array.from({ length: 20 }, (_, index) => punctum(`${index}`)),
+    )
+    const layout = layoutChant(document)
 
-    expect(placeAtPosition('punctum', 0)?.staffPositions).toEqual([0])
-    expect(placeAtPosition('punctum', 1)?.staffPositions).toEqual([1])
-    expect(
-      getSingleSystemNeumePlacement(
-        {
-          x: staffMiddleX,
-          y: bottomStaffY - staffStep / 2,
-        },
-        'punctum',
-        [],
-      )?.staffPositions,
-    ).toEqual([1])
-    expect(placeAtPosition('scandicus', 0)?.staffPositions).toEqual([
-      0, 1, 2,
-    ])
-    expect(placeAtPosition('scandicus', 1)?.staffPositions).toEqual([
-      1, 2, 3,
-    ])
-    expect(
-      getSingleSystemNeumePlacement(
-        {
-          x: staffMiddleX,
-          y: bottomStaffY - staffStep / 2,
-        },
-        'scandicus',
-        [],
-      )?.staffPositions,
-    ).toEqual([1, 2, 3])
-  })
+    for (const system of layout.systems) {
+      const bottom = Math.max(...system.staffLines.map((line) => line.y))
 
-  it('supports existing first-note off-staff bounds and unbounded derived pitches', () => {
-    expect(placeAtPosition('podatus', 7)?.staffPositions).toEqual([7, 8])
-    expect(placeAtPosition('clivis', -1)?.staffPositions).toEqual([-1, -2])
-    expect(placeAtPosition('scandicus', 7)?.staffPositions).toEqual([
-      7, 8, 9,
-    ])
-    expect(placeAtPosition('scandicus', -1)?.staffPositions).toEqual([
-      -1, 0, 1,
-    ])
-  })
-
-  it('rejects points outside horizontal and vertical placement bounds', () => {
-    const {
-      bottomStaffY,
-      staffEndX,
-      staffMiddleX,
-      staffStartX,
-      staffStep,
-      topStaffY,
-    } = placementGeometry()
-
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: staffStartX - 0.1, y: bottomStaffY },
-        'punctum',
-        [],
-      ),
-    ).toBeNull()
-    expect(
-      getSingleSystemNeumePlacement(
-        {
-          x: staffMiddleX,
-          y: topStaffY - staffStep - 0.1,
-        },
-        'scandicus',
-        [],
-      ),
-    ).toBeNull()
-    expect(
-      getSingleSystemNeumePlacement(
-        {
-          x: staffMiddleX,
-          y: bottomStaffY + staffStep + 0.1,
-        },
-        'scandicus',
-        [],
-      ),
-    ).toBeNull()
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: staffEndX + 0.1, y: bottomStaffY },
-        'podatus',
-        [],
-      ),
-    ).toBeNull()
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: staffMiddleX, y: bottomStaffY + staffStep + 0.1 },
-        'clivis',
-        [],
-      ),
-    ).toBeNull()
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: staffMiddleX, y: topStaffY - staffStep - 0.1 },
-        'punctum',
-        [],
-      ),
-    ).toBeNull()
-  })
-
-  it('resolves beginning, middle, and end Punctum boundaries unchanged', () => {
-    const neumes = [punctum('note-1'), punctum('note-2'), punctum('note-3')]
-    const { bottomStaffY, layout, staffEndX } = placementGeometry(neumes)
-    const notes = layout.systems.flatMap((system) => system.neumes).flatMap((neume) => neume.notes)
-    const firstNote = notes[0]
-    const secondNote = notes[1]
-
-    if (!firstNote || !secondNote) {
-      throw new Error('Missing note layout')
-    }
-
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: noteCenterX(firstNote), y: bottomStaffY },
-        'punctum',
-        neumes,
-      )?.preferredNeumeInsertionIndex,
-    ).toBe(0)
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: noteCenterX(secondNote), y: bottomStaffY },
-        'punctum',
-        neumes,
-      )?.preferredNeumeInsertionIndex,
-    ).toBe(1)
-    expect(
-      getSingleSystemNeumePlacement(
-        { x: staffEndX, y: bottomStaffY },
-        'punctum',
-        neumes,
-      )?.preferredNeumeInsertionIndex,
-    ).toBe(3)
-  })
-
-  it.each([
-    { existing: podatus('podatus'), name: 'Podatus' },
-    { existing: clivis('clivis'), name: 'Clivis' },
-  ])(
-    'resolves clicks around both $name notes only to whole-neume boundaries',
-    ({ existing }) => {
-      const neumes = [existing, punctum('following')]
-      const { bottomStaffY, layout } = placementGeometry(neumes)
-      const notes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
-      const first = notes?.[0]
-      const second = notes?.[1]
-
-      if (!first || !second) {
-        throw new Error('Missing two-note layout')
+      if (bottom === undefined) {
+        throw new Error('Missing staff')
       }
 
-      const firstCenter = noteCenterX(first)
-      const secondCenter = noteCenterX(second)
-      const midpoint = (firstCenter + secondCenter) / 2
-      const resolve = (x: number) =>
-        getSingleSystemNeumePlacement(
-          { x, y: bottomStaffY },
-          'podatus',
-          neumes,
-        )?.preferredNeumeInsertionIndex
+      expect(
+        getSystemNeumePlacement(
+          { x: 300, y: bottom - 6 },
+          'punctum',
+          system,
+        )?.staffPositions,
+      ).toEqual([1])
+    }
+  })
 
-      expect(resolve(firstCenter)).toBe(0)
-      expect(resolve(midpoint)).toBe(0)
-      expect(resolve(midpoint + Number.EPSILON * midpoint)).toBe(1)
-      expect(resolve(secondCenter)).toBe(1)
-      expect([resolve(firstCenter), resolve(secondCenter)]).not.toContain(
-        undefined,
-      )
-    },
-  )
+  it('converts local whole-neume boundaries to global indexes', () => {
+    const document = documentWith(
+      Array.from({ length: 20 }, (_, index) => punctum(`${index}`)),
+    )
+    const layout = layoutChant(document)
+    const later = layout.systems[1]
 
-  it('resolves a compact Scandicus only before or after its complete span', () => {
-    const existing = scandicus('scandicus')
-    const neumes = [existing, punctum('following')]
-    const { bottomStaffY, layout } = placementGeometry(neumes)
-    const existingLayout = layout.systems.flatMap((system) => system.neumes)[0]
-    const notes = existingLayout?.notes
-    const first = notes?.[0]
-    const middle = notes?.[1]
-    const final = notes?.[2]
-    const firstConnector = existingLayout?.connectors[0]
-    const secondConnector = existingLayout?.connectors[1]
-
-    if (
-      !first ||
-      !middle ||
-      !final ||
-      !firstConnector ||
-      !secondConnector
-    ) {
-      throw new Error('Missing Scandicus geometry')
+    if (!later) {
+      throw new Error('Missing later system')
     }
 
-    const firstCenter = noteCenterX(first)
-    const middleCenter = noteCenterX(middle)
-    const finalCenter = noteCenterX(final)
-    const midpoint = (firstCenter + finalCenter) / 2
-    const rightOfMidpoint = midpoint + Number.EPSILON * midpoint
-    const resolve = (x: number) =>
-      getSingleSystemNeumePlacement(
-        { x, y: bottomStaffY },
-        'scandicus',
-        neumes,
-      )?.preferredNeumeInsertionIndex
-    const resolvedIndexes = [
-      resolve(firstCenter),
-      resolve(middleCenter),
-      resolve(finalCenter),
-      resolve(firstConnector.x),
-      resolve(secondConnector.x),
-      resolve(midpoint),
-      resolve(rightOfMidpoint),
-    ]
+    const first = later.neumes[0]
+    const midpoint = first
+      ? first.bounds.x + first.bounds.width / 2
+      : Number.NaN
 
-    expect(rightOfMidpoint).toBeGreaterThan(midpoint)
-    expect(resolve(firstCenter)).toBe(0)
-    expect(resolve(middleCenter)).toBe(0)
-    expect(resolve(midpoint)).toBe(0)
-    expect(resolve(rightOfMidpoint)).toBe(1)
-    expect(resolve(finalCenter)).toBe(1)
-    expect(resolve(firstConnector.x)).toBe(0)
-    expect(resolve(secondConnector.x)).toBe(1)
-    expect(resolvedIndexes.every((index) => index === 0 || index === 1))
-      .toBe(true)
+    expect(resolve(document, 1, 'punctum', midpoint))
+      .toMatchObject({ preferredNeumeInsertionIndex: later.startNeumeIndex })
+    expect(resolve(document, 1, 'punctum', midpoint + 0.001))
+      .toMatchObject({
+        preferredNeumeInsertionIndex: later.startNeumeIndex + 1,
+      })
+    expect(resolve(document, 1, 'punctum', 656))
+      .toMatchObject({
+        preferredNeumeInsertionIndex:
+          later.startNeumeIndex + later.neumes.length,
+      })
   })
 
-  it('charges one unit for Punctum and two for both two-note kinds', () => {
-    const withTwoRemaining = Array.from(
-      { length: singleSystemNoteCapacity - 2 },
-      (_, index) => punctum(`note-${index}`),
-    )
-    const withOneRemaining = [
-      ...withTwoRemaining,
-      punctum('one-more-note'),
-    ]
+  it('rejects invalid and out-of-region points', () => {
+    const document = documentWith([])
+    const system = layoutChant(document).systems[0]
 
-    expect(placeAtPosition('podatus', 2, withTwoRemaining)).not.toBeNull()
-    expect(placeAtPosition('clivis', 2, withTwoRemaining)).not.toBeNull()
-    expect(placeAtPosition('podatus', 2, withOneRemaining)).toBeNull()
-    expect(placeAtPosition('clivis', 2, withOneRemaining)).toBeNull()
-    expect(placeAtPosition('punctum', 2, withOneRemaining)).not.toBeNull()
-    expect(
-      placeAtPosition('punctum', 2, [
-        ...withOneRemaining,
-        punctum('at-capacity'),
-      ]),
-    ).toBeNull()
-  })
+    if (!system) {
+      throw new Error('Missing empty system')
+    }
 
-  it('charges three semantic capacity units for Scandicus', () => {
-    const withThreeRemaining = Array.from(
-      { length: singleSystemNoteCapacity - 3 },
-      (_, index) => punctum(`note-${index}`),
-    )
-    const withTwoRemaining = [
-      ...withThreeRemaining,
-      punctum('leaves-two'),
-    ]
-    const withOneRemaining = [
-      ...withTwoRemaining,
-      punctum('leaves-one'),
-    ]
-    const full = [...withOneRemaining, punctum('at-capacity')]
-
-    expect(placeAtPosition('scandicus', 2, withThreeRemaining))
-      .not.toBeNull()
-    expect(placeAtPosition('scandicus', 2, withTwoRemaining)).toBeNull()
-    expect(placeAtPosition('podatus', 2, withTwoRemaining)).not.toBeNull()
-    expect(placeAtPosition('clivis', 2, withTwoRemaining)).not.toBeNull()
-    expect(placeAtPosition('punctum', 2, withOneRemaining)).not.toBeNull()
-    expect(placeAtPosition('podatus', 2, withOneRemaining)).toBeNull()
-    expect(placeAtPosition('punctum', 2, full)).toBeNull()
-    expect(placeAtPosition('scandicus', 2, full)).toBeNull()
+    expect(getSystemNeumePlacement(
+      { x: Number.NaN, y: 100 },
+      'punctum',
+      system,
+    )).toBeNull()
+    expect(resolve(document, 0, 'punctum', 63)).toBeNull()
+    expect(resolve(document, 0, 'punctum', 657)).toBeNull()
+    expect(resolve(document, 0, 'punctum', 300, 8)).toBeNull()
+    expect(resolve(document, 0, 'punctum', 300, -2)).toBeNull()
   })
 })

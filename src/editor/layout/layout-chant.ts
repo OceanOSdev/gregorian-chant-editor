@@ -5,7 +5,6 @@ import {
   type StaffLine,
   type StaffPosition,
 } from '../domain/chant-document'
-import { countNotes } from '../domain/neume'
 
 export interface StaffLineLayout {
   x1: number
@@ -200,29 +199,6 @@ export const neumeConnectorStrokeWidth = 3
 export const interNeumeGap = 33
 export const compactNoteCenterOffset = 12
 
-/** Maximum note count for the current fixed-width, single-system MVP. */
-export const singleSystemNoteCapacity =
-  Math.floor(
-    (staffEndX - noteWidth / 2 - firstNeumeCenterX) / 48,
-  ) + 1
-
-export function canInsertPunctumInSingleSystem(currentNoteCount: number) {
-  return canInsertNotesInSingleSystem(currentNoteCount, 1)
-}
-
-export function canInsertNotesInSingleSystem(
-  currentNoteCount: number,
-  addedNoteCount: number,
-) {
-  return (
-    Number.isInteger(currentNoteCount) &&
-    Number.isInteger(addedNoteCount) &&
-    currentNoteCount >= 0 &&
-    addedNoteCount >= 0 &&
-    currentNoteCount + addedNoteCount <= singleSystemNoteCapacity
-  )
-}
-
 /**
  * Converts semantic pitch to an absolute y coordinate in the score.
  * Callers laying out later systems supply that system's bottom-staff y.
@@ -375,6 +351,23 @@ function layoutRawNeume(
     finalNoteCenterX:
       firstCenterX + (offsets.at(-1) ?? 0),
   }
+}
+
+export function canGraphicalNeumeFitNormalSystem(
+  kind: GraphicalNeumeKind,
+  staffPositions: GraphicalStaffPositions,
+) {
+  const geometry = layoutRawNeume(
+    kind,
+    staffPositions,
+    firstNeumeCenterX,
+    firstSystemBottomStaffY,
+  )
+
+  return (
+    geometry.bounds.x >= staffStartX &&
+    geometry.bounds.x + geometry.bounds.width <= staffEndX
+  )
 }
 
 /**
@@ -537,6 +530,7 @@ export function getNeumeBoundaryCenterX(
 function createNeumeNoteLayouts(
   firstCenterX: number,
   placement: GraphicalPlacementPreviewInput,
+  bottomStaffY = firstSystemBottomStaffY,
 ):
   | readonly [PreviewNoteLayout]
   | readonly [PreviewNoteLayout, PreviewNoteLayout]
@@ -549,7 +543,7 @@ function createNeumeNoteLayouts(
     placement.kind,
     placement.staffPositions,
     firstCenterX,
-    firstSystemBottomStaffY,
+    bottomStaffY,
   )
   const [firstNote, secondNote, thirdNote] = geometry.notes
 
@@ -580,16 +574,76 @@ export function layoutGraphicalPlacementPreview(
   neumes: readonly Neume[],
   placement: GraphicalPlacementPreviewInput,
 ): GraphicalPlacementPreviewLayout | null {
-  const firstCenterX = getNeumeBoundaryCenterX(
-    neumes,
-    placement.insertionIndex,
-  )
-
-  if (firstCenterX === null) {
+  if (
+    placement.insertionIndex < 0 ||
+    placement.insertionIndex > neumes.length
+  ) {
     return null
   }
 
-  const notes = createNeumeNoteLayouts(firstCenterX, placement)
+  const candidate = { placement }
+  const items: (
+    | { neume: Neume }
+    | typeof candidate
+  )[] = neumes.map((neume) => ({ neume }))
+  items.splice(placement.insertionIndex, 0, candidate)
+  let systemIndex = 0
+  let nextCenterX = firstNeumeCenterX
+  let systemHasItems = false
+  let notes: ReturnType<typeof createNeumeNoteLayouts> | null = null
+
+  for (const item of items) {
+    const kind = 'neume' in item ? item.neume.kind : item.placement.kind
+    const staffPositions = 'neume' in item
+      ? item.neume.notes.map((note) => note.staffPosition)
+      : item.placement.staffPositions
+    let bottomStaffY =
+      firstSystemBottomStaffY + systemIndex * systemVerticalAdvance
+    let geometry = layoutRawNeume(
+      kind,
+      staffPositions,
+      nextCenterX,
+      bottomStaffY,
+    )
+
+    if (
+      geometry.bounds.x + geometry.bounds.width > staffEndX &&
+      systemHasItems
+    ) {
+      systemIndex += 1
+      nextCenterX = firstNeumeCenterX
+      systemHasItems = false
+      bottomStaffY =
+        firstSystemBottomStaffY + systemIndex * systemVerticalAdvance
+      geometry = layoutRawNeume(
+        kind,
+        staffPositions,
+        nextCenterX,
+        bottomStaffY,
+      )
+    }
+
+    if (item === candidate) {
+      notes = createNeumeNoteLayouts(
+        nextCenterX,
+        item.placement,
+        bottomStaffY,
+      )
+    }
+
+    nextCenterX = getNextNeumeCenterX(geometry)
+    systemHasItems = true
+
+    if (geometry.bounds.x + geometry.bounds.width > staffEndX) {
+      systemIndex += 1
+      nextCenterX = firstNeumeCenterX
+      systemHasItems = false
+    }
+  }
+
+  if (!notes) {
+    return null
+  }
 
   switch (placement.kind) {
     case 'punctum':
@@ -679,25 +733,34 @@ function createGraphicalNeumePlacement(
 }
 
 /**
- * Resolves a point within the current fixed single-system MVP layout.
- * Exact vertical half-step ties snap upward to the higher StaffPosition.
+ * Resolves a score-absolute point within one rendered system. Exact
+ * vertical half-step ties snap upward to the higher StaffPosition.
  */
-export function getSingleSystemNeumePlacement(
+export function getSystemNeumePlacement(
   point: { x: number; y: number },
   kind: GraphicalNeumeKind,
-  neumes: readonly Neume[],
+  system: ChantSystemLayout,
 ): GraphicalNeumePlacement | null {
-  const currentNoteCount = countNotes(neumes)
-  const addedNoteCount = kind === 'punctum'
-    ? 1
-    : kind === 'scandicus'
-      ? 3
-      : 2
-  const minimumPlacementY = staffPositionY(staffPosition(7))
-  const maximumPlacementY = staffPositionY(staffPosition(-1))
+  const bottomStaffY = system.staffLines.length > 0
+    ? Math.max(...system.staffLines.map((line) => line.y))
+    : undefined
+
+  if (bottomStaffY === undefined) {
+    return null
+  }
+
+  const minimumPlacementY = staffPositionY(
+    staffPosition(7),
+    bottomStaffY,
+  )
+  const maximumPlacementY = staffPositionY(
+    staffPosition(-1),
+    bottomStaffY,
+  )
 
   if (
-    !canInsertNotesInSingleSystem(currentNoteCount, addedNoteCount) ||
+    !Number.isFinite(point.x) ||
+    !Number.isFinite(point.y) ||
     point.x < staffStartX ||
     point.x > staffEndX ||
     point.y < minimumPlacementY ||
@@ -707,27 +770,15 @@ export function getSingleSystemNeumePlacement(
   }
 
   const snappedPosition =
-    Math.round((firstSystemBottomStaffY - point.y) / staffStep) || 0
+    Math.round((bottomStaffY - point.y) / staffStep) || 0
   const firstStaffPosition = staffPosition(snappedPosition)
-  const neumeCenters = getNeumeNoteCenters(neumes)
-  let neumeInsertionIndex = neumes.length
+  let neumeInsertionIndex = system.neumes.length
 
-  for (const [index, centers] of neumeCenters.entries()) {
-    const firstCenter = centers[0]
-    const finalCenter = centers.at(-1)
+  for (const [index, neume] of system.neumes.entries()) {
+    const midpoint = neume.bounds.x + neume.bounds.width / 2
 
-    if (firstCenter === undefined || finalCenter === undefined) {
-      continue
-    }
-
-    if (point.x <= firstCenter) {
+    if (point.x <= midpoint) {
       neumeInsertionIndex = index
-      break
-    }
-
-    if (point.x <= finalCenter) {
-      neumeInsertionIndex =
-        point.x <= (firstCenter + finalCenter) / 2 ? index : index + 1
       break
     }
   }
@@ -735,7 +786,7 @@ export function getSingleSystemNeumePlacement(
   return createGraphicalNeumePlacement(
     kind,
     firstStaffPosition,
-    neumeInsertionIndex,
+    system.startNeumeIndex + neumeInsertionIndex,
   )
 }
 

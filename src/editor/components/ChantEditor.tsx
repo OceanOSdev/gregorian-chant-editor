@@ -13,7 +13,6 @@ import { insertPunctum } from '../commands/insert-punctum'
 import { insertScandicus } from '../commands/insert-scandicus'
 import { moveNeumeVertically } from '../commands/move-neume'
 import { moveNoteVertically } from '../commands/move-note'
-import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion'
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable'
 import {
@@ -25,18 +24,13 @@ import {
   type PunctumNeume,
   type ScandicusNeume,
 } from '../domain/chant-document'
-import { countNotes, findNeume, findNote } from '../domain/neume'
+import { findNeume, findNote } from '../domain/neume'
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
 import {
-  canUseGraphicalPlacement,
   getSurvivingFocusNoteId,
-  shouldCancelGraphicalPlacement,
 } from '../interaction/multi-system-editing'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
-  canInsertNotesInSingleSystem,
-  canInsertPunctumInSingleSystem,
-  layoutGraphicalPlacementPreview,
   layoutChant,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant'
@@ -82,6 +76,16 @@ function isEditableTarget(target: EventTarget | null) {
   )
 }
 
+function getFocusedScoreNoteId() {
+  const focused = globalThis.document.activeElement
+
+  if (!(focused instanceof Element)) {
+    return null
+  }
+
+  return focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null
+}
+
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [history, setHistory] = useState(() =>
     createDocumentHistory(initialDocument),
@@ -105,39 +109,22 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canUndo = history.past.length > 0
   const canRedo = history.future.length > 0
   const layout = layoutChant(history.present)
-  const graphicalPlacementAvailable = canUseGraphicalPlacement(layout)
-  const selectedLocatedNote =
-    selection.kind === 'note'
-      ? findNote(history.present, selection.noteId)
-      : null
   const activeSyllable = history.present.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
   )
   const placementKind = getGraphicalNeumeKind(activeTool)
   const resolvedPlacement =
-    graphicalPlacementAvailable && placementKind && hoveredScorePoint
+    placementKind && hoveredScorePoint
       ? resolveGraphicalNeumePlacement(
           history.present,
+          layout,
           activeSyllable?.id ?? null,
           placementKind,
           hoveredScorePoint,
         )
       : null
-  const placementPreview = resolvedPlacement
-    ? layoutGraphicalPlacementPreview(
-        history.present.neumes,
-        resolvedPlacement,
-      )
-    : null
-  const canInsertPunctum =
-    Boolean(activeSyllable) &&
-    canInsertPunctumInSingleSystem(countNotes(history.present.neumes))
-  const canInsertTwoNoteNeume =
-    Boolean(activeSyllable) &&
-    canInsertNotesInSingleSystem(countNotes(history.present.neumes), 2)
-  const canInsertScandicus =
-    Boolean(activeSyllable) &&
-    canInsertNotesInSingleSystem(countNotes(history.present.neumes), 3)
+  const placementPreview = resolvedPlacement?.preview ?? null
+  const canInsertNeume = Boolean(activeSyllable)
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
@@ -146,6 +133,22 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   function returnToSelect() {
     setActiveTool(selectTool())
     setHoveredScorePoint(null)
+  }
+
+  function applyHistoryNavigation(
+    navigate: typeof undoDocumentEdit | typeof redoDocumentEdit,
+  ) {
+    const focusedNoteId = getFocusedScoreNoteId()
+    const nextHistory = navigate(history)
+
+    if (nextHistory === history) {
+      return
+    }
+
+    setHistory(nextHistory)
+    setPendingFocusNoteId(
+      getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
+    )
   }
 
   function commitLyricDraft(text: string) {
@@ -235,41 +238,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handleAddPunctum() {
-    if (!canInsertPunctum) {
-      return
-    }
-
     if (!activeSyllable) {
       return
     }
 
-    const selectedActiveNote =
-      selectedLocatedNote?.neume.lyricSyllableId === activeSyllable.id
-        ? selectedLocatedNote
-        : null
-    const activeNeumeIndexes = history.present.neumes.flatMap(
-      (neume, index) =>
-        neume.lyricSyllableId === activeSyllable.id ? [index] : [],
-    )
-    const finalActiveNeumeIndex = activeNeumeIndexes.at(-1)
-    const preferredIndex = selectedActiveNote
-      ? selectedActiveNote.neumeIndex + 1
-      : (finalActiveNeumeIndex ?? history.present.neumes.length) + 1
-    const insertionIndex = resolveSyllableNeumeInsertionIndex(
+    const insertion = resolveToolbarNeumeInsertion(
       history.present,
       activeSyllable.id,
-      preferredIndex,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(2),
     )
 
-    if (insertionIndex === null) {
+    if (!insertion) {
       return
     }
-
-    const referenceNote =
-      selectedActiveNote?.note ??
-      (finalActiveNeumeIndex === undefined
-        ? undefined
-        : history.present.neumes[finalActiveNeumeIndex]?.notes.at(-1))
 
     const neumeId = globalThis.crypto.randomUUID()
     const noteId = globalThis.crypto.randomUUID()
@@ -280,22 +262,28 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       notes: [
         {
           id: noteId,
-          staffPosition: referenceNote?.staffPosition ?? staffPosition(2),
+          staffPosition: insertion.referenceStaffPosition,
         },
       ],
     }
 
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
-        insertPunctum(document, punctum, insertionIndex),
-      ),
+    const insertedDocument = insertPunctum(
+      history.present,
+      punctum,
+      insertion.insertionIndex,
     )
+
+    if (insertedDocument === history.present) {
+      return
+    }
+
+    setHistory(applyDocumentEdit(history, () => insertedDocument))
     setSelection(selectNote(noteId))
     setPendingFocusNoteId(noteId)
   }
 
   function handleAddPodatus() {
-    if (!canInsertTwoNoteNeume || !activeSyllable) {
+    if (!activeSyllable) {
       return
     }
 
@@ -347,7 +335,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handleAddClivis() {
-    if (!canInsertTwoNoteNeume || !activeSyllable) {
+    if (!activeSyllable) {
       return
     }
 
@@ -399,7 +387,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handleAddScandicus() {
-    if (!canInsertScandicus || !activeSyllable) {
+    if (!activeSyllable) {
       return
     }
 
@@ -455,12 +443,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
-    if (!graphicalPlacementAvailable || !activeSyllable) {
+    if (!activeSyllable) {
       return
     }
 
     const placement = resolveGraphicalNeumePlacement(
       history.present,
+      layout,
       activeSyllable.id,
       kind,
       point,
@@ -600,15 +589,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
 
   useEffect(() => {
-    if (!shouldCancelGraphicalPlacement(layout, activeTool)) {
-      return
-    }
-
-    setActiveTool(selectTool())
-    setHoveredScorePoint(null)
-  }, [activeTool, layout])
-
-  useEffect(() => {
     const selectedSyllableId = resolveSelectionSyllableId(
       history.present,
       selection,
@@ -668,10 +648,34 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
       if (requestsUndo && canUndo) {
         event.preventDefault()
-        setHistory(undoDocumentEdit)
+        const focusedNoteId = getFocusedScoreNoteId()
+        setHistory((currentHistory) => {
+          const nextHistory = undoDocumentEdit(currentHistory)
+
+          setPendingFocusNoteId(
+            getSurvivingFocusNoteId(
+              nextHistory.present,
+              focusedNoteId,
+            ),
+          )
+
+          return nextHistory
+        })
       } else if (requestsRedo && canRedo) {
         event.preventDefault()
-        setHistory(redoDocumentEdit)
+        const focusedNoteId = getFocusedScoreNoteId()
+        setHistory((currentHistory) => {
+          const nextHistory = redoDocumentEdit(currentHistory)
+
+          setPendingFocusNoteId(
+            getSurvivingFocusNoteId(
+              nextHistory.present,
+              focusedNoteId,
+            ),
+          )
+
+          return nextHistory
+        })
       }
     }
 
@@ -719,21 +723,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <button
           type="button"
           aria-label="Add punctum"
-          disabled={!canInsertPunctum}
+          disabled={!canInsertNeume}
           onClick={handleAddPunctum}
         >
           Add punctum
         </button>
         <button
           type="button"
-          disabled={!canInsertTwoNoteNeume}
+          disabled={!canInsertNeume}
           onClick={handleAddPodatus}
         >
           Add podatus
         </button>
         <button
           type="button"
-          disabled={!canInsertTwoNoteNeume}
+          disabled={!canInsertNeume}
           onClick={handleAddClivis}
         >
           Add clivis
@@ -741,7 +745,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <button
           type="button"
           aria-label="Add scandicus"
-          disabled={!canInsertScandicus}
+          disabled={!canInsertNeume}
           onClick={handleAddScandicus}
         >
           Add scandicus
@@ -750,7 +754,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place punctum"
           aria-pressed={activeTool.kind === 'place-punctum'}
-          disabled={!canInsertPunctum || !graphicalPlacementAvailable}
+          disabled={!canInsertNeume}
           onClick={() => setActiveTool(placePunctumTool())}
         >
           Place punctum
@@ -759,9 +763,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place podatus"
           aria-pressed={activeTool.kind === 'place-podatus'}
-          disabled={
-            !canInsertTwoNoteNeume || !graphicalPlacementAvailable
-          }
+          disabled={!canInsertNeume}
           onClick={() => setActiveTool(placePodatusTool())}
         >
           Place podatus
@@ -770,9 +772,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place clivis"
           aria-pressed={activeTool.kind === 'place-clivis'}
-          disabled={
-            !canInsertTwoNoteNeume || !graphicalPlacementAvailable
-          }
+          disabled={!canInsertNeume}
           onClick={() => setActiveTool(placeClivisTool())}
         >
           Place clivis
@@ -781,7 +781,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Place scandicus"
           aria-pressed={activeTool.kind === 'place-scandicus'}
-          disabled={!canInsertScandicus || !graphicalPlacementAvailable}
+          disabled={!canInsertNeume}
           onClick={() => setActiveTool(placeScandicusTool())}
         >
           Place scandicus
@@ -791,7 +791,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label="Undo last edit"
           aria-keyshortcuts="Control+Z Meta+Z"
           disabled={!canUndo}
-          onClick={() => setHistory(undoDocumentEdit)}
+          onClick={() => applyHistoryNavigation(undoDocumentEdit)}
         >
           Undo
         </button>
@@ -800,7 +800,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label="Redo last undone edit"
           aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y"
           disabled={!canRedo}
-          onClick={() => setHistory(redoDocumentEdit)}
+          onClick={() => applyHistoryNavigation(redoDocumentEdit)}
         >
           Redo
         </button>
