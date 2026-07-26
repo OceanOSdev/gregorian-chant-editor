@@ -84,6 +84,7 @@ export function ScoreSvg({
       return
     }
 
+    // Stable IDs recover the current element after keyed notes move systems.
     noteElement.focus()
     onNoteFocusHandled(pendingFocusNoteId)
   }, [onNoteFocusHandled, pendingFocusNoteId])

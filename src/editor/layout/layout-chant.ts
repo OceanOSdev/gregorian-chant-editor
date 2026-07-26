@@ -58,6 +58,10 @@ export interface LyricLayout {
   fontSize: number
 }
 
+/**
+ * One derived system. All child geometry is currently score-absolute, and
+ * startNeumeIndex is the global semantic index of its first neume.
+ */
 export interface ChantSystemLayout {
   index: number
   x: number
@@ -71,6 +75,7 @@ export interface ChantSystemLayout {
   startNeumeIndex: number
 }
 
+/** Derived, score-absolute geometry with height determined by system count. */
 export interface ChantLayout {
   title: string
   width: number
@@ -396,7 +401,9 @@ interface WrappedSystem {
 
 /**
  * Wraps complete semantic neumes in order using rendered bounds. Supplying
- * a smaller usable boundary is useful for focused safety tests.
+ * a smaller usable boundary is useful for focused safety tests. Exact fits
+ * remain on the current system. An oversized neume is placed once on an empty
+ * system so iteration always advances.
  */
 export function wrapNeumes(
   neumes: readonly Neume[],
@@ -501,6 +508,10 @@ function getNeumeNoteCenters(neumes: readonly Neume[]) {
   })
 }
 
+/**
+ * Returns the horizontal center for a complete-neume insertion boundary.
+ * Valid indexes are the inclusive range from zero through neumes.length.
+ */
 export function getNeumeBoundaryCenterX(
   neumes: readonly Neume[],
   insertionIndex: number,
@@ -570,6 +581,10 @@ function createNeumeNoteLayouts(
   return [firstNote, secondNote]
 }
 
+/**
+ * Simulates an ID-free candidate among committed neumes and returns its
+ * score-absolute geometry at the destination produced by hypothetical reflow.
+ */
 export function layoutGraphicalPlacementPreview(
   neumes: readonly Neume[],
   placement: GraphicalPlacementPreviewInput,
@@ -734,7 +749,9 @@ function createGraphicalNeumePlacement(
 
 /**
  * Resolves a score-absolute point within one rendered system. Exact
- * vertical half-step ties snap upward to the higher StaffPosition.
+ * vertical half-step ties snap upward to the higher StaffPosition. A point at
+ * a neume's bounds midpoint resolves before it, and startNeumeIndex converts
+ * that system-local boundary to the global semantic boundary.
  */
 export function getSystemNeumePlacement(
   point: { x: number; y: number },
@@ -875,6 +892,7 @@ export function layoutChant(document: ChantDocument): ChantLayout {
     { neume: NeumeLayout; systemIndex: number }
   >()
 
+  // A syllable is laid out once, on the system containing its first neume.
   for (const system of systemsWithoutLyrics) {
     for (const neume of system.neumes) {
       if (!firstNeumeBySyllableId.has(neume.lyricSyllableId)) {

@@ -1,5 +1,9 @@
 import type { ChantDocument } from '../domain/chant-document'
 
+/**
+ * Clamps a preferred global neume boundary to the active syllable's contiguous
+ * group. Valid returned indexes are complete-neume boundaries.
+ */
 export function resolveSyllableNeumeInsertionIndex(
   document: ChantDocument,
   syllableId: string,

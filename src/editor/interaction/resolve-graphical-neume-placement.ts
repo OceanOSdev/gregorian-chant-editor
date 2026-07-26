@@ -39,6 +39,10 @@ export type ResolvedGraphicalNeumePlacement =
       ]
     })
 
+/**
+ * Couples system hit testing, a global whole-neume boundary, active-syllable
+ * clamping, graphical fit validation, and an ID-free post-reflow preview.
+ */
 export function resolveGraphicalNeumePlacement(
   document: ChantDocument,
   layout: ChantLayout,
