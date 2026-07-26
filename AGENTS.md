@@ -91,15 +91,20 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 
 ## Build, Test, and Development Commands
 
-- `npm install` installs the dependency versions recorded in `package-lock.json`.
+- `npm ci` installs the exact dependency tree recorded in `package-lock.json`.
+- `npm install` is reserved for intentional dependency changes.
 - `npm run dev` starts the Vite development server with hot module replacement.
 - `npm run build` runs TypeScript project checks and creates a production bundle in `dist/`.
+- `npm run format` applies Prettier formatting across the repository.
+- `npm run format:check` checks formatting without changing files.
 - `npm run lint` checks source files with Oxlint.
 - `npm run preview` serves the production build locally for a final smoke test.
 - `npm test` runs the Vitest suite once.
 - `npm run test:watch` runs Vitest in watch mode.
 
-Run `npm test`, `npm run lint`, and `npm run build` before completing a coding task.
+Run `npm run format:check`, `npm run lint`, `npm test`, and `npm run build`
+before completing a coding task. See the [testing guide](docs/testing.md) for
+the authoritative setup and verification workflow.
 
 When automated tests exist, run the relevant tests as well.
 
@@ -178,10 +183,11 @@ component testing library, or coverage requirement is currently configured.
 
 For current changes:
 
-1. Run `npm test`.
+1. Run `npm run format:check`.
 2. Run `npm run lint`.
-3. Run `npm run build`.
-4. Verify the relevant behavior manually with `npm run dev`.
+3. Run `npm test`.
+4. Run `npm run build`.
+5. Verify the relevant behavior manually with `npm run dev`.
 
 - Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
 - Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
@@ -213,11 +219,12 @@ When pull requests become available, they should:
 Before completing a coding task:
 
 1. Review the changed files for unnecessary scope expansion.
-2. Run the linter.
-3. Run the production build.
-4. Run relevant automated tests when available.
-5. Verify significant UI behavior manually when practical.
-6. Summarize the changed files.
-7. Explain any architectural decisions or remaining limitations.
+2. Run the formatting check.
+3. Run the linter.
+4. Run relevant automated tests.
+5. Run the production build.
+6. Verify significant UI behavior manually when practical.
+7. Summarize the changed files.
+8. Explain any architectural decisions or remaining limitations.
 
 Do not claim that verification passed unless the corresponding command was actually run successfully.

@@ -99,10 +99,14 @@ original first milestone, not as the current capability reference.
 
 ## Getting started
 
+Use the Node.js version declared in `.nvmrc`. Contributors using nvm can select
+it with `nvm use`.
+
 ```bash
 git clone git@github.com:OceanOSdev/gregorian-chant-editor.git
 cd gregorian-chant-editor
-npm install
+nvm use
+npm ci
 npm run dev
 ```
 
@@ -110,14 +114,16 @@ Vite prints the local development-server URL after startup.
 
 ## Available scripts
 
-| Command              | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `npm run dev`        | Start the Vite development server with hot module replacement |
-| `npm run build`      | Run TypeScript project checks and create a production build   |
-| `npm run lint`       | Check source files with Oxlint                                |
-| `npm test`           | Run the Vitest suite once                                     |
-| `npm run test:watch` | Run Vitest in watch mode                                      |
-| `npm run preview`    | Serve the production build locally                            |
+| Command                | Purpose                                                       |
+| ---------------------- | ------------------------------------------------------------- |
+| `npm run dev`          | Start the Vite development server with hot module replacement |
+| `npm run build`        | Run TypeScript project checks and create a production build   |
+| `npm run format`       | Apply Prettier formatting across the repository               |
+| `npm run format:check` | Check formatting without changing files                       |
+| `npm run lint`         | Check source files with Oxlint                                |
+| `npm test`             | Run the Vitest suite once                                     |
+| `npm run test:watch`   | Run Vitest in watch mode                                      |
+| `npm run preview`      | Serve the production build locally                            |
 
 ## Contributing
 
@@ -125,10 +131,12 @@ Read [AGENTS.md](AGENTS.md) and the guide that owns the subsystem before making
 architectural changes. Run:
 
 ```bash
-npm test
+npm run format:check
 npm run lint
+npm test
 npm run build
 ```
 
-See the [testing guide](docs/testing.md) for test seams and manual browser
-checks.
+Pull requests run the same verification sequence. See the
+[testing guide](docs/testing.md) for authoritative setup, verification, CI,
+test-seam, and manual-browser guidance.
