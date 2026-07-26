@@ -151,6 +151,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     )
   }
 
+  // Draft text follows the active syllable, while committed text is the Escape
+  // rollback point. A draft is committed explicitly or when the input blurs.
   function commitLyricDraft(text: string) {
     if (!activeSyllable || draftSyllableId !== activeSyllable.id) {
       return
@@ -178,6 +180,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
     event.preventDefault()
     event.stopPropagation()
+    // Escape restores the last semantic value; do not let the resulting blur
+    // immediately commit the abandoned draft again.
     skipNextLyricBlurCommit.current = true
     setLyricDraft(committedLyricText)
     setDraftSyllableId(activeSyllable.id)
@@ -442,6 +446,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     returnToSelect()
   }
 
+  // The resolver supplies validated semantic intent and post-reflow preview
+  // geometry. Stable IDs are allocated only when that intent is committed.
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     if (!activeSyllable) {
       return
@@ -588,6 +594,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setPendingFocusNoteId(firstNoteId)
   }
 
+  // Selection owns active-syllable precedence. Otherwise preserve a still-valid
+  // active syllable, falling back only when document history removes it.
   useEffect(() => {
     const selectedSyllableId = resolveSelectionSyllableId(
       history.present,
@@ -648,6 +656,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
       if (requestsUndo && canUndo) {
         event.preventDefault()
+        // Capture semantic focus before navigation; keyed rendering may move
+        // the surviving note to a different system and DOM parent.
         const focusedNoteId = getFocusedScoreNoteId()
         setHistory((currentHistory) => {
           const nextHistory = undoDocumentEdit(currentHistory)
@@ -663,6 +673,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         })
       } else if (requestsRedo && canRedo) {
         event.preventDefault()
+        // Redo uses the same stable-ID restoration path as undo.
         const focusedNoteId = getFocusedScoreNoteId()
         setHistory((currentHistory) => {
           const nextHistory = redoDocumentEdit(currentHistory)

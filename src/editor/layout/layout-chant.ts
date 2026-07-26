@@ -260,6 +260,10 @@ export function createTwoNoteConnector(
   }
 }
 
+/**
+ * Encloses both note rectangles and connector stroke. The shared raw bounds
+ * drive wrapping, insertion midpoints, selection outlines, and lyric anchors.
+ */
 export function getNeumeLayoutBounds(
   notes: readonly PreviewNoteLayout[],
   connectors: readonly NeumeConnectorLayout[],
@@ -472,6 +476,8 @@ export function wrapNeumes(
 function getNeumeLyricAlignmentX(
   neumeLayout: NeumeLayout,
 ): number | null {
+  // Ascending kinds and Punctum use their first note; Clivis uses its complete
+  // raw bounds because its compact descending shape extends to the right.
   switch (neumeLayout.kind) {
     case 'punctum':
     case 'podatus':
