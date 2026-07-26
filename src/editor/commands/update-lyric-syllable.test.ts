@@ -119,7 +119,7 @@ describe('updateLyricSyllableText', () => {
     const layout = layoutChant(
       updateLyricSyllableText(createDocument(), 'syllable-1', 'Kyr-'),
     )
-    const updatedLyrics = layout.lyrics.filter(
+    const updatedLyrics = layout.systems.flatMap((system) => system.lyrics).filter(
       (lyric) => lyric.syllableId === 'syllable-1',
     )
 

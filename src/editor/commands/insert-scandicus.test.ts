@@ -171,9 +171,9 @@ describe('insertScandicus', () => {
   it('applies one canonically resolved graphical Scandicus with stable identity', () => {
     const document = createDocument()
     const layout = layoutChant(document)
-    const staffLine = layout.staffLines[0]
+    const staffLine = layout.systems[0]?.staffLines[0]
     const bottomStaffY = Math.max(
-      ...layout.staffLines.map((line) => line.y),
+      ...layout.systems[0]?.staffLines.map((line) => line.y),
     )
 
     if (!staffLine) {

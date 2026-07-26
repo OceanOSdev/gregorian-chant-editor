@@ -73,11 +73,11 @@ function placementGeometry(neumes: Neume[] = [
   punctum('note-3'),
 ]) {
   const layout = layoutChant(createDocument(neumes))
-  const staffYs = layout.staffLines
+  const staffYs = layout.systems[0]?.staffLines
     .map((line) => line.y)
     .sort((first, second) => first - second)
-  const staffStartX = layout.staffLines[0]?.x1
-  const staffEndX = layout.staffLines[0]?.x2
+  const staffStartX = layout.systems[0]?.staffLines[0]?.x1
+  const staffEndX = layout.systems[0]?.staffLines[0]?.x2
   const topStaffY = staffYs[0]
   const nextStaffY = staffYs[1]
   const bottomStaffY = staffYs.at(-1)
@@ -245,7 +245,7 @@ describe('single-system graphical neume placement', () => {
   it('resolves beginning, middle, and end Punctum boundaries unchanged', () => {
     const neumes = [punctum('note-1'), punctum('note-2'), punctum('note-3')]
     const { bottomStaffY, layout, staffEndX } = placementGeometry(neumes)
-    const notes = layout.neumes.flatMap((neume) => neume.notes)
+    const notes = layout.systems.flatMap((system) => system.neumes).flatMap((neume) => neume.notes)
     const firstNote = notes[0]
     const secondNote = notes[1]
 
@@ -284,7 +284,7 @@ describe('single-system graphical neume placement', () => {
     ({ existing }) => {
       const neumes = [existing, punctum('following')]
       const { bottomStaffY, layout } = placementGeometry(neumes)
-      const notes = layout.neumes[0]?.notes
+      const notes = layout.systems.flatMap((system) => system.neumes)[0]?.notes
       const first = notes?.[0]
       const second = notes?.[1]
 
@@ -316,7 +316,7 @@ describe('single-system graphical neume placement', () => {
     const existing = scandicus('scandicus')
     const neumes = [existing, punctum('following')]
     const { bottomStaffY, layout } = placementGeometry(neumes)
-    const existingLayout = layout.neumes[0]
+    const existingLayout = layout.systems.flatMap((system) => system.neumes)[0]
     const notes = existingLayout?.notes
     const first = notes?.[0]
     const middle = notes?.[1]

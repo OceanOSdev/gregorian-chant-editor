@@ -22,6 +22,7 @@ import {
   getSelectedNeumeDescription,
   wholeNeumeSelectionInstruction,
 } from './note-accessible-label'
+import { getScoreAccessibleDescription } from './score-accessible-description'
 
 export interface SvgPoint {
   x: number
@@ -41,7 +42,11 @@ interface ScoreSvgProps {
   onPlacementPointerLeave: () => void
   onPlaceNeume: (kind: GraphicalNeumeKind, point: SvgPoint) => void
   onMoveNote: (noteId: string, delta: StaffPositionDelta) => void
-  onMoveNeume: (neumeId: string, delta: StaffPositionDelta) => void
+  onMoveNeume: (
+    neumeId: string,
+    delta: StaffPositionDelta,
+    invokingNoteId: string,
+  ) => void
   onDeleteNote: (noteId: string) => void
   onDeleteNeume: (neumeId: string) => void
   onClearSelection: () => void
@@ -66,13 +71,6 @@ export function ScoreSvg({
   onClearSelection,
 }: ScoreSvgProps) {
   const noteElements = useRef(new Map<string, SVGGElement>())
-  const noteCount = layout.neumes.reduce(
-    (count, neume) => count + neume.notes.length,
-    0,
-  )
-  const noteLabel = noteCount === 1 ? 'note' : 'notes'
-  const lyricLabel =
-    layout.lyrics.length === 1 ? 'lyric syllable' : 'lyric syllables'
   const placementActive = isPlacementTool(activeTool)
 
   useEffect(() => {
@@ -195,7 +193,11 @@ export function ScoreSvg({
     if (isNoteSelected) {
       onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
     } else if (isNeumeSelected) {
-      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1)
+      onMoveNeume(
+        neumeId,
+        event.key === 'ArrowUp' ? 1 : -1,
+        noteId,
+      )
     }
   }
 
@@ -211,35 +213,159 @@ export function ScoreSvg({
     >
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
-        A four-line Gregorian chant staff with a C clef, {noteCount}{' '}
-        {noteLabel}, and {layout.lyrics.length} {lyricLabel}.
+        {getScoreAccessibleDescription(layout)}
       </desc>
       <desc id="whole-neume-selection-instruction">
         {wholeNeumeSelectionInstruction}
       </desc>
 
-      {layout.staffLines.map((line) => (
-        <line
-          className="score__staff-line"
-          key={line.y}
-          x1={line.x1}
-          x2={line.x2}
-          y1={line.y}
-          y2={line.y}
-        />
-      ))}
+      {layout.systems.map((system) => (
+        <g key={system.index} data-system-index={system.index}>
+          {system.staffLines.map((line, lineIndex) => (
+            <line
+              className="score__staff-line"
+              key={`system-${system.index}-staff-line-${lineIndex}`}
+              x1={line.x1}
+              x2={line.x2}
+              y1={line.y}
+              y2={line.y}
+            />
+          ))}
 
-      <text
-        className="score__clef"
-        x={layout.clef.x}
-        y={layout.clef.y}
-        fontSize={layout.clef.fontSize}
-        textAnchor="middle"
-        dominantBaseline="central"
-        aria-hidden="true"
-      >
-        C
-      </text>
+          <text
+            className="score__clef"
+            x={system.clef.x}
+            y={system.clef.y}
+            fontSize={system.clef.fontSize}
+            textAnchor="middle"
+            dominantBaseline="central"
+            aria-hidden="true"
+          >
+            C
+          </text>
+
+          {system.neumes.map((neume) => {
+            const isNeumeSelected =
+              selection.kind === 'neume' &&
+              selection.neumeId === neume.neumeId
+            const selectedDescription =
+              getSelectedNeumeDescription(neume.kind, isNeumeSelected)
+            const selectedDescriptionId = `selected-neume-${neume.neumeId}`
+            const selectionGap = 5
+
+            return (
+              <g key={neume.neumeId} data-neume-id={neume.neumeId}>
+                {selectedDescription ? (
+                  <desc id={selectedDescriptionId}>
+                    {selectedDescription}
+                  </desc>
+                ) : null}
+                {isNeumeSelected ? (
+                  <rect
+                    className="score__neume-selection"
+                    data-selected-neume-id={neume.neumeId}
+                    x={neume.bounds.x - selectionGap}
+                    y={neume.bounds.y - selectionGap}
+                    width={neume.bounds.width + selectionGap * 2}
+                    height={neume.bounds.height + selectionGap * 2}
+                    rx="4"
+                    pointerEvents="none"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {neume.connectors.map((connector, index) => (
+                  <line
+                    key={`${neume.neumeId}-connector-${index}`}
+                    className="score__neume-connector"
+                    x1={connector.x}
+                    x2={connector.x}
+                    y1={connector.y1}
+                    y2={connector.y2}
+                    pointerEvents="none"
+                    aria-hidden="true"
+                  />
+                ))}
+                {neume.notes.map((note, noteIndex) => {
+                  const isNoteSelected =
+                    selection.kind === 'note' &&
+                    selection.noteId === note.noteId
+                  const accessibleLabel = getNoteAccessibleLabel(
+                    neume.kind,
+                    noteIndex,
+                  )
+
+                  return (
+                    <g
+                      className="score__note"
+                      key={note.noteId}
+                      ref={(element) => {
+                        if (element) {
+                          noteElements.current.set(note.noteId, element)
+                        } else {
+                          noteElements.current.delete(note.noteId)
+                        }
+                      }}
+                      data-note-id={note.noteId}
+                      role="button"
+                      tabIndex={placementActive ? -1 : 0}
+                      pointerEvents={placementActive ? 'none' : 'all'}
+                      aria-label={accessibleLabel}
+                      aria-describedby={`whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`}
+                      aria-pressed={isNoteSelected}
+                      aria-disabled={placementActive}
+                      onClick={(event) =>
+                        handleNoteClick(event, note.noteId)
+                      }
+                      onKeyDown={(event) =>
+                        handleNoteKeyDown(
+                          event,
+                          note.noteId,
+                          neume.neumeId,
+                          isNoteSelected,
+                          isNeumeSelected,
+                        )
+                      }
+                    >
+                      <rect
+                        className="score__note-hit-target"
+                        x={note.x - 6}
+                        y={note.y - 6}
+                        width={note.width + 12}
+                        height={note.height + 12}
+                        rx="3"
+                        aria-hidden="true"
+                      />
+                      <rect
+                        className={`score__punctum${isNoteSelected ? ' score__punctum--selected' : ''}`}
+                        x={note.x}
+                        y={note.y}
+                        width={note.width}
+                        height={note.height}
+                        rx="1"
+                        aria-hidden="true"
+                      />
+                    </g>
+                  )
+                })}
+              </g>
+            )
+          })}
+
+          {system.lyrics.map((lyric) => (
+            <text
+              className="score__lyric"
+              key={lyric.syllableId}
+              data-syllable-id={lyric.syllableId}
+              x={lyric.x}
+              y={lyric.y}
+              fontSize={lyric.fontSize}
+              textAnchor="middle"
+            >
+              {lyric.text}
+            </text>
+          ))}
+        </g>
+      ))}
 
       {placementPreview ? (
         <g
@@ -273,122 +399,6 @@ export function ScoreSvg({
         </g>
       ) : null}
 
-      {layout.neumes.map((neume) => {
-        const isNeumeSelected =
-          selection.kind === 'neume' &&
-          selection.neumeId === neume.neumeId
-        const selectedDescription =
-          getSelectedNeumeDescription(neume.kind, isNeumeSelected)
-        const selectedDescriptionId = `selected-neume-${neume.neumeId}`
-        const selectionGap = 5
-
-        return (
-          <g key={neume.neumeId} data-neume-id={neume.neumeId}>
-            {selectedDescription ? (
-              <desc id={selectedDescriptionId}>{selectedDescription}</desc>
-            ) : null}
-            {isNeumeSelected ? (
-              <rect
-                className="score__neume-selection"
-                data-selected-neume-id={neume.neumeId}
-                x={neume.bounds.x - selectionGap}
-                y={neume.bounds.y - selectionGap}
-                width={neume.bounds.width + selectionGap * 2}
-                height={neume.bounds.height + selectionGap * 2}
-                rx="4"
-                pointerEvents="none"
-                aria-hidden="true"
-              />
-            ) : null}
-            {neume.connectors.map((connector, index) => (
-              <line
-                key={`${neume.neumeId}-connector-${index}`}
-                className="score__neume-connector"
-                x1={connector.x}
-                x2={connector.x}
-                y1={connector.y1}
-                y2={connector.y2}
-                pointerEvents="none"
-                aria-hidden="true"
-              />
-            ))}
-            {neume.notes.map((note, noteIndex) => {
-              const isNoteSelected =
-                selection.kind === 'note' &&
-                selection.noteId === note.noteId
-              const accessibleLabel = getNoteAccessibleLabel(
-                neume.kind,
-                noteIndex,
-              )
-
-              return (
-                <g
-                  className="score__note"
-                  key={note.noteId}
-                  ref={(element) => {
-                    if (element) {
-                      noteElements.current.set(note.noteId, element)
-                    } else {
-                      noteElements.current.delete(note.noteId)
-                    }
-                  }}
-                  data-note-id={note.noteId}
-                  role="button"
-                  tabIndex={placementActive ? -1 : 0}
-                  pointerEvents={placementActive ? 'none' : 'all'}
-                  aria-label={accessibleLabel}
-                  aria-describedby={`whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`}
-                  aria-pressed={isNoteSelected}
-                  aria-disabled={placementActive}
-                  onClick={(event) => handleNoteClick(event, note.noteId)}
-                  onKeyDown={(event) =>
-                    handleNoteKeyDown(
-                      event,
-                      note.noteId,
-                      neume.neumeId,
-                      isNoteSelected,
-                      isNeumeSelected,
-                    )
-                  }
-                >
-                  <rect
-                    className="score__note-hit-target"
-                    x={note.x - 6}
-                    y={note.y - 6}
-                    width={note.width + 12}
-                    height={note.height + 12}
-                    rx="3"
-                    aria-hidden="true"
-                  />
-                  <rect
-                    className={`score__punctum${isNoteSelected ? ' score__punctum--selected' : ''}`}
-                    x={note.x}
-                    y={note.y}
-                    width={note.width}
-                    height={note.height}
-                    rx="1"
-                    aria-hidden="true"
-                  />
-                </g>
-              )
-            })}
-          </g>
-        )
-      })}
-
-      {layout.lyrics.map((lyric) => (
-        <text
-          className="score__lyric"
-          key={lyric.syllableId}
-          data-syllable-id={lyric.syllableId}
-          x={lyric.x}
-          y={lyric.y}
-          fontSize={lyric.fontSize}
-          textAnchor="middle"
-        >
-          {lyric.text}
-        </text>
-      ))}
     </svg>
   )
 }
