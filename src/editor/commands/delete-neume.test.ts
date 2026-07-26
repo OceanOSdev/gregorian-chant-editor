@@ -117,9 +117,7 @@ describe('deleteNeume', () => {
     })
     expect(redone.present).toBe(deleted.present)
     expect(
-      redone.present.neumes.some(
-        (neume) => neume.id === 'neume-podatus',
-      ),
+      redone.present.neumes.some((neume) => neume.id === 'neume-podatus'),
     ).toBe(false)
   })
 

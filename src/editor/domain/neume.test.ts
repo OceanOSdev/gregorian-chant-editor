@@ -16,10 +16,7 @@ const punctum: PunctumNeume = {
   notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
 }
 
-function podatus(
-  firstPosition: number,
-  secondPosition: number,
-): PodatusNeume {
+function podatus(firstPosition: number, secondPosition: number): PodatusNeume {
   return {
     id: 'neume-podatus',
     kind: 'podatus',
@@ -31,10 +28,7 @@ function podatus(
   }
 }
 
-function clivis(
-  firstPosition: number,
-  secondPosition: number,
-): ClivisNeume {
+function clivis(firstPosition: number, secondPosition: number): ClivisNeume {
   return {
     id: 'neume-clivis',
     kind: 'clivis',
@@ -102,12 +96,9 @@ describe('neume validation', () => {
     [2, 4, 4],
     [3, 2, 4],
     [2, 5, 4],
-  ])(
-    'rejects a non-ascending Scandicus %s, %s, %s',
-    (first, second, third) => {
-      expect(isValidNeume(scandicus(first, second, third))).toBe(false)
-    },
-  )
+  ])('rejects a non-ascending Scandicus %s, %s, %s', (first, second, third) => {
+    expect(isValidNeume(scandicus(first, second, third))).toBe(false)
+  })
 
   it('rejects malformed Scandicus cardinality at runtime', () => {
     const malformed = scandicus(2, 4, 7)

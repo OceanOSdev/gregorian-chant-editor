@@ -66,11 +66,7 @@ export interface ScandicusNeume {
   notes: [ChantNote, ChantNote, ChantNote]
 }
 
-export type Neume =
-  | PunctumNeume
-  | PodatusNeume
-  | ClivisNeume
-  | ScandicusNeume
+export type Neume = PunctumNeume | PodatusNeume | ClivisNeume | ScandicusNeume
 
 export interface ChantDocument {
   title: string

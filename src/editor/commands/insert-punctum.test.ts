@@ -77,5 +77,4 @@ describe('insertPunctum', () => {
     expect(replacement.future).toEqual([])
     expect(replacement.present.neumes[1]?.id).toBe('replacement')
   })
-
 })

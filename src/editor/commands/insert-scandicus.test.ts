@@ -15,10 +15,7 @@ import {
 } from '../state/document-history'
 import { insertScandicus } from './insert-scandicus'
 
-function punctum(
-  id: string,
-  syllableId = 'syllable-1',
-): PunctumNeume {
+function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum' as const,
@@ -35,10 +32,7 @@ function createDocument(): ChantDocument {
       { id: 'syllable-1', text: 'Ky-' },
       { id: 'syllable-2', text: 'ri-' },
     ],
-    neumes: [
-      punctum('before', 'syllable-1'),
-      punctum('after', 'syllable-2'),
-    ],
+    neumes: [punctum('before', 'syllable-1'), punctum('after', 'syllable-2')],
   }
 }
 

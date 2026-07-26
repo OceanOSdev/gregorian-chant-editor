@@ -59,7 +59,8 @@ function createDocument(): ChantDocument {
 }
 
 function noteCenterY(document: ChantDocument, noteId: string) {
-  const note = layoutChant(document).systems.flatMap((system) => system.neumes)
+  const note = layoutChant(document)
+    .systems.flatMap((system) => system.neumes)
     .flatMap((neume) => neume.notes)
     .find((candidate) => candidate.noteId === noteId)
 
@@ -93,16 +94,16 @@ describe('moveNoteVertically', () => {
 
   it('accepts valid movement inside podatus and clivis neumes', () => {
     expect(
-      moveNoteVertically(createDocument(), 'note-podatus-1', -1)
-        .neumes[1]?.notes[0]?.staffPosition,
+      moveNoteVertically(createDocument(), 'note-podatus-1', -1).neumes[1]
+        ?.notes[0]?.staffPosition,
     ).toBe(1)
     expect(
-      moveNoteVertically(createDocument(), 'note-podatus-2', 1)
-        .neumes[1]?.notes[1]?.staffPosition,
+      moveNoteVertically(createDocument(), 'note-podatus-2', 1).neumes[1]
+        ?.notes[1]?.staffPosition,
     ).toBe(5)
     expect(
-      moveNoteVertically(createDocument(), 'note-clivis-2', -1)
-        .neumes[2]?.notes[1]?.staffPosition,
+      moveNoteVertically(createDocument(), 'note-clivis-2', -1).neumes[2]
+        ?.notes[1]?.staffPosition,
     ).toBe(2)
   })
 
@@ -194,12 +195,12 @@ describe('moveNoteVertically', () => {
       ],
     }
 
-    expect(
-      moveNoteVertically(nearPodatus, 'note-podatus-2', -1),
-    ).toBe(nearPodatus)
-    expect(
-      moveNoteVertically(nearPodatus, 'note-podatus-1', 1),
-    ).toBe(nearPodatus)
+    expect(moveNoteVertically(nearPodatus, 'note-podatus-2', -1)).toBe(
+      nearPodatus,
+    )
+    expect(moveNoteVertically(nearPodatus, 'note-podatus-1', 1)).toBe(
+      nearPodatus,
+    )
 
     const reversedLowerMove: ChantDocument = {
       ...document,
@@ -220,9 +221,9 @@ describe('moveNoteVertically', () => {
       ],
     }
 
-    expect(
-      moveNoteVertically(reversedLowerMove, 'note-podatus-1', 1),
-    ).toBe(reversedLowerMove)
+    expect(moveNoteVertically(reversedLowerMove, 'note-podatus-1', 1)).toBe(
+      reversedLowerMove,
+    )
   })
 
   it('does not create history for a rejected equal-pitch movement', () => {
@@ -256,9 +257,21 @@ describe('moveNoteVertically', () => {
   })
 
   it.each([
-    { noteId: 'note-scandicus-1', delta: -1 as StaffPositionDelta, expected: [1, 4, 6] },
-    { noteId: 'note-scandicus-2', delta: 1 as StaffPositionDelta, expected: [2, 5, 6] },
-    { noteId: 'note-scandicus-3', delta: 1 as StaffPositionDelta, expected: [2, 4, 7] },
+    {
+      noteId: 'note-scandicus-1',
+      delta: -1 as StaffPositionDelta,
+      expected: [1, 4, 6],
+    },
+    {
+      noteId: 'note-scandicus-2',
+      delta: 1 as StaffPositionDelta,
+      expected: [2, 5, 6],
+    },
+    {
+      noteId: 'note-scandicus-3',
+      delta: 1 as StaffPositionDelta,
+      expected: [2, 4, 7],
+    },
   ])(
     'moves $noteId independently while preserving strict ascent',
     ({ noteId, delta, expected }) => {
@@ -266,9 +279,9 @@ describe('moveNoteVertically', () => {
       const moved = moveNoteVertically(document, noteId, delta)
       const movedScandicus = moved.neumes[3]
 
-      expect(
-        movedScandicus?.notes.map((note) => note.staffPosition),
-      ).toEqual(expected)
+      expect(movedScandicus?.notes.map((note) => note.staffPosition)).toEqual(
+        expected,
+      )
       expect(movedScandicus).toMatchObject({
         id: 'neume-scandicus',
         kind: 'scandicus',
@@ -296,24 +309,34 @@ describe('moveNoteVertically', () => {
         },
       ],
     }
-    const moved = moveNoteVertically(
-      document,
-      'note-scandicus-2',
-      1,
-    )
+    const moved = moveNoteVertically(document, 'note-scandicus-2', 1)
 
     expect(moved.neumes[0]?.notes.map((note) => note.staffPosition)).toEqual([
-      2,
-      4,
-      5,
+      2, 4, 5,
     ])
   })
 
   it.each([
-    { positions: [2, 3, 5] as const, noteId: 'note-scandicus-1', delta: 1 as StaffPositionDelta },
-    { positions: [2, 3, 5] as const, noteId: 'note-scandicus-2', delta: -1 as StaffPositionDelta },
-    { positions: [2, 4, 5] as const, noteId: 'note-scandicus-2', delta: 1 as StaffPositionDelta },
-    { positions: [2, 4, 5] as const, noteId: 'note-scandicus-3', delta: -1 as StaffPositionDelta },
+    {
+      positions: [2, 3, 5] as const,
+      noteId: 'note-scandicus-1',
+      delta: 1 as StaffPositionDelta,
+    },
+    {
+      positions: [2, 3, 5] as const,
+      noteId: 'note-scandicus-2',
+      delta: -1 as StaffPositionDelta,
+    },
+    {
+      positions: [2, 4, 5] as const,
+      noteId: 'note-scandicus-2',
+      delta: 1 as StaffPositionDelta,
+    },
+    {
+      positions: [2, 4, 5] as const,
+      noteId: 'note-scandicus-3',
+      delta: -1 as StaffPositionDelta,
+    },
   ])(
     'rejects equal adjacent Scandicus movement without history',
     ({ positions, noteId, delta }) => {
@@ -323,9 +346,18 @@ describe('moveNoteVertically', () => {
           {
             ...scandicus,
             notes: [
-              { ...scandicus.notes[0], staffPosition: staffPosition(positions[0]) },
-              { ...scandicus.notes[1], staffPosition: staffPosition(positions[1]) },
-              { ...scandicus.notes[2], staffPosition: staffPosition(positions[2]) },
+              {
+                ...scandicus.notes[0],
+                staffPosition: staffPosition(positions[0]),
+              },
+              {
+                ...scandicus.notes[1],
+                staffPosition: staffPosition(positions[1]),
+              },
+              {
+                ...scandicus.notes[2],
+                staffPosition: staffPosition(positions[2]),
+              },
             ],
           },
         ],

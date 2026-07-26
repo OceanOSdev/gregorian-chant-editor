@@ -48,13 +48,10 @@ function resolveOn(
     throw new Error('Missing system')
   }
 
-  return resolveGraphicalNeumePlacement(
-    document,
-    layout,
-    syllableId,
-    kind,
-    { x, y: bottom - 24 },
-  )
+  return resolveGraphicalNeumePlacement(document, layout, syllableId, kind, {
+    x,
+    y: bottom - 24,
+  })
 }
 
 describe('resolveGraphicalNeumePlacement', () => {
@@ -83,11 +80,9 @@ describe('resolveGraphicalNeumePlacement', () => {
     expect(layout.systems.length).toBeGreaterThan(2)
     expect(resolveOn(document, 0, 'syllable-1')).not.toBeNull()
     expect(resolveOn(document, 1, 'syllable-1')).not.toBeNull()
-    expect(resolveOn(
-      document,
-      layout.systems.length - 1,
-      'syllable-1',
-    )).not.toBeNull()
+    expect(
+      resolveOn(document, layout.systems.length - 1, 'syllable-1'),
+    ).not.toBeNull()
 
     const first = layout.systems[0]
     const second = layout.systems[1]
@@ -96,27 +91,33 @@ describe('resolveGraphicalNeumePlacement', () => {
       throw new Error('Missing systems')
     }
 
-    expect(resolveGraphicalNeumePlacement(
-      document,
-      layout,
-      'syllable-1',
-      'punctum',
-      { x: 300, y: (first.y + first.height + second.y) / 2 },
-    )).toBeNull()
-    expect(resolveGraphicalNeumePlacement(
-      document,
-      layout,
-      'syllable-1',
-      'punctum',
-      { x: 300, y: -1 },
-    )).toBeNull()
-    expect(resolveGraphicalNeumePlacement(
-      document,
-      layout,
-      'syllable-1',
-      'punctum',
-      { x: 300, y: layout.height + 1 },
-    )).toBeNull()
+    expect(
+      resolveGraphicalNeumePlacement(
+        document,
+        layout,
+        'syllable-1',
+        'punctum',
+        { x: 300, y: (first.y + first.height + second.y) / 2 },
+      ),
+    ).toBeNull()
+    expect(
+      resolveGraphicalNeumePlacement(
+        document,
+        layout,
+        'syllable-1',
+        'punctum',
+        { x: 300, y: -1 },
+      ),
+    ).toBeNull()
+    expect(
+      resolveGraphicalNeumePlacement(
+        document,
+        layout,
+        'syllable-1',
+        'punctum',
+        { x: 300, y: layout.height + 1 },
+      ),
+    ).toBeNull()
   })
 
   it('rejects null and unknown syllables and clamps empty groups', () => {
@@ -127,23 +128,24 @@ describe('resolveGraphicalNeumePlacement', () => {
 
     expect(resolveOn(document, 0, null)).toBeNull()
     expect(resolveOn(document, 0, 'unknown')).toBeNull()
-    expect(resolveOn(document, 0, 'empty-first', 'punctum', 656)
-      ?.insertionIndex).toBe(0)
-    expect(resolveOn(document, 0, 'empty-middle', 'punctum', 656)
-      ?.insertionIndex).toBe(1)
-    expect(resolveOn(document, 0, 'empty-final', 'punctum', 64)
-      ?.insertionIndex).toBe(2)
+    expect(
+      resolveOn(document, 0, 'empty-first', 'punctum', 656)?.insertionIndex,
+    ).toBe(0)
+    expect(
+      resolveOn(document, 0, 'empty-middle', 'punctum', 656)?.insertionIndex,
+    ).toBe(1)
+    expect(
+      resolveOn(document, 0, 'empty-final', 'punctum', 64)?.insertionIndex,
+    ).toBe(2)
   })
 
   it('clamps across systems and previews the actual destination', () => {
     const neumes = [
-      ...Array.from(
-        { length: 11 },
-        (_, index) => punctum(`first-${index}`, 'syllable-1'),
+      ...Array.from({ length: 11 }, (_, index) =>
+        punctum(`first-${index}`, 'syllable-1'),
       ),
-      ...Array.from(
-        { length: 11 },
-        (_, index) => punctum(`second-${index}`, 'syllable-2'),
+      ...Array.from({ length: 11 }, (_, index) =>
+        punctum(`second-${index}`, 'syllable-2'),
       ),
     ]
     const document = documentWith(neumes)
@@ -162,8 +164,8 @@ describe('resolveGraphicalNeumePlacement', () => {
         punctum('candidate', 'syllable-1'),
         ...document.neumes.slice(result?.insertionIndex),
       ],
-    }).systems
-      .flatMap((system) => system.neumes)
+    })
+      .systems.flatMap((system) => system.neumes)
       .find((neume) => neume.neumeId === 'neume-candidate')
 
     expect(result?.insertionIndex).toBe(11)
@@ -178,14 +180,10 @@ describe('resolveGraphicalNeumePlacement', () => {
     )
     const finalIndex = layoutChant(document).systems.length - 1
 
-    for (const kind of [
-      'punctum',
-      'podatus',
-      'clivis',
-      'scandicus',
-    ] as const) {
-      expect(resolveOn(document, finalIndex, 'syllable-1', kind, 656))
-        .not.toBeNull()
+    for (const kind of ['punctum', 'podatus', 'clivis', 'scandicus'] as const) {
+      expect(
+        resolveOn(document, finalIndex, 'syllable-1', kind, 656),
+      ).not.toBeNull()
     }
   })
 })

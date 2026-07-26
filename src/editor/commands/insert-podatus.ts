@@ -1,7 +1,4 @@
-import type {
-  ChantDocument,
-  PodatusNeume,
-} from '../domain/chant-document'
+import type { ChantDocument, PodatusNeume } from '../domain/chant-document'
 import { insertTwoNoteNeume } from './insert-two-note-neume'
 
 export function insertPodatus(

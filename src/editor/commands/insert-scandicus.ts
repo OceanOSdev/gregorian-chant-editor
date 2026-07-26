@@ -1,7 +1,4 @@
-import type {
-  ChantDocument,
-  ScandicusNeume,
-} from '../domain/chant-document'
+import type { ChantDocument, ScandicusNeume } from '../domain/chant-document'
 import { isValidNeume } from '../domain/neume'
 
 /**
@@ -14,11 +11,7 @@ export function insertScandicus(
   insertionIndex: number,
 ): ChantDocument {
   const [firstNote, secondNote, thirdNote] = scandicus.notes
-  const candidateNoteIds = [
-    firstNote?.id,
-    secondNote?.id,
-    thirdNote?.id,
-  ]
+  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id]
   const hasUniqueCandidateNoteIds =
     candidateNoteIds.every((id) => id !== undefined) &&
     new Set(candidateNoteIds).size === 3

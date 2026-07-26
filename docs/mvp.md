@@ -19,11 +19,11 @@ The first milestone renders a semantic chant document as SVG.
 
 The application displays:
 
-* A title
-* One four-line staff
-* One placeholder C clef
-* One punctum
-* One lyric syllable
+- A title
+- One four-line staff
+- One placeholder C clef
+- One punctum
+- One lyric syllable
 
 ## Architecture
 
@@ -39,11 +39,11 @@ The semantic document describes the chant without storing rendered coordinates.
 
 It may contain information such as:
 
-* Document title
-* Clef type and staff line
-* Lyric syllables
-* Notes
-* Discrete staff positions
+- Document title
+- Clef type and staff line
+- Lyric syllables
+- Notes
+- Discrete staff positions
 
 It must not depend on React, SVG, the DOM, or browser APIs.
 
@@ -61,29 +61,29 @@ The SVG component must not be the canonical representation of the score.
 
 ## Acceptance Criteria
 
-* The punctum originates from a plain TypeScript document object.
-* The note height is represented as a discrete staff-relative position.
-* The semantic document contains no pixel coordinates.
-* A pure layout function calculates the rendered positions.
-* React renders the layout result as SVG.
-* The score remains crisp when resized.
-* No new runtime dependencies are added.
-* `npm run lint` succeeds.
-* `npm run build` succeeds.
+- The punctum originates from a plain TypeScript document object.
+- The note height is represented as a discrete staff-relative position.
+- The semantic document contains no pixel coordinates.
+- A pure layout function calculates the rendered positions.
+- React renders the layout result as SVG.
+- The score remains crisp when resized.
+- No new runtime dependencies are added.
+- `npm run lint` succeeds.
+- `npm run build` succeeds.
 
 ## Not Included
 
 This milestone does not include:
 
-* Selection
-* Editing
-* Dragging
-* Keyboard controls
-* Multiple neume types
-* Automatic line wrapping
-* Undo or redo
-* Persistence
-* GABC import or export
-* Redux or another external state-management library
-* A backend
-* Authentication
+- Selection
+- Editing
+- Dragging
+- Keyboard controls
+- Multiple neume types
+- Automatic line wrapping
+- Undo or redo
+- Persistence
+- GABC import or export
+- Redux or another external state-management library
+- A backend
+- Authentication

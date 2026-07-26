@@ -63,9 +63,9 @@ function createDocument(): ChantDocument {
 }
 
 function positions(document: ChantDocument, neumeIndex: number): number[] {
-  return document.neumes[neumeIndex]?.notes.map(
-    (note) => note.staffPosition,
-  ) ?? []
+  return (
+    document.neumes[neumeIndex]?.notes.map((note) => note.staffPosition) ?? []
+  )
 }
 
 describe('moveNeumeVertically', () => {
@@ -73,11 +73,7 @@ describe('moveNeumeVertically', () => {
     { delta: 1, expected: 4 },
     { delta: -1, expected: 2 },
   ])('moves a punctum by $delta', ({ delta, expected }) => {
-    const moved = moveNeumeVertically(
-      createDocument(),
-      'neume-punctum',
-      delta,
-    )
+    const moved = moveNeumeVertically(createDocument(), 'neume-punctum', delta)
 
     expect(moved.neumes[0]).toMatchObject({
       id: 'neume-punctum',
@@ -103,12 +99,12 @@ describe('moveNeumeVertically', () => {
     }
 
     expect(
-      moveNeumeVertically(document, 'neume-punctum', 5)
-        .neumes[0]?.notes[0]?.staffPosition,
+      moveNeumeVertically(document, 'neume-punctum', 5).neumes[0]?.notes[0]
+        ?.staffPosition,
     ).toBe(11)
     expect(
-      moveNeumeVertically(document, 'neume-punctum', -10)
-        .neumes[0]?.notes[0]?.staffPosition,
+      moveNeumeVertically(document, 'neume-punctum', -10).neumes[0]?.notes[0]
+        ?.staffPosition,
     ).toBe(-4)
   })
 
@@ -119,11 +115,7 @@ describe('moveNeumeVertically', () => {
     'moves every Podatus note by $delta and preserves its interval',
     ({ delta, expected }) => {
       const document = createDocument()
-      const moved = moveNeumeVertically(
-        document,
-        'neume-podatus',
-        delta,
-      )
+      const moved = moveNeumeVertically(document, 'neume-podatus', delta)
       const movedPodatus = moved.neumes[1]
 
       expect(positions(moved, 1)).toEqual(expected)
@@ -154,11 +146,7 @@ describe('moveNeumeVertically', () => {
     'moves every Clivis note by $delta and preserves its interval',
     ({ delta, expected }) => {
       const document = createDocument()
-      const moved = moveNeumeVertically(
-        document,
-        'neume-clivis',
-        delta,
-      )
+      const moved = moveNeumeVertically(document, 'neume-clivis', delta)
       const movedClivis = moved.neumes[2]
 
       expect(positions(moved, 2)).toEqual(expected)
@@ -241,26 +229,24 @@ describe('moveNeumeVertically', () => {
     expect(redone.present).toBe(moved.present)
   })
 
-  it.each([0.5, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
-    'rejects non-integer delta $delta before neume lookup',
-    (delta) => {
-      const document = createDocument()
+  it.each([
+    0.5,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ])('rejects non-integer delta $delta before neume lookup', (delta) => {
+    const document = createDocument()
 
-      expect(() =>
-        moveNeumeVertically(document, 'unknown-neume', delta),
-      ).toThrow(TypeError)
-    },
-  )
+    expect(() => moveNeumeVertically(document, 'unknown-neume', delta)).toThrow(
+      TypeError,
+    )
+  })
 
   it('returns the original document for zero and an unknown neume', () => {
     const document = createDocument()
 
-    expect(
-      moveNeumeVertically(document, 'neume-podatus', 0),
-    ).toBe(document)
-    expect(
-      moveNeumeVertically(document, 'unknown-neume', 1),
-    ).toBe(document)
+    expect(moveNeumeVertically(document, 'neume-podatus', 0)).toBe(document)
+    expect(moveNeumeVertically(document, 'unknown-neume', 1)).toBe(document)
   })
 
   it.each([
@@ -291,9 +277,7 @@ describe('moveNeumeVertically', () => {
       ],
     }
 
-    expect(
-      moveNeumeVertically(document, 'invalid-neume', 1),
-    ).toBe(document)
+    expect(moveNeumeVertically(document, 'invalid-neume', 1)).toBe(document)
   })
 
   it('uses structural sharing without mutating the input', () => {
@@ -305,20 +289,14 @@ describe('moveNeumeVertically', () => {
     expect(moved.neumes).not.toBe(document.neumes)
     expect(moved.neumes[1]).not.toBe(document.neumes[1])
     expect(moved.neumes[1]?.notes).not.toBe(document.neumes[1]?.notes)
-    expect(moved.neumes[1]?.notes[0]).not.toBe(
-      document.neumes[1]?.notes[0],
-    )
-    expect(moved.neumes[1]?.notes[1]).not.toBe(
-      document.neumes[1]?.notes[1],
-    )
+    expect(moved.neumes[1]?.notes[0]).not.toBe(document.neumes[1]?.notes[0])
+    expect(moved.neumes[1]?.notes[1]).not.toBe(document.neumes[1]?.notes[1])
     expect(moved.syllables).toBe(document.syllables)
     expect(moved.syllables[0]).toBe(document.syllables[0])
     expect(moved.clef).toBe(document.clef)
     expect(moved.neumes[0]).toBe(document.neumes[0])
     expect(moved.neumes[2]).toBe(document.neumes[2])
-    expect(moved.neumes[2]?.notes[0]).toBe(
-      document.neumes[2]?.notes[0],
-    )
+    expect(moved.neumes[2]?.notes[0]).toBe(document.neumes[2]?.notes[0])
     expect(positions(document, 1)).toEqual(originalPositions)
   })
 

@@ -194,14 +194,14 @@ describe('deleteNote', () => {
     )
 
     expect(
-      withoutAlone.systems.flatMap((system) => system.lyrics).some(
-        (lyric) => lyric.syllableId === 'syllable-alone',
-      ),
+      withoutAlone.systems
+        .flatMap((system) => system.lyrics)
+        .some((lyric) => lyric.syllableId === 'syllable-alone'),
     ).toBe(false)
     expect(
-      normalizedShared.systems.flatMap((system) => system.lyrics).filter(
-        (lyric) => lyric.syllableId === 'syllable-shared',
-      ),
+      normalizedShared.systems
+        .flatMap((system) => system.lyrics)
+        .filter((lyric) => lyric.syllableId === 'syllable-shared'),
     ).toHaveLength(1)
   })
 

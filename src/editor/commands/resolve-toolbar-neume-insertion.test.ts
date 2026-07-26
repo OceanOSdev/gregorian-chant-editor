@@ -6,11 +6,7 @@ import {
 } from '../domain/chant-document'
 import { resolveToolbarNeumeInsertion } from './resolve-toolbar-neume-insertion'
 
-function punctum(
-  id: string,
-  syllableId: string,
-  position: number,
-): Neume {
+function punctum(id: string, syllableId: string, position: number): Neume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
@@ -121,9 +117,7 @@ describe('resolveToolbarNeumeInsertion', () => {
     )
 
     expect(
-      context
-        ? staffPosition(context.referenceStaffPosition + 1)
-        : undefined,
+      context ? staffPosition(context.referenceStaffPosition + 1) : undefined,
     ).toBe(2)
   })
 

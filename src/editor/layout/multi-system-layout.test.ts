@@ -21,10 +21,7 @@ import {
   wrapNeumes,
 } from './layout-chant'
 
-function punctum(
-  id: string,
-  syllableId = 'syllable-1',
-): PunctumNeume {
+function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
@@ -94,8 +91,9 @@ describe('multi-system chant layout', () => {
       lyrics: [],
     })
     expect(system?.staffLines).toHaveLength(4)
-    expect(Math.max(...(system?.staffLines.map((line) => line.y) ?? [])))
-      .toBe(firstSystemBottomStaffY)
+    expect(Math.max(...(system?.staffLines.map((line) => line.y) ?? []))).toBe(
+      firstSystemBottomStaffY,
+    )
     expect(system?.clef.x).toBe(100)
   })
 
@@ -110,16 +108,17 @@ describe('multi-system chant layout', () => {
     expect(flattened.map((neume) => neume.neumeId)).toEqual(
       neumes.map((neume) => neume.id),
     )
-    expect(flattened.flatMap((neume) =>
-      neume.notes.map((note) => note.noteId),
-    )).toEqual(
-      neumes.flatMap((neume) => neume.notes.map((note) => note.id)),
-    )
-    expect(layout.systems.map((system) => system.startNeumeIndex))
-      .toEqual([0, 9, 18])
-    expect(layout.systems.map((system) =>
-      system.startNeumeIndex + system.neumes.length,
-    )).toEqual([9, 18, 20])
+    expect(
+      flattened.flatMap((neume) => neume.notes.map((note) => note.noteId)),
+    ).toEqual(neumes.flatMap((neume) => neume.notes.map((note) => note.id)))
+    expect(layout.systems.map((system) => system.startNeumeIndex)).toEqual([
+      0, 9, 18,
+    ])
+    expect(
+      layout.systems.map(
+        (system) => system.startNeumeIndex + system.neumes.length,
+      ),
+    ).toEqual([9, 18, 20])
     expect(flattened.every((neume) => !('systemIndex' in neume))).toBe(true)
   })
 
@@ -127,9 +126,7 @@ describe('multi-system chant layout', () => {
     const punctumWidth = measureNeumeWidth(punctum('punctum'))
     const podatusWidth = measureNeumeWidth(compact('podatus', 'podatus'))
     const clivisWidth = measureNeumeWidth(compact('clivis', 'clivis'))
-    const scandicusWidth = measureNeumeWidth(
-      compact('scandicus', 'scandicus'),
-    )
+    const scandicusWidth = measureNeumeWidth(compact('scandicus', 'scandicus'))
 
     expect(punctumWidth).toBe(15)
     expect(podatusWidth).toBe(27)
@@ -139,14 +136,13 @@ describe('multi-system chant layout', () => {
   })
 
   it('keeps exact fits and wraps the next complete neume', () => {
-    const nine = Array.from({ length: 9 }, (_, index) =>
-      punctum(String(index)),
-    )
+    const nine = Array.from({ length: 9 }, (_, index) => punctum(String(index)))
     const exactRightBound = 621.5
 
     expect(wrapNeumes(nine, exactRightBound)).toHaveLength(1)
-    expect(wrapNeumes([...nine, punctum('overflow')], exactRightBound))
-      .toHaveLength(2)
+    expect(
+      wrapNeumes([...nine, punctum('overflow')], exactRightBound),
+    ).toHaveLength(2)
     expect(wrapNeumes([...nine, punctum('overflow')])).toMatchObject([
       { startNeumeIndex: 0, neumes: nine },
       { startNeumeIndex: 9, neumes: [{ id: 'neume-overflow' }] },
@@ -177,35 +173,34 @@ describe('multi-system chant layout', () => {
   it('repeats absolute staff and clef geometry with an explicit gap', () => {
     const layout = layoutChant(
       documentWith(
-        Array.from({ length: 10 }, (_, index) =>
-          punctum(String(index)),
-        ),
+        Array.from({ length: 10 }, (_, index) => punctum(String(index))),
       ),
     )
     const first = layout.systems[0]
     const second = layout.systems[1]
 
     expect(second?.y - (first?.y ?? 0)).toBe(systemVerticalAdvance)
-    expect((second?.y ?? 0) - ((first?.y ?? 0) + systemHeight))
-      .toBe(systemGap)
-    expect(first?.staffLines.map(({ x1, x2 }) => ({ x1, x2 })))
-      .toEqual(second?.staffLines.map(({ x1, x2 }) => ({ x1, x2 })))
-    expect(second?.staffLines.map((line, index) =>
-      line.y - (first?.staffLines[index]?.y ?? 0),
-    )).toEqual([244, 244, 244, 244])
+    expect((second?.y ?? 0) - ((first?.y ?? 0) + systemHeight)).toBe(systemGap)
+    expect(first?.staffLines.map(({ x1, x2 }) => ({ x1, x2 }))).toEqual(
+      second?.staffLines.map(({ x1, x2 }) => ({ x1, x2 })),
+    )
+    expect(
+      second?.staffLines.map(
+        (line, index) => line.y - (first?.staffLines[index]?.y ?? 0),
+      ),
+    ).toEqual([244, 244, 244, 244])
     expect(first?.clef.staffLine).toBe(3)
     expect(second?.clef.staffLine).toBe(3)
     expect((second?.clef.y ?? 0) - (first?.clef.y ?? 0)).toBe(244)
     expect(layout.height).toBe(systemHeight + systemVerticalAdvance)
-    expect((second?.y ?? 0) + (second?.height ?? 0))
-      .toBeLessThanOrEqual(layout.height)
+    expect((second?.y ?? 0) + (second?.height ?? 0)).toBeLessThanOrEqual(
+      layout.height,
+    )
   })
 
   it('keeps relative note, connector, bounds, and off-staff geometry', () => {
     const neumes = [
-      ...Array.from({ length: 9 }, (_, index) =>
-        punctum(String(index)),
-      ),
+      ...Array.from({ length: 9 }, (_, index) => punctum(String(index))),
       {
         ...compact('scandicus', 'high'),
         notes: [
@@ -262,9 +257,7 @@ describe('multi-system chant layout', () => {
     expect(layout.systems[1]?.lyrics).toMatchObject([
       {
         syllableId: 'syllable-2',
-        x:
-          (secondNeume?.bounds.x ?? 0) +
-          (secondNeume?.bounds.width ?? 0) / 2,
+        x: (secondNeume?.bounds.x ?? 0) + (secondNeume?.bounds.width ?? 0) / 2,
         y: firstSystemLyricBaselineY + systemVerticalAdvance,
       },
     ])
@@ -278,16 +271,16 @@ describe('multi-system chant layout', () => {
     const document = documentWith(neumes)
     const before = layoutChant(document)
     const deleted = layoutChant(deleteNeume(document, 'neume-0'))
-    const moved = layoutChant(
-      moveNoteVertically(document, 'note-0', 1),
-    )
+    const moved = layoutChant(moveNoteVertically(document, 'note-0', 1))
 
     expect(before.systems[1]?.neumes[0]?.neumeId).toBe('neume-9')
     expect(deleted.systems).toHaveLength(1)
     expect(deleted.systems[0]?.neumes.at(-1)?.neumeId).toBe('neume-9')
-    expect(moved.systems.map((system) =>
-      system.neumes.map((neume) => neume.neumeId),
-    )).toEqual(
+    expect(
+      moved.systems.map((system) =>
+        system.neumes.map((neume) => neume.neumeId),
+      ),
+    ).toEqual(
       before.systems.map((system) =>
         system.neumes.map((neume) => neume.neumeId),
       ),
@@ -297,9 +290,7 @@ describe('multi-system chant layout', () => {
   it('does not render a permanent empty trailing system', () => {
     const layout = layoutChant(
       documentWith(
-        Array.from({ length: 9 }, (_, index) =>
-          punctum(String(index)),
-        ),
+        Array.from({ length: 9 }, (_, index) => punctum(String(index))),
       ),
     )
 

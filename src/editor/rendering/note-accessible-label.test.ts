@@ -74,12 +74,9 @@ describe('getNoteAccessibleLabel', () => {
       description:
         'Whole scandicus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
-  ])(
-    'describes selected $kind state',
-    ({ kind, description }) => {
-      expect(getSelectedNeumeDescription(kind, true)).toBe(description)
-    },
-  )
+  ])('describes selected $kind state', ({ kind, description }) => {
+    expect(getSelectedNeumeDescription(kind, true)).toBe(description)
+  })
 
   it('omits selected-neume status for an unrelated constituent', () => {
     expect(getSelectedNeumeDescription('podatus', false)).toBeNull()

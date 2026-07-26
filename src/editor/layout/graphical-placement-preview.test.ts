@@ -182,12 +182,9 @@ describe('graphical placement preview layout', () => {
   ])(
     'matches committed Punctum geometry at the $name boundary',
     ({ existing, insertionIndex }) => {
-      expectPreviewMatchesCommitted(
-        existing,
-        insertionIndex,
-        'punctum',
-        [staffPosition(4)],
-      )
+      expectPreviewMatchesCommitted(existing, insertionIndex, 'punctum', [
+        staffPosition(4),
+      ])
     },
   )
 
@@ -274,14 +271,11 @@ describe('graphical placement preview layout', () => {
         positions,
       )
 
-      const preview = layoutGraphicalPlacementPreview(
-        [punctum('before')],
-        {
-          kind,
-          staffPositions: positions,
-          insertionIndex: 1,
-        },
-      )
+      const preview = layoutGraphicalPlacementPreview([punctum('before')], {
+        kind,
+        staffPositions: positions,
+        insertionIndex: 1,
+      })
       const first = preview?.notes[0]
       const second = preview?.notes[1]
 
@@ -363,17 +357,15 @@ describe('graphical placement preview layout', () => {
     ]
 
     expectPreviewMatchesCommitted([], 0, 'podatus', positions)
-    expectPreviewMatchesCommitted(
-      [],
-      0,
-      'scandicus',
-      [staffPosition(7), staffPosition(8), staffPosition(9)],
-    )
-    expectPreviewMatchesCommitted(
-      [],
-      0,
-      'scandicus',
-      [staffPosition(-1), staffPosition(0), staffPosition(1)],
-    )
+    expectPreviewMatchesCommitted([], 0, 'scandicus', [
+      staffPosition(7),
+      staffPosition(8),
+      staffPosition(9),
+    ])
+    expectPreviewMatchesCommitted([], 0, 'scandicus', [
+      staffPosition(-1),
+      staffPosition(0),
+      staffPosition(1),
+    ])
   })
 })

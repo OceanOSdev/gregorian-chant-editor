@@ -12,10 +12,7 @@ import {
   type GraphicalPlacementPreviewLayout,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant'
-import {
-  isPlacementTool,
-  type EditorTool,
-} from '../state/editor-tool'
+import { isPlacementTool, type EditorTool } from '../state/editor-tool'
 import type { EditorSelection } from '../state/selection'
 import {
   getNoteAccessibleLabel,
@@ -89,10 +86,7 @@ export function ScoreSvg({
     onNoteFocusHandled(pendingFocusNoteId)
   }, [onNoteFocusHandled, pendingFocusNoteId])
 
-  function handleNoteClick(
-    event: MouseEvent<SVGGElement>,
-    noteId: string,
-  ) {
+  function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation()
 
     if (event.shiftKey) {
@@ -194,11 +188,7 @@ export function ScoreSvg({
     if (isNoteSelected) {
       onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1)
     } else if (isNeumeSelected) {
-      onMoveNeume(
-        neumeId,
-        event.key === 'ArrowUp' ? 1 : -1,
-        noteId,
-      )
+      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1, noteId)
     }
   }
 
@@ -247,19 +237,18 @@ export function ScoreSvg({
 
           {system.neumes.map((neume) => {
             const isNeumeSelected =
-              selection.kind === 'neume' &&
-              selection.neumeId === neume.neumeId
-            const selectedDescription =
-              getSelectedNeumeDescription(neume.kind, isNeumeSelected)
+              selection.kind === 'neume' && selection.neumeId === neume.neumeId
+            const selectedDescription = getSelectedNeumeDescription(
+              neume.kind,
+              isNeumeSelected,
+            )
             const selectedDescriptionId = `selected-neume-${neume.neumeId}`
             const selectionGap = 5
 
             return (
               <g key={neume.neumeId} data-neume-id={neume.neumeId}>
                 {selectedDescription ? (
-                  <desc id={selectedDescriptionId}>
-                    {selectedDescription}
-                  </desc>
+                  <desc id={selectedDescriptionId}>{selectedDescription}</desc>
                 ) : null}
                 {isNeumeSelected ? (
                   <rect
@@ -314,9 +303,7 @@ export function ScoreSvg({
                       aria-describedby={`whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`}
                       aria-pressed={isNoteSelected}
                       aria-disabled={placementActive}
-                      onClick={(event) =>
-                        handleNoteClick(event, note.noteId)
-                      }
+                      onClick={(event) => handleNoteClick(event, note.noteId)}
                       onKeyDown={(event) =>
                         handleNoteKeyDown(
                           event,
@@ -399,7 +386,6 @@ export function ScoreSvg({
           ))}
         </g>
       ) : null}
-
     </svg>
   )
 }

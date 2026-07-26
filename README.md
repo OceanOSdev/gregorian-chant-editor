@@ -110,14 +110,14 @@ Vite prints the local development-server URL after startup.
 
 ## Available scripts
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the Vite development server with hot module replacement |
-| `npm run build` | Run TypeScript project checks and create a production build |
-| `npm run lint` | Check source files with Oxlint |
-| `npm test` | Run the Vitest suite once |
-| `npm run test:watch` | Run Vitest in watch mode |
-| `npm run preview` | Serve the production build locally |
+| Command              | Purpose                                                       |
+| -------------------- | ------------------------------------------------------------- |
+| `npm run dev`        | Start the Vite development server with hot module replacement |
+| `npm run build`      | Run TypeScript project checks and create a production build   |
+| `npm run lint`       | Check source files with Oxlint                                |
+| `npm test`           | Run the Vitest suite once                                     |
+| `npm run test:watch` | Run Vitest in watch mode                                      |
+| `npm run preview`    | Serve the production build locally                            |
 
 ## Contributing
 

@@ -155,5 +155,4 @@ describe('insertClivis', () => {
       'stable-lower',
     ])
   })
-
 })

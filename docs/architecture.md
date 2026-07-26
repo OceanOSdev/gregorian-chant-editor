@@ -42,16 +42,16 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 
 ## Responsibility boundaries
 
-| Layer | Owns | Does not own |
-| --- | --- | --- |
-| Semantic domain | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state |
-| Pure commands | Validation and immutable semantic transitions | UI state, layout, browser events |
-| Document history | Past, present, and future semantic documents | Selection, tools, focus, hover, drafts |
-| Transient editor state | Active syllable, selection, tool, hover point, lyric draft, pending focus | Canonical notation or engraving geometry |
-| Interaction resolvers | Pure conversion from semantic/layout context and input points to valid insertion intent | DOM event handling or semantic ID creation |
-| Derived layout | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions | Authoritative musical meaning |
-| SVG rendering | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces | Canonical score data |
-| Browser state | Actual DOM focus, pointer coordinates, event propagation | Persisted or undoable notation |
+| Layer                  | Owns                                                                                      | Does not own                               |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Semantic domain        | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state   |
+| Pure commands          | Validation and immutable semantic transitions                                             | UI state, layout, browser events           |
+| Document history       | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts     |
+| Transient editor state | Active syllable, selection, tool, hover point, lyric draft, pending focus                 | Canonical notation or engraving geometry   |
+| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation |
+| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning              |
+| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                       |
+| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                  | Persisted or undoable notation             |
 
 The semantic document deliberately excludes pixels, SVG geometry, systems,
 automatic wrapping assignments, React or DOM objects, selection, active tools,

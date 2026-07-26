@@ -42,9 +42,9 @@ describe('appendLyricSyllable', () => {
   it('returns the original document for a duplicate ID', () => {
     const document = createDocument()
 
-    expect(
-      appendLyricSyllable(document, { id: 'syllable-1', text: '' }),
-    ).toBe(document)
+    expect(appendLyricSyllable(document, { id: 'syllable-1', text: '' })).toBe(
+      document,
+    )
   })
 
   it('can be undone and redone', () => {
@@ -72,10 +72,8 @@ describe('appendLyricSyllable', () => {
         appendLyricSyllable(document, { id: 'syllable-2', text: '' }),
     )
     const undoneHistory = undoDocumentEdit(firstAppend)
-    const replacementAppend = applyDocumentEdit(
-      undoneHistory,
-      (document) =>
-        appendLyricSyllable(document, { id: 'syllable-3', text: '' }),
+    const replacementAppend = applyDocumentEdit(undoneHistory, (document) =>
+      appendLyricSyllable(document, { id: 'syllable-3', text: '' }),
     )
 
     expect(replacementAppend.future).toEqual([])

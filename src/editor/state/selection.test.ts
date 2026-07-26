@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { deleteNote } from '../commands/delete-note'
-import {
-  staffPosition,
-  type ChantDocument,
-} from '../domain/chant-document'
+import { staffPosition, type ChantDocument } from '../domain/chant-document'
 import {
   clearSelection,
   reconcileSelection,
@@ -63,31 +60,30 @@ describe('selection', () => {
     })
   })
 
-  it.each([
-    selectNote('note-1'),
-    selectNeume('neume-1'),
-  ])('clears a $kind selection', () => {
-    expect(clearSelection()).toEqual({ kind: 'none' })
-  })
+  it.each([selectNote('note-1'), selectNeume('neume-1')])(
+    'clears a $kind selection',
+    () => {
+      expect(clearSelection()).toEqual({ kind: 'none' })
+    },
+  )
 
   it('clears stale note and neume selections', () => {
     const document = createDocument()
 
-    expect(
-      reconcileSelection(document, selectNote('missing-note')),
-    ).toEqual({ kind: 'none' })
-    expect(
-      reconcileSelection(document, selectNeume('missing-neume')),
-    ).toEqual({ kind: 'none' })
+    expect(reconcileSelection(document, selectNote('missing-note'))).toEqual({
+      kind: 'none',
+    })
+    expect(reconcileSelection(document, selectNeume('missing-neume'))).toEqual({
+      kind: 'none',
+    })
   })
 
-  it.each([
-    selectNote('note-1'),
-    selectNeume('neume-1'),
-    clearSelection(),
-  ])('returns the exact valid $kind selection object', (selection) => {
-    expect(reconcileSelection(createDocument(), selection)).toBe(selection)
-  })
+  it.each([selectNote('note-1'), selectNeume('neume-1'), clearSelection()])(
+    'returns the exact valid $kind selection object',
+    (selection) => {
+      expect(reconcileSelection(createDocument(), selection)).toBe(selection)
+    },
+  )
 
   it('preserves valid selections across unrelated edits', () => {
     const document = createDocument()
@@ -115,9 +111,9 @@ describe('selection', () => {
       )
     }
 
-    expect(
-      resolveSelectionSyllableId(document, selectNeume('neume-3')),
-    ).toBe('syllable-2')
+    expect(resolveSelectionSyllableId(document, selectNeume('neume-3'))).toBe(
+      'syllable-2',
+    )
   })
 
   it('preserves the selected neume and surviving note after normalization', () => {

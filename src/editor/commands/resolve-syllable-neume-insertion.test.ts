@@ -64,15 +64,15 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
   it('places empty syllables before, between, and after existing groups', () => {
     const document = createDocument()
 
-    expect(
-      resolveSyllableNeumeInsertionIndex(document, 'syllable-2', 4),
-    ).toBe(1)
-    expect(
-      resolveSyllableNeumeInsertionIndex(document, 'syllable-4', 0),
-    ).toBe(3)
-    expect(
-      resolveSyllableNeumeInsertionIndex(document, 'syllable-6', 0),
-    ).toBe(4)
+    expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-2', 4)).toBe(
+      1,
+    )
+    expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-4', 0)).toBe(
+      3,
+    )
+    expect(resolveSyllableNeumeInsertionIndex(document, 'syllable-6', 0)).toBe(
+      4,
+    )
   })
 
   it('places an empty first syllable before every populated group', () => {
@@ -139,11 +139,7 @@ describe('resolveSyllableNeumeInsertionIndex', () => {
     const document = createDocument()
     const history = createDocumentHistory(document)
     const rejected = applyDocumentEdit(history, (current) => {
-      const index = resolveSyllableNeumeInsertionIndex(
-        current,
-        'unknown',
-        0,
-      )
+      const index = resolveSyllableNeumeInsertionIndex(current, 'unknown', 0)
 
       return index === null
         ? current

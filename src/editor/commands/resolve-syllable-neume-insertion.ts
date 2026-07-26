@@ -38,7 +38,5 @@ export function resolveSyllableNeumeInsertionIndex(
     return neumeSyllableIndex > syllableIndex
   })
 
-  return followingGroupIndex < 0
-    ? document.neumes.length
-    : followingGroupIndex
+  return followingGroupIndex < 0 ? document.neumes.length : followingGroupIndex
 }

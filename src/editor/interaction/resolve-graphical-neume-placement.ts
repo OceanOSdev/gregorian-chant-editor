@@ -1,8 +1,5 @@
 import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
-import type {
-  ChantDocument,
-  StaffPosition,
-} from '../domain/chant-document'
+import type { ChantDocument, StaffPosition } from '../domain/chant-document'
 import {
   canGraphicalNeumeFitNormalSystem,
   getSystemNeumePlacement,
@@ -32,11 +29,7 @@ export type ResolvedGraphicalNeumePlacement =
     })
   | (ResolvedPlacementBase & {
       kind: 'scandicus'
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ]
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition]
     })
 
 /**
@@ -54,9 +47,7 @@ export function resolveGraphicalNeumePlacement(
     !activeSyllableId ||
     !Number.isFinite(point.x) ||
     !Number.isFinite(point.y) ||
-    !document.syllables.some(
-      (syllable) => syllable.id === activeSyllableId,
-    )
+    !document.syllables.some((syllable) => syllable.id === activeSyllableId)
   ) {
     return null
   }
@@ -89,10 +80,7 @@ export function resolveGraphicalNeumePlacement(
 
   if (
     insertionIndex === null ||
-    !canGraphicalNeumeFitNormalSystem(
-      placement.kind,
-      placement.staffPositions,
-    )
+    !canGraphicalNeumeFitNormalSystem(placement.kind, placement.staffPositions)
   ) {
     return null
   }
