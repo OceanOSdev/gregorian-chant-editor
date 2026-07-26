@@ -98,7 +98,8 @@ function expectPreviewMatchesCommitted(
   expect(preview?.notes).toEqual(
     committed?.notes.map(({ noteId: _noteId, ...geometry }) => geometry),
   )
-  expect(preview?.connector).toEqual(committed?.connector)
+  expect(preview?.connectors).toEqual(committed?.connectors)
+  expect(preview && 'connector' in preview).toBe(false)
 }
 
 describe('graphical placement preview layout', () => {

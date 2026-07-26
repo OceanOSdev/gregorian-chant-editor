@@ -47,7 +47,7 @@ export interface NeumeLayout {
   lyricSyllableId: string
   kind: Neume['kind']
   notes: NoteLayout[]
-  connector?: NeumeConnectorLayout
+  connectors: readonly NeumeConnectorLayout[]
   bounds: LayoutBounds
 }
 
@@ -69,7 +69,10 @@ export interface ChantLayout {
   lyrics: LyricLayout[]
 }
 
-export type GraphicalNeumeKind = Neume['kind']
+export type GraphicalNeumeKind =
+  | 'punctum'
+  | 'podatus'
+  | 'clivis'
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
@@ -93,7 +96,7 @@ export interface GraphicalPlacementPreviewLayout {
   notes:
     | readonly [PreviewNoteLayout]
     | readonly [PreviewNoteLayout, PreviewNoteLayout]
-  connector?: NeumeConnectorLayout
+  connectors: readonly NeumeConnectorLayout[]
 }
 
 export interface GraphicalPlacementPreviewInput {
@@ -166,28 +169,34 @@ export function createTwoNoteConnector(
 
 export function getNeumeLayoutBounds(
   notes: readonly PreviewNoteLayout[],
-  connector?: NeumeConnectorLayout,
+  connectors: readonly NeumeConnectorLayout[],
 ): LayoutBounds {
   const connectorHalfStroke = neumeConnectorStrokeWidth / 2
   const minimumX = Math.min(
     ...notes.map((note) => note.x),
-    ...(connector ? [connector.x - connectorHalfStroke] : []),
+    ...connectors.map(
+      (connector) => connector.x - connectorHalfStroke,
+    ),
   )
   const maximumX = Math.max(
     ...notes.map((note) => note.x + note.width),
-    ...(connector ? [connector.x + connectorHalfStroke] : []),
+    ...connectors.map(
+      (connector) => connector.x + connectorHalfStroke,
+    ),
   )
   const minimumY = Math.min(
     ...notes.map((note) => note.y),
-    ...(connector
-      ? [Math.min(connector.y1, connector.y2) - connectorHalfStroke]
-      : []),
+    ...connectors.map(
+      (connector) =>
+        Math.min(connector.y1, connector.y2) - connectorHalfStroke,
+    ),
   )
   const maximumY = Math.max(
     ...notes.map((note) => note.y + note.height),
-    ...(connector
-      ? [Math.max(connector.y1, connector.y2) + connectorHalfStroke]
-      : []),
+    ...connectors.map(
+      (connector) =>
+        Math.max(connector.y1, connector.y2) + connectorHalfStroke,
+    ),
   )
 
   return {
@@ -320,15 +329,15 @@ export function layoutGraphicalPlacementPreview(
   )
   const firstNote = notes[0]
   const secondNote = notes[1]
-  const connector =
+  const connectors =
     placement.kind !== 'punctum' && secondNote
-      ? createTwoNoteConnector(firstNote, secondNote)
-      : undefined
+      ? [createTwoNoteConnector(firstNote, secondNote)]
+      : []
 
   return {
     kind: placement.kind,
     notes,
-    ...(connector ? { connector } : {}),
+    connectors,
   }
 }
 
@@ -425,18 +434,18 @@ export function layoutChant(document: ChantDocument): ChantLayout {
     })
     const firstNote = notes[0]
     const secondNote = notes[1]
-    const connector =
+    const connectors =
       isCompactTwoNoteNeume(neume) && firstNote && secondNote
-        ? createTwoNoteConnector(firstNote, secondNote)
-        : undefined
+        ? [createTwoNoteConnector(firstNote, secondNote)]
+        : []
 
     return {
       neumeId: neume.id,
       lyricSyllableId: neume.lyricSyllableId,
       kind: neume.kind,
       notes,
-      ...(connector ? { connector } : {}),
-      bounds: getNeumeLayoutBounds(notes, connector),
+      connectors,
+      bounds: getNeumeLayoutBounds(notes, connectors),
     }
   })
   const firstNeumeBySyllableId = new Map<string, NeumeLayout>()

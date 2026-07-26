@@ -233,13 +233,19 @@ describe('layoutChant', () => {
     const podatusLayout = layout.neumes[1]
     const clivisLayout = layout.neumes[2]
 
-    expect(punctumLayout?.connector).toBeUndefined()
+    expect(punctumLayout?.connectors).toEqual([])
+    expect(punctumLayout && 'connector' in punctumLayout).toBe(false)
     for (const twoNoteLayout of [podatusLayout, clivisLayout]) {
       const first = twoNoteLayout?.notes[0]
       const second = twoNoteLayout?.notes[1]
-      const connector = twoNoteLayout?.connector
+      const connector = twoNoteLayout?.connectors[0]
 
-      if (!first || !second || !connector) {
+      if (
+        !first ||
+        !second ||
+        !connector ||
+        twoNoteLayout.connectors.length !== 1
+      ) {
         throw new Error('Missing two-note neume geometry')
       }
 
@@ -247,6 +253,7 @@ describe('layoutChant', () => {
       expect(connector.x).toBeLessThanOrEqual(second.x + second.width)
       expect(connector.y1).toBe(noteCenterY(first))
       expect(connector.y2).toBe(noteCenterY(second))
+      expect('connector' in twoNoteLayout).toBe(false)
     }
   })
 
@@ -670,24 +677,25 @@ describe('layoutChant', () => {
     clivis('clivis-connector-bounds', 6, 2),
   ])('includes the $kind connector painted extent in bounds', (neume) => {
     const neumeLayout = layoutChant(createDocument([neume])).neumes[0]
-    const connector = neumeLayout?.connector
 
-    if (!neumeLayout || !connector) {
+    if (!neumeLayout || neumeLayout.connectors.length === 0) {
       throw new Error('Missing connector layout')
     }
 
-    expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5)
-    expect(
-      neumeLayout.bounds.x + neumeLayout.bounds.width,
-    ).toBeGreaterThanOrEqual(connector.x + 1.5)
-    expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
-      Math.min(connector.y1, connector.y2) - 1.5,
-    )
-    expect(
-      neumeLayout.bounds.y + neumeLayout.bounds.height,
-    ).toBeGreaterThanOrEqual(
-      Math.max(connector.y1, connector.y2) + 1.5,
-    )
+    for (const connector of neumeLayout.connectors) {
+      expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5)
+      expect(
+        neumeLayout.bounds.x + neumeLayout.bounds.width,
+      ).toBeGreaterThanOrEqual(connector.x + 1.5)
+      expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
+        Math.min(connector.y1, connector.y2) - 1.5,
+      )
+      expect(
+        neumeLayout.bounds.y + neumeLayout.bounds.height,
+      ).toBeGreaterThanOrEqual(
+        Math.max(connector.y1, connector.y2) + 1.5,
+      )
+    }
   })
 
   it('preserves score, note, and spacing geometry while using the first Podatus anchor', () => {
