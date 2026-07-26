@@ -6,6 +6,7 @@ import {
   type Neume,
   type PodatusNeume,
   type PunctumNeume,
+  type ScandicusNeume,
 } from '../domain/chant-document'
 import { deleteNeume } from '../commands/delete-neume'
 import { deleteNote } from '../commands/delete-note'
@@ -21,6 +22,7 @@ import {
 } from '../state/document-history'
 import {
   canInsertPunctumInSingleSystem,
+  getNeumeBoundaryCenterX,
   layoutChant,
   singleSystemNoteCapacity,
   type NoteLayout,
@@ -81,6 +83,25 @@ function clivis(
         id: `${id}-lower`,
         staffPosition: staffPosition(lowerPosition),
       },
+    ],
+  }
+}
+
+function scandicus(
+  id: string,
+  firstPosition: number,
+  secondPosition: number,
+  thirdPosition: number,
+  syllableId = 'syllable-1',
+): ScandicusNeume {
+  return {
+    id: `neume-${id}`,
+    kind: 'scandicus',
+    lyricSyllableId: syllableId,
+    notes: [
+      { id: `${id}-first`, staffPosition: staffPosition(firstPosition) },
+      { id: `${id}-middle`, staffPosition: staffPosition(secondPosition) },
+      { id: `${id}-final`, staffPosition: staffPosition(thirdPosition) },
     ],
   }
 }
@@ -233,13 +254,19 @@ describe('layoutChant', () => {
     const podatusLayout = layout.neumes[1]
     const clivisLayout = layout.neumes[2]
 
-    expect(punctumLayout?.connector).toBeUndefined()
+    expect(punctumLayout?.connectors).toEqual([])
+    expect(punctumLayout && 'connector' in punctumLayout).toBe(false)
     for (const twoNoteLayout of [podatusLayout, clivisLayout]) {
       const first = twoNoteLayout?.notes[0]
       const second = twoNoteLayout?.notes[1]
-      const connector = twoNoteLayout?.connector
+      const connector = twoNoteLayout?.connectors[0]
 
-      if (!first || !second || !connector) {
+      if (
+        !first ||
+        !second ||
+        !connector ||
+        twoNoteLayout.connectors.length !== 1
+      ) {
         throw new Error('Missing two-note neume geometry')
       }
 
@@ -247,7 +274,67 @@ describe('layoutChant', () => {
       expect(connector.x).toBeLessThanOrEqual(second.x + second.width)
       expect(connector.y1).toBe(noteCenterY(first))
       expect(connector.y2).toBe(noteCenterY(second))
+      expect('connector' in twoNoteLayout).toBe(false)
     }
+  })
+
+  it('lays out a Scandicus with three compact notes and two adjacent connectors', () => {
+    const neumeLayout = layoutChant(
+      createDocument([scandicus('scandicus', 2, 4, 7)]),
+    ).neumes[0]
+    const first = neumeLayout?.notes[0]
+    const middle = neumeLayout?.notes[1]
+    const final = neumeLayout?.notes[2]
+
+    if (!neumeLayout || !first || !middle || !final) {
+      throw new Error('Missing Scandicus layout')
+    }
+
+    expect(neumeLayout).toMatchObject({
+      neumeId: 'neume-scandicus',
+      lyricSyllableId: 'syllable-1',
+      kind: 'scandicus',
+    })
+    expect(neumeLayout.notes.map((note) => note.noteId)).toEqual([
+      'scandicus-first',
+      'scandicus-middle',
+      'scandicus-final',
+    ])
+    expect(noteCenterX(middle) - noteCenterX(first)).toBe(12)
+    expect(noteCenterX(final) - noteCenterX(middle)).toBe(12)
+    expect(noteCenterY(first)).toBeGreaterThan(noteCenterY(middle))
+    expect(noteCenterY(middle)).toBeGreaterThan(noteCenterY(final))
+    expect(neumeLayout.connectors).toHaveLength(2)
+    expect(neumeLayout.connectors[0]).toMatchObject({
+      y1: noteCenterY(first),
+      y2: noteCenterY(middle),
+    })
+    expect(neumeLayout.connectors[1]).toMatchObject({
+      y1: noteCenterY(middle),
+      y2: noteCenterY(final),
+    })
+  })
+
+  it('places a following neume after the final Scandicus note and exposes no interior boundary', () => {
+    const neumes = [
+      scandicus('scandicus', 2, 4, 7),
+      punctum('following', 3),
+    ]
+    const layout = layoutChant(createDocument(neumes))
+    const scandicusNotes = layout.neumes[0]?.notes
+    const following = layout.neumes[1]?.notes[0]
+    const final = scandicusNotes?.[2]
+
+    if (!scandicusNotes || !following || !final) {
+      throw new Error('Missing Scandicus spacing')
+    }
+
+    expect(following.x - (final.x + final.width)).toBe(33)
+    expect(getNeumeBoundaryCenterX(neumes, 0)).toBe(
+      noteCenterX(scandicusNotes[0]),
+    )
+    expect(getNeumeBoundaryCenterX(neumes, 1)).toBe(noteCenterX(following))
+    expect(getNeumeBoundaryCenterX(neumes, 2)).not.toBeNull()
   })
 
   it('places a following neume after compact Clivis width and the normal gap', () => {
@@ -329,6 +416,30 @@ describe('layoutChant', () => {
     expect(layout.lyrics[0]?.x).toBe(noteCenterX(firstNote))
     expect(layout.lyrics[0]?.x).not.toBe(noteCenterX(secondNote))
     expect(layout.lyrics[0]?.x).not.toBe(boundsCenter)
+  })
+
+  it('aligns a first Scandicus lyric to its first note only', () => {
+    const layout = layoutChant(
+      createDocument([
+        scandicus('scandicus', 2, 4, 7),
+        punctum('later', 3),
+      ]),
+    )
+    const neumeLayout = layout.neumes[0]
+    const first = neumeLayout?.notes[0]
+    const middle = neumeLayout?.notes[1]
+    const final = neumeLayout?.notes[2]
+
+    if (!neumeLayout || !first || !middle || !final) {
+      throw new Error('Missing Scandicus lyric layout')
+    }
+
+    expect(layout.lyrics[0]?.x).toBe(noteCenterX(first))
+    expect(layout.lyrics[0]?.x).not.toBe(noteCenterX(middle))
+    expect(layout.lyrics[0]?.x).not.toBe(noteCenterX(final))
+    expect(layout.lyrics[0]?.x).not.toBe(
+      neumeLayout.bounds.x + neumeLayout.bounds.width / 2,
+    )
   })
 
   it('aligns a first Clivis to its complete raw bounds center', () => {
@@ -646,6 +757,10 @@ describe('layoutChant', () => {
     { neume: punctum('punctum-bounds', 3), kind: 'punctum' },
     { neume: podatus('podatus-bounds', 2, 4), kind: 'podatus' },
     { neume: clivis('clivis-bounds', 5, 3), kind: 'clivis' },
+    {
+      neume: scandicus('scandicus-bounds', 2, 4, 7),
+      kind: 'scandicus',
+    },
   ])('$kind bounds contain every constituent note', ({ neume }) => {
     const neumeLayout = layoutChant(createDocument([neume])).neumes[0]
 
@@ -668,26 +783,28 @@ describe('layoutChant', () => {
   it.each([
     podatus('podatus-connector-bounds', 2, 6),
     clivis('clivis-connector-bounds', 6, 2),
+    scandicus('scandicus-connector-bounds', 1, 4, 7),
   ])('includes the $kind connector painted extent in bounds', (neume) => {
     const neumeLayout = layoutChant(createDocument([neume])).neumes[0]
-    const connector = neumeLayout?.connector
 
-    if (!neumeLayout || !connector) {
+    if (!neumeLayout || neumeLayout.connectors.length === 0) {
       throw new Error('Missing connector layout')
     }
 
-    expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5)
-    expect(
-      neumeLayout.bounds.x + neumeLayout.bounds.width,
-    ).toBeGreaterThanOrEqual(connector.x + 1.5)
-    expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
-      Math.min(connector.y1, connector.y2) - 1.5,
-    )
-    expect(
-      neumeLayout.bounds.y + neumeLayout.bounds.height,
-    ).toBeGreaterThanOrEqual(
-      Math.max(connector.y1, connector.y2) + 1.5,
-    )
+    for (const connector of neumeLayout.connectors) {
+      expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5)
+      expect(
+        neumeLayout.bounds.x + neumeLayout.bounds.width,
+      ).toBeGreaterThanOrEqual(connector.x + 1.5)
+      expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
+        Math.min(connector.y1, connector.y2) - 1.5,
+      )
+      expect(
+        neumeLayout.bounds.y + neumeLayout.bounds.height,
+      ).toBeGreaterThanOrEqual(
+        Math.max(connector.y1, connector.y2) + 1.5,
+      )
+    }
   })
 
   it('preserves score, note, and spacing geometry while using the first Podatus anchor', () => {

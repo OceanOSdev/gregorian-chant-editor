@@ -242,15 +242,18 @@ export function ScoreSvg({
           pointerEvents="none"
           aria-hidden="true"
         >
-          {placementPreview.connector ? (
+          {placementPreview.connectors.map((connector, index) => (
             <line
+              key={`preview-connector-${index}`}
               className="score__placement-preview-connector"
-              x1={placementPreview.connector.x}
-              x2={placementPreview.connector.x}
-              y1={placementPreview.connector.y1}
-              y2={placementPreview.connector.y2}
+              x1={connector.x}
+              x2={connector.x}
+              y1={connector.y1}
+              y2={connector.y2}
+              pointerEvents="none"
+              aria-hidden="true"
             />
-          ) : null}
+          ))}
           {placementPreview.notes.map((note, index) => (
             <rect
               className="score__placement-preview-note"
@@ -292,17 +295,18 @@ export function ScoreSvg({
                 aria-hidden="true"
               />
             ) : null}
-            {neume.connector ? (
+            {neume.connectors.map((connector, index) => (
               <line
+                key={`${neume.neumeId}-connector-${index}`}
                 className="score__neume-connector"
-                x1={neume.connector.x}
-                x2={neume.connector.x}
-                y1={neume.connector.y1}
-                y2={neume.connector.y2}
+                x1={connector.x}
+                x2={connector.x}
+                y1={connector.y1}
+                y2={connector.y2}
                 pointerEvents="none"
                 aria-hidden="true"
               />
-            ) : null}
+            ))}
             {neume.notes.map((note, noteIndex) => {
               const isNoteSelected =
                 selection.kind === 'note' &&

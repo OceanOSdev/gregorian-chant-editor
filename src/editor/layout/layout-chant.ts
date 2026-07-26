@@ -47,7 +47,7 @@ export interface NeumeLayout {
   lyricSyllableId: string
   kind: Neume['kind']
   notes: NoteLayout[]
-  connector?: NeumeConnectorLayout
+  connectors: readonly NeumeConnectorLayout[]
   bounds: LayoutBounds
 }
 
@@ -69,7 +69,10 @@ export interface ChantLayout {
   lyrics: LyricLayout[]
 }
 
-export type GraphicalNeumeKind = Neume['kind']
+export type GraphicalNeumeKind =
+  | 'punctum'
+  | 'podatus'
+  | 'clivis'
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
@@ -93,7 +96,7 @@ export interface GraphicalPlacementPreviewLayout {
   notes:
     | readonly [PreviewNoteLayout]
     | readonly [PreviewNoteLayout, PreviewNoteLayout]
-  connector?: NeumeConnectorLayout
+  connectors: readonly NeumeConnectorLayout[]
 }
 
 export interface GraphicalPlacementPreviewInput {
@@ -115,7 +118,7 @@ const noteWidth = 15
 const noteHeight = 11
 export const neumeConnectorStrokeWidth = 3
 const interNeumeGap = noteSpacing - noteWidth
-const compactTwoNoteCenterOffset = 12
+const compactNoteCenterOffset = 12
 const lyricY = 180
 
 /** Maximum note count for the current fixed-width, single-system MVP. */
@@ -149,8 +152,15 @@ function staffLineY(line: StaffLine) {
   return bottomStaffY - (line - 1) * staffLineSpacing
 }
 
-function isCompactTwoNoteNeume(neume: Neume) {
-  return neume.kind === 'podatus' || neume.kind === 'clivis'
+function isCompactNeume(neume: Neume) {
+  switch (neume.kind) {
+    case 'punctum':
+      return false
+    case 'podatus':
+    case 'clivis':
+    case 'scandicus':
+      return true
+  }
 }
 
 export function createTwoNoteConnector(
@@ -166,28 +176,34 @@ export function createTwoNoteConnector(
 
 export function getNeumeLayoutBounds(
   notes: readonly PreviewNoteLayout[],
-  connector?: NeumeConnectorLayout,
+  connectors: readonly NeumeConnectorLayout[],
 ): LayoutBounds {
   const connectorHalfStroke = neumeConnectorStrokeWidth / 2
   const minimumX = Math.min(
     ...notes.map((note) => note.x),
-    ...(connector ? [connector.x - connectorHalfStroke] : []),
+    ...connectors.map(
+      (connector) => connector.x - connectorHalfStroke,
+    ),
   )
   const maximumX = Math.max(
     ...notes.map((note) => note.x + note.width),
-    ...(connector ? [connector.x + connectorHalfStroke] : []),
+    ...connectors.map(
+      (connector) => connector.x + connectorHalfStroke,
+    ),
   )
   const minimumY = Math.min(
     ...notes.map((note) => note.y),
-    ...(connector
-      ? [Math.min(connector.y1, connector.y2) - connectorHalfStroke]
-      : []),
+    ...connectors.map(
+      (connector) =>
+        Math.min(connector.y1, connector.y2) - connectorHalfStroke,
+    ),
   )
   const maximumY = Math.max(
     ...notes.map((note) => note.y + note.height),
-    ...(connector
-      ? [Math.max(connector.y1, connector.y2) + connectorHalfStroke]
-      : []),
+    ...connectors.map(
+      (connector) =>
+        Math.max(connector.y1, connector.y2) + connectorHalfStroke,
+    ),
   )
 
   return {
@@ -203,7 +219,8 @@ function getNeumeLyricAlignmentX(
 ): number | null {
   switch (neumeLayout.kind) {
     case 'punctum':
-    case 'podatus': {
+    case 'podatus':
+    case 'scandicus': {
       const firstNote = neumeLayout.notes[0]
       const alignmentX = firstNote
         ? firstNote.x + firstNote.width / 2
@@ -225,8 +242,8 @@ function getNeumeNoteCenters(neumes: readonly Neume[]) {
 
   return neumes.map((neume) => {
     const centers = neume.notes.map((_, noteIndex) =>
-      isCompactTwoNoteNeume(neume)
-        ? nextCenterX + noteIndex * compactTwoNoteCenterOffset
+      isCompactNeume(neume)
+        ? nextCenterX + noteIndex * compactNoteCenterOffset
         : nextCenterX + noteIndex * noteSpacing,
     )
     const finalCenter = centers.at(-1)
@@ -294,7 +311,7 @@ function createNeumeNoteLayouts(
   return [
     firstNote,
     createNoteLayout(
-      firstCenterX + compactTwoNoteCenterOffset,
+      firstCenterX + compactNoteCenterOffset,
       secondPosition,
     ),
   ]
@@ -320,15 +337,15 @@ export function layoutGraphicalPlacementPreview(
   )
   const firstNote = notes[0]
   const secondNote = notes[1]
-  const connector =
+  const connectors =
     placement.kind !== 'punctum' && secondNote
-      ? createTwoNoteConnector(firstNote, secondNote)
-      : undefined
+      ? [createTwoNoteConnector(firstNote, secondNote)]
+      : []
 
   return {
     kind: placement.kind,
     notes,
-    ...(connector ? { connector } : {}),
+    connectors,
   }
 }
 
@@ -425,18 +442,38 @@ export function layoutChant(document: ChantDocument): ChantLayout {
     })
     const firstNote = notes[0]
     const secondNote = notes[1]
-    const connector =
-      isCompactTwoNoteNeume(neume) && firstNote && secondNote
-        ? createTwoNoteConnector(firstNote, secondNote)
-        : undefined
+    const thirdNote = notes[2]
+    let connectors: readonly NeumeConnectorLayout[]
+
+    switch (neume.kind) {
+      case 'punctum':
+        connectors = []
+        break
+      case 'podatus':
+      case 'clivis':
+        connectors =
+          firstNote && secondNote
+            ? [createTwoNoteConnector(firstNote, secondNote)]
+            : []
+        break
+      case 'scandicus':
+        connectors =
+          firstNote && secondNote && thirdNote
+            ? [
+                createTwoNoteConnector(firstNote, secondNote),
+                createTwoNoteConnector(secondNote, thirdNote),
+              ]
+            : []
+        break
+    }
 
     return {
       neumeId: neume.id,
       lyricSyllableId: neume.lyricSyllableId,
       kind: neume.kind,
       notes,
-      ...(connector ? { connector } : {}),
-      bounds: getNeumeLayoutBounds(notes, connector),
+      connectors,
+      bounds: getNeumeLayoutBounds(notes, connectors),
     }
   })
   const firstNeumeBySyllableId = new Map<string, NeumeLayout>()

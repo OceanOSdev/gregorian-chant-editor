@@ -37,6 +37,16 @@ const neumes: Neume[] = [
       { id: 'note-clivis-lower', staffPosition: staffPosition(3) },
     ],
   },
+  {
+    id: 'neume-scandicus',
+    kind: 'scandicus',
+    lyricSyllableId: 'syllable-2',
+    notes: [
+      { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
+      { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
+      { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
+    ],
+  },
 ]
 
 function createDocument(): ChantDocument {
@@ -56,6 +66,7 @@ describe('deleteNeume', () => {
     'neume-punctum',
     'neume-podatus',
     'neume-clivis',
+    'neume-scandicus',
   ])('removes the complete %s and preserves its lyric syllable', (neumeId) => {
     const document = createDocument()
     const deleted = deleteNeume(document, neumeId)
@@ -77,9 +88,10 @@ describe('deleteNeume', () => {
     const deleted = deleteNeume(document, 'neume-podatus')
 
     expect(document.neumes).toEqual(originalNeumes)
-    expect(deleted.neumes).toEqual([neumes[0], neumes[2]])
+    expect(deleted.neumes).toEqual([neumes[0], neumes[2], neumes[3]])
     expect(deleted.neumes[0]).toBe(neumes[0])
     expect(deleted.neumes[1]).toBe(neumes[2])
+    expect(deleted.neumes[2]).toBe(neumes[3])
     expect(deleted.neumes).not.toBe(document.neumes)
   })
 
@@ -109,5 +121,30 @@ describe('deleteNeume', () => {
         (neume) => neume.id === 'neume-podatus',
       ),
     ).toBe(false)
+  })
+
+  it('removes and atomically restores a complete Scandicus', () => {
+    const document = createDocument()
+    const deleted = applyDocumentEdit(
+      createDocumentHistory(document),
+      (current) => deleteNeume(current, 'neume-scandicus'),
+    )
+    const undone = undoDocumentEdit(deleted)
+    const redone = redoDocumentEdit(undone)
+
+    expect(deleted.past).toHaveLength(1)
+    expect(deleted.present.neumes.map((neume) => neume.id)).toEqual([
+      'neume-punctum',
+      'neume-podatus',
+      'neume-clivis',
+    ])
+    expect(deleted.present.syllables).toBe(document.syllables)
+    expect(undone.present.neumes[3]).toBe(neumes[3])
+    expect(undone.present.neumes[3]?.notes.map((note) => note.id)).toEqual([
+      'note-scandicus-1',
+      'note-scandicus-2',
+      'note-scandicus-3',
+    ])
+    expect(redone.present).toBe(deleted.present)
   })
 })

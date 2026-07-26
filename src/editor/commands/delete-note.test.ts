@@ -5,6 +5,7 @@ import {
   type ClivisNeume,
   type PodatusNeume,
   type PunctumNeume,
+  type ScandicusNeume,
 } from '../domain/chant-document'
 import { layoutChant } from '../layout/layout-chant'
 import {
@@ -39,6 +40,16 @@ const clivis: ClivisNeume = {
     { id: 'note-clivis-2', staffPosition: staffPosition(3) },
   ],
 }
+const scandicus: ScandicusNeume = {
+  id: 'neume-scandicus',
+  kind: 'scandicus',
+  lyricSyllableId: 'syllable-shared',
+  notes: [
+    { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
+    { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
+    { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
+  ],
+}
 
 function createDocument(): ChantDocument {
   return {
@@ -48,7 +59,7 @@ function createDocument(): ChantDocument {
       { id: 'syllable-alone', text: 'Ky-' },
       { id: 'syllable-shared', text: 'ri-' },
     ],
-    neumes: [punctum, podatus, clivis],
+    neumes: [punctum, podatus, clivis, scandicus],
   }
 }
 
@@ -59,6 +70,7 @@ describe('deleteNote', () => {
     expect(deleted.neumes.map((neume) => neume.id)).toEqual([
       'neume-podatus',
       'neume-clivis',
+      'neume-scandicus',
     ])
     expect(deleted.syllables).toHaveLength(2)
   })
@@ -112,6 +124,48 @@ describe('deleteNote', () => {
         id: survivor,
         staffPosition: survivorPosition,
       })
+    },
+  )
+
+  it.each([
+    {
+      deletedNoteId: 'note-scandicus-1',
+      survivingIds: ['note-scandicus-2', 'note-scandicus-3'],
+    },
+    {
+      deletedNoteId: 'note-scandicus-2',
+      survivingIds: ['note-scandicus-1', 'note-scandicus-3'],
+    },
+    {
+      deletedNoteId: 'note-scandicus-3',
+      survivingIds: ['note-scandicus-1', 'note-scandicus-2'],
+    },
+  ])(
+    'normalizes Scandicus after deleting $deletedNoteId',
+    ({ deletedNoteId, survivingIds }) => {
+      const document = createDocument()
+      const originalSurvivors = scandicus.notes.filter((note) =>
+        survivingIds.includes(note.id),
+      )
+      const deleted = applyDocumentEdit(
+        createDocumentHistory(document),
+        (current) => deleteNote(current, deletedNoteId),
+      )
+      const normalized = deleted.present.neumes[3]
+      const undone = undoDocumentEdit(deleted)
+      const redone = redoDocumentEdit(undone)
+
+      expect(deleted.past).toHaveLength(1)
+      expect(normalized).toMatchObject({
+        id: 'neume-scandicus',
+        kind: 'podatus',
+        lyricSyllableId: 'syllable-shared',
+      })
+      expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds)
+      expect(normalized?.notes[0]).toBe(originalSurvivors[0])
+      expect(normalized?.notes[1]).toBe(originalSurvivors[1])
+      expect(undone.present.neumes[3]).toBe(scandicus)
+      expect(redone.present.neumes[3]).toBe(normalized)
     },
   )
 

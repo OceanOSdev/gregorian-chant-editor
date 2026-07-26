@@ -37,6 +37,16 @@ function createDocument(): ChantDocument {
         lyricSyllableId: 'syllable-2',
         notes: [{ id: 'note-3', staffPosition: staffPosition(3) }],
       },
+      {
+        id: 'neume-3',
+        kind: 'scandicus',
+        lyricSyllableId: 'syllable-2',
+        notes: [
+          { id: 'note-4', staffPosition: staffPosition(1) },
+          { id: 'note-5', staffPosition: staffPosition(3) },
+          { id: 'note-6', staffPosition: staffPosition(6) },
+        ],
+      },
     ],
   }
 }
@@ -91,6 +101,23 @@ describe('selection', () => {
     expect(reconcileSelection(editedDocument, neumeSelection)).toBe(
       neumeSelection,
     )
+  })
+
+  it('resolves every Scandicus constituent and its whole neume by stable ID', () => {
+    const document = createDocument()
+
+    for (const noteId of ['note-4', 'note-5', 'note-6']) {
+      expect(resolveSelectionSyllableId(document, selectNote(noteId))).toBe(
+        'syllable-2',
+      )
+      expect(reconcileSelection(document, selectNote(noteId))).toEqual(
+        selectNote(noteId),
+      )
+    }
+
+    expect(
+      resolveSelectionSyllableId(document, selectNeume('neume-3')),
+    ).toBe('syllable-2')
   })
 
   it('preserves the selected neume and surviving note after normalization', () => {

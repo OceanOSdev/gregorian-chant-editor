@@ -10,6 +10,7 @@ import { deleteNote } from '../commands/delete-note'
 import { insertClivis } from '../commands/insert-clivis'
 import { insertPodatus } from '../commands/insert-podatus'
 import { insertPunctum } from '../commands/insert-punctum'
+import { insertScandicus } from '../commands/insert-scandicus'
 import { moveNeumeVertically } from '../commands/move-neume'
 import { moveNoteVertically } from '../commands/move-note'
 import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion'
@@ -22,6 +23,7 @@ import {
   type LyricSyllable,
   type PodatusNeume,
   type PunctumNeume,
+  type ScandicusNeume,
 } from '../domain/chant-document'
 import { countNotes, findNeume, findNote } from '../domain/neume'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
@@ -141,6 +143,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canInsertTwoNoteNeume =
     Boolean(activeSyllable) &&
     canInsertNotesInSingleSystem(countNotes(history.present.neumes), 2)
+  const canInsertScandicus =
+    Boolean(activeSyllable) &&
+    canInsertNotesInSingleSystem(countNotes(history.present.neumes), 3)
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
@@ -401,6 +406,62 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     returnToSelect()
   }
 
+  function handleAddScandicus() {
+    if (!canInsertScandicus || !activeSyllable) {
+      return
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(2),
+    )
+
+    if (!insertion) {
+      return
+    }
+
+    const neumeId = globalThis.crypto.randomUUID()
+    const firstNoteId = globalThis.crypto.randomUUID()
+    const secondNoteId = globalThis.crypto.randomUUID()
+    const thirdNoteId = globalThis.crypto.randomUUID()
+    const firstStaffPosition = insertion.referenceStaffPosition
+    const scandicus: ScandicusNeume = {
+      id: neumeId,
+      kind: 'scandicus',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: firstNoteId,
+          staffPosition: firstStaffPosition,
+        },
+        {
+          id: secondNoteId,
+          staffPosition: staffPosition(firstStaffPosition + 1),
+        },
+        {
+          id: thirdNoteId,
+          staffPosition: staffPosition(firstStaffPosition + 2),
+        },
+      ],
+    }
+    const nextDocument = insertScandicus(
+      history.present,
+      scandicus,
+      insertion.insertionIndex,
+    )
+
+    if (nextDocument === history.present) {
+      return
+    }
+
+    setHistory(applyDocumentEdit(history, () => nextDocument))
+    setSelection(selectNote(firstNoteId))
+    setPendingFocusNoteId(firstNoteId)
+    returnToSelect()
+  }
+
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     if (!activeSyllable) {
       return
@@ -641,6 +702,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={handleAddClivis}
         >
           Add clivis
+        </button>
+        <button
+          type="button"
+          aria-label="Add scandicus"
+          disabled={!canInsertScandicus}
+          onClick={handleAddScandicus}
+        >
+          Add scandicus
         </button>
         <button
           type="button"

@@ -5,6 +5,7 @@ import {
   type ClivisNeume,
   type PodatusNeume,
   type PunctumNeume,
+  type ScandicusNeume,
 } from '../domain/chant-document'
 import {
   applyDocumentEdit,
@@ -38,6 +39,16 @@ const clivis: ClivisNeume = {
     { id: 'note-clivis-2', staffPosition: staffPosition(4) },
   ],
 }
+const scandicus: ScandicusNeume = {
+  id: 'neume-scandicus',
+  kind: 'scandicus',
+  lyricSyllableId: 'syllable-1',
+  notes: [
+    { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
+    { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
+    { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
+  ],
+}
 
 function createDocument(): ChantDocument {
   return {
@@ -47,7 +58,7 @@ function createDocument(): ChantDocument {
       { id: 'syllable-1', text: 'Ky-' },
       { id: 'syllable-2', text: 'ri-' },
     ],
-    neumes: [punctum, podatus, clivis],
+    neumes: [punctum, podatus, clivis, scandicus],
   }
 }
 
@@ -184,6 +195,50 @@ describe('moveNeumeVertically', () => {
     expect(moved.neumes[1]?.lyricSyllableId).toBe(
       document.neumes[1]?.lyricSyllableId,
     )
+  })
+
+  it('moves all Scandicus notes equally and preserves both intervals and IDs', () => {
+    const document = createDocument()
+    const moved = moveNeumeVertically(document, 'neume-scandicus', 1)
+    const movedScandicus = moved.neumes[3]
+
+    expect(positions(moved, 3)).toEqual([2, 4, 7])
+    expect(movedScandicus).toMatchObject({
+      id: 'neume-scandicus',
+      kind: 'scandicus',
+      lyricSyllableId: 'syllable-1',
+    })
+    expect(movedScandicus?.notes.map((note) => note.id)).toEqual([
+      'note-scandicus-1',
+      'note-scandicus-2',
+      'note-scandicus-3',
+    ])
+
+    if (movedScandicus?.kind !== 'scandicus') {
+      throw new Error('Missing moved Scandicus')
+    }
+
+    expect([
+      movedScandicus.notes[1].staffPosition -
+        movedScandicus.notes[0].staffPosition,
+      movedScandicus.notes[2].staffPosition -
+        movedScandicus.notes[1].staffPosition,
+    ]).toEqual([2, 3])
+  })
+
+  it('undoes and redoes a whole Scandicus move atomically', () => {
+    const document = createDocument()
+    const moved = applyDocumentEdit(
+      createDocumentHistory(document),
+      (current) => moveNeumeVertically(current, 'neume-scandicus', -1),
+    )
+    const undone = undoDocumentEdit(moved)
+    const redone = redoDocumentEdit(undone)
+
+    expect(moved.past).toHaveLength(1)
+    expect(positions(moved.present, 3)).toEqual([0, 2, 5])
+    expect(undone.present).toBe(document)
+    expect(redone.present).toBe(moved.present)
   })
 
   it.each([0.5, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(

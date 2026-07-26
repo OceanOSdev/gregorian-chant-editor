@@ -34,22 +34,42 @@ export function moveNeumeVertically(
 
   let movedNeume: Neume
 
-  if (locatedNeume.neume.kind === 'punctum') {
-    const [note] = locatedNeume.neume.notes
+  switch (locatedNeume.neume.kind) {
+    case 'punctum': {
+      const [note] = locatedNeume.neume.notes
 
-    movedNeume = {
-      ...locatedNeume.neume,
-      notes: [moveNote(note, delta)],
+      movedNeume = {
+        ...locatedNeume.neume,
+        notes: [moveNote(note, delta)],
+      }
+      break
     }
-  } else {
-    const [firstNote, secondNote] = locatedNeume.neume.notes
+    case 'podatus':
+    case 'clivis': {
+      const [firstNote, secondNote] = locatedNeume.neume.notes
 
-    movedNeume = {
-      ...locatedNeume.neume,
-      notes: [
-        moveNote(firstNote, delta),
-        moveNote(secondNote, delta),
-      ],
+      movedNeume = {
+        ...locatedNeume.neume,
+        notes: [
+          moveNote(firstNote, delta),
+          moveNote(secondNote, delta),
+        ],
+      }
+      break
+    }
+    case 'scandicus': {
+      const [firstNote, secondNote, thirdNote] =
+        locatedNeume.neume.notes
+
+      movedNeume = {
+        ...locatedNeume.neume,
+        notes: [
+          moveNote(firstNote, delta),
+          moveNote(secondNote, delta),
+          moveNote(thirdNote, delta),
+        ],
+      }
+      break
     }
   }
 
