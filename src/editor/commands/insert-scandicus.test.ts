@@ -6,8 +6,10 @@ import {
   type ScandicusNeume,
 } from '../domain/chant-document'
 import { countNotes } from '../domain/neume'
+import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
   canInsertNotesInSingleSystem,
+  layoutChant,
   singleSystemNoteCapacity,
 } from '../layout/layout-chant'
 import {
@@ -164,6 +166,69 @@ describe('insertScandicus', () => {
     expect(undone.present).toBe(document)
     expect(redone.present).toBe(inserted.present)
     expect(redone.present.neumes[1]).toBe(candidate)
+  })
+
+  it('applies one canonically resolved graphical Scandicus with stable identity', () => {
+    const document = createDocument()
+    const layout = layoutChant(document)
+    const staffLine = layout.staffLines[0]
+    const bottomStaffY = Math.max(
+      ...layout.staffLines.map((line) => line.y),
+    )
+
+    if (!staffLine) {
+      throw new Error('Missing staff geometry')
+    }
+
+    const placement = resolveGraphicalNeumePlacement(
+      document,
+      'syllable-1',
+      'scandicus',
+      { x: staffLine.x2, y: bottomStaffY - 24 },
+    )
+
+    if (!placement || placement.kind !== 'scandicus') {
+      throw new Error('Missing graphical Scandicus placement')
+    }
+
+    const [first, second, third] = placement.staffPositions
+    const candidate: ScandicusNeume = {
+      id: 'graphical-scandicus',
+      kind: 'scandicus',
+      lyricSyllableId: 'syllable-1',
+      notes: [
+        { id: 'graphical-first', staffPosition: first },
+        { id: 'graphical-second', staffPosition: second },
+        { id: 'graphical-third', staffPosition: third },
+      ],
+    }
+    const acceptedDocument = insertScandicus(
+      document,
+      candidate,
+      placement.insertionIndex,
+    )
+    const edited = applyDocumentEdit(
+      createDocumentHistory(document),
+      () => acceptedDocument,
+    )
+    const undone = undoDocumentEdit(edited)
+    const redone = redoDocumentEdit(undone)
+    const restored = redone.present.neumes[placement.insertionIndex]
+
+    expect(edited.past).toEqual([document])
+    expect(restored).toEqual({
+      id: 'graphical-scandicus',
+      kind: 'scandicus',
+      lyricSyllableId: 'syllable-1',
+      notes: [
+        { id: 'graphical-first', staffPosition: 2 },
+        { id: 'graphical-second', staffPosition: 3 },
+        { id: 'graphical-third', staffPosition: 4 },
+      ],
+    })
+    expect(undone.present).toBe(document)
+    expect(redone.present).toBe(edited.present)
+    expect(restored).toBe(candidate)
   })
 
   it('does not create history for a rejected insertion', () => {

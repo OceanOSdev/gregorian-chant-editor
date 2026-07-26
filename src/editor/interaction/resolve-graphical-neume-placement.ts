@@ -8,13 +8,31 @@ import {
   type GraphicalNeumeKind,
 } from '../layout/layout-chant'
 
-export interface ResolvedGraphicalNeumePlacement {
-  kind: GraphicalNeumeKind
-  staffPositions:
-    | readonly [StaffPosition]
-    | readonly [StaffPosition, StaffPosition]
-  insertionIndex: number
-}
+export type ResolvedGraphicalNeumePlacement =
+  | {
+      kind: 'punctum'
+      staffPositions: readonly [StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'podatus'
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'clivis'
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'scandicus'
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ]
+      insertionIndex: number
+    }
 
 export function resolveGraphicalNeumePlacement(
   document: ChantDocument,
@@ -51,9 +69,30 @@ export function resolveGraphicalNeumePlacement(
     return null
   }
 
-  return {
-    kind,
-    staffPositions: placement.staffPositions,
-    insertionIndex,
+  switch (placement.kind) {
+    case 'punctum':
+      return {
+        kind: placement.kind,
+        staffPositions: placement.staffPositions,
+        insertionIndex,
+      }
+    case 'podatus':
+      return {
+        kind: placement.kind,
+        staffPositions: placement.staffPositions,
+        insertionIndex,
+      }
+    case 'clivis':
+      return {
+        kind: placement.kind,
+        staffPositions: placement.staffPositions,
+        insertionIndex,
+      }
+    case 'scandicus':
+      return {
+        kind: placement.kind,
+        staffPositions: placement.staffPositions,
+        insertionIndex,
+      }
   }
 }

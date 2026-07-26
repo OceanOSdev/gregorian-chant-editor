@@ -26,6 +26,7 @@ import {
   type ScandicusNeume,
 } from '../domain/chant-document'
 import { countNotes, findNeume, findNote } from '../domain/neume'
+import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement'
 import {
   canInsertNotesInSingleSystem,
@@ -46,6 +47,7 @@ import {
   placeClivisTool,
   placePodatusTool,
   placePunctumTool,
+  placeScandicusTool,
   selectTool,
   type EditorTool,
 } from '../state/editor-tool'
@@ -73,22 +75,6 @@ function isEditableTarget(target: EventTarget | null) {
     target.tagName === 'TEXTAREA' ||
     target.tagName === 'SELECT'
   )
-}
-
-function getPlacementKind(tool: EditorTool): GraphicalNeumeKind | null {
-  if (tool.kind === 'place-punctum') {
-    return 'punctum'
-  }
-
-  if (tool.kind === 'place-podatus') {
-    return 'podatus'
-  }
-
-  if (tool.kind === 'place-clivis') {
-    return 'clivis'
-  }
-
-  return null
 }
 
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
@@ -121,7 +107,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const activeSyllable = history.present.syllables.find(
     (syllable) => syllable.id === activeSyllableId,
   )
-  const placementKind = getPlacementKind(activeTool)
+  const placementKind = getGraphicalNeumeKind(activeTool)
   const resolvedPlacement =
     placementKind && hoveredScorePoint
       ? resolveGraphicalNeumePlacement(
@@ -503,64 +489,98 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         punctum,
         placement.insertionIndex,
       )
-    } else {
+    } else if (placement.kind === 'podatus') {
       const [firstStaffPosition, secondStaffPosition] =
         placement.staffPositions
-
-      if (secondStaffPosition === undefined) {
-        return
-      }
-
       const neumeId = globalThis.crypto.randomUUID()
 
       firstNoteId = globalThis.crypto.randomUUID()
       const secondNoteId = globalThis.crypto.randomUUID()
-
-      if (placement.kind === 'podatus') {
-        const podatus: PodatusNeume = {
-          id: neumeId,
-          kind: placement.kind,
-          lyricSyllableId: activeSyllable.id,
-          notes: [
-            {
-              id: firstNoteId,
-              staffPosition: firstStaffPosition,
-            },
-            {
-              id: secondNoteId,
-              staffPosition: secondStaffPosition,
-            },
-          ],
-        }
-
-        nextDocument = insertPodatus(
-          history.present,
-          podatus,
-          placement.insertionIndex,
-        )
-      } else {
-        const clivis: ClivisNeume = {
-          id: neumeId,
-          kind: placement.kind,
-          lyricSyllableId: activeSyllable.id,
-          notes: [
-            {
-              id: firstNoteId,
-              staffPosition: firstStaffPosition,
-            },
-            {
-              id: secondNoteId,
-              staffPosition: secondStaffPosition,
-            },
-          ],
-        }
-
-        nextDocument = insertClivis(
-          history.present,
-          clivis,
-          placement.insertionIndex,
-        )
+      const podatus: PodatusNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+        ],
       }
+
+      nextDocument = insertPodatus(
+        history.present,
+        podatus,
+        placement.insertionIndex,
+      )
+    } else if (placement.kind === 'clivis') {
+      const [firstStaffPosition, secondStaffPosition] =
+        placement.staffPositions
+      const neumeId = globalThis.crypto.randomUUID()
+
+      firstNoteId = globalThis.crypto.randomUUID()
+      const secondNoteId = globalThis.crypto.randomUUID()
+      const clivis: ClivisNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+        ],
+      }
+
+      nextDocument = insertClivis(
+        history.present,
+        clivis,
+        placement.insertionIndex,
+      )
+    } else {
+      const [
+        firstStaffPosition,
+        secondStaffPosition,
+        thirdStaffPosition,
+      ] = placement.staffPositions
+      const neumeId = globalThis.crypto.randomUUID()
+
+      firstNoteId = globalThis.crypto.randomUUID()
+      const secondNoteId = globalThis.crypto.randomUUID()
+      const thirdNoteId = globalThis.crypto.randomUUID()
+      const scandicus: ScandicusNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+          {
+            id: thirdNoteId,
+            staffPosition: thirdStaffPosition,
+          },
+        ],
+      }
+
+      nextDocument = insertScandicus(
+        history.present,
+        scandicus,
+        placement.insertionIndex,
+      )
     }
 
     if (nextDocument === history.present) {
@@ -737,6 +757,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={() => setActiveTool(placeClivisTool())}
         >
           Place clivis
+        </button>
+        <button
+          type="button"
+          aria-label="Place scandicus"
+          aria-pressed={activeTool.kind === 'place-scandicus'}
+          disabled={!canInsertScandicus}
+          onClick={() => setActiveTool(placeScandicusTool())}
+        >
+          Place scandicus
         </button>
         <button
           type="button"

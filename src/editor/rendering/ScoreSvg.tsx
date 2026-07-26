@@ -6,6 +6,7 @@ import {
   type PointerEvent,
 } from 'react'
 import type { StaffPositionDelta } from '../commands/move-note'
+import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind'
 import {
   type ChantLayout,
   type GraphicalPlacementPreviewLayout,
@@ -118,7 +119,11 @@ export function ScoreSvg({
       return
     }
 
-    onPlaceNeume(placementKind(activeTool), localPoint)
+    const kind = getGraphicalNeumeKind(activeTool)
+
+    if (kind) {
+      onPlaceNeume(kind, localPoint)
+    }
   }
 
   function handlePointerMove(event: PointerEvent<SVGSVGElement>) {
@@ -386,18 +391,6 @@ export function ScoreSvg({
       ))}
     </svg>
   )
-}
-
-function placementKind(activeTool: EditorTool): GraphicalNeumeKind {
-  if (activeTool.kind === 'place-punctum') {
-    return 'punctum'
-  }
-
-  if (activeTool.kind === 'place-podatus') {
-    return 'podatus'
-  }
-
-  return 'clivis'
 }
 
 function getLocalPoint(
