@@ -38,6 +38,19 @@ function twoNoteNeume(kind: 'podatus' | 'clivis', id: string): Neume {
   }
 }
 
+function scandicus(id: string, lyricSyllableId = 'syllable-2'): Neume {
+  return {
+    id: `neume-${id}`,
+    kind: 'scandicus',
+    lyricSyllableId,
+    notes: [
+      { id: `${id}-1`, staffPosition: staffPosition(2) },
+      { id: `${id}-2`, staffPosition: staffPosition(3) },
+      { id: `${id}-3`, staffPosition: staffPosition(4) },
+    ],
+  }
+}
+
 function createDocument(neumes: Neume[] = []): ChantDocument {
   return {
     title: 'Test chant',
@@ -90,6 +103,7 @@ describe('resolveGraphicalNeumePlacement', () => {
     { kind: 'punctum' as const, staffPositions: [2] },
     { kind: 'podatus' as const, staffPositions: [2, 3] },
     { kind: 'clivis' as const, staffPositions: [2, 1] },
+    { kind: 'scandicus' as const, staffPositions: [2, 3, 4] },
   ])('returns the complete $kind pitch tuple', ({ kind, staffPositions }) => {
     const document = createDocument()
     const { staffStartX } = geometry(document)
@@ -172,6 +186,41 @@ describe('resolveGraphicalNeumePlacement', () => {
     ).not.toBeNull()
   })
 
+  it('independently enforces three-unit Scandicus capacity', () => {
+    const withThreeRemaining = createDocument(
+      Array.from(
+        { length: singleSystemNoteCapacity - 3 },
+        (_, index) => punctum(`note-${index}`, 'syllable-1'),
+      ),
+    )
+    const withTwoRemaining = {
+      ...withThreeRemaining,
+      neumes: [
+        ...withThreeRemaining.neumes,
+        punctum('leaves-two', 'syllable-1'),
+      ],
+    }
+    const pointX = geometry(withThreeRemaining).staffStartX
+
+    expect(
+      resolveAt(
+        withThreeRemaining,
+        'syllable-1',
+        'scandicus',
+        pointX,
+      ),
+    ).not.toBeNull()
+    expect(
+      resolveAt(withTwoRemaining, 'syllable-1', 'scandicus', pointX),
+    ).toBeNull()
+    expect(
+      resolveAt(withTwoRemaining, 'syllable-1', 'podatus', pointX),
+    ).not.toBeNull()
+    expect(
+      resolveAt(withTwoRemaining, 'syllable-1', 'clivis', pointX),
+    ).not.toBeNull()
+  })
+
   it.each([
     { kind: 'podatus' as const },
     { kind: 'clivis' as const },
@@ -206,6 +255,30 @@ describe('resolveGraphicalNeumePlacement', () => {
     },
   )
 
+  it('constrains Scandicus as one whole neume in a populated syllable', () => {
+    const document = createDocument([
+      punctum('first', 'syllable-1'),
+      scandicus('existing'),
+      punctum('last', 'syllable-2'),
+    ])
+    const existingLayout = layoutChant(document).neumes[1]
+    const middle = existingLayout?.notes[1]
+
+    if (!middle) {
+      throw new Error('Missing Scandicus middle note')
+    }
+
+    const middleCenter = middle.x + middle.width / 2
+
+    expect(
+      resolveAt(document, 'syllable-2', 'scandicus', middleCenter),
+    ).toMatchObject({
+      kind: 'scandicus',
+      staffPositions: [2, 3, 4],
+      insertionIndex: 1,
+    })
+  })
+
   it('recomputes kind, tuple, and active-syllable constraint for one point', () => {
     const document = createDocument([
       punctum('first', 'syllable-1'),
@@ -217,5 +290,7 @@ describe('resolveGraphicalNeumePlacement', () => {
       .toMatchObject({ staffPositions: [2], insertionIndex: 1 })
     expect(resolveAt(document, 'syllable-2', 'clivis', staffEndX))
       .toMatchObject({ staffPositions: [2, 1], insertionIndex: 2 })
+    expect(resolveAt(document, 'syllable-2', 'scandicus', staffEndX))
+      .toMatchObject({ staffPositions: [2, 3, 4], insertionIndex: 2 })
   })
 })

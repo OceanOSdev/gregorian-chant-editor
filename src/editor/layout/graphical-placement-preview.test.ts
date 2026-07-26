@@ -10,6 +10,7 @@ import {
   layoutChant,
   layoutGraphicalPlacementPreview,
   type GraphicalNeumeKind,
+  type GraphicalPlacementPreviewInput,
   type GraphicalStaffPositions,
 } from './layout-chant'
 
@@ -49,7 +50,7 @@ function hypotheticalNeume(
   kind: GraphicalNeumeKind,
   positions: GraphicalStaffPositions,
 ): Neume {
-  const [first, second] = positions
+  const [first, second, third] = positions
 
   if (kind === 'punctum') {
     return {
@@ -64,6 +65,23 @@ function hypotheticalNeume(
     throw new Error('Missing second position')
   }
 
+  if (kind === 'scandicus') {
+    if (third === undefined) {
+      throw new Error('Missing third position')
+    }
+
+    return {
+      id: 'inserted-neume',
+      kind,
+      lyricSyllableId: 'syllable-1',
+      notes: [
+        { id: 'inserted-1', staffPosition: first },
+        { id: 'inserted-2', staffPosition: second },
+        { id: 'inserted-3', staffPosition: third },
+      ],
+    }
+  }
+
   return {
     id: 'inserted-neume',
     kind,
@@ -75,17 +93,54 @@ function hypotheticalNeume(
   }
 }
 
+function previewInput(
+  kind: GraphicalNeumeKind,
+  positions: GraphicalStaffPositions,
+  insertionIndex: number,
+): GraphicalPlacementPreviewInput {
+  const [first, second, third] = positions
+
+  switch (kind) {
+    case 'punctum':
+      return {
+        kind,
+        staffPositions: [first],
+        insertionIndex,
+      }
+    case 'podatus':
+    case 'clivis':
+      if (second === undefined) {
+        throw new Error('Missing second position')
+      }
+
+      return {
+        kind,
+        staffPositions: [first, second],
+        insertionIndex,
+      }
+    case 'scandicus':
+      if (second === undefined || third === undefined) {
+        throw new Error('Missing Scandicus positions')
+      }
+
+      return {
+        kind,
+        staffPositions: [first, second, third],
+        insertionIndex,
+      }
+  }
+}
+
 function expectPreviewMatchesCommitted(
   existing: Neume[],
   insertionIndex: number,
   kind: GraphicalNeumeKind,
   positions: GraphicalStaffPositions,
 ) {
-  const preview = layoutGraphicalPlacementPreview(existing, {
-    kind,
-    staffPositions: positions,
-    insertionIndex,
-  })
+  const preview = layoutGraphicalPlacementPreview(
+    existing,
+    previewInput(kind, positions, insertionIndex),
+  )
   const inserted = hypotheticalNeume(kind, positions)
   const committed = layoutChant(
     documentWith([
@@ -132,6 +187,70 @@ describe('graphical placement preview layout', () => {
         insertionIndex,
         'punctum',
         [staffPosition(4)],
+      )
+    },
+  )
+
+  it.each([
+    {
+      name: 'beginning',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 0,
+    },
+    {
+      name: 'middle',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 1,
+    },
+    {
+      name: 'end',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 2,
+    },
+  ])(
+    'matches committed Scandicus geometry at the $name boundary',
+    ({ existing, insertionIndex }) => {
+      const positions = [
+        staffPosition(2),
+        staffPosition(3),
+        staffPosition(4),
+      ] as const
+
+      expectPreviewMatchesCommitted(
+        existing,
+        insertionIndex,
+        'scandicus',
+        positions,
+      )
+
+      const preview = layoutGraphicalPlacementPreview(existing, {
+        kind: 'scandicus',
+        staffPositions: positions,
+        insertionIndex,
+      })
+      const first = preview?.notes[0]
+      const second = preview?.notes[1]
+      const third = preview?.notes[2]
+
+      if (!first || !second || !third || !preview) {
+        throw new Error('Missing Scandicus preview')
+      }
+
+      expect(preview.notes).toHaveLength(3)
+      expect(preview.connectors).toHaveLength(2)
+      expect(second.x - first.x).toBe(12)
+      expect(third.x - second.x).toBe(12)
+      expect(preview.connectors[0]).toEqual(
+        expect.objectContaining({
+          y1: first.y + first.height / 2,
+          y2: second.y + second.height / 2,
+        }),
+      )
+      expect(preview.connectors[1]).toEqual(
+        expect.objectContaining({
+          y1: second.y + second.height / 2,
+          y2: third.y + third.height / 2,
+        }),
       )
     },
   )
@@ -244,5 +363,17 @@ describe('graphical placement preview layout', () => {
     ]
 
     expectPreviewMatchesCommitted([], 0, 'podatus', positions)
+    expectPreviewMatchesCommitted(
+      [],
+      0,
+      'scandicus',
+      [staffPosition(7), staffPosition(8), staffPosition(9)],
+    )
+    expectPreviewMatchesCommitted(
+      [],
+      0,
+      'scandicus',
+      [staffPosition(-1), staffPosition(0), staffPosition(1)],
+    )
   })
 })

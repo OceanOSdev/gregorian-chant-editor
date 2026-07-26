@@ -45,6 +45,19 @@ function clivis(id: string): Neume {
   }
 }
 
+function scandicus(id: string): Neume {
+  return {
+    id: `neume-${id}`,
+    kind: 'scandicus',
+    lyricSyllableId: 'syllable-1',
+    notes: [
+      { id: `${id}-first`, staffPosition: staffPosition(2) },
+      { id: `${id}-middle`, staffPosition: staffPosition(3) },
+      { id: `${id}-final`, staffPosition: staffPosition(4) },
+    ],
+  }
+}
+
 function createDocument(neumes: Neume[]): ChantDocument {
   return {
     title: 'Test chant',
@@ -117,6 +130,7 @@ describe('single-system graphical neume placement', () => {
     { kind: 'punctum' as const, positions: [2] },
     { kind: 'podatus' as const, positions: [2, 3] },
     { kind: 'clivis' as const, positions: [2, 1] },
+    { kind: 'scandicus' as const, positions: [2, 3, 4] },
   ])('derives the complete $kind pitch tuple', ({ kind, positions }) => {
     const placement = placeAtPosition(kind, 2)
 
@@ -139,11 +153,33 @@ describe('single-system graphical neume placement', () => {
         [],
       )?.staffPositions,
     ).toEqual([1])
+    expect(placeAtPosition('scandicus', 0)?.staffPositions).toEqual([
+      0, 1, 2,
+    ])
+    expect(placeAtPosition('scandicus', 1)?.staffPositions).toEqual([
+      1, 2, 3,
+    ])
+    expect(
+      getSingleSystemNeumePlacement(
+        {
+          x: staffMiddleX,
+          y: bottomStaffY - staffStep / 2,
+        },
+        'scandicus',
+        [],
+      )?.staffPositions,
+    ).toEqual([1, 2, 3])
   })
 
   it('supports existing first-note off-staff bounds and unbounded derived pitches', () => {
     expect(placeAtPosition('podatus', 7)?.staffPositions).toEqual([7, 8])
     expect(placeAtPosition('clivis', -1)?.staffPositions).toEqual([-1, -2])
+    expect(placeAtPosition('scandicus', 7)?.staffPositions).toEqual([
+      7, 8, 9,
+    ])
+    expect(placeAtPosition('scandicus', -1)?.staffPositions).toEqual([
+      -1, 0, 1,
+    ])
   })
 
   it('rejects points outside horizontal and vertical placement bounds', () => {
@@ -160,6 +196,26 @@ describe('single-system graphical neume placement', () => {
       getSingleSystemNeumePlacement(
         { x: staffStartX - 0.1, y: bottomStaffY },
         'punctum',
+        [],
+      ),
+    ).toBeNull()
+    expect(
+      getSingleSystemNeumePlacement(
+        {
+          x: staffMiddleX,
+          y: topStaffY - staffStep - 0.1,
+        },
+        'scandicus',
+        [],
+      ),
+    ).toBeNull()
+    expect(
+      getSingleSystemNeumePlacement(
+        {
+          x: staffMiddleX,
+          y: bottomStaffY + staffStep + 0.1,
+        },
+        'scandicus',
         [],
       ),
     ).toBeNull()
@@ -256,6 +312,61 @@ describe('single-system graphical neume placement', () => {
     },
   )
 
+  it('resolves a compact Scandicus only before or after its complete span', () => {
+    const existing = scandicus('scandicus')
+    const neumes = [existing, punctum('following')]
+    const { bottomStaffY, layout } = placementGeometry(neumes)
+    const existingLayout = layout.neumes[0]
+    const notes = existingLayout?.notes
+    const first = notes?.[0]
+    const middle = notes?.[1]
+    const final = notes?.[2]
+    const firstConnector = existingLayout?.connectors[0]
+    const secondConnector = existingLayout?.connectors[1]
+
+    if (
+      !first ||
+      !middle ||
+      !final ||
+      !firstConnector ||
+      !secondConnector
+    ) {
+      throw new Error('Missing Scandicus geometry')
+    }
+
+    const firstCenter = noteCenterX(first)
+    const middleCenter = noteCenterX(middle)
+    const finalCenter = noteCenterX(final)
+    const midpoint = (firstCenter + finalCenter) / 2
+    const rightOfMidpoint = midpoint + Number.EPSILON * midpoint
+    const resolve = (x: number) =>
+      getSingleSystemNeumePlacement(
+        { x, y: bottomStaffY },
+        'scandicus',
+        neumes,
+      )?.preferredNeumeInsertionIndex
+    const resolvedIndexes = [
+      resolve(firstCenter),
+      resolve(middleCenter),
+      resolve(finalCenter),
+      resolve(firstConnector.x),
+      resolve(secondConnector.x),
+      resolve(midpoint),
+      resolve(rightOfMidpoint),
+    ]
+
+    expect(rightOfMidpoint).toBeGreaterThan(midpoint)
+    expect(resolve(firstCenter)).toBe(0)
+    expect(resolve(middleCenter)).toBe(0)
+    expect(resolve(midpoint)).toBe(0)
+    expect(resolve(rightOfMidpoint)).toBe(1)
+    expect(resolve(finalCenter)).toBe(1)
+    expect(resolve(firstConnector.x)).toBe(0)
+    expect(resolve(secondConnector.x)).toBe(1)
+    expect(resolvedIndexes.every((index) => index === 0 || index === 1))
+      .toBe(true)
+  })
+
   it('charges one unit for Punctum and two for both two-note kinds', () => {
     const withTwoRemaining = Array.from(
       { length: singleSystemNoteCapacity - 2 },
@@ -277,5 +388,31 @@ describe('single-system graphical neume placement', () => {
         punctum('at-capacity'),
       ]),
     ).toBeNull()
+  })
+
+  it('charges three semantic capacity units for Scandicus', () => {
+    const withThreeRemaining = Array.from(
+      { length: singleSystemNoteCapacity - 3 },
+      (_, index) => punctum(`note-${index}`),
+    )
+    const withTwoRemaining = [
+      ...withThreeRemaining,
+      punctum('leaves-two'),
+    ]
+    const withOneRemaining = [
+      ...withTwoRemaining,
+      punctum('leaves-one'),
+    ]
+    const full = [...withOneRemaining, punctum('at-capacity')]
+
+    expect(placeAtPosition('scandicus', 2, withThreeRemaining))
+      .not.toBeNull()
+    expect(placeAtPosition('scandicus', 2, withTwoRemaining)).toBeNull()
+    expect(placeAtPosition('podatus', 2, withTwoRemaining)).not.toBeNull()
+    expect(placeAtPosition('clivis', 2, withTwoRemaining)).not.toBeNull()
+    expect(placeAtPosition('punctum', 2, withOneRemaining)).not.toBeNull()
+    expect(placeAtPosition('podatus', 2, withOneRemaining)).toBeNull()
+    expect(placeAtPosition('punctum', 2, full)).toBeNull()
+    expect(placeAtPosition('scandicus', 2, full)).toBeNull()
   })
 })

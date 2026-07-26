@@ -73,16 +73,42 @@ export type GraphicalNeumeKind =
   | 'punctum'
   | 'podatus'
   | 'clivis'
+  | 'scandicus'
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
   | readonly [StaffPosition, StaffPosition]
+  | readonly [StaffPosition, StaffPosition, StaffPosition]
 
-export interface GraphicalNeumePlacement {
-  firstStaffPosition: StaffPosition
-  staffPositions: GraphicalStaffPositions
-  preferredNeumeInsertionIndex: number
-}
+export type GraphicalNeumePlacement =
+  | {
+      kind: 'punctum'
+      firstStaffPosition: StaffPosition
+      staffPositions: readonly [StaffPosition]
+      preferredNeumeInsertionIndex: number
+    }
+  | {
+      kind: 'podatus'
+      firstStaffPosition: StaffPosition
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      preferredNeumeInsertionIndex: number
+    }
+  | {
+      kind: 'clivis'
+      firstStaffPosition: StaffPosition
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      preferredNeumeInsertionIndex: number
+    }
+  | {
+      kind: 'scandicus'
+      firstStaffPosition: StaffPosition
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ]
+      preferredNeumeInsertionIndex: number
+    }
 
 export interface PreviewNoteLayout {
   x: number
@@ -91,19 +117,55 @@ export interface PreviewNoteLayout {
   height: number
 }
 
-export interface GraphicalPlacementPreviewLayout {
-  kind: GraphicalNeumeKind
-  notes:
-    | readonly [PreviewNoteLayout]
-    | readonly [PreviewNoteLayout, PreviewNoteLayout]
-  connectors: readonly NeumeConnectorLayout[]
-}
+export type GraphicalPlacementPreviewLayout =
+  | {
+      kind: 'punctum'
+      notes: readonly [PreviewNoteLayout]
+      connectors: readonly []
+    }
+  | {
+      kind: 'podatus' | 'clivis'
+      notes: readonly [PreviewNoteLayout, PreviewNoteLayout]
+      connectors: readonly [NeumeConnectorLayout]
+    }
+  | {
+      kind: 'scandicus'
+      notes: readonly [
+        PreviewNoteLayout,
+        PreviewNoteLayout,
+        PreviewNoteLayout,
+      ]
+      connectors: readonly [
+        NeumeConnectorLayout,
+        NeumeConnectorLayout,
+      ]
+    }
 
-export interface GraphicalPlacementPreviewInput {
-  kind: GraphicalNeumeKind
-  staffPositions: GraphicalStaffPositions
-  insertionIndex: number
-}
+export type GraphicalPlacementPreviewInput =
+  | {
+      kind: 'punctum'
+      staffPositions: readonly [StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'podatus'
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'clivis'
+      staffPositions: readonly [StaffPosition, StaffPosition]
+      insertionIndex: number
+    }
+  | {
+      kind: 'scandicus'
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ]
+      insertionIndex: number
+    }
 
 const canvasWidth = 720
 const canvasHeight = 220
@@ -295,26 +357,51 @@ function createNoteLayout(
 }
 
 function createNeumeNoteLayouts(
-  kind: GraphicalNeumeKind,
   firstCenterX: number,
-  positions: GraphicalStaffPositions,
+  placement: GraphicalPlacementPreviewInput,
 ):
   | readonly [PreviewNoteLayout]
-  | readonly [PreviewNoteLayout, PreviewNoteLayout] {
-  const [firstPosition, secondPosition] = positions
+  | readonly [PreviewNoteLayout, PreviewNoteLayout]
+  | readonly [
+      PreviewNoteLayout,
+      PreviewNoteLayout,
+      PreviewNoteLayout,
+    ] {
+  const [firstPosition] = placement.staffPositions
   const firstNote = createNoteLayout(firstCenterX, firstPosition)
 
-  if (kind === 'punctum' || secondPosition === undefined) {
-    return [firstNote]
-  }
+  switch (placement.kind) {
+    case 'punctum':
+      return [firstNote]
+    case 'podatus':
+    case 'clivis': {
+      const [, secondPosition] = placement.staffPositions
 
-  return [
-    firstNote,
-    createNoteLayout(
-      firstCenterX + compactNoteCenterOffset,
-      secondPosition,
-    ),
-  ]
+      return [
+        firstNote,
+        createNoteLayout(
+          firstCenterX + compactNoteCenterOffset,
+          secondPosition,
+        ),
+      ]
+    }
+    case 'scandicus': {
+      const [, secondPosition, thirdPosition] =
+        placement.staffPositions
+
+      return [
+        firstNote,
+        createNoteLayout(
+          firstCenterX + compactNoteCenterOffset,
+          secondPosition,
+        ),
+        createNoteLayout(
+          firstCenterX + compactNoteCenterOffset * 2,
+          thirdPosition,
+        ),
+      ]
+    }
+  }
 }
 
 export function layoutGraphicalPlacementPreview(
@@ -330,44 +417,93 @@ export function layoutGraphicalPlacementPreview(
     return null
   }
 
-  const notes = createNeumeNoteLayouts(
-    placement.kind,
-    firstCenterX,
-    placement.staffPositions,
-  )
-  const firstNote = notes[0]
-  const secondNote = notes[1]
-  const connectors =
-    placement.kind !== 'punctum' && secondNote
-      ? [createTwoNoteConnector(firstNote, secondNote)]
-      : []
+  const notes = createNeumeNoteLayouts(firstCenterX, placement)
 
-  return {
-    kind: placement.kind,
-    notes,
-    connectors,
+  switch (placement.kind) {
+    case 'punctum':
+      return {
+        kind: placement.kind,
+        notes: [notes[0]],
+        connectors: [],
+      }
+    case 'podatus':
+    case 'clivis': {
+      const [firstNote, secondNote] = notes
+
+      if (!secondNote) {
+        return null
+      }
+
+      return {
+        kind: placement.kind,
+        notes: [firstNote, secondNote],
+        connectors: [createTwoNoteConnector(firstNote, secondNote)],
+      }
+    }
+    case 'scandicus': {
+      const [firstNote, secondNote, thirdNote] = notes
+
+      if (!secondNote || !thirdNote) {
+        return null
+      }
+
+      return {
+        kind: placement.kind,
+        notes: [firstNote, secondNote, thirdNote],
+        connectors: [
+          createTwoNoteConnector(firstNote, secondNote),
+          createTwoNoteConnector(secondNote, thirdNote),
+        ],
+      }
+    }
   }
 }
 
-function getGraphicalStaffPositions(
+function createGraphicalNeumePlacement(
   kind: GraphicalNeumeKind,
   firstStaffPosition: StaffPosition,
-): GraphicalStaffPositions {
-  if (kind === 'podatus') {
-    return [
-      firstStaffPosition,
-      staffPosition(firstStaffPosition + 1),
-    ]
+  preferredNeumeInsertionIndex: number,
+): GraphicalNeumePlacement {
+  switch (kind) {
+    case 'punctum':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [firstStaffPosition],
+        preferredNeumeInsertionIndex,
+      }
+    case 'podatus':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition + 1),
+        ],
+        preferredNeumeInsertionIndex,
+      }
+    case 'clivis':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition - 1),
+        ],
+        preferredNeumeInsertionIndex,
+      }
+    case 'scandicus':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition + 1),
+          staffPosition(firstStaffPosition + 2),
+        ],
+        preferredNeumeInsertionIndex,
+      }
   }
-
-  if (kind === 'clivis') {
-    return [
-      firstStaffPosition,
-      staffPosition(firstStaffPosition - 1),
-    ]
-  }
-
-  return [firstStaffPosition]
 }
 
 /**
@@ -380,7 +516,11 @@ export function getSingleSystemNeumePlacement(
   neumes: readonly Neume[],
 ): GraphicalNeumePlacement | null {
   const currentNoteCount = countNotes(neumes)
-  const addedNoteCount = kind === 'punctum' ? 1 : 2
+  const addedNoteCount = kind === 'punctum'
+    ? 1
+    : kind === 'scandicus'
+      ? 3
+      : 2
   const minimumPlacementY = staffPositionY(staffPosition(7))
   const maximumPlacementY = staffPositionY(staffPosition(-1))
 
@@ -420,11 +560,11 @@ export function getSingleSystemNeumePlacement(
     }
   }
 
-  return {
+  return createGraphicalNeumePlacement(
+    kind,
     firstStaffPosition,
-    staffPositions: getGraphicalStaffPositions(kind, firstStaffPosition),
-    preferredNeumeInsertionIndex: neumeInsertionIndex,
-  }
+    neumeInsertionIndex,
+  )
 }
 
 export function layoutChant(document: ChantDocument): ChantLayout {
