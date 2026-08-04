@@ -66,7 +66,16 @@ export interface ScandicusNeume {
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
-export type Neume = PunctumNeume | PodatusNeume | ClivisNeume | ScandicusNeume;
+/** Three notes in semantic order that rise and then strictly fall. */
+export interface TorculusNeume {
+  id: string;
+  kind: 'torculus';
+  lyricSyllableId: string;
+  notes: [ChantNote, ChantNote, ChantNote];
+}
+
+export type Neume =
+  PunctumNeume | PodatusNeume | ClivisNeume | ScandicusNeume | TorculusNeume;
 
 export interface ChantDocument {
   title: string;

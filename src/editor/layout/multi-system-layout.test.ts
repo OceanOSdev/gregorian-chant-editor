@@ -31,19 +31,21 @@ function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
 }
 
 function compact(
-  kind: 'podatus' | 'clivis' | 'scandicus',
+  kind: 'podatus' | 'clivis' | 'scandicus' | 'torculus',
   id: string,
   syllableId = 'syllable-1',
 ): Neume {
-  if (kind === 'scandicus') {
+  if (kind === 'scandicus' || kind === 'torculus') {
+    const positions = kind === 'scandicus' ? [2, 3, 4] : [2, 4, 3];
+
     return {
       id: `neume-${id}`,
       kind,
       lyricSyllableId: syllableId,
       notes: [
-        { id: `note-${id}-1`, staffPosition: staffPosition(2) },
-        { id: `note-${id}-2`, staffPosition: staffPosition(3) },
-        { id: `note-${id}-3`, staffPosition: staffPosition(4) },
+        { id: `note-${id}-1`, staffPosition: staffPosition(positions[0]) },
+        { id: `note-${id}-2`, staffPosition: staffPosition(positions[1]) },
+        { id: `note-${id}-3`, staffPosition: staffPosition(positions[2]) },
       ],
     };
   }
@@ -127,11 +129,13 @@ describe('multi-system chant layout', () => {
     const podatusWidth = measureNeumeWidth(compact('podatus', 'podatus'));
     const clivisWidth = measureNeumeWidth(compact('clivis', 'clivis'));
     const scandicusWidth = measureNeumeWidth(compact('scandicus', 'scandicus'));
+    const torculusWidth = measureNeumeWidth(compact('torculus', 'torculus'));
 
     expect(punctumWidth).toBe(15);
     expect(podatusWidth).toBe(27);
     expect(clivisWidth).toBe(27);
     expect(scandicusWidth).toBe(39);
+    expect(torculusWidth).toBe(39);
     expect(scandicusWidth).toBeLessThan(punctumWidth * 3);
   });
 
@@ -155,6 +159,7 @@ describe('multi-system chant layout', () => {
     compact('podatus', 'podatus'),
     compact('clivis', 'clivis'),
     compact('scandicus', 'scandicus'),
+    compact('torculus', 'torculus'),
   ])('never splits a complete $kind', (neume) => {
     const prefix = Array.from({ length: 9 }, (_, index) =>
       punctum(String(index)),

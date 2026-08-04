@@ -36,4 +36,26 @@ describe('getScoreAccessibleDescription', () => {
         '10 notes, and 1 rendered lyric syllable.',
     );
   });
+
+  it('counts all three notes in a Torculus', () => {
+    const document: ChantDocument = {
+      ...documentWith(0),
+      neumes: [
+        {
+          id: 'neume-torculus',
+          kind: 'torculus',
+          lyricSyllableId: 'syllable-1',
+          notes: [
+            { id: 'note-1', staffPosition: staffPosition(2) },
+            { id: 'note-2', staffPosition: staffPosition(4) },
+            { id: 'note-3', staffPosition: staffPosition(3) },
+          ],
+        },
+      ],
+    };
+
+    expect(getScoreAccessibleDescription(layoutChant(document))).toContain(
+      '1 neume, 3 notes',
+    );
+  });
 });

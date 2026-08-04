@@ -6,6 +6,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
+  type TorculusNeume,
 } from '../domain/chant-document';
 import { layoutChant } from '../layout/layout-chant';
 import {
@@ -61,6 +62,23 @@ function createDocument(): ChantDocument {
     ],
     neumes: [punctum, podatus, clivis, scandicus],
   };
+}
+
+function torculusDocument(
+  positions: readonly [number, number, number],
+): ChantDocument {
+  const torculus: TorculusNeume = {
+    id: 'neume-torculus',
+    kind: 'torculus',
+    lyricSyllableId: 'syllable-shared',
+    notes: [
+      { id: 'note-torculus-1', staffPosition: staffPosition(positions[0]) },
+      { id: 'note-torculus-2', staffPosition: staffPosition(positions[1]) },
+      { id: 'note-torculus-3', staffPosition: staffPosition(positions[2]) },
+    ],
+  };
+
+  return { ...createDocument(), neumes: [punctum, torculus] };
 }
 
 describe('deleteNote', () => {
@@ -126,6 +144,68 @@ describe('deleteNote', () => {
       });
     },
   );
+
+  it.each([
+    {
+      deletedNoteId: 'note-torculus-1',
+      kind: 'clivis',
+      survivingIds: ['note-torculus-2', 'note-torculus-3'],
+    },
+    {
+      deletedNoteId: 'note-torculus-3',
+      kind: 'podatus',
+      survivingIds: ['note-torculus-1', 'note-torculus-2'],
+    },
+  ] as const)(
+    'normalizes Torculus to $kind after deleting $deletedNoteId',
+    ({ deletedNoteId, kind, survivingIds }) => {
+      const document = torculusDocument([2, 5, 3]);
+      const original = document.neumes[1];
+      const deleted = deleteNote(document, deletedNoteId);
+      const normalized = deleted.neumes[1];
+
+      expect(normalized).toMatchObject({
+        id: 'neume-torculus',
+        kind,
+        lyricSyllableId: 'syllable-shared',
+      });
+      expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds);
+      expect(normalized?.notes[0]).toBe(
+        original?.notes.find((note) => note.id === survivingIds[0]),
+      );
+      expect(deleted.neumes[0]).toBe(document.neumes[0]);
+    },
+  );
+
+  it.each([
+    { positions: [2, 5, 3] as const, kind: 'podatus' },
+    { positions: [4, 5, 2] as const, kind: 'clivis' },
+  ])(
+    'normalizes middle-note deletion with unequal outer notes to $kind',
+    ({ positions, kind }) => {
+      const document = torculusDocument(positions);
+      const original = document.neumes[1];
+      const deleted = deleteNote(document, 'note-torculus-2');
+
+      expect(deleted.neumes[1]).toMatchObject({ kind });
+      expect(deleted.neumes[1]?.notes).toEqual([
+        original?.notes[0],
+        original?.notes[2],
+      ]);
+    },
+  );
+
+  it('rejects equal-outer middle deletion without document or history changes', () => {
+    const document = torculusDocument([2, 5, 2]);
+    const history = createDocumentHistory(document);
+
+    expect(deleteNote(document, 'note-torculus-2')).toBe(document);
+    expect(
+      applyDocumentEdit(history, (current) =>
+        deleteNote(current, 'note-torculus-2'),
+      ),
+    ).toBe(history);
+  });
 
   it.each([
     {

@@ -19,5 +19,7 @@ export function getGraphicalNeumeKind(
       return 'clivis';
     case 'place-scandicus':
       return 'scandicus';
+    case 'place-torculus':
+      return 'torculus';
   }
 }

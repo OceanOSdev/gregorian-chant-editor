@@ -24,7 +24,7 @@ and retain references to unrelated entities where practical.
 Current command families cover:
 
 - appending and editing lyric syllables;
-- inserting Punctum, Podatus, Clivis, and Scandicus;
+- inserting Punctum, Podatus, Clivis, Scandicus, and Torculus;
 - moving one note vertically;
 - moving every note of a neume vertically as one unit;
 - deleting one note with normalization;
@@ -59,8 +59,11 @@ objects remain shared.
 
 Individual-note deletion delegates to the domain normalization contract:
 Punctum disappears, two-note neumes become Punctum, and Scandicus becomes
-Podatus. The owning neume ID and surviving note IDs remain unchanged.
-Whole-neume deletion removes the complete semantic unit.
+Podatus. Torculus becomes Clivis or Podatus according to the surviving contour;
+deleting its middle note is rejected when equal outer notes cannot form either
+two-note kind. Rejection returns the exact document and creates no history
+entry. The owning neume ID and surviving note IDs remain unchanged for accepted
+normalization. Whole-neume deletion removes the complete semantic unit.
 
 See the [domain model](domain-model.md#deletion-and-normalization) for exact
 normalization rules.
