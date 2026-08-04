@@ -13,6 +13,9 @@ rendered bounds. Equal semantic note counts do not imply equal horizontal
 width. System membership must also change when insertion or deletion changes
 the available horizontal space.
 
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
+
 See [layout and rendering](../layout-and-rendering.md#automatic-whole-neume-wrapping)
 for the current algorithm.
 

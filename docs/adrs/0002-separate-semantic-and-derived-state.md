@@ -13,6 +13,9 @@ reflow, and transient editor interactions. Pixel geometry, system membership,
 selection, focus, and pointer state change for reasons that do not constitute a
 musical edit.
 
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
+
 See the [architecture overview](../architecture.md) for current layer
 responsibilities.
 

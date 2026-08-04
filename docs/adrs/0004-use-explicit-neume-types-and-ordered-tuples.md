@@ -12,6 +12,9 @@ The supported neumes have different note counts, pitch ordering, normalization,
 engraving, graphical entry, and accessible descriptions. Those invariants need
 to remain visible across the domain and every exhaustive consumer.
 
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
+
 See the [domain model](../domain-model.md#supported-neumes-and-tuple-order) for
 the current shapes.
 
@@ -22,8 +25,8 @@ Scandicus interfaces. Each kind uses a fixed-cardinality tuple in semantic
 order:
 
 - Punctum has one note;
-- Podatus is lower then higher;
-- Clivis is higher then lower;
+- In a Podatus, the first note is lower than the second;
+- In a Clivis, the first note is higher than the second;
 - Scandicus is three strictly ascending notes.
 
 TypeScript expresses tuple cardinality. Runtime validation also checks

@@ -13,6 +13,9 @@ to another system after reflow. Syllables are referenced from neumes and edited
 independently. These relationships must survive array reconstruction and React
 rendering.
 
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
+
 See the [domain model](../domain-model.md) for entity ownership and lookup.
 
 ## Decision
