@@ -14,7 +14,7 @@ architecture decision records.
 - [Editor interactions](editor-interactions.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
-- [Architecture decisions](decisions/001-separate-semantic-and-derived-state.md)
+- [Architecture decisions](adrs/README.md)
 
 ## Primary data flow
 
@@ -59,7 +59,7 @@ hover points, previews, browser focus, history stacks, and drafts. Keeping
 these values outside the document prevents viewport and interaction details
 from entering semantic history.
 
-See [ADR 001](decisions/001-separate-semantic-and-derived-state.md) for the
+See [ADR 0002](adrs/0002-separate-semantic-and-derived-state.md) for the
 durable separation decision.
 
 ## Module map
@@ -114,6 +114,7 @@ also reverting hover, focus, or tool state. Rendering can evolve without
 changing the document format.
 
 Stable identity is covered by
-[ADR 002](decisions/002-stable-semantic-identities.md), explicit neume types by
-[ADR 003](decisions/003-explicit-neume-types.md), and wrapping by
-[ADR 004](decisions/004-derive-wrapping-from-rendered-geometry.md).
+[ADR 0003](adrs/0003-use-stable-semantic-identities.md), explicit neume types
+by [ADR 0004](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md), and
+wrapping by
+[ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md).

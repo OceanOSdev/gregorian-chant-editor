@@ -1,4 +1,6 @@
-# Use stable semantic identities
+# 3. Use stable semantic identities
+
+Date: 2026-07-26
 
 ## Status
 
@@ -10,6 +12,9 @@ Neumes and notes may be selected, moved, normalized, re-rendered, or reassigned
 to another system after reflow. Syllables are referenced from neumes and edited
 independently. These relationships must survive array reconstruction and React
 rendering.
+
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
 
 See the [domain model](../domain-model.md) for entity ownership and lookup.
 
@@ -23,15 +28,21 @@ store IDs. Commands preserve IDs for surviving entities, including a neume and
 its surviving notes after normalization. History preserves the complete
 semantic snapshots containing those IDs.
 
+Value objects that do not need continuity do not receive IDs merely because
+they are represented by an interface.
+
 ## Consequences
+
+### Positive
 
 - Selection and focus can resolve an entity after reflow or re-rendering.
 - Layout can be discarded and regenerated without losing semantic identity.
 - React and SVG can use semantic IDs for stable keys and data attributes.
-- Commands must reject collisions where their validation contract includes
-  supplied IDs.
-- Value objects that do not need continuity do not receive IDs merely because
-  they are represented by an interface.
+
+### Negative
+
+- ID generation, preservation, and collision handling become explicit
+  responsibilities of constructors and commands.
 
 ## Alternatives considered
 

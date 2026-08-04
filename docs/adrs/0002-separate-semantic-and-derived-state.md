@@ -1,4 +1,6 @@
-# Separate semantic and derived state
+# 2. Separate semantic and derived state
+
+Date: 2026-07-26
 
 ## Status
 
@@ -10,6 +12,9 @@ Musical meaning must survive rendering changes, responsive scaling, automatic
 reflow, and transient editor interactions. Pixel geometry, system membership,
 selection, focus, and pointer state change for reasons that do not constitute a
 musical edit.
+
+This ADR was written retrospectively to record a decision already reflected in
+the implementation.
 
 See the [architecture overview](../architecture.md) for current layer
 responsibilities.
@@ -26,9 +31,14 @@ documents only.
 
 ## Consequences
 
+### Positive
+
 - Reflow and responsive rendering do not alter semantic content.
 - Pure commands and layout are testable without a browser.
 - Undo and redo restore musical actions without rewinding incidental UI state.
+
+### Negative
+
 - Transient selection and focus must be reconciled by stable semantic identity
   after a document change.
 - Layout must be recomputed when semantic input changes.
