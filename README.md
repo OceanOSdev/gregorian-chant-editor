@@ -112,6 +112,11 @@ npm run dev
 
 Vite prints the local development-server URL after startup.
 
+The repository also provides self-documenting Make targets as convenient
+aliases for the npm scripts. Run `make` or `make help` to list them, and use
+targets such as `make dev`, `make test`, or `make check`. The npm scripts remain
+the underlying developer commands and can always be run directly.
+
 ## Available scripts
 
 | Command                | Purpose                                                       |
