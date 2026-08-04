@@ -22,8 +22,8 @@ Scandicus interfaces. Each kind uses a fixed-cardinality tuple in semantic
 order:
 
 - Punctum has one note;
-- Podatus is lower than higher;
-- Clivis is higher than lower;
+- Podatus is lower then higher;
+- Clivis is higher then lower;
 - Scandicus is three strictly ascending notes.
 
 TypeScript expresses tuple cardinality. Runtime validation also checks
