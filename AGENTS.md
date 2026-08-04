@@ -55,11 +55,13 @@ Read the guide that owns a subsystem before changing its documented contract:
 - [Testing](docs/testing.md)
 - [Glossary](docs/glossary.md)
 - [Roadmap and limitations](docs/roadmap.md)
-- Architecture decisions:
-  [state separation](docs/decisions/001-separate-semantic-and-derived-state.md),
-  [stable identities](docs/decisions/002-stable-semantic-identities.md),
-  [explicit neume types](docs/decisions/003-explicit-neume-types.md), and
-  [geometry-derived wrapping](docs/decisions/004-derive-wrapping-from-rendered-geometry.md)
+- [Architecture decision log](docs/adrs/README.md), including
+  [state separation](docs/adrs/0002-separate-semantic-and-derived-state.md),
+  [stable identities](docs/adrs/0003-use-stable-semantic-identities.md),
+  [explicit neume types](docs/adrs/0004-use-explicit-neume-types-and-ordered-tuples.md),
+  [geometry-derived wrapping](docs/adrs/0005-derive-wrapping-from-rendered-geometry.md),
+  and the proposed
+  [playback boundary](docs/adrs/0006-separate-notation-from-playback.md)
 
 When a documented contract changes, update its owning guide in the same
 change. When a durable architectural decision changes, update the relevant ADR

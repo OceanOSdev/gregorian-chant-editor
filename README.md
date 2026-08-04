@@ -92,7 +92,7 @@ Application entry points and global styles live directly under `src/`.
 - [Testing](docs/testing.md)
 - [Glossary](docs/glossary.md)
 - [Roadmap and limitations](docs/roadmap.md)
-- [Architecture decisions](docs/decisions/001-separate-semantic-and-derived-state.md)
+- [Architecture decision log](docs/adrs/README.md)
 
 The [MVP document](docs/mvp.md) is retained as a historical record of the
 original first milestone, not as the current capability reference.

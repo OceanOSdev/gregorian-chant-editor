@@ -1,4 +1,6 @@
-# Derive wrapping from rendered geometry
+# 5. Derive wrapping from rendered geometry
+
+Date: 2026-07-26
 
 ## Status
 
@@ -30,13 +32,18 @@ order and stable IDs while deriving each system and its global
 
 ## Consequences
 
+### Positive
+
 - Compact neumes and separately spaced notes wrap according to actual current
   engraving width.
-- Engraving changes can affect reflow and require wrapping regression tests.
 - No neume is split between systems.
-- Insertion and deletion may move stable entities between systems.
 - Hypothetical placement previews can reuse the geometry and wrapping model to
   show the candidate's post-reflow destination.
+
+### Negative
+
+- Engraving changes can affect reflow and require wrapping regression tests.
+- Insertion and deletion may move stable entities between systems.
 
 ## Alternatives considered
 

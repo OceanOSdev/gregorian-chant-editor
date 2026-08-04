@@ -1,4 +1,6 @@
-# Use stable semantic identities
+# 3. Use stable semantic identities
+
+Date: 2026-07-26
 
 ## Status
 
@@ -23,15 +25,21 @@ store IDs. Commands preserve IDs for surviving entities, including a neume and
 its surviving notes after normalization. History preserves the complete
 semantic snapshots containing those IDs.
 
+Value objects that do not need continuity do not receive IDs merely because
+they are represented by an interface.
+
 ## Consequences
+
+### Positive
 
 - Selection and focus can resolve an entity after reflow or re-rendering.
 - Layout can be discarded and regenerated without losing semantic identity.
 - React and SVG can use semantic IDs for stable keys and data attributes.
-- Commands must reject collisions where their validation contract includes
-  supplied IDs.
-- Value objects that do not need continuity do not receive IDs merely because
-  they are represented by an interface.
+
+### Negative
+
+- ID generation, preservation, and collision handling become explicit
+  responsibilities of constructors and commands.
 
 ## Alternatives considered
 

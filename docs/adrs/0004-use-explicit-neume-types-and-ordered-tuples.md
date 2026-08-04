@@ -1,4 +1,6 @@
-# Use explicit neume types and ordered tuples
+# 4. Use explicit neume types and ordered tuples
+
+Date: 2026-07-26
 
 ## Status
 
@@ -20,8 +22,8 @@ Scandicus interfaces. Each kind uses a fixed-cardinality tuple in semantic
 order:
 
 - Punctum has one note;
-- Podatus is lower then higher;
-- Clivis is higher then lower;
+- Podatus is lower than higher;
+- Clivis is higher than lower;
 - Scandicus is three strictly ascending notes.
 
 TypeScript expresses tuple cardinality. Runtime validation also checks
@@ -31,14 +33,20 @@ typed construction.
 Kind-specific behavior is handled exhaustively across domain helpers,
 commands, layout, interaction, rendering, and accessibility.
 
+Graphical placement remains a separate explicit whitelist; a semantic kind is
+not automatically placeable.
+
 ## Consequences
 
+### Positive
+
 - Invalid cardinality and order are harder to represent in typed code.
+
+### Negative
+
 - Consumers must deliberately handle every semantic kind.
 - Adding a semantic kind requires coordinated updates and tests across
   exhaustive seams.
-- Graphical placement remains a separate explicit whitelist; a semantic kind
-  is not automatically placeable.
 
 ## Alternatives considered
 
