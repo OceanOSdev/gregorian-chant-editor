@@ -11,8 +11,8 @@ no-op behavior, structural sharing, and undo/redo history.
 - [Domain model](domain-model.md)
 - [Editor interactions](editor-interactions.md)
 - [Testing](testing.md)
-- [Semantic and derived state decision](decisions/001-separate-semantic-and-derived-state.md)
-- [Stable identity decision](decisions/002-stable-semantic-identities.md)
+- [Semantic and derived state decision](adrs/0002-separate-semantic-and-derived-state.md)
+- [Stable identity decision](adrs/0003-use-stable-semantic-identities.md)
 
 ## Pure semantic commands
 

@@ -12,7 +12,7 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 - [Editor interactions](editor-interactions.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
-- [Wrapping decision](decisions/004-derive-wrapping-from-rendered-geometry.md)
+- [Wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
 - [Roadmap and limitations](roadmap.md)
 
 ## Staff, system, and score

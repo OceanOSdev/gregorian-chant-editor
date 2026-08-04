@@ -29,14 +29,23 @@ Proposed
 
 Additional sections are allowed when they clarify the decision. General
 subsystem documentation belongs in the owning guide rather than being copied
-into an ADR. Consequences are grouped as positive and negative outcomes so the
-trade-offs remain explicit.
+into an ADR. Positive and negative consequences are the normal project
+structure so trade-offs remain explicit, but an inapplicable category may be
+omitted rather than left empty.
+
+For a retrospective ADR, use the date on which the architectural decision was
+made when that date is known. Otherwise, use the date the record was written
+and identify it as retrospective in the Context.
 
 ## Workflow
 
-The repository-level `.adr-dir` configures `adr-tools` to use this directory.
-The tool is optional and is not a project dependency; contributors may edit
-the Markdown files directly while preserving the format and numbering.
+The repository-level `.adr-dir` points `adr-tools` to `docs/adrs`. The
+repository-local `templates/template.md` causes `adr new` to create a Proposed
+record with the project's usual Positive and Negative consequence sections.
+
+The tool is optional user-level tooling, not a project dependency.
+Contributors may create or edit the Markdown files manually while preserving
+the format and numbering.
 
 Common commands include:
 
@@ -46,7 +55,10 @@ adr new Decision title
 adr new -s 3 Replacement decision title
 ```
 
-New records begin as **Proposed** and are discussed through pull requests or
-linked GitHub issues. Change the status to **Accepted** after agreement. Use a
-superseding ADR instead of rewriting the history of a decision that has been
-replaced.
+The `3` in the superseding example refers to ADR 0003; `adr-tools` resolves the
+numeric prefix and links both records.
+
+Generated records begin as **Proposed** and are discussed through pull requests
+or linked GitHub issues before their status is changed to **Accepted**.
+Superseded decisions remain in the log; create a superseding ADR instead of
+rewriting the historical decision.

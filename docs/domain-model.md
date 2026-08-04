@@ -11,8 +11,8 @@ identity, ordering, pitch representation, and neume invariants.
 - [Commands and history](commands-and-history.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Glossary](glossary.md)
-- [Stable identity decision](decisions/002-stable-semantic-identities.md)
-- [Explicit neume types decision](decisions/003-explicit-neume-types.md)
+- [Stable identity decision](adrs/0003-use-stable-semantic-identities.md)
+- [Explicit neume types decision](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md)
 
 ## `ChantDocument`
 
