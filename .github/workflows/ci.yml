@@ -5,12 +5,14 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.puml'
+      - 'Makefile'
   push:
     branches:
       - master
     paths-ignore:
       - '**/*.md'
       - '**/*.puml'
+      - 'Makefile'
 
 permissions:
   contents: read
