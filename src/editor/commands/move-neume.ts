@@ -67,6 +67,19 @@ export function moveNeumeVertically(
       };
       break;
     }
+    case 'torculus': {
+      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes;
+
+      movedNeume = {
+        ...locatedNeume.neume,
+        notes: [
+          moveNote(firstNote, delta),
+          moveNote(secondNote, delta),
+          moveNote(thirdNote, delta),
+        ],
+      };
+      break;
+    }
   }
 
   if (!isValidNeume(movedNeume)) {

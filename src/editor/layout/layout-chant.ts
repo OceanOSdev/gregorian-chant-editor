@@ -83,7 +83,8 @@ export interface ChantLayout {
   systems: readonly ChantSystemLayout[];
 }
 
-export type GraphicalNeumeKind = 'punctum' | 'podatus' | 'clivis' | 'scandicus';
+export type GraphicalNeumeKind =
+  'punctum' | 'podatus' | 'clivis' | 'scandicus' | 'torculus';
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
@@ -114,6 +115,12 @@ export type GraphicalNeumePlacement =
       firstStaffPosition: StaffPosition;
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
       preferredNeumeInsertionIndex: number;
+    }
+  | {
+      kind: 'torculus';
+      firstStaffPosition: StaffPosition;
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      preferredNeumeInsertionIndex: number;
     };
 
 export interface PreviewNoteLayout {
@@ -138,6 +145,11 @@ export type GraphicalPlacementPreviewLayout =
       kind: 'scandicus';
       notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout];
       connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout];
+    }
+  | {
+      kind: 'torculus';
+      notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout];
+      connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout];
     };
 
 export type GraphicalPlacementPreviewInput =
@@ -158,6 +170,11 @@ export type GraphicalPlacementPreviewInput =
     }
   | {
       kind: 'scandicus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      insertionIndex: number;
+    }
+  | {
+      kind: 'torculus';
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
       insertionIndex: number;
     };
@@ -210,6 +227,7 @@ export function getNeumeNoteCenterOffsets(
     case 'clivis':
       return [0, compactNoteCenterOffset];
     case 'scandicus':
+    case 'torculus':
       return [0, compactNoteCenterOffset, compactNoteCenterOffset * 2];
   }
 }
@@ -291,7 +309,7 @@ function createConnectorLayouts(
     return [];
   }
 
-  if (kind === 'scandicus' && thirdNote) {
+  if ((kind === 'scandicus' || kind === 'torculus') && thirdNote) {
     return [
       createTwoNoteConnector(firstNote, secondNote),
       createTwoNoteConnector(secondNote, thirdNote),
@@ -453,7 +471,8 @@ function getNeumeLyricAlignmentX(neumeLayout: NeumeLayout): number | null {
   switch (neumeLayout.kind) {
     case 'punctum':
     case 'podatus':
-    case 'scandicus': {
+    case 'scandicus':
+    case 'torculus': {
       const firstNote = neumeLayout.notes[0];
       const alignmentX = firstNote
         ? firstNote.x + firstNote.width / 2
@@ -543,9 +562,9 @@ function createNeumeNoteLayouts(
     throw new Error('A multi-note graphical neume must contain two notes');
   }
 
-  if (placement.kind === 'scandicus') {
+  if (placement.kind === 'scandicus' || placement.kind === 'torculus') {
     if (!thirdNote) {
-      throw new Error('A Scandicus must contain three notes');
+      throw new Error('A three-note graphical neume must contain three notes');
     }
 
     return [firstNote, secondNote, thirdNote];
@@ -666,6 +685,22 @@ export function layoutGraphicalPlacementPreview(
         ],
       };
     }
+    case 'torculus': {
+      const [firstNote, secondNote, thirdNote] = notes;
+
+      if (!secondNote || !thirdNote) {
+        return null;
+      }
+
+      return {
+        kind: placement.kind,
+        notes: [firstNote, secondNote, thirdNote],
+        connectors: [
+          createTwoNoteConnector(firstNote, secondNote),
+          createTwoNoteConnector(secondNote, thirdNote),
+        ],
+      };
+    }
   }
 }
 
@@ -710,6 +745,17 @@ function createGraphicalNeumePlacement(
           firstStaffPosition,
           staffPosition(firstStaffPosition + 1),
           staffPosition(firstStaffPosition + 2),
+        ],
+        preferredNeumeInsertionIndex,
+      };
+    case 'torculus':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition + 2),
+          staffPosition(firstStaffPosition + 1),
         ],
         preferredNeumeInsertionIndex,
       };

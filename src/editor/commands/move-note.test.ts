@@ -6,6 +6,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
+  type TorculusNeume,
 } from '../domain/chant-document';
 import { layoutChant } from '../layout/layout-chant';
 import {
@@ -48,13 +49,23 @@ const scandicus: ScandicusNeume = {
     { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
   ],
 };
+const torculus: TorculusNeume = {
+  id: 'neume-torculus',
+  kind: 'torculus',
+  lyricSyllableId: 'syllable-1',
+  notes: [
+    { id: 'note-torculus-1', staffPosition: staffPosition(2) },
+    { id: 'note-torculus-2', staffPosition: staffPosition(5) },
+    { id: 'note-torculus-3', staffPosition: staffPosition(3) },
+  ],
+};
 
 function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [{ id: 'syllable-1', text: 'Ky-' }],
-    neumes: [punctum, podatus, clivis, scandicus],
+    neumes: [punctum, podatus, clivis, scandicus, torculus],
   };
 }
 
@@ -386,4 +397,86 @@ describe('moveNoteVertically', () => {
         noteCenterY(moved, 'note-punctum'),
     ).toBe(staffLineDistance / 2);
   });
+
+  it.each([
+    {
+      noteId: 'note-torculus-1',
+      delta: 1 as StaffPositionDelta,
+      expected: [3, 5, 3],
+    },
+    {
+      noteId: 'note-torculus-2',
+      delta: 1 as StaffPositionDelta,
+      expected: [2, 6, 3],
+    },
+    {
+      noteId: 'note-torculus-3',
+      delta: -1 as StaffPositionDelta,
+      expected: [2, 5, 2],
+    },
+  ])(
+    'moves $noteId while preserving the Torculus contour',
+    ({ noteId, delta, expected }) => {
+      const document = createDocument();
+      const moved = moveNoteVertically(document, noteId, delta);
+      const movedTorculus = moved.neumes[4];
+
+      expect(movedTorculus?.notes.map((note) => note.staffPosition)).toEqual(
+        expected,
+      );
+      expect(movedTorculus?.notes.map((note) => note.id)).toEqual([
+        'note-torculus-1',
+        'note-torculus-2',
+        'note-torculus-3',
+      ]);
+      expect(moved.neumes[0]).toBe(document.neumes[0]);
+    },
+  );
+
+  it.each([
+    {
+      positions: [2, 3, 1] as const,
+      noteId: 'note-torculus-1',
+      delta: 1 as StaffPositionDelta,
+    },
+    {
+      positions: [2, 3, 1] as const,
+      noteId: 'note-torculus-2',
+      delta: -1 as StaffPositionDelta,
+    },
+    {
+      positions: [1, 3, 2] as const,
+      noteId: 'note-torculus-2',
+      delta: -1 as StaffPositionDelta,
+    },
+    {
+      positions: [1, 3, 2] as const,
+      noteId: 'note-torculus-3',
+      delta: 1 as StaffPositionDelta,
+    },
+  ])(
+    'rejects $noteId movement that flattens a Torculus interval',
+    ({ positions, noteId, delta }) => {
+      const tightTorculus: TorculusNeume = {
+        ...torculus,
+        notes: [
+          { ...torculus.notes[0], staffPosition: staffPosition(positions[0]) },
+          { ...torculus.notes[1], staffPosition: staffPosition(positions[1]) },
+          { ...torculus.notes[2], staffPosition: staffPosition(positions[2]) },
+        ],
+      };
+      const document: ChantDocument = {
+        ...createDocument(),
+        neumes: [tightTorculus],
+      };
+      const history = createDocumentHistory(document);
+
+      expect(moveNoteVertically(document, noteId, delta)).toBe(document);
+      expect(
+        applyDocumentEdit(history, (current) =>
+          moveNoteVertically(current, noteId, delta),
+        ),
+      ).toBe(history);
+    },
+  );
 });

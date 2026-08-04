@@ -59,7 +59,7 @@ neume use compact horizontal center offsets:
 
 - Punctum: one center;
 - Podatus and Clivis: two centers separated by the compact offset;
-- Scandicus: three centers at successive compact offsets.
+- Scandicus and Torculus: three centers at successive compact offsets.
 
 After the final note center of one neume, the next neume advances by notehead
 width plus the normal inter-neume gap. Compact internal spacing and normal
@@ -69,7 +69,7 @@ Every `NeumeLayout` has a connector array:
 
 - Punctum: no connectors;
 - Podatus and Clivis: one vertical connector;
-- Scandicus: two connectors joining adjacent notes.
+- Scandicus and Torculus: two connectors joining adjacent notes.
 
 Raw neume bounds enclose notehead rectangles and connector stroke extent.
 Those complete bounds support width measurement, horizontal insertion
@@ -95,8 +95,8 @@ The algorithm:
 - preserves semantic neume and note IDs across reflow.
 
 Wrapping uses rendered geometry rather than semantic note count. Compact
-Scandicus geometry and three separately spaced Puncta do not consume the same
-horizontal width, even though both contain three notes.
+Scandicus and Torculus geometry and three separately spaced Puncta do not
+consume the same horizontal width, even though each contains three notes.
 
 If one unexpectedly wide neume cannot fit on an otherwise empty system, it is
 placed there once and that system is finalized. The input index advances, so
@@ -137,6 +137,7 @@ Current horizontal alignment rules are:
 - Podatus: center of its first, lower note;
 - Clivis: center of the complete raw neume bounds;
 - Scandicus: center of its first, lowest note.
+- Torculus: center of its first note.
 
 An unassociated syllable has no lyric layout entry. An associated syllable
 with empty text still has an entry and renders an empty SVG text value. Layout

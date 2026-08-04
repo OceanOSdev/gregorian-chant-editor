@@ -13,7 +13,7 @@ interface may still change.
 The editor currently supports:
 
 - semantic lyric syllables associated with ordered neumes;
-- Punctum, Podatus, Clivis, and Scandicus neumes;
+- Punctum, Podatus, Clivis, Scandicus, and Torculus neumes;
 - note selection and whole-neume selection with pointer or keyboard controls;
 - vertical movement of an individual note or a complete neume;
 - individual-note deletion with neume normalization, and whole-neume deletion;
@@ -33,8 +33,8 @@ guarantee: practical browser and memory limits still apply.
 
 - The noteheads, connectors, and C clef are placeholder engraving rather than
   publication-quality chant typography.
-- Only Punctum, Podatus, Clivis, and Scandicus are modeled.
-- Graphical placement uses fixed pitch contours for those four kinds.
+- Only Punctum, Podatus, Clivis, Scandicus, and Torculus are modeled.
+- Graphical placement uses fixed pitch contours for those five kinds.
 - Lyric rendering centers the complete text string; it has no vowel-aware
   alignment, automatic hyphenation, collision avoidance, word-spacing logic,
   or continuation marks.

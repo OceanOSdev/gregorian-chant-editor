@@ -11,6 +11,7 @@ import { insertClivis } from '../commands/insert-clivis';
 import { insertPodatus } from '../commands/insert-podatus';
 import { insertPunctum } from '../commands/insert-punctum';
 import { insertScandicus } from '../commands/insert-scandicus';
+import { insertTorculus } from '../commands/insert-torculus';
 import { moveNeumeVertically } from '../commands/move-neume';
 import { moveNoteVertically } from '../commands/move-note';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
@@ -23,6 +24,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
+  type TorculusNeume,
 } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
@@ -42,6 +44,7 @@ import {
   placePodatusTool,
   placePunctumTool,
   placeScandicusTool,
+  placeTorculusTool,
   selectTool,
   type EditorTool,
 } from '../state/editor-tool';
@@ -438,6 +441,62 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     returnToSelect();
   }
 
+  function handleAddTorculus() {
+    if (!activeSyllable) {
+      return;
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(2),
+    );
+
+    if (!insertion) {
+      return;
+    }
+
+    const neumeId = globalThis.crypto.randomUUID();
+    const firstNoteId = globalThis.crypto.randomUUID();
+    const secondNoteId = globalThis.crypto.randomUUID();
+    const thirdNoteId = globalThis.crypto.randomUUID();
+    const firstStaffPosition = insertion.referenceStaffPosition;
+    const torculus: TorculusNeume = {
+      id: neumeId,
+      kind: 'torculus',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: firstNoteId,
+          staffPosition: firstStaffPosition,
+        },
+        {
+          id: secondNoteId,
+          staffPosition: staffPosition(firstStaffPosition + 2),
+        },
+        {
+          id: thirdNoteId,
+          staffPosition: staffPosition(firstStaffPosition + 1),
+        },
+      ],
+    };
+    const nextDocument = insertTorculus(
+      history.present,
+      torculus,
+      insertion.insertionIndex,
+    );
+
+    if (nextDocument === history.present) {
+      return;
+    }
+
+    setHistory(applyDocumentEdit(history, () => nextDocument));
+    setSelection(selectNote(firstNoteId));
+    setPendingFocusNoteId(firstNoteId);
+    returnToSelect();
+  }
+
   // The resolver supplies validated semantic intent and post-reflow preview
   // geometry. Stable IDs are allocated only when that intent is committed.
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
@@ -538,7 +597,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         clivis,
         placement.insertionIndex,
       );
-    } else {
+    } else if (placement.kind === 'scandicus') {
       const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
         placement.staffPositions;
       const neumeId = globalThis.crypto.randomUUID();
@@ -570,6 +629,45 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         history.present,
         scandicus,
         placement.insertionIndex,
+      );
+    } else if (placement.kind === 'torculus') {
+      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
+
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
+      const thirdNoteId = globalThis.crypto.randomUUID();
+      const torculus: TorculusNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+          {
+            id: thirdNoteId,
+            staffPosition: thirdStaffPosition,
+          },
+        ],
+      };
+
+      nextDocument = insertTorculus(
+        history.present,
+        torculus,
+        placement.insertionIndex,
+      );
+    } else {
+      const unsupportedPlacement: never = placement;
+
+      throw new Error(
+        `Unsupported graphical neume placement: ${JSON.stringify(unsupportedPlacement)}`,
       );
     }
 
@@ -740,6 +838,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         </button>
         <button
           type="button"
+          aria-label="Add torculus"
+          disabled={!canInsertNeume}
+          onClick={handleAddTorculus}
+        >
+          Add torculus
+        </button>
+        <button
+          type="button"
           aria-label="Place punctum"
           aria-pressed={activeTool.kind === 'place-punctum'}
           disabled={!canInsertNeume}
@@ -773,6 +879,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={() => setActiveTool(placeScandicusTool())}
         >
           Place scandicus
+        </button>
+        <button
+          type="button"
+          aria-label="Place torculus"
+          aria-pressed={activeTool.kind === 'place-torculus'}
+          disabled={!canInsertNeume}
+          onClick={() => setActiveTool(placeTorculusTool())}
+        >
+          Place torculus
         </button>
         <button
           type="button"
@@ -889,11 +1004,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           );
         }}
         onDeleteNote={(noteId) => {
-          setHistory((currentHistory) =>
-            applyDocumentEdit(currentHistory, (currentDocument) =>
-              deleteNote(currentDocument, noteId),
-            ),
-          );
+          const nextDocument = deleteNote(history.present, noteId);
+
+          if (nextDocument === history.present) {
+            return;
+          }
+
+          setHistory(applyDocumentEdit(history, () => nextDocument));
           setSelection(clearSelection());
         }}
         onDeleteNeume={(neumeId) => {

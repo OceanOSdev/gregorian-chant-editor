@@ -65,7 +65,7 @@ function hypotheticalNeume(
     throw new Error('Missing second position');
   }
 
-  if (kind === 'scandicus') {
+  if (kind === 'scandicus' || kind === 'torculus') {
     if (third === undefined) {
       throw new Error('Missing third position');
     }
@@ -119,8 +119,9 @@ function previewInput(
         insertionIndex,
       };
     case 'scandicus':
+    case 'torculus':
       if (second === undefined || third === undefined) {
-        throw new Error('Missing Scandicus positions');
+        throw new Error('Missing three-note positions');
       }
 
       return {
@@ -185,6 +186,74 @@ describe('graphical placement preview layout', () => {
       expectPreviewMatchesCommitted(existing, insertionIndex, 'punctum', [
         staffPosition(4),
       ]);
+    },
+  );
+
+  it.each([
+    {
+      name: 'beginning',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 0,
+    },
+    {
+      name: 'middle',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 1,
+    },
+    {
+      name: 'end',
+      existing: [punctum('one'), punctum('two')],
+      insertionIndex: 2,
+    },
+  ])(
+    'matches committed Torculus geometry at the $name boundary',
+    ({ existing, insertionIndex }) => {
+      const positions = [
+        staffPosition(2),
+        staffPosition(4),
+        staffPosition(3),
+      ] as const;
+
+      expectPreviewMatchesCommitted(
+        existing,
+        insertionIndex,
+        'torculus',
+        positions,
+      );
+
+      const preview = layoutGraphicalPlacementPreview(existing, {
+        kind: 'torculus',
+        staffPositions: positions,
+        insertionIndex,
+      });
+      const [first, second, third] = preview?.notes ?? [];
+
+      if (!preview || !first || !second || !third) {
+        throw new Error('Missing Torculus preview');
+      }
+
+      const [ascendingConnector, descendingConnector] = preview.connectors;
+
+      if (!ascendingConnector || !descendingConnector) {
+        throw new Error('Missing Torculus connectors');
+      }
+
+      expect(preview.notes).toHaveLength(3);
+      expect(preview.connectors).toHaveLength(2);
+      expect(preview.connectors[0]).toEqual(
+        expect.objectContaining({
+          y1: first.y + first.height / 2,
+          y2: second.y + second.height / 2,
+        }),
+      );
+      expect(preview.connectors[1]).toEqual(
+        expect.objectContaining({
+          y1: second.y + second.height / 2,
+          y2: third.y + third.height / 2,
+        }),
+      );
+      expect(ascendingConnector.y2).toBeLessThan(ascendingConnector.y1);
+      expect(descendingConnector.y2).toBeGreaterThan(descendingConnector.y1);
     },
   );
 
@@ -366,6 +435,11 @@ describe('graphical placement preview layout', () => {
       staffPosition(-1),
       staffPosition(0),
       staffPosition(1),
+    ]);
+    expectPreviewMatchesCommitted([], 0, 'torculus', [
+      staffPosition(7),
+      staffPosition(9),
+      staffPosition(8),
     ]);
   });
 });

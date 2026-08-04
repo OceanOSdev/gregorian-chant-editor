@@ -62,10 +62,14 @@ Punctum:   [note]
 Podatus:   [lower, higher]
 Clivis:    [higher, lower]
 Scandicus: [lowest, middle, highest]
+Torculus:  [first, higher second, lower third]
 ```
 
 Podatus must ascend strictly, Clivis must descend strictly, and every adjacent
-pair in Scandicus must ascend strictly. Equal or reversed pitches are invalid.
+pair in Scandicus must ascend strictly. Torculus must rise from its first note
+to its second and fall strictly from its second to its third; its first and
+third pitches may differ or be equal. Equal adjacent or reversed required
+intervals are invalid.
 
 Fixed-cardinality tuples make the expected number and order of notes visible
 to TypeScript. Explicit kinds let commands, normalization, layout,
@@ -109,6 +113,11 @@ Deleting an individual note normalizes the owning neume:
 - deleting the note of a Punctum removes the neume;
 - deleting either Podatus or Clivis note produces a Punctum;
 - deleting any Scandicus note produces a Podatus from the two survivors.
+- deleting the first Torculus note produces a Clivis;
+- deleting the third Torculus note produces a Podatus;
+- deleting the middle Torculus note produces a Podatus when the outer notes
+  ascend, a Clivis when they descend, or no edit when they are equal because
+  the survivors cannot form a supported two-note neume.
 
 Normalization preserves the neume ID, its syllable association, and the IDs of
 surviving notes. Stable identity therefore remains valid for surviving
@@ -116,8 +125,8 @@ selection and history references.
 
 ## Command-validation nuance
 
-Podatus and Clivis share a validating two-note insertion helper. Scandicus
-insertion independently checks its index, syllable association, IDs,
+Podatus and Clivis share a validating two-note insertion helper. Scandicus and
+Torculus insertion independently check their index, syllable association, IDs,
 cardinality, and pitch invariant. `insertPunctum` currently performs a simple
 immutable splice and is not independently as defensive as the multi-note
 insertion commands.

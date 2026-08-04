@@ -1,6 +1,7 @@
 import type {
   ChantDocument,
   ChantNote,
+  ClivisNeume,
   Neume,
   PodatusNeume,
   PunctumNeume,
@@ -85,6 +86,19 @@ export function isValidNeume(neume: Neume): boolean {
         secondNote.staffPosition < thirdNote.staffPosition
       );
     }
+    case 'torculus': {
+      if (neume.notes.length !== 3) {
+        return false;
+      }
+
+      const [firstNote, secondNote, thirdNote] = neume.notes;
+
+      return (
+        Boolean(firstNote && secondNote && thirdNote) &&
+        firstNote.staffPosition < secondNote.staffPosition &&
+        secondNote.staffPosition > thirdNote.staffPosition
+      );
+    }
   }
 }
 
@@ -126,6 +140,44 @@ export function normalizeNeumeAfterNoteDeletion(
     };
 
     return podatus;
+  }
+
+  if (neume.kind === 'torculus') {
+    const [firstNote, secondNote, thirdNote] = neume.notes;
+    let survivingNotes: [ChantNote, ChantNote];
+
+    if (noteIndex === 0) {
+      survivingNotes = [secondNote, thirdNote];
+    } else if (noteIndex === 1) {
+      survivingNotes = [firstNote, thirdNote];
+    } else {
+      survivingNotes = [firstNote, secondNote];
+    }
+
+    if (survivingNotes[0].staffPosition === survivingNotes[1].staffPosition) {
+      // Equal outer notes cannot form either supported two-note neume.
+      return neume;
+    }
+
+    if (survivingNotes[0].staffPosition < survivingNotes[1].staffPosition) {
+      const podatus: PodatusNeume = {
+        id: neume.id,
+        kind: 'podatus',
+        lyricSyllableId: neume.lyricSyllableId,
+        notes: survivingNotes,
+      };
+
+      return podatus;
+    }
+
+    const clivis: ClivisNeume = {
+      id: neume.id,
+      kind: 'clivis',
+      lyricSyllableId: neume.lyricSyllableId,
+      notes: survivingNotes,
+    };
+
+    return clivis;
   }
 
   const [firstNote, secondNote] = neume.notes;
