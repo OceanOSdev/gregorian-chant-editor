@@ -16,6 +16,10 @@ export function deleteNote(
     noteId,
   );
 
+  if (normalizedNeume === locatedNote.neume) {
+    return document;
+  }
+
   return {
     ...document,
     neumes: normalizedNeume

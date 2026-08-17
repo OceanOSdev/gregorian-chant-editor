@@ -44,6 +44,16 @@ function createDocument(): ChantDocument {
           { id: 'note-6', staffPosition: staffPosition(6) },
         ],
       },
+      {
+        id: 'neume-4',
+        kind: 'torculus',
+        lyricSyllableId: 'syllable-2',
+        notes: [
+          { id: 'note-7', staffPosition: staffPosition(2) },
+          { id: 'note-8', staffPosition: staffPosition(5) },
+          { id: 'note-9', staffPosition: staffPosition(3) },
+        ],
+      },
     ],
   };
 }
@@ -114,6 +124,21 @@ describe('selection', () => {
     expect(resolveSelectionSyllableId(document, selectNeume('neume-3'))).toBe(
       'syllable-2',
     );
+  });
+
+  it('resolves a Torculus note and whole neume by stable ID', () => {
+    const document = createDocument();
+    const noteSelection = selectNote('note-8');
+    const neumeSelection = selectNeume('neume-4');
+
+    expect(resolveSelectionSyllableId(document, noteSelection)).toBe(
+      'syllable-2',
+    );
+    expect(resolveSelectionSyllableId(document, neumeSelection)).toBe(
+      'syllable-2',
+    );
+    expect(reconcileSelection(document, noteSelection)).toBe(noteSelection);
+    expect(reconcileSelection(document, neumeSelection)).toBe(neumeSelection);
   });
 
   it('preserves the selected neume and surviving note after normalization', () => {

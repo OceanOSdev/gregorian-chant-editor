@@ -60,6 +60,7 @@ describe('resolveGraphicalNeumePlacement', () => {
     ['podatus', [2, 3]],
     ['clivis', [2, 1]],
     ['scandicus', [2, 3, 4]],
+    ['torculus', [2, 4, 3]],
   ] as const)('returns a coupled %s result and preview', (kind, positions) => {
     const result = resolveOn(documentWith(), 0, 'empty-first', kind);
 
@@ -180,7 +181,13 @@ describe('resolveGraphicalNeumePlacement', () => {
     );
     const finalIndex = layoutChant(document).systems.length - 1;
 
-    for (const kind of ['punctum', 'podatus', 'clivis', 'scandicus'] as const) {
+    for (const kind of [
+      'punctum',
+      'podatus',
+      'clivis',
+      'scandicus',
+      'torculus',
+    ] as const) {
       expect(
         resolveOn(document, finalIndex, 'syllable-1', kind, 656),
       ).not.toBeNull();

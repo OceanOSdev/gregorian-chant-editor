@@ -56,3 +56,9 @@ not automatically placeable.
 One arbitrary note-array shape would make cardinality, tuple order, and
 kind-specific rules implicit. Consumers would rely on length checks and
 conventions instead of a discriminant and precise tuple type.
+
+## Subsequent evolution
+
+Torculus was later added as another explicit three-note neume type under the
+same decision. The current supported shapes are documented in the
+[domain model](../domain-model.md#supported-neumes-and-tuple-order).

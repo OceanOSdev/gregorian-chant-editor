@@ -43,6 +43,21 @@ describe('getNoteAccessibleLabel', () => {
       noteIndex: 2,
       label: 'Select highest note of scandicus',
     },
+    {
+      kind: 'torculus' as const,
+      noteIndex: 0,
+      label: 'Select first note of torculus',
+    },
+    {
+      kind: 'torculus' as const,
+      noteIndex: 1,
+      label: 'Select second note of torculus',
+    },
+    {
+      kind: 'torculus' as const,
+      noteIndex: 2,
+      label: 'Select third note of torculus',
+    },
   ])('labels $kind note $noteIndex', ({ kind, noteIndex, label }) => {
     expect(getNoteAccessibleLabel(kind, noteIndex)).toBe(label);
   });
@@ -73,6 +88,11 @@ describe('getNoteAccessibleLabel', () => {
       kind: 'scandicus' as const,
       description:
         'Whole scandicus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
+    },
+    {
+      kind: 'torculus' as const,
+      description:
+        'Whole torculus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
   ])('describes selected $kind state', ({ kind, description }) => {
     expect(getSelectedNeumeDescription(kind, true)).toBe(description);

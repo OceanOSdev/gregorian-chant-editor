@@ -6,6 +6,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
+  type TorculusNeume,
 } from '../domain/chant-document';
 import {
   applyDocumentEdit,
@@ -49,6 +50,16 @@ const scandicus: ScandicusNeume = {
     { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
   ],
 };
+const torculus: TorculusNeume = {
+  id: 'neume-torculus',
+  kind: 'torculus',
+  lyricSyllableId: 'syllable-2',
+  notes: [
+    { id: 'note-torculus-1', staffPosition: staffPosition(2) },
+    { id: 'note-torculus-2', staffPosition: staffPosition(5) },
+    { id: 'note-torculus-3', staffPosition: staffPosition(3) },
+  ],
+};
 
 function createDocument(): ChantDocument {
   return {
@@ -58,7 +69,7 @@ function createDocument(): ChantDocument {
       { id: 'syllable-1', text: 'Ky-' },
       { id: 'syllable-2', text: 'ri-' },
     ],
-    neumes: [punctum, podatus, clivis, scandicus],
+    neumes: [punctum, podatus, clivis, scandicus, torculus],
   };
 }
 
@@ -225,6 +236,46 @@ describe('moveNeumeVertically', () => {
 
     expect(moved.past).toHaveLength(1);
     expect(positions(moved.present, 3)).toEqual([0, 2, 5]);
+    expect(undone.present).toBe(document);
+    expect(redone.present).toBe(moved.present);
+  });
+
+  it.each([
+    { delta: 1, expected: [3, 6, 4] },
+    { delta: -2, expected: [0, 3, 1] },
+  ])(
+    'moves a whole Torculus by $delta and preserves both intervals',
+    ({ delta, expected }) => {
+      const document = createDocument();
+      const moved = moveNeumeVertically(document, 'neume-torculus', delta);
+      const movedTorculus = moved.neumes[4];
+
+      expect(positions(moved, 4)).toEqual(expected);
+      expect(movedTorculus?.notes.map((note) => note.id)).toEqual([
+        'note-torculus-1',
+        'note-torculus-2',
+        'note-torculus-3',
+      ]);
+      expect(moved.neumes[0]).toBe(document.neumes[0]);
+      expect([
+        (movedTorculus?.notes[1]?.staffPosition ?? 0) -
+          (movedTorculus?.notes[0]?.staffPosition ?? 0),
+        (movedTorculus?.notes[1]?.staffPosition ?? 0) -
+          (movedTorculus?.notes[2]?.staffPosition ?? 0),
+      ]).toEqual([3, 2]);
+    },
+  );
+
+  it('undoes and redoes a whole Torculus move atomically', () => {
+    const document = createDocument();
+    const moved = applyDocumentEdit(
+      createDocumentHistory(document),
+      (current) => moveNeumeVertically(current, 'neume-torculus', 1),
+    );
+    const undone = undoDocumentEdit(moved);
+    const redone = redoDocumentEdit(undone);
+
+    expect(positions(moved.present, 4)).toEqual([3, 6, 4]);
     expect(undone.present).toBe(document);
     expect(redone.present).toBe(moved.present);
   });

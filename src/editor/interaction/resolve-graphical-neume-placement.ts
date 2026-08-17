@@ -30,6 +30,10 @@ export type ResolvedGraphicalNeumePlacement =
   | (ResolvedPlacementBase & {
       kind: 'scandicus';
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+    })
+  | (ResolvedPlacementBase & {
+      kind: 'torculus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
     });
 
 /**
@@ -111,6 +115,12 @@ export function resolveGraphicalNeumePlacement(
           staffPositions: placement.staffPositions,
           insertionIndex,
         });
+      case 'torculus':
+        return layoutGraphicalPlacementPreview(document.neumes, {
+          kind: placement.kind,
+          staffPositions: placement.staffPositions,
+          insertionIndex,
+        });
     }
   })();
 
@@ -141,6 +151,13 @@ export function resolveGraphicalNeumePlacement(
         preview,
       };
     case 'scandicus':
+      return {
+        kind: placement.kind,
+        staffPositions: placement.staffPositions,
+        insertionIndex,
+        preview,
+      };
+    case 'torculus':
       return {
         kind: placement.kind,
         staffPositions: placement.staffPositions,

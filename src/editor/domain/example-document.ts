@@ -24,5 +24,24 @@ export const exampleDocument: ChantDocument = {
         },
       ],
     },
+    {
+      id: 'neume-torculus-1',
+      kind: 'torculus',
+      lyricSyllableId: 'syllable-alle',
+      notes: [
+        {
+          id: 'note-torculus-1',
+          staffPosition: staffPosition(2),
+        },
+        {
+          id: 'note-torculus-2',
+          staffPosition: staffPosition(4),
+        },
+        {
+          id: 'note-torculus-3',
+          staffPosition: staffPosition(3),
+        },
+      ],
+    },
   ],
 };

@@ -26,6 +26,16 @@ export function getNoteAccessibleLabel(
       : 'Select highest note of scandicus';
   }
 
+  if (kind === 'torculus') {
+    if (noteIndex === 0) {
+      return 'Select first note of torculus';
+    }
+
+    return noteIndex === 1
+      ? 'Select second note of torculus'
+      : 'Select third note of torculus';
+  }
+
   return 'Select punctum';
 }
 

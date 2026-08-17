@@ -7,6 +7,7 @@ import {
   type PodatusNeume,
   type PunctumNeume,
   type ScandicusNeume,
+  type TorculusNeume,
 } from '../domain/chant-document';
 import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
@@ -99,6 +100,25 @@ function scandicus(
       { id: `${id}-first`, staffPosition: staffPosition(firstPosition) },
       { id: `${id}-middle`, staffPosition: staffPosition(secondPosition) },
       { id: `${id}-final`, staffPosition: staffPosition(thirdPosition) },
+    ],
+  };
+}
+
+function torculus(
+  id: string,
+  firstPosition: number,
+  secondPosition: number,
+  thirdPosition: number,
+  syllableId = 'syllable-1',
+): TorculusNeume {
+  return {
+    id: `neume-${id}`,
+    kind: 'torculus',
+    lyricSyllableId: syllableId,
+    notes: [
+      { id: `${id}-first`, staffPosition: staffPosition(firstPosition) },
+      { id: `${id}-second`, staffPosition: staffPosition(secondPosition) },
+      { id: `${id}-third`, staffPosition: staffPosition(thirdPosition) },
     ],
   };
 }
@@ -317,6 +337,67 @@ describe('layoutChant', () => {
     });
   });
 
+  it('lays out a Torculus with compact notes and opposite connector directions', () => {
+    const neumeLayout = layoutChant(
+      createDocument([torculus('torculus', 2, 5, 3)]),
+    ).systems.flatMap((system) => system.neumes)[0];
+    const first = neumeLayout?.notes[0];
+    const second = neumeLayout?.notes[1];
+    const third = neumeLayout?.notes[2];
+
+    if (!neumeLayout || !first || !second || !third) {
+      throw new Error('Missing Torculus layout');
+    }
+
+    expect(neumeLayout).toMatchObject({
+      neumeId: 'neume-torculus',
+      kind: 'torculus',
+    });
+    expect(neumeLayout.notes.map((note) => note.noteId)).toEqual([
+      'torculus-first',
+      'torculus-second',
+      'torculus-third',
+    ]);
+    expect(noteCenterX(second) - noteCenterX(first)).toBe(12);
+    expect(noteCenterX(third) - noteCenterX(second)).toBe(12);
+    expect(neumeLayout.connectors).toEqual([
+      expect.objectContaining({
+        y1: noteCenterY(first),
+        y2: noteCenterY(second),
+      }),
+      expect.objectContaining({
+        y1: noteCenterY(second),
+        y2: noteCenterY(third),
+      }),
+    ]);
+    expect(neumeLayout.connectors[0]?.y2).toBeLessThan(
+      neumeLayout.connectors[0]?.y1 ?? 0,
+    );
+    expect(neumeLayout.connectors[1]?.y2).toBeGreaterThan(
+      neumeLayout.connectors[1]?.y1 ?? 0,
+    );
+  });
+
+  it('spaces after a complete Torculus and exposes no interior boundary', () => {
+    const neumes = [torculus('torculus', 2, 4, 3), punctum('following', 3)];
+    const laidOut = layoutChant(createDocument(neumes)).systems.flatMap(
+      (system) => system.neumes,
+    );
+    const torculusNotes = laidOut[0]?.notes;
+    const following = laidOut[1]?.notes[0];
+    const final = torculusNotes?.[2];
+
+    if (!torculusNotes || !following || !final) {
+      throw new Error('Missing Torculus spacing');
+    }
+
+    expect(following.x - (final.x + final.width)).toBe(33);
+    expect(getNeumeBoundaryCenterX(neumes, 0)).toBe(
+      noteCenterX(torculusNotes[0]),
+    );
+    expect(getNeumeBoundaryCenterX(neumes, 1)).toBe(noteCenterX(following));
+  });
+
   it('places a following neume after the final Scandicus note and exposes no interior boundary', () => {
     const neumes = [scandicus('scandicus', 2, 4, 7), punctum('following', 3)];
     const layout = layoutChant(createDocument(neumes));
@@ -449,6 +530,26 @@ describe('layoutChant', () => {
       noteCenterX(final),
     );
     expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
+      neumeLayout.bounds.x + neumeLayout.bounds.width / 2,
+    );
+  });
+
+  it('aligns a first Torculus lyric to its first note only', () => {
+    const layout = layoutChant(
+      createDocument([torculus('torculus', 2, 5, 3), punctum('later', 3)]),
+    );
+    const neumeLayout = layout.systems.flatMap((system) => system.neumes)[0];
+    const [first, second, third] = neumeLayout?.notes ?? [];
+    const lyricX = layout.systems.flatMap((system) => system.lyrics)[0]?.x;
+
+    if (!neumeLayout || !first || !second || !third) {
+      throw new Error('Missing Torculus lyric layout');
+    }
+
+    expect(lyricX).toBe(noteCenterX(first));
+    expect(lyricX).not.toBe(noteCenterX(second));
+    expect(lyricX).not.toBe(noteCenterX(third));
+    expect(lyricX).not.toBe(
       neumeLayout.bounds.x + neumeLayout.bounds.width / 2,
     );
   });
@@ -773,6 +874,10 @@ describe('layoutChant', () => {
       neume: scandicus('scandicus-bounds', 2, 4, 7),
       kind: 'scandicus',
     },
+    {
+      neume: torculus('torculus-bounds', 2, 5, 3),
+      kind: 'torculus',
+    },
   ])('$kind bounds contain every constituent note', ({ neume }) => {
     const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap(
       (system) => system.neumes,
@@ -798,6 +903,7 @@ describe('layoutChant', () => {
     podatus('podatus-connector-bounds', 2, 6),
     clivis('clivis-connector-bounds', 6, 2),
     scandicus('scandicus-connector-bounds', 1, 4, 7),
+    torculus('torculus-connector-bounds', 1, 5, 3),
   ])('includes the $kind connector painted extent in bounds', (neume) => {
     const neumeLayout = layoutChant(createDocument([neume])).systems.flatMap(
       (system) => system.neumes,

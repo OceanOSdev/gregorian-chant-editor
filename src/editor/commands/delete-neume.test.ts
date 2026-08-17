@@ -47,6 +47,16 @@ const neumes: Neume[] = [
       { id: 'note-scandicus-3', staffPosition: staffPosition(6) },
     ],
   },
+  {
+    id: 'neume-torculus',
+    kind: 'torculus',
+    lyricSyllableId: 'syllable-2',
+    notes: [
+      { id: 'note-torculus-1', staffPosition: staffPosition(2) },
+      { id: 'note-torculus-2', staffPosition: staffPosition(5) },
+      { id: 'note-torculus-3', staffPosition: staffPosition(3) },
+    ],
+  },
 ];
 
 function createDocument(): ChantDocument {
@@ -67,6 +77,7 @@ describe('deleteNeume', () => {
     'neume-podatus',
     'neume-clivis',
     'neume-scandicus',
+    'neume-torculus',
   ])('removes the complete %s and preserves its lyric syllable', (neumeId) => {
     const document = createDocument();
     const deleted = deleteNeume(document, neumeId);
@@ -88,10 +99,16 @@ describe('deleteNeume', () => {
     const deleted = deleteNeume(document, 'neume-podatus');
 
     expect(document.neumes).toEqual(originalNeumes);
-    expect(deleted.neumes).toEqual([neumes[0], neumes[2], neumes[3]]);
+    expect(deleted.neumes).toEqual([
+      neumes[0],
+      neumes[2],
+      neumes[3],
+      neumes[4],
+    ]);
     expect(deleted.neumes[0]).toBe(neumes[0]);
     expect(deleted.neumes[1]).toBe(neumes[2]);
     expect(deleted.neumes[2]).toBe(neumes[3]);
+    expect(deleted.neumes[3]).toBe(neumes[4]);
     expect(deleted.neumes).not.toBe(document.neumes);
   });
 
@@ -135,6 +152,7 @@ describe('deleteNeume', () => {
       'neume-punctum',
       'neume-podatus',
       'neume-clivis',
+      'neume-torculus',
     ]);
     expect(deleted.present.syllables).toBe(document.syllables);
     expect(undone.present.neumes[3]).toBe(neumes[3]);
