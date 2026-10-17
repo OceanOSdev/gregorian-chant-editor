@@ -145,14 +145,8 @@
   vector-effect: non-scaling-stroke;
 }
 
-.score__punctum {
+.score__ink {
   fill: currentColor;
-}
-
-.score__neume-connector {
-  stroke: currentColor;
-  stroke-width: 3;
-  vector-effect: non-scaling-stroke;
 }
 
 .score__neume-selection {
@@ -168,18 +162,9 @@
   pointer-events: none;
 }
 
-.score__placement-preview-note {
-  fill: currentColor;
-}
-
-.score__placement-preview-connector {
-  stroke: currentColor;
-  stroke-width: 3;
-  vector-effect: non-scaling-stroke;
-}
-
-.score__punctum--selected {
+.score__note-selection {
+  fill: none;
   stroke: #c22f26;
-  stroke-width: 5;
+  stroke-width: 2.5;
   vector-effect: non-scaling-stroke;
 }

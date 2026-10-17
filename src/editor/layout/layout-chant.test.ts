@@ -133,11 +133,11 @@ function createDocument(neumes: Neume[]): ChantDocument {
 }
 
 function noteCenterY(note: NoteLayout) {
-  return note.y + note.height / 2;
+  return note.anchorY;
 }
 
 function noteCenterX(note: NoteLayout) {
-  return note.x + note.width / 2;
+  return note.anchorX;
 }
 
 describe('layoutChant', () => {
@@ -236,8 +236,8 @@ describe('layoutChant', () => {
       throw new Error('Missing two-note neume layout');
     }
 
-    expect(noteCenterX(podatusSecond) - noteCenterX(podatusFirst)).toBe(12);
-    expect(noteCenterX(clivisSecond) - noteCenterX(clivisFirst)).toBe(12);
+    expect(noteCenterX(podatusSecond) - noteCenterX(podatusFirst)).toBe(0);
+    expect(noteCenterX(clivisSecond) - noteCenterX(clivisFirst)).toBe(10.5);
     expect(noteCenterY(podatusSecond)).toBeLessThan(noteCenterY(podatusFirst));
     expect(noteCenterY(clivisFirst)).toBeLessThan(noteCenterY(clivisSecond));
   });
@@ -257,46 +257,20 @@ describe('layoutChant', () => {
       throw new Error('Missing note layout');
     }
 
-    const normalInterNeumeGap = 48 - lower.width;
+    const normalInterNeumeGap = 33;
 
     expect(following.x - (upper.x + upper.width)).toBe(normalInterNeumeGap);
     expect(following.x).toBeGreaterThanOrEqual(upper.x + upper.width);
     expect(noteCenterX(following) - noteCenterX(lower)).toBeLessThan(96);
   });
 
-  it('provides aligned connector geometry for both two-note kinds', () => {
-    const layout = layoutChant(
-      createDocument([
-        punctum('punctum', 3),
-        podatus('podatus', 2, 4),
-        clivis('clivis', 5, 3),
-      ]),
-    );
-    const punctumLayout = layout.systems.flatMap((system) => system.neumes)[0];
-    const podatusLayout = layout.systems.flatMap((system) => system.neumes)[1];
-    const clivisLayout = layout.systems.flatMap((system) => system.neumes)[2];
-
-    expect(punctumLayout?.connectors).toEqual([]);
-    expect(punctumLayout && 'connector' in punctumLayout).toBe(false);
-    for (const twoNoteLayout of [podatusLayout, clivisLayout]) {
-      const first = twoNoteLayout?.notes[0];
-      const second = twoNoteLayout?.notes[1];
-      const connector = twoNoteLayout?.connectors[0];
-
-      if (
-        !first ||
-        !second ||
-        !connector ||
-        twoNoteLayout.connectors.length !== 1
-      ) {
-        throw new Error('Missing two-note neume geometry');
-      }
-
-      expect(connector.x).toBeGreaterThanOrEqual(second.x);
-      expect(connector.x).toBeLessThanOrEqual(second.x + second.width);
-      expect(connector.y1).toBe(noteCenterY(first));
-      expect(connector.y2).toBe(noteCenterY(second));
-      expect('connector' in twoNoteLayout).toBe(false);
+  it('renders engraved compound ink as one continuous outline', () => {
+    for (const neume of [podatus('pes', 2, 3), clivis('flexa', 3, 2)]) {
+      const engraved = layoutChant(createDocument([neume])).systems[0]
+        .neumes[0];
+      expect(engraved.ink).toHaveLength(1);
+      expect(engraved.ink[0].kind).toBe('path');
+      expect(engraved).not.toHaveProperty('connectors');
     }
   });
 
@@ -326,15 +300,12 @@ describe('layoutChant', () => {
     expect(noteCenterX(final) - noteCenterX(middle)).toBe(12);
     expect(noteCenterY(first)).toBeGreaterThan(noteCenterY(middle));
     expect(noteCenterY(middle)).toBeGreaterThan(noteCenterY(final));
-    expect(neumeLayout.connectors).toHaveLength(2);
-    expect(neumeLayout.connectors[0]).toMatchObject({
-      y1: noteCenterY(first),
-      y2: noteCenterY(middle),
-    });
-    expect(neumeLayout.connectors[1]).toMatchObject({
-      y1: noteCenterY(middle),
-      y2: noteCenterY(final),
-    });
+    expect(neumeLayout.ink).toHaveLength(5);
+    expect(neumeLayout.ink.slice(2)).toEqual(
+      neumeLayout.notes.map((note) => note.head),
+    );
+    expect(neumeLayout.ink[0].bounds).toMatchObject({ width: 3, height: 27 });
+    expect(neumeLayout.ink[1].bounds).toMatchObject({ width: 3, height: 39 });
   });
 
   it('lays out a Torculus with compact notes and opposite connector directions', () => {
@@ -360,22 +331,9 @@ describe('layoutChant', () => {
     ]);
     expect(noteCenterX(second) - noteCenterX(first)).toBe(12);
     expect(noteCenterX(third) - noteCenterX(second)).toBe(12);
-    expect(neumeLayout.connectors).toEqual([
-      expect.objectContaining({
-        y1: noteCenterY(first),
-        y2: noteCenterY(second),
-      }),
-      expect.objectContaining({
-        y1: noteCenterY(second),
-        y2: noteCenterY(third),
-      }),
-    ]);
-    expect(neumeLayout.connectors[0]?.y2).toBeLessThan(
-      neumeLayout.connectors[0]?.y1 ?? 0,
-    );
-    expect(neumeLayout.connectors[1]?.y2).toBeGreaterThan(
-      neumeLayout.connectors[1]?.y1 ?? 0,
-    );
+    expect(neumeLayout.ink).toHaveLength(5);
+    expect(neumeLayout.ink[0].bounds).toMatchObject({ width: 3, height: 39 });
+    expect(neumeLayout.ink[1].bounds).toMatchObject({ width: 3, height: 27 });
   });
 
   it('spaces after a complete Torculus and exposes no interior boundary', () => {
@@ -434,7 +392,7 @@ describe('layoutChant', () => {
       throw new Error('Missing Clivis layout');
     }
 
-    const normalInterNeumeGap = 48 - upper.width;
+    const normalInterNeumeGap = 33;
 
     expect(following.x - (lower.x + lower.width)).toBe(normalInterNeumeGap);
     expect(noteCenterX(following) - noteCenterX(upper)).toBeLessThan(96);
@@ -493,18 +451,12 @@ describe('layoutChant', () => {
       throw new Error('Missing Podatus layout');
     }
 
-    const boundsCenter =
-      podatusLayout.bounds.x + podatusLayout.bounds.width / 2;
-
     expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
-      noteCenterX(firstNote),
+      firstNote.anchorX,
     );
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
-      noteCenterX(secondNote),
-    );
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).not.toBe(
-      boundsCenter,
-    );
+    // Stacked heads have the same x, but musical ownership stays on the lower note.
+    expect(firstNote.anchorY).toBeGreaterThan(secondNote.anchorY);
+    expect(podatusLayout.lyricAnchorX).toBe(firstNote.anchorX);
   });
 
   it('aligns a first Scandicus lyric to its first note only', () => {
@@ -819,7 +771,7 @@ describe('layoutChant', () => {
       throw new Error('Missing punctum layout');
     }
 
-    expect(noteCenterX(second) - noteCenterX(first)).toBe(48);
+    expect(noteCenterX(second) - noteCenterX(first)).toBe(45);
   });
 
   it('preserves nested Podatus neume and note identities', () => {
@@ -840,12 +792,12 @@ describe('layoutChant', () => {
   it('wraps a long document without a semantic capacity limit', () => {
     const atCapacity = layoutChant(
       createDocument(
-        Array.from({ length: 9 }, (_, index) => punctum(`note-${index}`, 3)),
+        Array.from({ length: 10 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     );
     const overflow = layoutChant(
       createDocument(
-        Array.from({ length: 10 }, (_, index) => punctum(`note-${index}`, 3)),
+        Array.from({ length: 11 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     );
     const staffEndX = atCapacity.systems[0]?.staffLines[0]?.x2;
@@ -909,25 +861,23 @@ describe('layoutChant', () => {
       (system) => system.neumes,
     )[0];
 
-    if (!neumeLayout || neumeLayout.connectors.length === 0) {
+    if (!neumeLayout || neumeLayout.ink.length === 0) {
       throw new Error('Missing connector layout');
     }
 
-    for (const connector of neumeLayout.connectors) {
-      expect(neumeLayout.bounds.x).toBeLessThanOrEqual(connector.x - 1.5);
+    for (const { bounds } of neumeLayout.ink) {
+      expect(neumeLayout.bounds.x).toBeLessThanOrEqual(bounds.x);
+      expect(neumeLayout.bounds.y).toBeLessThanOrEqual(bounds.y);
       expect(
         neumeLayout.bounds.x + neumeLayout.bounds.width,
-      ).toBeGreaterThanOrEqual(connector.x + 1.5);
-      expect(neumeLayout.bounds.y).toBeLessThanOrEqual(
-        Math.min(connector.y1, connector.y2) - 1.5,
-      );
+      ).toBeGreaterThanOrEqual(bounds.x + bounds.width);
       expect(
         neumeLayout.bounds.y + neumeLayout.bounds.height,
-      ).toBeGreaterThanOrEqual(Math.max(connector.y1, connector.y2) + 1.5);
+      ).toBeGreaterThanOrEqual(bounds.y + bounds.height);
     }
   });
 
-  it('preserves score, note, and spacing geometry while using the first Podatus anchor', () => {
+  it('keeps score dimensions and first-Pes anchor with the approved stacked geometry', () => {
     const layout = layoutChant(
       createDocument([
         podatus('podatus-invariant', 2, 4),
@@ -946,10 +896,10 @@ describe('layoutChant', () => {
     expect(layout.width).toBe(720);
     expect(layout.height).toBe(220);
     expect(firstNotes.map(({ x, y }) => ({ x, y }))).toEqual([
-      { x: 222.5, y: 94.5 },
-      { x: 234.5, y: 70.5 },
+      { x: 224, y: 94 },
+      { x: 224, y: 70 },
     ]);
-    expect(following.x).toBe(282.5);
+    expect(following.x).toBe(269);
     expect(layout.systems.flatMap((system) => system.lyrics)[0]).toMatchObject({
       x: 230,
       y: 180,

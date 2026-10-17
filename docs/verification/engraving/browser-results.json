@@ -1,0 +1,55 @@
+{
+  "browser": "Chromium",
+  "results": [
+    "Pes: independent real head clicks, Tab order, Enter selection, interval movement, focus, undo/redo",
+    "Clivis: independent head clicks, whole selection outline, whole movement focus, normalization and undo with surviving IDs",
+    "All three engraved placement tools: disabled controls, real pointer preview/commit ink parity, focus and Escape restoration",
+    "Screenshots: 1100px (SVG scale 1.244), 760px, 430px (SVG scale 0.553); fractional-size head clicks passed",
+    "Production adjacent contours: one raster ink component at 100%, 75%, 55%, 50% with fractional translation",
+    "Exact-edge Clivis interval edit reparented controls across systems; focus and IDs survived undo/redo",
+    "Post-wrap placement ghost stayed within the prospective viewBox and matched its committed second-system ink"
+  ],
+  "raster": [
+    {
+      "kind": "podatus",
+      "scale": 1,
+      "components": 1
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.75,
+      "components": 1
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.55,
+      "components": 1
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.5,
+      "components": 1
+    },
+    {
+      "kind": "clivis",
+      "scale": 1,
+      "components": 1
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.75,
+      "components": 1
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.55,
+      "components": 1
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.5,
+      "components": 1
+    }
+  ],
+  "errors": []
+}

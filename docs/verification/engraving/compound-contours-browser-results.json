@@ -1,0 +1,115 @@
+{
+  "browser": "Chromium",
+  "results": [
+    "Pes: independent real head clicks, Tab order, Enter selection, interval movement, focus, undo/redo",
+    "Clivis: independent head clicks, whole selection outline, whole movement focus, normalization and undo with surviving IDs",
+    "All three engraved placement tools: disabled controls, real pointer preview/commit ink parity, focus and Escape restoration",
+    "Browser getBBox matched declared whole-ink and individual-head bounds for both compounds at Δ1–5 and extrapolated Δ8",
+    "Both individual head selection overlays in adjacent and wider compounds rendered refined paths",
+    "Screenshots: 1100px (SVG scale 1.244), 760px, 430px (SVG scale 0.553); fractional-size head clicks passed",
+    "Production adjacent contours: one raster ink component at 100%, 75%, 55%, 50% with fractional translation",
+    "Exact-edge Clivis interval edit reparented controls across systems; focus and IDs survived undo/redo",
+    "Post-wrap placement ghost stayed within the prospective viewBox and matched its committed second-system ink"
+  ],
+  "raster": [
+    {
+      "kind": "podatus",
+      "scale": 1,
+      "components": 1,
+      "openingAlpha": 0
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.75,
+      "components": 1,
+      "openingAlpha": 0
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.55,
+      "components": 1,
+      "openingAlpha": 0
+    },
+    {
+      "kind": "podatus",
+      "scale": 0.5,
+      "components": 1,
+      "openingAlpha": 0
+    },
+    {
+      "kind": "clivis",
+      "scale": 1,
+      "components": 1,
+      "openingAlpha": null
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.75,
+      "components": 1,
+      "openingAlpha": null
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.55,
+      "components": 1,
+      "openingAlpha": null
+    },
+    {
+      "kind": "clivis",
+      "scale": 0.5,
+      "components": 1,
+      "openingAlpha": null
+    }
+  ],
+  "actualBounds": [
+    {
+      "kind": "podatus",
+      "interval": 1
+    },
+    {
+      "kind": "podatus",
+      "interval": 2
+    },
+    {
+      "kind": "podatus",
+      "interval": 3
+    },
+    {
+      "kind": "podatus",
+      "interval": 4
+    },
+    {
+      "kind": "podatus",
+      "interval": 5
+    },
+    {
+      "kind": "podatus",
+      "interval": 8
+    },
+    {
+      "kind": "clivis",
+      "interval": 1
+    },
+    {
+      "kind": "clivis",
+      "interval": 2
+    },
+    {
+      "kind": "clivis",
+      "interval": 3
+    },
+    {
+      "kind": "clivis",
+      "interval": 4
+    },
+    {
+      "kind": "clivis",
+      "interval": 5
+    },
+    {
+      "kind": "clivis",
+      "interval": 8
+    }
+  ],
+  "errors": []
+}

@@ -12,6 +12,8 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 - [Editor interactions](editor-interactions.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
+- [Project drawing metrics](engraving-metrics.md)
+- [Proposed shared geometry decision](adrs/0007-share-derived-neume-engraving-geometry.md)
 - [Wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
 - [Roadmap and limitations](roadmap.md)
 
@@ -54,36 +56,39 @@ on the semantic clef line. Their y coordinates advance by the system offset.
 
 ## Neume geometry
 
-The current engraving uses small rectangles as noteheads. Notes inside one
-neume use compact horizontal center offsets:
+`buildNeumeGeometry` in `src/editor/layout/neume-geometry.ts` is the pure,
+ID-free source for heads, continuous engraved silhouettes, placeholder joints,
+painted bounds, nominal note anchors, interaction bounds, musical `lyricAnchorX`,
+and horizontal `advanceX`. Rectangles and short paths carry explicit bounds;
+there is no DOM measurement, notation font, glyph framework, or semantic format
+change. See [drawing metrics](engraving-metrics.md) for the exact project
+recipes, their reference basis, and large-interval extrapolations.
 
-- Punctum: one center;
-- Podatus and Clivis: two centers separated by the compact offset;
-- Scandicus, Torculus, Climacus, and Porrectus: three centers at successive compact offsets.
+Punctum, ordinary Podatus, and ordinary Clivis use the approved square-notation
+construction. A complete engraved compound renders as one filled path, so
+adjacent heads and joins have no internal antialiased boundary. Per-note head
+shapes exist for selection feedback; they do not separately paint the normal
+silhouette. The four other kinds retain their placeholder heads and joints.
 
-After the final note center of one neume, the next neume advances by notehead
-width plus the normal inter-neume gap. Compact internal spacing and normal
-between-neume spacing are therefore different contracts.
+A note's `anchorX` and `anchorY` represent its nominal musical position; its
+`x`, `y`, `width`, and `height` enclose its painted head. These need not have the
+same center, especially for an optically lifted adjacent Pes upper head.
+`hitBounds` is independent padded interaction geometry. Shared ink parts have
+no semantic IDs. Only committed `NoteLayout` and `NeumeLayout` attach existing
+note, neume, and syllable IDs.
 
-Every `NeumeLayout` has a connector array:
-
-- Punctum: no connectors;
-- Podatus and Clivis: one vertical connector;
-- Scandicus, Torculus, Climacus, and Porrectus: two connectors joining adjacent notes.
-
-Raw neume bounds enclose notehead rectangles and connector stroke extent.
-Those complete bounds support width measurement, horizontal insertion
-midpoints, selected-neume outlines, and Clivis lyric alignment.
-
-This geometry is intentionally provisional. It does not claim publication-
-quality square notation, typographic clefs, ledger lines, or complete
-engraving rules. Proper Gregorian engraving, including distinctive Climacus
-or Porrectus shapes, remains a separate milestone.
+Complete painted `bounds` support measurement, insertion midpoints, and
+whole-neume outlines. They exclude interaction padding and selection styling.
+Musical lyric anchors are explicit and never recomputed from the union of all
+ink. `advanceX` is the distance from one glyph's left ink edge to the following
+left ink edge: complete painted width plus the existing 33-unit edge gap.
+Each system's first nominal head center remains x = 230. Mixed engraved and
+placeholder sequences use their own left bearings with the same ink-gap rule.
 
 ## Automatic whole-neume wrapping
 
-`wrapNeumes` processes semantic neumes in order and measures each complete raw
-rendered extent at its proposed horizontal position. A candidate that exceeds
+`placeNeumeSequence` processes semantic neumes in order and measures each
+complete raw rendered extent at its proposed horizontal position. A candidate that exceeds
 the usable right boundary starts the next system when the current system
 already has content.
 
@@ -105,9 +110,12 @@ placed there once and that system is finalized. The input index advances, so
 layout always makes progress and does not create a permanent empty trailing
 system.
 
-Pitch-only movement retains the current horizontal width model. Deletion or
-insertion can change later system membership, but the affected entities retain
-their semantic IDs.
+Changing an individual pitch can switch between adjacent and wider Clivis
+construction, changing width and system membership. Whole-neume transposition
+retains interval widths. Insertion, deletion, normalization, and interval edits
+can reflow later entities while preserving semantic IDs and pending focus.
+`wrapNeumes`, committed layout, and hypothetical preview layout use the same
+sequence walker, including exact-fit and oversized progress rules.
 
 ## Committed layout and previews
 
@@ -116,9 +124,14 @@ Committed layout copies semantic neume and note IDs into `NeumeLayout` and
 data attributes. Coordinates remain derived and carry no authority back into
 the semantic document.
 
-Graphical previews reuse the same raw note, connector, bounds, spacing, and
-wrapping model. The preview simulates inserting an ID-free candidate into the
-semantic order and returns its absolute position after hypothetical reflow.
+Graphical previews reuse the same complete `NeumeGeometry` and sequence walker.
+The preview simulates inserting an ID-free candidate into the semantic order
+and returns its absolute position after hypothetical reflow. Its `scoreHeight`
+is the prospective score extent from that same pass. `ScoreSvg` temporarily
+expands its viewBox to the larger of committed and prospective height so a
+candidate on a new final system is visible before commit. Canceling restores the
+committed extent. Only the candidate is ghosted; existing notation and staff
+remain the committed layout until insertion succeeds.
 See [editor interactions](editor-interactions.md#graphical-placement-and-preview)
 for input and lifecycle rules.
 
@@ -137,7 +150,8 @@ Current horizontal alignment rules are:
 
 - Punctum: center of its sole note;
 - Podatus: center of its first, lower note;
-- Clivis: center of the complete raw neume bounds;
+- Clivis: midpoint of its two nominal head centers (the conventional body span),
+  independent of stem/contour overhangs or other ink bounds;
 - Scandicus: center of its first, lowest note.
 - Torculus, Climacus, and Porrectus: center of their first note.
 
@@ -152,14 +166,22 @@ logic, or continuation marks.
 
 ## Rendering and accessibility
 
-`ScoreSvg` renders each system's staff, clef, neumes, connectors, noteheads,
-and lyrics. A selected note receives selected styling. A selected whole neume
+`ScoreSvg` renders each system's staff, clef, notation, and lyrics.
+`NeumeInk` displays the same supplied ink for committed notation and previews;
+preview opacity changes presentation only. Normal engraved ink is a single
+filled contour. Individual note selection adds a stroke-only head overlay.
+A selected whole neume
 receives an outline expanded from its raw bounds.
 
 Notes are SVG groups with button roles, accessible names describing their
 position within a neume, pressed state for individual selection, and shared
 whole-neume keyboard instructions. During placement mode they are removed from
-the tab order and pointer interaction and are marked disabled.
+the tab order and pointer interaction and are marked disabled. Stacked Pes hit
+padding is partitioned at the nominal inter-pitch y midpoint; adjacent Clivis
+padding is partitioned at the shared x edge. Visible heads remain independently
+clickable. At an exact shared boundary, the later semantic note's control owns
+the boundary through SVG paint order. Focus feedback uses those hit bounds;
+whole-neume feedback uses complete painted bounds.
 
 The SVG has a title and generated description. The description totals systems,
 neumes, notes, and rendered lyric syllables across the complete multi-system

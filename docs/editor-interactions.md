@@ -163,11 +163,14 @@ notation.
 
 The returned preview is positioned at the candidate's hypothetical destination
 after reflow, which may differ from the initially hit system after
-active-syllable clamping. It contains only kind, note geometry, and connector
-geometry: no semantic IDs, selection, or focus state.
+active-syllable clamping. It contains kind and the shared ID-free geometry (ink, notes, bounds, anchors,
+and advance), with no semantic IDs, selection, or focus state. Its prospective
+`scoreHeight` keeps a candidate on a new final system inside the SVG viewBox;
+canceling placement restores committed dimensions.
 
-Preview and commit use the same notehead offsets, connector construction, and
-wrapping model. After commit and normal `layoutChant`, the created neume's
+Preview and commit use the same geometry builder, sequence placement, and SVG
+ink renderer. Adjacent Pes and Clivis hit-region partitioning is described in
+[layout and rendering](layout-and-rendering.md#rendering-and-accessibility). After commit and normal `layoutChant`, the created neume's
 geometry matches the preview.
 
 ### Lifecycle
