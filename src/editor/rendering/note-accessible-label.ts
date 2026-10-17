@@ -36,6 +36,26 @@ export function getNoteAccessibleLabel(
       : 'Select third note of torculus';
   }
 
+  if (kind === 'porrectus') {
+    if (noteIndex === 0) {
+      return 'Select first note of porrectus';
+    }
+
+    return noteIndex === 1
+      ? 'Select second note of porrectus'
+      : 'Select third note of porrectus';
+  }
+
+  if (kind === 'climacus') {
+    if (noteIndex === 0) {
+      return 'Select highest note of climacus';
+    }
+
+    return noteIndex === 1
+      ? 'Select middle note of climacus'
+      : 'Select lowest note of climacus';
+  }
+
   return 'Select punctum';
 }
 

@@ -7,8 +7,10 @@ import {
 import { appendLyricSyllable } from '../commands/append-lyric-syllable';
 import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
+import { insertClimacus } from '../commands/insert-climacus';
 import { insertClivis } from '../commands/insert-clivis';
 import { insertPodatus } from '../commands/insert-podatus';
+import { insertPorrectus } from '../commands/insert-porrectus';
 import { insertPunctum } from '../commands/insert-punctum';
 import { insertScandicus } from '../commands/insert-scandicus';
 import { insertTorculus } from '../commands/insert-torculus';
@@ -19,9 +21,11 @@ import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
 import {
   staffPosition,
   type ChantDocument,
+  type ClimacusNeume,
   type ClivisNeume,
   type LyricSyllable,
   type PodatusNeume,
+  type PorrectusNeume,
   type PunctumNeume,
   type ScandicusNeume,
   type TorculusNeume,
@@ -40,8 +44,10 @@ import {
 } from '../state/document-history';
 import {
   isPlacementTool,
+  placeClimacusTool,
   placeClivisTool,
   placePodatusTool,
+  placePorrectusTool,
   placePunctumTool,
   placeScandicusTool,
   placeTorculusTool,
@@ -497,6 +503,118 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     returnToSelect();
   }
 
+  function handleAddPorrectus() {
+    if (!activeSyllable) {
+      return;
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(3),
+    );
+
+    if (!insertion) {
+      return;
+    }
+
+    const neumeId = globalThis.crypto.randomUUID();
+    const firstNoteId = globalThis.crypto.randomUUID();
+    const secondNoteId = globalThis.crypto.randomUUID();
+    const thirdNoteId = globalThis.crypto.randomUUID();
+    const firstStaffPosition = insertion.referenceStaffPosition;
+    const porrectus: PorrectusNeume = {
+      id: neumeId,
+      kind: 'porrectus',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: firstNoteId,
+          staffPosition: firstStaffPosition,
+        },
+        {
+          id: secondNoteId,
+          staffPosition: staffPosition(firstStaffPosition - 2),
+        },
+        {
+          id: thirdNoteId,
+          staffPosition: staffPosition(firstStaffPosition - 1),
+        },
+      ],
+    };
+    const nextDocument = insertPorrectus(
+      history.present,
+      porrectus,
+      insertion.insertionIndex,
+    );
+
+    if (nextDocument === history.present) {
+      return;
+    }
+
+    setHistory(applyDocumentEdit(history, () => nextDocument));
+    setSelection(selectNote(firstNoteId));
+    setPendingFocusNoteId(firstNoteId);
+    returnToSelect();
+  }
+
+  function handleAddClimacus() {
+    if (!activeSyllable) {
+      return;
+    }
+
+    const insertion = resolveToolbarNeumeInsertion(
+      history.present,
+      activeSyllable.id,
+      selection.kind === 'note' ? selection.noteId : null,
+      staffPosition(3),
+    );
+
+    if (!insertion) {
+      return;
+    }
+
+    const neumeId = globalThis.crypto.randomUUID();
+    const firstNoteId = globalThis.crypto.randomUUID();
+    const secondNoteId = globalThis.crypto.randomUUID();
+    const thirdNoteId = globalThis.crypto.randomUUID();
+    const firstStaffPosition = insertion.referenceStaffPosition;
+    const climacus: ClimacusNeume = {
+      id: neumeId,
+      kind: 'climacus',
+      lyricSyllableId: activeSyllable.id,
+      notes: [
+        {
+          id: firstNoteId,
+          staffPosition: firstStaffPosition,
+        },
+        {
+          id: secondNoteId,
+          staffPosition: staffPosition(firstStaffPosition - 1),
+        },
+        {
+          id: thirdNoteId,
+          staffPosition: staffPosition(firstStaffPosition - 2),
+        },
+      ],
+    };
+    const nextDocument = insertClimacus(
+      history.present,
+      climacus,
+      insertion.insertionIndex,
+    );
+
+    if (nextDocument === history.present) {
+      return;
+    }
+
+    setHistory(applyDocumentEdit(history, () => nextDocument));
+    setSelection(selectNote(firstNoteId));
+    setPendingFocusNoteId(firstNoteId);
+    returnToSelect();
+  }
+
   // The resolver supplies validated semantic intent and post-reflow preview
   // geometry. Stable IDs are allocated only when that intent is committed.
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
@@ -661,6 +779,72 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       nextDocument = insertTorculus(
         history.present,
         torculus,
+        placement.insertionIndex,
+      );
+    } else if (placement.kind === 'porrectus') {
+      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
+
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
+      const thirdNoteId = globalThis.crypto.randomUUID();
+      const porrectus: PorrectusNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+          {
+            id: thirdNoteId,
+            staffPosition: thirdStaffPosition,
+          },
+        ],
+      };
+
+      nextDocument = insertPorrectus(
+        history.present,
+        porrectus,
+        placement.insertionIndex,
+      );
+    } else if (placement.kind === 'climacus') {
+      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
+        placement.staffPositions;
+      const neumeId = globalThis.crypto.randomUUID();
+
+      firstNoteId = globalThis.crypto.randomUUID();
+      const secondNoteId = globalThis.crypto.randomUUID();
+      const thirdNoteId = globalThis.crypto.randomUUID();
+      const climacus: ClimacusNeume = {
+        id: neumeId,
+        kind: placement.kind,
+        lyricSyllableId: activeSyllable.id,
+        notes: [
+          {
+            id: firstNoteId,
+            staffPosition: firstStaffPosition,
+          },
+          {
+            id: secondNoteId,
+            staffPosition: secondStaffPosition,
+          },
+          {
+            id: thirdNoteId,
+            staffPosition: thirdStaffPosition,
+          },
+        ],
+      };
+
+      nextDocument = insertClimacus(
+        history.present,
+        climacus,
         placement.insertionIndex,
       );
     } else {
@@ -846,6 +1030,22 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         </button>
         <button
           type="button"
+          aria-label="Add porrectus"
+          disabled={!canInsertNeume}
+          onClick={handleAddPorrectus}
+        >
+          Add porrectus
+        </button>
+        <button
+          type="button"
+          aria-label="Add climacus"
+          disabled={!canInsertNeume}
+          onClick={handleAddClimacus}
+        >
+          Add climacus
+        </button>
+        <button
+          type="button"
           aria-label="Place punctum"
           aria-pressed={activeTool.kind === 'place-punctum'}
           disabled={!canInsertNeume}
@@ -888,6 +1088,24 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onClick={() => setActiveTool(placeTorculusTool())}
         >
           Place torculus
+        </button>
+        <button
+          type="button"
+          aria-label="Place porrectus"
+          aria-pressed={activeTool.kind === 'place-porrectus'}
+          disabled={!canInsertNeume}
+          onClick={() => setActiveTool(placePorrectusTool())}
+        >
+          Place porrectus
+        </button>
+        <button
+          type="button"
+          aria-label="Place climacus"
+          aria-pressed={activeTool.kind === 'place-climacus'}
+          disabled={!canInsertNeume}
+          onClick={() => setActiveTool(placeClimacusTool())}
+        >
+          Place climacus
         </button>
         <button
           type="button"

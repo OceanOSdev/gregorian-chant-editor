@@ -140,6 +140,15 @@ execution. After pushing, confirm the workflow runs successfully and that a
 newer push cancels an obsolete run for the same branch or pull request before
 requiring all four CI checks in branch protection.
 
+## Climacus and Porrectus regressions
+
+The domain, command, and layout suites cover strict contours, stable survivor
+identities, Porrectus equal-outer-pitch deletion rejection, movement validation,
+atomic history, compact placeholder geometry, first-note lyric anchors, and
+preview/commit parity across reflow. Tool mapping and accessibility matrices
+include both kinds. Verify their toolbar and graphical entry, keyboard editing,
+placement cancellation, and actual focus behavior in the browser.
+
 ## Extension checklists
 
 ### Add a semantic neume kind

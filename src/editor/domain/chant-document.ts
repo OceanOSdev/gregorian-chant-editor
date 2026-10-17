@@ -74,8 +74,30 @@ export interface TorculusNeume {
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
+/** Three notes in semantic order with each pitch strictly descending. */
+export interface ClimacusNeume {
+  id: string;
+  kind: 'climacus';
+  lyricSyllableId: string;
+  notes: [ChantNote, ChantNote, ChantNote];
+}
+
+/** Three notes in semantic order that fall and then strictly rise. */
+export interface PorrectusNeume {
+  id: string;
+  kind: 'porrectus';
+  lyricSyllableId: string;
+  notes: [ChantNote, ChantNote, ChantNote];
+}
+
 export type Neume =
-  PunctumNeume | PodatusNeume | ClivisNeume | ScandicusNeume | TorculusNeume;
+  | PunctumNeume
+  | PodatusNeume
+  | ClivisNeume
+  | ScandicusNeume
+  | TorculusNeume
+  | ClimacusNeume
+  | PorrectusNeume;
 
 export interface ChantDocument {
   title: string;

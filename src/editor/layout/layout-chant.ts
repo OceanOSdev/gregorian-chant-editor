@@ -84,7 +84,13 @@ export interface ChantLayout {
 }
 
 export type GraphicalNeumeKind =
-  'punctum' | 'podatus' | 'clivis' | 'scandicus' | 'torculus';
+  | 'punctum'
+  | 'podatus'
+  | 'clivis'
+  | 'scandicus'
+  | 'torculus'
+  | 'climacus'
+  | 'porrectus';
 
 export type GraphicalStaffPositions =
   | readonly [StaffPosition]
@@ -121,6 +127,18 @@ export type GraphicalNeumePlacement =
       firstStaffPosition: StaffPosition;
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
       preferredNeumeInsertionIndex: number;
+    }
+  | {
+      kind: 'climacus';
+      firstStaffPosition: StaffPosition;
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      preferredNeumeInsertionIndex: number;
+    }
+  | {
+      kind: 'porrectus';
+      firstStaffPosition: StaffPosition;
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      preferredNeumeInsertionIndex: number;
     };
 
 export interface PreviewNoteLayout {
@@ -150,6 +168,16 @@ export type GraphicalPlacementPreviewLayout =
       kind: 'torculus';
       notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout];
       connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout];
+    }
+  | {
+      kind: 'climacus';
+      notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout];
+      connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout];
+    }
+  | {
+      kind: 'porrectus';
+      notes: readonly [PreviewNoteLayout, PreviewNoteLayout, PreviewNoteLayout];
+      connectors: readonly [NeumeConnectorLayout, NeumeConnectorLayout];
     };
 
 export type GraphicalPlacementPreviewInput =
@@ -175,6 +203,16 @@ export type GraphicalPlacementPreviewInput =
     }
   | {
       kind: 'torculus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      insertionIndex: number;
+    }
+  | {
+      kind: 'climacus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+      insertionIndex: number;
+    }
+  | {
+      kind: 'porrectus';
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
       insertionIndex: number;
     };
@@ -227,6 +265,8 @@ export function getNeumeNoteCenterOffsets(
     case 'clivis':
       return [0, compactNoteCenterOffset];
     case 'scandicus':
+    case 'climacus':
+    case 'porrectus':
     case 'torculus':
       return [0, compactNoteCenterOffset, compactNoteCenterOffset * 2];
   }
@@ -309,7 +349,13 @@ function createConnectorLayouts(
     return [];
   }
 
-  if ((kind === 'scandicus' || kind === 'torculus') && thirdNote) {
+  if (
+    (kind === 'scandicus' ||
+      kind === 'torculus' ||
+      kind === 'climacus' ||
+      kind === 'porrectus') &&
+    thirdNote
+  ) {
     return [
       createTwoNoteConnector(firstNote, secondNote),
       createTwoNoteConnector(secondNote, thirdNote),
@@ -466,12 +512,14 @@ export function wrapNeumes(
 }
 
 function getNeumeLyricAlignmentX(neumeLayout: NeumeLayout): number | null {
-  // Ascending kinds and Punctum use their first note; Clivis uses its complete
+  // Punctum and the other multi-note kinds use their first note; Clivis uses its complete
   // raw bounds because its compact descending shape extends to the right.
   switch (neumeLayout.kind) {
     case 'punctum':
     case 'podatus':
     case 'scandicus':
+    case 'climacus':
+    case 'porrectus':
     case 'torculus': {
       const firstNote = neumeLayout.notes[0];
       const alignmentX = firstNote
@@ -562,7 +610,12 @@ function createNeumeNoteLayouts(
     throw new Error('A multi-note graphical neume must contain two notes');
   }
 
-  if (placement.kind === 'scandicus' || placement.kind === 'torculus') {
+  if (
+    placement.kind === 'scandicus' ||
+    placement.kind === 'torculus' ||
+    placement.kind === 'climacus' ||
+    placement.kind === 'porrectus'
+  ) {
     if (!thirdNote) {
       throw new Error('A three-note graphical neume must contain three notes');
     }
@@ -685,6 +738,8 @@ export function layoutGraphicalPlacementPreview(
         ],
       };
     }
+    case 'climacus':
+    case 'porrectus':
     case 'torculus': {
       const [firstNote, secondNote, thirdNote] = notes;
 
@@ -756,6 +811,28 @@ function createGraphicalNeumePlacement(
           firstStaffPosition,
           staffPosition(firstStaffPosition + 2),
           staffPosition(firstStaffPosition + 1),
+        ],
+        preferredNeumeInsertionIndex,
+      };
+    case 'climacus':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition - 1),
+          staffPosition(firstStaffPosition - 2),
+        ],
+        preferredNeumeInsertionIndex,
+      };
+    case 'porrectus':
+      return {
+        kind,
+        firstStaffPosition,
+        staffPositions: [
+          firstStaffPosition,
+          staffPosition(firstStaffPosition - 2),
+          staffPosition(firstStaffPosition - 1),
         ],
         preferredNeumeInsertionIndex,
       };

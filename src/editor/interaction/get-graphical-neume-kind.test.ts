@@ -5,6 +5,8 @@ import {
   placePunctumTool,
   placeScandicusTool,
   placeTorculusTool,
+  placeClimacusTool,
+  placePorrectusTool,
   selectTool,
 } from '../state/editor-tool';
 import { getGraphicalNeumeKind } from './get-graphical-neume-kind';
@@ -16,6 +18,8 @@ describe('getGraphicalNeumeKind', () => {
     { tool: placeClivisTool(), kind: 'clivis' },
     { tool: placeScandicusTool(), kind: 'scandicus' },
     { tool: placeTorculusTool(), kind: 'torculus' },
+    { tool: placeClimacusTool(), kind: 'climacus' },
+    { tool: placePorrectusTool(), kind: 'porrectus' },
   ] as const)('maps $tool.kind to $kind', ({ tool, kind }) => {
     expect(getGraphicalNeumeKind(tool)).toBe(kind);
   });

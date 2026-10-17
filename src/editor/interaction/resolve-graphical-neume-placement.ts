@@ -34,6 +34,14 @@ export type ResolvedGraphicalNeumePlacement =
   | (ResolvedPlacementBase & {
       kind: 'torculus';
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+    })
+  | (ResolvedPlacementBase & {
+      kind: 'climacus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+    })
+  | (ResolvedPlacementBase & {
+      kind: 'porrectus';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
     });
 
 /**
@@ -115,6 +123,8 @@ export function resolveGraphicalNeumePlacement(
           staffPositions: placement.staffPositions,
           insertionIndex,
         });
+      case 'climacus':
+      case 'porrectus':
       case 'torculus':
         return layoutGraphicalPlacementPreview(document.neumes, {
           kind: placement.kind,
@@ -157,6 +167,8 @@ export function resolveGraphicalNeumePlacement(
         insertionIndex,
         preview,
       };
+    case 'climacus':
+    case 'porrectus':
     case 'torculus':
       return {
         kind: placement.kind,

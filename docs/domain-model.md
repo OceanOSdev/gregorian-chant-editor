@@ -63,12 +63,17 @@ Podatus:   [lower, higher]
 Clivis:    [higher, lower]
 Scandicus: [lowest, middle, highest]
 Torculus:  [first, higher second, lower third]
+Climacus:  [highest, middle, lowest]
+Porrectus: [first, lower second, higher third]
 ```
 
-Podatus must ascend strictly, Clivis must descend strictly, and every adjacent
-pair in Scandicus must ascend strictly. Torculus must rise from its first note
-to its second and fall strictly from its second to its third; its first and
-third pitches may differ or be equal. Equal adjacent or reversed required
+Podatus must ascend strictly, Clivis must descend strictly, and every
+adjacent pair in Scandicus must ascend strictly. Torculus must rise from its
+first note to its second and fall strictly from its second to its third; its
+first and third pitches may differ or be equal. Climacus must descend
+strictly between each adjacent pair. Porrectus must fall strictly from its
+first note to its second and rise strictly from its second to its third; its
+outer pitches may differ or be equal. Equal adjacent or reversed required
 intervals are invalid.
 
 Fixed-cardinality tuples make the expected number and order of notes visible
@@ -119,17 +124,22 @@ Deleting an individual note normalizes the owning neume:
   ascend, a Clivis when they descend, or no edit when they are equal because
   the survivors cannot form a supported two-note neume.
 
+Climacus becomes Clivis after deletion of any constituent. For Porrectus,
+deleting the first note produces Podatus, and deleting the third produces
+Clivis. Deleting the middle produces Podatus when the outer notes ascend,
+Clivis when they descend, or no edit when they are equal, matching Torculus.
+
 Normalization preserves the neume ID, its syllable association, and the IDs of
 surviving notes. Stable identity therefore remains valid for surviving
 selection and history references.
 
 ## Command-validation nuance
 
-Podatus and Clivis share a validating two-note insertion helper. Scandicus and
-Torculus insertion independently check their index, syllable association, IDs,
-cardinality, and pitch invariant. `insertPunctum` currently performs a simple
-immutable splice and is not independently as defensive as the multi-note
-insertion commands.
+Podatus and Clivis share a validating two-note insertion helper. Scandicus,
+Torculus, Climacus, and Porrectus insertion independently check their index,
+syllable association, IDs, cardinality, and pitch invariant. `insertPunctum`
+currently performs a simple immutable splice and is not independently as
+defensive as the multi-note insertion commands.
 
 Callers currently provide valid Punctum inputs and resolved boundaries. This is
 a current implementation nuance, not a recommendation to bypass validation and

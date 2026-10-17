@@ -17,9 +17,9 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 
 - Engraving uses placeholder square noteheads, connectors, and a letter C clef.
   It is not publication-quality chant typography.
-- The semantic vocabulary contains only Punctum, Podatus, Clivis, and
-  Scandicus, and Torculus.
-- Graphical entry uses fixed contours for those five whitelisted kinds.
+- The semantic vocabulary contains Punctum, Podatus, Clivis, Scandicus,
+  Torculus, Climacus, and Porrectus.
+- Graphical entry uses fixed contours for those seven whitelisted kinds.
 - Lyrics center the whole SVG string and have no vowel-aware typography,
   automatic hyphenation, collision avoidance, word-spacing logic, or
   continuation marks.

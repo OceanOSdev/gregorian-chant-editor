@@ -61,6 +61,8 @@ describe('resolveGraphicalNeumePlacement', () => {
     ['clivis', [2, 1]],
     ['scandicus', [2, 3, 4]],
     ['torculus', [2, 4, 3]],
+    ['climacus', [2, 1, 0]],
+    ['porrectus', [2, 0, 1]],
   ] as const)('returns a coupled %s result and preview', (kind, positions) => {
     const result = resolveOn(documentWith(), 0, 'empty-first', kind);
 

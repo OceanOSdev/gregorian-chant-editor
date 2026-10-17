@@ -65,7 +65,12 @@ function hypotheticalNeume(
     throw new Error('Missing second position');
   }
 
-  if (kind === 'scandicus' || kind === 'torculus') {
+  if (
+    kind === 'scandicus' ||
+    kind === 'torculus' ||
+    kind === 'climacus' ||
+    kind === 'porrectus'
+  ) {
     if (third === undefined) {
       throw new Error('Missing third position');
     }
@@ -119,6 +124,8 @@ function previewInput(
         insertionIndex,
       };
     case 'scandicus':
+    case 'climacus':
+    case 'porrectus':
     case 'torculus':
       if (second === undefined || third === undefined) {
         throw new Error('Missing three-note positions');
