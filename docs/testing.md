@@ -49,7 +49,7 @@ Assertions should cover more than final values when identity matters:
 - invariant preservation after movement or normalization;
 - one atomic history entry and exact undo/redo restoration;
 - stable IDs and ordering across multi-system reflow;
-- raw bounds, connector cardinality, and whole-neume wrapping;
+- complete ink bounds, musical anchors, interaction partitions, and whole-neume wrapping;
 - ID-free preview shape and preview/commit geometry parity;
 - flattened multi-system accessibility totals.
 
@@ -171,7 +171,11 @@ placement cancellation, and actual focus behavior in the browser.
 
 ### Change connector or notehead geometry
 
-- Update raw-bounds expectations and connector cardinality.
+- Update shared geometry and painted-bound expectations; do not derive ink-part
+  cardinality from semantic note count.
+- Keep engraved compounds as continuous filled contours, and test adjacent
+  contacts at fractional scale. Test both note controls and musical anchors
+  independently of ink bounds.
 - Test compact spacing, following-neume spacing, wrapping thresholds,
   selection outlines, lyric anchors, and preview/commit parity.
 - Review whether exact-fit and oversized-neume progress cases still hold.
@@ -196,3 +200,13 @@ placement cancellation, and actual focus behavior in the browser.
   clearing after a replacement edit.
 - Update [commands and history](commands-and-history.md) when the contract
   changes.
+
+## Initial square-notation engraving verification
+
+`neume-geometry.test.ts` covers the approved adjacent contacts, interval/stem
+matrix, large-interval extrapolations, ID-free full-geometry preview parity,
+placeholder metrics, anchor independence, exact-fit interval reflow, stable IDs,
+normalization, and atomic undo/redo. Existing interaction and accessibility tests
+remain in place. The [browser verification record](verification/engraving/README.md)
+contains screenshots, viewport scales, and the limits of the Chromium checks.
+No browser testing dependency was added.

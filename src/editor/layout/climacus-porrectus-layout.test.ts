@@ -1,3 +1,9 @@
+import {
+  getInkBounds,
+  legacyCompactOffset,
+  legacyNoteWidth,
+  interNeumeInkGap,
+} from './neume-geometry';
 import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
@@ -16,13 +22,9 @@ import {
   layoutChant,
   layoutGraphicalPlacementPreview,
   getSystemNeumePlacement,
-  getNeumeLayoutBounds,
   measureNeumeWidth,
   wrapNeumes,
   firstNeumeCenterX,
-  compactNoteCenterOffset,
-  noteWidth,
-  interNeumeGap,
   systemVerticalAdvance,
   staffEndX,
 } from './layout-chant';
@@ -77,32 +79,30 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       if (!system || !neume) throw new Error('Missing layout');
       expect(neume.notes.map((n) => n.x + n.width / 2)).toEqual([
         firstNeumeCenterX,
-        firstNeumeCenterX + compactNoteCenterOffset,
-        firstNeumeCenterX + 2 * compactNoteCenterOffset,
+        firstNeumeCenterX + legacyCompactOffset,
+        firstNeumeCenterX + 2 * legacyCompactOffset,
       ]);
-      expect(neume.connectors).toHaveLength(2);
-      neume.connectors.forEach((connector, i) => {
+      expect(neume.ink).toHaveLength(5);
+      neume.ink.slice(0, 2).forEach((connector, i) => {
         const first = neume.notes[i];
         const second = neume.notes[i + 1];
         if (!first || !second) throw new Error('Missing notes');
-        expect(connector).toEqual({
-          x: second.x + 2,
-          y1: first.y + first.height / 2,
-          y2: second.y + second.height / 2,
+        expect(connector.bounds).toEqual({
+          x: second.x + 0.5,
+          y: Math.min(first.anchorY, second.anchorY) - 1.5,
+          width: 3,
+          height: Math.abs(first.anchorY - second.anchorY) + 3,
         });
       });
-      expect(neume.bounds).toEqual(
-        getNeumeLayoutBounds(neume.notes, neume.connectors),
-      );
+      expect(neume.bounds).toEqual(getInkBounds(neume.ink));
       expect(measureNeumeWidth(document.neumes[0] ?? candidate())).toBe(
-        noteWidth + 2 * compactNoteCenterOffset,
+        legacyNoteWidth + 2 * legacyCompactOffset,
       );
       expect(system.neumes[1]?.notes[0]?.x).toBe(
         firstNeumeCenterX +
-          2 * compactNoteCenterOffset +
-          noteWidth +
-          interNeumeGap -
-          noteWidth / 2,
+          2 * legacyCompactOffset +
+          legacyNoteWidth / 2 +
+          interNeumeInkGap,
       );
       expect(system.lyrics).toHaveLength(1);
       expect(system.lyrics[0]?.x).toBe(firstNeumeCenterX);
@@ -111,7 +111,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       const first = candidate();
       const second = candidate('second');
       const right =
-        firstNeumeCenterX + 2 * compactNoteCenterOffset + noteWidth / 2;
+        firstNeumeCenterX + 2 * legacyCompactOffset + legacyNoteWidth / 2;
       expect(wrapNeumes([first], right)).toEqual([
         { startNeumeIndex: 0, neumes: [first] },
       ]);
@@ -182,7 +182,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
         expect(preview?.notes).toEqual(
           layout?.notes.map(({ noteId: _id, ...geometry }) => geometry),
         );
-        expect(preview?.connectors).toEqual(layout?.connectors);
+        expect(preview?.ink).toEqual(layout?.ink);
         expect(preview?.notes.every((note) => !('noteId' in note))).toBe(true);
       },
     );
@@ -198,7 +198,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       );
       expect(resolved?.insertionIndex).toBe(0);
       expect(resolved?.preview.notes).toHaveLength(3);
-      expect(resolved?.preview.connectors).toHaveLength(2);
+      expect(resolved?.preview.ink).toHaveLength(5);
       expect(document.neumes).toEqual([]);
     });
     it('clamps to the active syllable across systems and previews the final destination', () => {

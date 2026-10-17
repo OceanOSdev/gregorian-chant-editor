@@ -20,6 +20,7 @@ import {
   wholeNeumeSelectionInstruction,
 } from './note-accessible-label';
 import { getScoreAccessibleDescription } from './score-accessible-description';
+import { InkShapeView, NeumeInk } from './NeumeInk';
 
 export interface SvgPoint {
   x: number;
@@ -69,6 +70,10 @@ export function ScoreSvg({
 }: ScoreSvgProps) {
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
+  const displayHeight = Math.max(
+    layout.height,
+    placementPreview?.scoreHeight ?? 0,
+  );
 
   useEffect(() => {
     if (!pendingFocusNoteId) {
@@ -195,7 +200,7 @@ export function ScoreSvg({
   return (
     <svg
       className={`score${placementActive ? ' score--placing' : ''}`}
-      viewBox={`0 0 ${layout.width} ${layout.height}`}
+      viewBox={`0 0 ${layout.width} ${displayHeight}`}
       role="group"
       aria-labelledby="score-title score-description"
       onClick={handleScoreClick}
@@ -246,7 +251,11 @@ export function ScoreSvg({
             const selectionGap = 5;
 
             return (
-              <g key={neume.neumeId} data-neume-id={neume.neumeId}>
+              <g
+                key={neume.neumeId}
+                data-neume-id={neume.neumeId}
+                data-neume-kind={neume.kind}
+              >
                 {selectedDescription ? (
                   <desc id={selectedDescriptionId}>{selectedDescription}</desc>
                 ) : null}
@@ -263,18 +272,7 @@ export function ScoreSvg({
                     aria-hidden="true"
                   />
                 ) : null}
-                {neume.connectors.map((connector, index) => (
-                  <line
-                    key={`${neume.neumeId}-connector-${index}`}
-                    className="score__neume-connector"
-                    x1={connector.x}
-                    x2={connector.x}
-                    y1={connector.y1}
-                    y2={connector.y2}
-                    pointerEvents="none"
-                    aria-hidden="true"
-                  />
-                ))}
+                <NeumeInk ink={neume.ink} />
                 {neume.notes.map((note, noteIndex) => {
                   const isNoteSelected =
                     selection.kind === 'note' &&
@@ -316,22 +314,20 @@ export function ScoreSvg({
                     >
                       <rect
                         className="score__note-hit-target"
-                        x={note.x - 6}
-                        y={note.y - 6}
-                        width={note.width + 12}
-                        height={note.height + 12}
-                        rx="3"
+                        x={note.hitBounds.x}
+                        y={note.hitBounds.y}
+                        width={note.hitBounds.width}
+                        height={note.hitBounds.height}
                         aria-hidden="true"
                       />
-                      <rect
-                        className={`score__punctum${isNoteSelected ? ' score__punctum--selected' : ''}`}
-                        x={note.x}
-                        y={note.y}
-                        width={note.width}
-                        height={note.height}
-                        rx="1"
-                        aria-hidden="true"
-                      />
+                      {isNoteSelected ? (
+                        <g pointerEvents="none" aria-hidden="true">
+                          <InkShapeView
+                            shape={note.head}
+                            className="score__note-selection"
+                          />
+                        </g>
+                      ) : null}
                     </g>
                   );
                 })}
@@ -361,29 +357,7 @@ export function ScoreSvg({
           pointerEvents="none"
           aria-hidden="true"
         >
-          {placementPreview.connectors.map((connector, index) => (
-            <line
-              key={`preview-connector-${index}`}
-              className="score__placement-preview-connector"
-              x1={connector.x}
-              x2={connector.x}
-              y1={connector.y1}
-              y2={connector.y2}
-              pointerEvents="none"
-              aria-hidden="true"
-            />
-          ))}
-          {placementPreview.notes.map((note, index) => (
-            <rect
-              className="score__placement-preview-note"
-              key={index}
-              x={note.x}
-              y={note.y}
-              width={note.width}
-              height={note.height}
-              rx="1"
-            />
-          ))}
+          <NeumeInk ink={placementPreview.ink} />
         </g>
       ) : null}
     </svg>

@@ -161,7 +161,10 @@ function expectPreviewMatchesCommitted(
   expect(preview?.notes).toEqual(
     committed?.notes.map(({ noteId: _noteId, ...geometry }) => geometry),
   );
-  expect(preview?.connectors).toEqual(committed?.connectors);
+  expect(preview?.ink).toEqual(committed?.ink);
+  expect(preview?.bounds).toEqual(committed?.bounds);
+  expect(preview?.advanceX).toEqual(committed?.advanceX);
+  expect(preview?.lyricAnchorX).toEqual(committed?.lyricAnchorX);
   expect(preview && 'connector' in preview).toBe(false);
 }
 
@@ -239,28 +242,13 @@ describe('graphical placement preview layout', () => {
         throw new Error('Missing Torculus preview');
       }
 
-      const [ascendingConnector, descendingConnector] = preview.connectors;
-
-      if (!ascendingConnector || !descendingConnector) {
-        throw new Error('Missing Torculus connectors');
-      }
-
       expect(preview.notes).toHaveLength(3);
-      expect(preview.connectors).toHaveLength(2);
-      expect(preview.connectors[0]).toEqual(
-        expect.objectContaining({
-          y1: first.y + first.height / 2,
-          y2: second.y + second.height / 2,
-        }),
+      expect(preview.ink).toHaveLength(5);
+      expect(preview.ink.slice(2)).toEqual(
+        preview.notes.map((note) => note.head),
       );
-      expect(preview.connectors[1]).toEqual(
-        expect.objectContaining({
-          y1: second.y + second.height / 2,
-          y2: third.y + third.height / 2,
-        }),
-      );
-      expect(ascendingConnector.y2).toBeLessThan(ascendingConnector.y1);
-      expect(descendingConnector.y2).toBeGreaterThan(descendingConnector.y1);
+      expect(second.anchorY).toBeLessThan(first.anchorY);
+      expect(third.anchorY).toBeGreaterThan(second.anchorY);
     },
   );
 
@@ -310,20 +298,11 @@ describe('graphical placement preview layout', () => {
       }
 
       expect(preview.notes).toHaveLength(3);
-      expect(preview.connectors).toHaveLength(2);
+      expect(preview.ink).toHaveLength(5);
       expect(second.x - first.x).toBe(12);
       expect(third.x - second.x).toBe(12);
-      expect(preview.connectors[0]).toEqual(
-        expect.objectContaining({
-          y1: first.y + first.height / 2,
-          y2: second.y + second.height / 2,
-        }),
-      );
-      expect(preview.connectors[1]).toEqual(
-        expect.objectContaining({
-          y1: second.y + second.height / 2,
-          y2: third.y + third.height / 2,
-        }),
+      expect(preview.ink.slice(2)).toEqual(
+        preview.notes.map((note) => note.head),
       );
     },
   );
@@ -359,7 +338,7 @@ describe('graphical placement preview layout', () => {
         throw new Error('Missing preview notes');
       }
 
-      expect(second.x - first.x).toBe(12);
+      expect(second.x - first.x).toBe(kind === 'podatus' ? 0 : 10.5);
     },
   );
 
@@ -371,10 +350,10 @@ describe('graphical placement preview layout', () => {
     const layout = layoutChant(documentWith(neumes));
 
     expect(getNeumeBoundaryCenterX(neumes, 0)).toBe(
-      layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]?.x + 7.5,
+      layout.systems.flatMap((system) => system.neumes)[0]?.notes[0]?.anchorX,
     );
     expect(getNeumeBoundaryCenterX(neumes, 1)).toBe(
-      layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]?.x + 7.5,
+      layout.systems.flatMap((system) => system.neumes)[1]?.notes[0]?.anchorX,
     );
     expect(getNeumeBoundaryCenterX(neumes, 2)).toBeGreaterThan(
       layout.systems.flatMap((system) => system.neumes)[1]?.notes[1]?.x ?? 0,

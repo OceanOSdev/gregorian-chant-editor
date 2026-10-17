@@ -31,9 +31,9 @@ describe('getScoreAccessibleDescription', () => {
   });
 
   it('reports totals flattened across multiple systems', () => {
-    expect(getScoreAccessibleDescription(layoutChant(documentWith(10)))).toBe(
-      'A Gregorian chant score with 2 four-line systems, 10 neumes, ' +
-        '10 notes, and 1 rendered lyric syllable.',
+    expect(getScoreAccessibleDescription(layoutChant(documentWith(11)))).toBe(
+      'A Gregorian chant score with 2 four-line systems, 11 neumes, ' +
+        '11 notes, and 1 rendered lyric syllable.',
     );
   });
 
