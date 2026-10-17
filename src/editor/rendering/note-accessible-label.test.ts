@@ -9,6 +9,36 @@ describe('getNoteAccessibleLabel', () => {
   it.each([
     { kind: 'punctum' as const, noteIndex: 0, label: 'Select punctum' },
     {
+      kind: 'climacus' as const,
+      noteIndex: 0,
+      label: 'Select highest note of climacus',
+    },
+    {
+      kind: 'climacus' as const,
+      noteIndex: 1,
+      label: 'Select middle note of climacus',
+    },
+    {
+      kind: 'climacus' as const,
+      noteIndex: 2,
+      label: 'Select lowest note of climacus',
+    },
+    {
+      kind: 'porrectus' as const,
+      noteIndex: 0,
+      label: 'Select first note of porrectus',
+    },
+    {
+      kind: 'porrectus' as const,
+      noteIndex: 1,
+      label: 'Select second note of porrectus',
+    },
+    {
+      kind: 'porrectus' as const,
+      noteIndex: 2,
+      label: 'Select third note of porrectus',
+    },
+    {
       kind: 'podatus' as const,
       noteIndex: 0,
       label: 'Select lower note of podatus',
@@ -93,6 +123,16 @@ describe('getNoteAccessibleLabel', () => {
       kind: 'torculus' as const,
       description:
         'Whole torculus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
+    },
+    {
+      kind: 'climacus' as const,
+      description:
+        'Whole climacus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
+    },
+    {
+      kind: 'porrectus' as const,
+      description:
+        'Whole porrectus selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.',
     },
   ])('describes selected $kind state', ({ kind, description }) => {
     expect(getSelectedNeumeDescription(kind, true)).toBe(description);

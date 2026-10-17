@@ -4,7 +4,9 @@ export type EditorTool =
   | { kind: 'place-podatus' }
   | { kind: 'place-clivis' }
   | { kind: 'place-scandicus' }
-  | { kind: 'place-torculus' };
+  | { kind: 'place-torculus' }
+  | { kind: 'place-climacus' }
+  | { kind: 'place-porrectus' };
 
 export function selectTool(): EditorTool {
   return { kind: 'select' };
@@ -30,12 +32,22 @@ export function placeTorculusTool(): EditorTool {
   return { kind: 'place-torculus' };
 }
 
+export function placeClimacusTool(): EditorTool {
+  return { kind: 'place-climacus' };
+}
+
+export function placePorrectusTool(): EditorTool {
+  return { kind: 'place-porrectus' };
+}
+
 export function isPlacementTool(tool: EditorTool): boolean {
   return (
     tool.kind === 'place-punctum' ||
     tool.kind === 'place-podatus' ||
     tool.kind === 'place-clivis' ||
     tool.kind === 'place-scandicus' ||
-    tool.kind === 'place-torculus'
+    tool.kind === 'place-torculus' ||
+    tool.kind === 'place-climacus' ||
+    tool.kind === 'place-porrectus'
   );
 }

@@ -60,6 +60,8 @@ export function moveNoteVertically(
       };
       break;
     }
+    case 'climacus':
+    case 'porrectus':
     case 'torculus': {
       const [firstNote, secondNote, thirdNote] = locatedNote.neume.notes;
 

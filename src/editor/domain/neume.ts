@@ -99,12 +99,39 @@ export function isValidNeume(neume: Neume): boolean {
         secondNote.staffPosition > thirdNote.staffPosition
       );
     }
+    case 'climacus': {
+      if (neume.notes.length !== 3) {
+        return false;
+      }
+
+      const [firstNote, secondNote, thirdNote] = neume.notes;
+
+      return (
+        Boolean(firstNote && secondNote && thirdNote) &&
+        firstNote.staffPosition > secondNote.staffPosition &&
+        secondNote.staffPosition > thirdNote.staffPosition
+      );
+    }
+    case 'porrectus': {
+      if (neume.notes.length !== 3) {
+        return false;
+      }
+
+      const [firstNote, secondNote, thirdNote] = neume.notes;
+
+      return (
+        Boolean(firstNote && secondNote && thirdNote) &&
+        firstNote.staffPosition > secondNote.staffPosition &&
+        secondNote.staffPosition < thirdNote.staffPosition
+      );
+    }
   }
 }
 
 /**
  * Preserves the owning neume ID and every surviving note ID while reducing
- * Scandicus to Podatus, a two-note neume to Punctum, or Punctum to no neume.
+ * three-note kinds to a supported two-note contour, two-note kinds to Punctum,
+ * or Punctum to no neume. Unsupported equal-pitch survivors reject deletion.
  */
 export function normalizeNeumeAfterNoteDeletion(
   neume: Neume,
@@ -142,7 +169,11 @@ export function normalizeNeumeAfterNoteDeletion(
     return podatus;
   }
 
-  if (neume.kind === 'torculus') {
+  if (
+    neume.kind === 'torculus' ||
+    neume.kind === 'climacus' ||
+    neume.kind === 'porrectus'
+  ) {
     const [firstNote, secondNote, thirdNote] = neume.notes;
     let survivingNotes: [ChantNote, ChantNote];
 

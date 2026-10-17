@@ -6,6 +6,8 @@ import {
   placePunctumTool,
   placeScandicusTool,
   placeTorculusTool,
+  placeClimacusTool,
+  placePorrectusTool,
   selectTool,
 } from './editor-tool';
 
@@ -16,6 +18,8 @@ describe('editor tools', () => {
     { createTool: placeClivisTool, kind: 'place-clivis' },
     { createTool: placeScandicusTool, kind: 'place-scandicus' },
     { createTool: placeTorculusTool, kind: 'place-torculus' },
+    { createTool: placeClimacusTool, kind: 'place-climacus' },
+    { createTool: placePorrectusTool, kind: 'place-porrectus' },
   ])('constructs and recognizes $kind', ({ createTool, kind }) => {
     const tool = createTool();
 

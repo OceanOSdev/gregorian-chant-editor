@@ -26,8 +26,8 @@ rectangle and is not semantic data.
 
 ### Neume
 
-An ordered semantic group of one or more notes. The current kinds are Punctum,
-Podatus, Clivis, Scandicus, and Torculus.
+An ordered semantic group of one or more notes. The current kinds are
+Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus.
 
 ### Syllable
 
