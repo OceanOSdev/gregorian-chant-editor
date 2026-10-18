@@ -4,9 +4,7 @@ Date: 2026-10-17
 
 ## Status
 
-Proposed. Architectural direction and initial shapes have been approved;
-implementation review remains pending. Do not mark Accepted until the
-implementation has been reviewed.
+Accepted
 
 ## Context
 
@@ -17,7 +15,7 @@ semantic note identity, constituent-note interaction, preview parity, and geomet
 wrapping. Painted extents, musical alignment points, and padded interaction
 regions serve different purposes and need independent definitions.
 
-This proposal extends the derived-layout responsibilities established by
+This decision extends the derived-layout responsibilities established by
 [ADR 0002](0002-separate-semantic-and-derived-state.md) and
 [ADR 0005](0005-derive-wrapping-from-rendered-geometry.md). It does not supersede
 them or change the semantic kinds and stable IDs in ADRs 0003 and 0004.
@@ -27,8 +25,9 @@ them or change the semantic kinds and stable IDs in ADRs 0003 and 0004.
 Use small pure TypeScript builders in the layout layer to derive ID-free neume
 geometry from kind and ordered staff positions. Represent visible ink with SVG
 primitives and short paths, with explicit painted bounds, nominal note anchors,
-interaction geometry, a kind-specific musical lyric anchor, and horizontal
-advance. Committed layout attaches existing semantic IDs to the result.
+selection contours, independent hit regions, a kind-specific musical lyric
+anchor, and horizontal advance. Committed layout attaches existing semantic IDs
+to the result. Semantic document data remains independent of SVG geometry.
 
 Measurement, wrapping, committed placement, and hypothetical insertion previews
 consume the same geometry and advance rules. The SVG renderer displays supplied
@@ -41,16 +40,18 @@ derived, distinct from ink measurements. Interval-sensitive geometry is computed
 procedurally rather than selected from a fixed inventory of interval glyphs.
 
 Introduce no notation-font dependency, generalized glyph framework, or semantic
-document fields. All seven initial kinds now have approved constructions;
-implementation review remains pending. Optional per-note path targets reuse
+document fields. All seven initial kinds have implemented, reviewed constructions.
+Optional per-note path-shaped hit targets reuse
 `InkShape`, with rectangular fallback. Selection contours may follow shared
 ribbon regions without adding artificial noteheads. Intended joins use clean filled contours;
 semantic unity does not require connected ink. Ordinary Scandicus can retain
 separate components when the reference construction calls for them. Shape metrics
 and approved contact/stem rules belong in the [drawing-metrics guide](../engraving-metrics.md),
-not in this ADR. The current
-[browser verification record](../verification/engraving/README.md) accompanies
-implementation review without changing this proposal's status.
+not in this ADR. The
+[browser verification record](../verification/engraving/README.md) and subsequent
+implementation reviews informed acceptance of this decision. Acceptance does
+not establish publication-quality engraving or resolve the existing vertical
+collision and extreme-pitch limitations.
 
 ## Consequences
 

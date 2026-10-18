@@ -13,7 +13,7 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 - [Testing](testing.md)
 - [Glossary](glossary.md)
 - [Project drawing metrics](engraving-metrics.md)
-- [Proposed shared geometry decision](adrs/0007-share-derived-neume-engraving-geometry.md)
+- [Shared geometry decision](adrs/0007-share-derived-neume-engraving-geometry.md)
 - [Wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
 - [Roadmap and limitations](roadmap.md)
 

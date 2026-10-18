@@ -4,9 +4,8 @@ This directory contains the project's Architecture Decision Record (ADR) log.
 Each ADR captures one significant architectural decision or proposal, its
 context, and its consequences.
 
-The current engraving proposal is
+The accepted engraving decision is
 [ADR 0007: Share derived neume engraving geometry](0007-share-derived-neume-engraving-geometry.md).
-It remains Proposed pending shape and implementation review.
 
 The log uses a Nygard-style ADR format. Contributors may generate new records
 with Nat Pryce's [`adr-tools`](https://github.com/npryce/adr-tools), using the
