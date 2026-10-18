@@ -2,8 +2,11 @@
 
 Implemented from the approved silhouette recipes and final interaction
 refinement. ADR 0007 remains **Proposed** pending implementation review.
-No PR has been opened. No notation font, dependency, semantic document field,
-command/history behavior, clef change or additional neume was introduced.
+The verification recorded below was performed before opening
+[PR #33](https://github.com/OceanOSdev/gregorian-chant-editor/pull/33), where this
+implementation is now under review. No notation font, dependency, semantic
+document field, command/history behavior, clef change or additional neume was
+introduced.
 
 ## Integrated screenshots
 
