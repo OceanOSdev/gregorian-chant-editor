@@ -1,9 +1,4 @@
-import {
-  getInkBounds,
-  legacyCompactOffset,
-  legacyNoteWidth,
-  interNeumeInkGap,
-} from './neume-geometry';
+import { getInkBounds, interNeumeInkGap } from './neume-geometry';
 import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
@@ -72,46 +67,29 @@ for (const kind of ['climacus', 'porrectus'] as const) {
     };
   }
   describe(`${kind} layout and placement`, () => {
-    it('uses three compact rectangles, two adjacent connectors, complete bounds, and a first-note lyric anchor', () => {
+    it('lays out the approved compound with complete painted bounds and a nominal first-note lyric anchor', () => {
       const document = documentWith([candidate(), punctum(1)]);
       const system = layoutChant(document).systems[0];
-      const neume = system?.neumes[0];
-      if (!system || !neume) throw new Error('Missing layout');
-      expect(neume.notes.map((n) => n.x + n.width / 2)).toEqual([
-        firstNeumeCenterX,
-        firstNeumeCenterX + legacyCompactOffset,
-        firstNeumeCenterX + 2 * legacyCompactOffset,
-      ]);
-      expect(neume.ink).toHaveLength(5);
-      neume.ink.slice(0, 2).forEach((connector, i) => {
-        const first = neume.notes[i];
-        const second = neume.notes[i + 1];
-        if (!first || !second) throw new Error('Missing notes');
-        expect(connector.bounds).toEqual({
-          x: second.x + 0.5,
-          y: Math.min(first.anchorY, second.anchorY) - 1.5,
-          width: 3,
-          height: Math.abs(first.anchorY - second.anchorY) + 3,
-        });
-      });
-      expect(neume.bounds).toEqual(getInkBounds(neume.ink));
-      expect(measureNeumeWidth(document.neumes[0] ?? candidate())).toBe(
-        legacyNoteWidth + 2 * legacyCompactOffset,
+      const neume = system.neumes[0];
+      expect(neume.notes.map((n) => n.anchorX)).toEqual(
+        kind === 'climacus' ? [230, 248, 258.5] : [230, 264, 264],
       );
-      expect(system.neumes[1]?.notes[0]?.x).toBe(
-        firstNeumeCenterX +
-          2 * legacyCompactOffset +
-          legacyNoteWidth / 2 +
-          interNeumeInkGap,
+      expect(neume.ink).toHaveLength(kind === 'climacus' ? 3 : 1);
+      expect(neume.ink.every((part) => part.kind === 'path')).toBe(true);
+      expect(neume.bounds).toEqual(getInkBounds(neume.ink));
+      expect(measureNeumeWidth(document.neumes[0])).toBe(
+        kind === 'climacus' ? 41.5 : 46,
+      );
+      expect(system.neumes[1].bounds.x).toBe(
+        neume.bounds.x + neume.bounds.width + interNeumeInkGap,
       );
       expect(system.lyrics).toHaveLength(1);
-      expect(system.lyrics[0]?.x).toBe(firstNeumeCenterX);
+      expect(system.lyrics[0].x).toBe(firstNeumeCenterX);
     });
     it('keeps exact fits and wraps indivisibly on overflow, including oversized progress', () => {
       const first = candidate();
       const second = candidate('second');
-      const right =
-        firstNeumeCenterX + 2 * legacyCompactOffset + legacyNoteWidth / 2;
+      const right = firstNeumeCenterX - 6 + measureNeumeWidth(first);
       expect(wrapNeumes([first], right)).toEqual([
         { startNeumeIndex: 0, neumes: [first] },
       ]);
@@ -198,7 +176,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       );
       expect(resolved?.insertionIndex).toBe(0);
       expect(resolved?.preview.notes).toHaveLength(3);
-      expect(resolved?.preview.ink).toHaveLength(5);
+      expect(resolved?.preview.ink).toHaveLength(kind === 'climacus' ? 3 : 1);
       expect(document.neumes).toEqual([]);
     });
     it('clamps to the active syllable across systems and previews the final destination', () => {

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Neume interaction review</title>
+  <style>
+    body {
+      font: 16px system-ui;
+      margin: 24px;
+      background: #fffdf8;
+      color: #191919;
+    }
+    main {
+      max-width: 960px;
+    }
+    section {
+      margin: 24px 0;
+    }
+    svg {
+      width: min(100%, 720px);
+      height: auto;
+      border: 1px solid #ddd;
+    }
+    .note {
+      outline: none;
+      cursor: pointer;
+    }
+    .hit {
+      fill: transparent;
+      pointer-events: fill;
+    }
+    .note:focus-visible .hit {
+      fill: rgb(30 100 210 / 15%);
+      stroke: #1e64d2;
+      stroke-width: 3;
+      vector-effect: non-scaling-stroke;
+    }
+    .selection {
+      fill: none;
+      stroke: #c22f26;
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
+    }
+    .note[aria-pressed='false'] .selection {
+      display: none;
+    }
+    button {
+      font: inherit;
+      padding: 8px;
+    }
+    small {
+      display: block;
+    }
+  </style>
+  <main>
+    <h1>Interaction review only</h1>
+    <p>
+      Tab between notes. Enter, Space or click selects a note. Blue follows
+      keyboard focus; red follows selection. This standalone specimen does not
+      implement editing or whole-neume commands.
+    </p>
+    <button id="start">Start keyboard review here</button>
+    <p id="instructions">
+      Three named note buttons per example, in musical order. Arrow-key editing
+      is outside this specimen.
+    </p>
+    <section>
+      <h2>Porrectus (1,3)</h2>
+      <svg
+        viewBox="-25 -48 180 115"
+        aria-label="Porrectus interaction specimen"
+      >
+        <g fill="#191919" pointer-events="none" aria-hidden="true">
+          <path
+            d="M0,-8 C9.18,8 20.4,0 22,7C27,9 31,9 32.5,6 V-18 Q27,-21 22,-20 V-28 C22,-29.4 25,-30 28,-30 C31,-30 34,-29.4 34,-28 V18 Q34,21 31,21 L22,19 C20.4,16 8.5,16 1.5,6 V27 H0 Z"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select first note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="0"
+          data-note="0"
+        >
+          <rect
+            x="-6"
+            y="-14"
+            width="28"
+            height="47"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M0,-8 C9.18,8 20.4,0 22,7 L22,19 C20.4,16 8.5,16 1.5,6 L0,6 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select second note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="0"
+          data-note="1"
+        >
+          <rect
+            x="22"
+            y="-6.0"
+            width="18"
+            height="33.0"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M22,7 C27,9 31,9 32.5,6 L34,6 V18 Q34,21 31,21 L22,19 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select third note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="0"
+          data-note="2"
+        >
+          <rect
+            x="22"
+            y="-36"
+            width="18"
+            height="30.0"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M22,-28 C22,-29.4 25,-30 28,-30 C31,-30 34,-29.4 34,-28 V-18 H32.5 Q27,-21 22,-20 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g></svg
+      ><small
+        >Target children are hidden from accessibility APIs. Focus remains on
+        the named parent button.</small
+      >
+    </section>
+    <section>
+      <h2>Porrectus (2,4)</h2>
+      <svg
+        viewBox="-25 -48 180 115"
+        aria-label="Porrectus interaction specimen"
+      >
+        <g fill="#191919" pointer-events="none" aria-hidden="true">
+          <path
+            d="M0,-8 C11.34,8 25.2,12 30,19C35,21 39,21 40.5,18 V-18 Q35,-21 30,-20 V-28 C30,-29.4 33,-30 36,-30 C39,-30 42,-29.4 42,-28 V30 Q42,33 39,33 L30,31 C25.2,28 10.5,16 1.5,6 V27 H0 Z"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select first note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="1"
+          data-note="0"
+        >
+          <rect
+            x="-6"
+            y="-14"
+            width="36"
+            height="53"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M0,-8 C11.34,8 25.2,12 30,19 L30,31 C25.2,28 10.5,16 1.5,6 L0,6 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select second note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="1"
+          data-note="1"
+        >
+          <rect
+            x="30"
+            y="0.0"
+            width="18"
+            height="39.0"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M30,19 C35,21 39,21 40.5,18 L42,18 V30 Q42,33 39,33 L30,31 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select third note of porrectus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="1"
+          data-note="2"
+        >
+          <rect
+            x="30"
+            y="-36"
+            width="18"
+            height="36.0"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M30,-28 C30,-29.4 33,-30 36,-30 C39,-30 42,-29.4 42,-28 V-18 H40.5 Q35,-21 30,-20 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g></svg
+      ><small
+        >Target children are hidden from accessibility APIs. Focus remains on
+        the named parent button.</small
+      >
+    </section>
+    <section>
+      <h2>Climacus (1,1)</h2>
+      <svg viewBox="-25 -48 180 115" aria-label="Climacus interaction specimen">
+        <g fill="#191919" pointer-events="none" aria-hidden="true">
+          <path
+            d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z"
+          />
+          <path d="M17,12 L23,2 L31,11 L25,22 Z" />
+          <path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select highest note of climacus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="2"
+          data-note="0"
+        >
+          <path
+            d="M-6,-12 H14.5 V33 H-6 Z"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select middle note of climacus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="2"
+          data-note="1"
+        >
+          <path
+            d="M14.5,9.6 L23,-4 L33.851351351351354,9.564189189189193 L24.30263157894737,27.070175438596493 L14.5,14.0 Z"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M17,12 L23,2 L31,11 L25,22 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g>
+        <g
+          class="note"
+          role="button"
+          tabindex="0"
+          aria-label="Select lowest note of climacus"
+          aria-describedby="instructions"
+          aria-pressed="false"
+          data-case="2"
+          data-note="2"
+        >
+          <path
+            d="M34.21621621621622,8.895270270270274 L45.5,23 L35.5,40 L24.93421052631579,25.91228070175439 Z"
+            class="hit"
+            aria-hidden="true"
+            focusable="false"
+          />
+          <path
+            d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z"
+            class="selection"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </g></svg
+      ><small
+        >Target children are hidden from accessibility APIs. Focus remains on
+        the named parent button.</small
+      >
+    </section>
+    <output id="status" aria-live="polite">No note selected.</output>
+  </main>
+  <script>
+    function select(note) {
+      document
+        .querySelectorAll('.note')
+        .forEach((n) => n.setAttribute('aria-pressed', String(n === note)));
+      document.querySelector('#status').textContent = note
+        .getAttribute('aria-label')
+        .replace('Select ', 'Selected ');
+    }
+    document.querySelectorAll('.note').forEach((note) => {
+      note.addEventListener('click', () => select(note));
+      note.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          select(note);
+        }
+      });
+    });
+  </script>
+</html>

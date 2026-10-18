@@ -12,7 +12,7 @@ implementation has been reviewed.
 
 The editor's provisional rectangular heads and vertical connectors are not
 sufficient for the distinct modern square-notation forms of Punctum, ordinary
-Podatus, Clivis, Scandicus, and Torculus. Improving their silhouettes must preserve
+Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus. Improving their silhouettes must preserve
 semantic note identity, constituent-note interaction, preview parity, and geometry-derived
 wrapping. Painted extents, musical alignment points, and padded interaction
 regions serve different purposes and need independent definitions.
@@ -41,8 +41,10 @@ derived, distinct from ink measurements. Interval-sensitive geometry is computed
 procedurally rather than selected from a fixed inventory of interval glyphs.
 
 Introduce no notation-font dependency, generalized glyph framework, or semantic
-document fields. Preserve Climacus and Porrectus provisional shapes until their
-engraving is explicitly requested. Intended joins use clean filled contours;
+document fields. All seven initial kinds now have approved constructions;
+implementation review remains pending. Optional per-note path targets reuse
+`InkShape`, with rectangular fallback. Selection contours may follow shared
+ribbon regions without adding artificial noteheads. Intended joins use clean filled contours;
 semantic unity does not require connected ink. Ordinary Scandicus can retain
 separate components when the reference construction calls for them. Shape metrics
 and approved contact/stem rules belong in the [drawing-metrics guide](../engraving-metrics.md),
@@ -79,5 +81,5 @@ cannot express every fitted contact contour. A notation font offers mature
 outlines but introduces font mapping, metrics, loading, distribution, and
 constituent-note anchoring work beyond the current engraving milestones.
 
-Keep the choice limited to these builders and the existing provisional forms.
+Keep the choice limited to these builders for the initial neume vocabulary.
 Reconsider a font only when future vocabulary provides a concrete reason.

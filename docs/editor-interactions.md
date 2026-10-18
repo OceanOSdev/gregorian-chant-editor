@@ -72,6 +72,13 @@ semantic document or history.
 The pure survival check is automated. Actual DOM focus and reparenting remain
 manual browser verification.
 
+Keyboard focus styles the actual pointer target: a padded polygon for Climacus,
+a rectangle for the other current kinds. Selected-note feedback remains a
+separate contour, including Porrectus ribbon regions. Decorative target and
+selection shapes add no accessible controls. Exact geometry and placement-mode
+pointer ownership are described in
+[layout and rendering](layout-and-rendering.md#rendering-and-accessibility).
+
 ## Toolbar insertion
 
 Toolbar insertion first resolves a complete-neume semantic boundary and a

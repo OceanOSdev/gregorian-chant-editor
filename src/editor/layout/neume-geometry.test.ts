@@ -425,49 +425,23 @@ describe('approved engraving geometry', () => {
     }
   });
 
-  it.each(['climacus', 'porrectus'] as const)(
-    'preserves %s placeholder metrics and joints',
-    (kind) => {
-      const positions = {
-        scandicus: [0, 1, 2],
-        torculus: [0, 2, 1],
-        climacus: [2, 1, 0],
-        porrectus: [2, 0, 1],
-      }[kind].map(staffPosition);
-      const g = buildNeumeGeometry(kind, positions, 0, 0);
-      expect(g.notes.map((n) => [n.x, n.width, n.height])).toEqual([
-        [0, 15, 11],
-        [12, 15, 11],
-        [24, 15, 11],
-      ]);
-      expect(g.ink).toHaveLength(5);
-      expect(g.ink.every((part) => part.kind === 'rect')).toBe(true);
-      expect(g.ink.slice(0, 2).map((part) => part.bounds.width)).toEqual([
-        3, 3,
-      ]);
-      expect(g.bounds.width).toBe(39);
-      expect(g.advanceX).toBe(72);
-    },
-  );
-
   it('reflows an interval change at an exact fit, preserving IDs and atomic history', () => {
-    const legacy: Neume = {
-      id: 'legacy',
-      kind: 'climacus',
+    const compound: Neume = {
+      id: 'compound',
+      kind: 'torculus',
       lyricSyllableId: 'lyric',
       notes: [
-        { id: 'legacy-0', staffPosition: staffPosition(0) },
-        { id: 'legacy-1', staffPosition: staffPosition(-1) },
-        { id: 'legacy-2', staffPosition: staffPosition(-2) },
+        { id: 'compound-0', staffPosition: staffPosition(0) },
+        { id: 'compound-1', staffPosition: staffPosition(1) },
+        { id: 'compound-2', staffPosition: staffPosition(-1) },
       ],
     };
     // These widths place the final wide Clivis exactly at x=656.
     const prefix = [
-      ...Array.from({ length: 3 }, (_, i) => twoNote('clivis', 2, `wide-${i}`)),
-      ...Array.from({ length: 3 }, (_, i) =>
+      ...Array.from({ length: 6 }, (_, i) =>
         twoNote('clivis', 1, `adjacent-${i}`),
       ),
-      legacy,
+      compound,
     ];
     const original = documentWith([...prefix, twoNote('clivis', 2, 'tail')]);
     const layout = layoutChant(original);

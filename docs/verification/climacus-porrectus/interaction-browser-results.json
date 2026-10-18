@@ -1,0 +1,36 @@
+{
+  "scope": "Standalone review specimen only, no application implementation",
+  "unchangedApprovedRecipeCases": 20,
+  "fixedPorrectusTopCases": 10,
+  "removedWhitespace": [
+    {
+      "button": null
+    },
+    {
+      "button": null
+    }
+  ],
+  "focus": {
+    "name": "Select middle note of climacus",
+    "focusVisible": true,
+    "tag": "path",
+    "stroke": "rgb(30, 100, 210)",
+    "strokeWidth": "3px",
+    "pointerEvents": "fill",
+    "pressed": "true",
+    "targetHidden": "true",
+    "targetTabIndex": null,
+    "selectionVisible": true
+  },
+  "accessibleNoteButtons": [
+    "Select first note of porrectus",
+    "Select second note of porrectus",
+    "Select third note of porrectus",
+    "Select first note of porrectus",
+    "Select second note of porrectus",
+    "Select third note of porrectus",
+    "Select highest note of climacus",
+    "Select middle note of climacus",
+    "Select lowest note of climacus"
+  ]
+}

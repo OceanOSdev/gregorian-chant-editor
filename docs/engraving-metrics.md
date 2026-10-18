@@ -1,7 +1,7 @@
 # Initial square-notation drawing metrics
 
 This guide records the project's approved drawing choices for Punctum, ordinary
-Podatus (Pes), ordinary Clivis (Flexa), Scandicus, and Torculus. The geometry contract is owned by
+Podatus (Pes), ordinary Clivis (Flexa), Scandicus, Torculus, Climacus, and Porrectus. The geometry contract is owned by
 [layout and rendering](layout-and-rendering.md). These metrics are project
 conventions, not a claim that every Vatican or Solesmes edition uses identical
 outlines or dimensions.
@@ -253,7 +253,7 @@ are approved project drawing choices. The
 [implementation verification](verification/scandicus-torculus/implementation.md)
 records actual editor screenshots and browser checks.
 
-## Extrapolations and retained placeholders
+## Extrapolations
 
 The reviewed reference range ends at Δ5 for each interval. Scandicus and
 Torculus continue their wider-interval construction beyond 5 by lengthening
@@ -265,9 +265,158 @@ glyphs. No interval cutoff or semantic restriction is imposed. Extreme pitches
 can exceed fixed system height; this milestone adds no vertical collision
 handling, ledger lines, or clef changes.
 
-Climacus and Porrectus retain 15 × 11 rounded placeholder
-heads, 12-unit internal center offsets, and two three-unit vertical connectors.
-Connectors are now filled rectangles in the shared ink representation; their
-ends overlap the heads. Their silhouette metrics and 39-unit width remain
-unchanged. Later neumes can move horizontally when preceding engraved widths
-change.
+## Climacus and Porrectus reference basis
+
+The [approved research and visual specimens](verification/climacus-porrectus/README.md)
+compare actual Greciliae outlines with independently constructed project paths.
+Porrectus ribbons are referenced through descent/ascent Δ5, including distinct
+adjacent-ascent ribbon sources. Explicit GregorioTeX descending-inclinatum
+spacing cases cover Δ1, Δ2 and Δ3–4; the source's Δ5 fallback is not treated as
+a conventional spacing rule. All dimensions, curvature, diamond proportions,
+Virga length and spacing plateaus below are approved project optical choices.
+The five preceding engraving recipes remain unchanged. No font ships in the app.
+
+## Ordinary Climacus
+
+Let `h=18` for a=1, `24` for a=2, otherwise `30`.
+Let `k=10.5` for b=1, `19.5` for b=2, otherwise `27`.
+
+| Note | Nominal anchor  | Black component / selection contour                              |
+| ---- | --------------- | ---------------------------------------------------------------- |
+| 1    | (6,0)           | New Virga; selection follows its square head, excludes free stem |
+| 2    | (6+h,12a)       | Descending inclinatum, centered nominally at this anchor         |
+| 3    | (6+h+k,12(a+b)) | Same descending inclinatum at final pitch                        |
+
+Each inclinatum at `(cx,cy)` is exactly:
+
+```text
+M(cx−7),cy L(cx−1),(cy−10) L(cx+7),(cy−1) L(cx+1),(cy+10) Z
+```
+
+Its nominal anchor is not the quadrilateral's centroid. Bounds are 14×20.
+These straight edges intentionally distinguish it from Punctum's curved crown
+and scoop. The obliquity, dimensions and center offsets are independent project
+choices inspired by the directional reference.
+
+The initial Virga uses the approved exposed crown vocabulary, right outer edge
+x=12 down to y=27, stem width 1.5 (return at x=10.5), and a fitted return to the
+head's underside. It is traced once, not head and stem composited separately.
+The initial selection contour is the ordinary 12×12 head. The initial head and
+all five existing neume builders remain separate recipes; no existing path is
+altered. Constant Virga length 27 is an approved simplified short profile, not a
+context-dependent TeX queue algorithm.
+
+Complete bounds: x=0…`13+h+k`, y=−6…`12(a+b)+10`.
+Width `13+h+k`; height `12(a+b)+16`; advance `46+h+k`.
+Lyric anchor x=6 regardless of diamond spacing or total width.
+
+Spacing classes and all values h/k are project optical choices. Tight diamonds
+can have overlapping horizontal projections while their paint remains separate.
+For a or b beyond 4, the chosen spacing plateau is **project extrapolation**;
+(5,5) is labeled accordingly, and (6,2) supplies the explicit beyond-reference
+example. Do not copy the writer's tight default fallback for difference 5.
+Neither spacing plateau limits valid semantic intervals.
+
+## Ordinary Porrectus
+
+Set `u=12a`, `v=12(a−b)`,
+`W=34+8(a−1)+(b==1 ? 4 : 0)`, and `z=W−12`.
+Set terminal crown top `T=v−8` for b=1, otherwise `T=v−6`.
+Set queue tip `q=27` for a≤2, `39` for a=3, otherwise `45`.
+
+| Note | Nominal anchor | Selection region                                                    |
+| ---- | -------------- | ------------------------------------------------------------------- |
+| 1    | (6,0)          | Left ribbon body, from left pitch edge to x=z; no fictitious square |
+| 2    | (W−6,u)        | Ribbon toe at lower right, x=z…W, around the second pitch           |
+| 3    | (W−6,v)        | Fitted upper terminal, including its optical crown and underside    |
+
+Note 2's pitch is indicated by the low right terminal area of the ribbon,
+independently of its toe's deepest point at u+9. Note 1's pitch is at the left
+ribbon section with top −8 and underside about +6. These anchors do not move
+when curvature or the adjacent terminal crown is optically adjusted.
+
+Trace the entire filled silhouette once, clockwise, with these commands:
+
+```text
+M0,−8
+C(.27W),8 (.60W),(u−12) z,(u−5)
+C(W−7),(u−3) (W−3),(u−3) (W−1.5),(u−6)
+V(v+6)
+Q(W−7),(v+3) z,(v+4)
+V(T+2)
+Cz,(T+.6) (z+3),T (z+6),T
+C(z+9),T W,(T+.6) W,(T+2)
+V(u+6)
+QW,(u+9) (W−3),(u+9)
+Lz,(u+7)
+C(.60W),(u+4) (.25W),16 1.5,6
+Vq H0 Z
+```
+
+The terminal selection path closes that same crown/right edge with the fitted
+underside `V(v+6) H(W−1.5) Q(W−7),(v+3) z,(v+4) Z`.
+It is not the standalone Punctum path: it has a fitted lower return, protected
+right connection and a two-unit optical lift for adjacent ascent. Its nominal
+cell width remains 12, despite the reference's somewhat smaller terminal.
+This equal-width choice is stylistic, not an assertion about `PunctumSmall`.
+
+For note 1, take the first upper cubic, close at `(z,u+7)`, follow the same
+lower cubic to `(1.5,6)`, then `(0,6)` and close. For note 2, begin at
+`(z,u−5)`, follow the upper hook, go to `(W,u−6)`, descend to `(W,u+6)`, follow
+the toe quadratic, return through `(z,u+7)` and close. These closed interaction
+regions introduce only colored selection boundaries; normal black paint always
+comes from the single full silhouette. The initial queue is owned by note 1
+but excluded from its selection contour. The narrow rising join belongs to the
+terminal's control; no fourth control is created.
+
+Complete bounds: x=0…W, y=`min(−8,T)`…`max(q,u+9)`.
+Advance W+33. Lyric anchor x=6. Individual selection bounds are actual extrema
+of their own paths, recorded by browser measurement in the [proposal measurements](verification/climacus-porrectus/specimen-browser-results.json).
+They are not substitute square cells at nominal pitches.
+
+For b=1 the ribbon is four units wider and the upper crown is two units higher,
+protecting the small opening. For b>1 the right return lengthens while head
+width stays fixed. For a>1 the ribbon grows horizontally and vertically; its
+cubic controls change with u and W. The queue plateau matches our simplified
+Clivis-inspired profile, not the complete source stem schema. For a>5 or b>5,
+continuing these formulas is **project extrapolation**, including curvature,
+queue plateau and width growth. No font glyph cutoff or new semantic interval restriction is imposed.
+
+## Climacus and Porrectus pointer ownership and feedback
+
+Porrectus uses `m=(u+v)/2`:
+
+| Control | Rectangular target (x,y,width,height) |
+| ------- | ------------------------------------- |
+| 1       | (−6, −14, z+6, max(q+6,u+15)+14)      |
+| 2       | (z, m, 18, u+15−m)                    |
+| 3       | (z, T−6, 18, m−(T−6))                 |
+
+Thus the sweep left of the terminal column and initial queue select note 1;
+the lower toe selects note 2; the upper terminal and exposed ascending return
+select note 3. Every painted point belongs to a target. Exact shared edges
+belong to the later note by SVG paint order. Rectangle corners also contain
+some whitespace, as current padded controls do; that is intentional. Note 1's
+broad region is deliberate and shown in the specimens. This mapping is approved.
+
+Climacus keeps the first target at x=−6…c, y=−12…33, where
+`c=(12+(6+h−7))/2`. Each descending target begins as a padded quadrilateral
+at offsets `(−11,0),(−1,−16),(11,−1),(1,16)` around its nominal anchor.
+Clip both to x≥c. Then partition at the oblique line
+`(11/6)x+y=K`, where K is the average of `(11/6)cx+cy` for notes 2 and 3.
+The earlier diamond owns the ≤ side; the later the ≥ side. This line lies
+between the complete black contours even at (1,1). Store the resulting closed
+polygons as `hitShape`, with their exact bounding boxes as `hitBounds`.
+Painted diamond tips stay clickable and target interiors do not overlap.
+Exact shared boundary belongs to the later note. All concrete polygon vertices
+are recorded in the [approved recipes](verification/climacus-porrectus/specimen-recipes.json).
+
+Selected-note feedback is stroke-only, following the actual head/diamond/ribbon
+region; no white or colored head replaces normal ink. Whole-neume selection
+continues to use complete painted bounds plus today's five-unit padding.
+Keyboard focus follows the target contour (including polygonal targets), while
+accessible labels, tab ordering,
+pressed states, commands and pending-focus IDs remain owned by current code.
+Controls remain three semantic notes in musical order, including Porrectus's
+two ribbon pitches. Placement mode continues to disable committed targets and
+remove them from tab order.

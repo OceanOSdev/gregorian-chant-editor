@@ -14,8 +14,11 @@ export type InkShape =
 export interface NoteGeometry extends LayoutBounds {
   anchorX: number;
   anchorY: number;
+  /** Selection contour: a head or a constituent region of shared ribbon ink. */
   head: InkShape;
   hitBounds: LayoutBounds;
+  /** Optional pointer/focus contour; absent for rectangular targets. */
+  hitShape?: InkShape;
 }
 
 /** Discardable, ID-free geometry. Musical anchors are independent of ink bounds. */
@@ -30,18 +33,30 @@ export interface NeumeGeometry {
 
 export const engravingStaffStep = 12;
 export const interNeumeInkGap = 33;
-export const legacyNoteWidth = 15;
-export const legacyNoteHeight = 11;
-export const legacyCompactOffset = 12;
 
-function rectangle(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius = 0,
-): InkShape {
-  return { kind: 'rect', bounds: { x, y, width, height }, radius };
+type Point = readonly [number, number];
+
+/** Clip padded Climacus diamonds to their shared ownership half-plane. */
+function clipHitPolygon(
+  points: readonly Point[],
+  nx: number,
+  ny: number,
+  limit: number,
+  keepLess: boolean,
+): Point[] {
+  return points.flatMap((a, index): Point[] => {
+    const b = points[(index + 1) % points.length];
+    const da = nx * a[0] + ny * a[1] - limit;
+    const db = nx * b[0] + ny * b[1] - limit;
+    const insideA = keepLess ? da <= 0 : da >= 0;
+    const insideB = keepLess ? db <= 0 : db >= 0;
+    const result: Point[] = insideA ? [a] : [];
+    if (insideA !== insideB) {
+      const t = da / (da - db);
+      result.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]);
+    }
+    return result;
+  });
 }
 
 export function getInkBounds(ink: readonly InkShape[]): LayoutBounds {
@@ -75,10 +90,9 @@ export function firstHeadHalfWidth(kind: Neume['kind']): number {
     case 'clivis':
     case 'scandicus':
     case 'torculus':
-      return 6;
     case 'climacus':
     case 'porrectus':
-      return legacyNoteWidth / 2;
+      return 6;
   }
 }
 
@@ -391,32 +405,150 @@ export function buildNeumeGeometry(
       }
     }
   } else {
-    // Unengraved three-note kinds retain the original heads and connectors.
-    notes = positions.map((position, index) => {
-      const nx = x + index * legacyCompactOffset;
-      const ny = bottomStaffY - position * engravingStaffStep;
-      return note(
-        rectangle(
-          nx,
-          ny - legacyNoteHeight / 2,
-          legacyNoteWidth,
-          legacyNoteHeight,
-          1,
+    const second = positions[1];
+    const third = positions[2];
+    if (second === undefined || third === undefined)
+      throw new Error('A three-note neume must have three pitches');
+    const a = first - second;
+    const b = Math.abs(third - second);
+    const u = a * engravingStaffStep;
+    const v = (first - third) * engravingStaffStep;
+    const bounds = (dx: number, dy: number, width: number, height: number) => ({
+      x: x + dx,
+      y: y + dy,
+      width,
+      height,
+    });
+    if (kind === 'climacus') {
+      // The spacing plateaus are project optical choices, not TeX layout rules.
+      const h = a === 1 ? 18 : a === 2 ? 24 : 30;
+      const k = b === 1 ? 10.5 : b === 2 ? 19.5 : 27;
+      const centers: readonly Point[] = [
+        [6 + h, u],
+        [6 + h + k, v],
+      ];
+      const firstHead = buildNeumeGeometry('punctum', [first], x, bottomStaffY)
+        .notes[0];
+      const virga = shape(
+        `M${move(0, -4)} C${move(0, -5.4)} ${move(3, -6)} ${move(6, -6)} C${move(9, -6)} ${move(12, -5.4)} ${move(12, -4)} V${y + 27} H${x + 10.5} V${y + 5.9} C${move(9, 5.7)} ${move(8, 4.8)} ${move(6, 4.8)} C${move(4, 4.8)} ${move(2.2, 6)} ${move(0.4, 6)} C${move(0.15, 6)} ${move(0, 5.9)} ${move(0, 5.6)} Z`,
+        0,
+        -6,
+        12,
+        33,
+      );
+      notes = [
+        firstHead,
+        ...centers.map(([cx, cy]) =>
+          note(
+            shape(
+              `M${move(cx - 7, cy)} L${move(cx - 1, cy - 10)} L${move(cx + 7, cy - 1)} L${move(cx + 1, cy + 10)} Z`,
+              cx - 7,
+              cy - 10,
+              14,
+              20,
+            ),
+            x + cx,
+            y + cy,
+          ),
         ),
-        nx + legacyNoteWidth / 2,
-        ny,
+      ];
+      ink = [virga, ...notes.slice(1).map((n) => n.head)];
+      const cut = (12 + centers[0][0] - 7) / 2;
+      firstHead.hitBounds = bounds(-6, -12, cut + 6, 45);
+      firstHead.hitShape = shape(
+        `M${move(-6, -12)} H${x + cut} V${y + 33} H${x - 6} Z`,
+        -6,
+        -12,
+        cut + 6,
+        45,
       );
-    });
-    const joins = notes.slice(1).map((next, index) => {
-      const previous = notes[index];
-      return rectangle(
-        next.x + 0.5,
-        Math.min(previous.anchorY, next.anchorY) - 1.5,
-        3,
-        Math.abs(previous.anchorY - next.anchorY) + 3,
+      const nx = 11 / 6;
+      const split =
+        centers.reduce((sum, [cx, cy]) => sum + nx * cx + cy, 0) / 2;
+      centers.forEach(([cx, cy], index) => {
+        const padded: Point[] = [
+          [cx - 11, cy],
+          [cx - 1, cy - 16],
+          [cx + 11, cy - 1],
+          [cx + 1, cy + 16],
+        ];
+        const polygon = clipHitPolygon(
+          clipHitPolygon(padded, 1, 0, cut, false),
+          nx,
+          1,
+          split,
+          index === 0,
+        );
+        const xs = polygon.map(([px]) => px);
+        const ys = polygon.map(([, py]) => py);
+        const left = Math.min(...xs),
+          top = Math.min(...ys);
+        const hitShape = shape(
+          `M${polygon.map(([px, py]) => move(px, py)).join(' L')} Z`,
+          left,
+          top,
+          Math.max(...xs) - left,
+          Math.max(...ys) - top,
+        );
+        notes[index + 1].hitShape = hitShape;
+        notes[index + 1].hitBounds = hitShape.bounds;
+      });
+    } else {
+      const w = 34 + 8 * (a - 1) + (b === 1 ? 4 : 0);
+      const z = w - 12;
+      const top = v - (b === 1 ? 8 : 6);
+      const stem = a <= 2 ? 27 : a === 3 ? 39 : 45;
+      const upper = `M${move(0, -8)} C${move(0.27 * w, 8)} ${move(0.6 * w, u - 12)} ${move(z, u - 5)}`;
+      const hook = `C${move(w - 7, u - 3)} ${move(w - 3, u - 3)} ${move(w - 1.5, u - 6)}`;
+      const lower = `C${move(0.6 * w, u + 4)} ${move(0.25 * w, 16)} ${move(1.5, 6)}`;
+      const crown = `C${move(z, top + 0.6)} ${move(z + 3, top)} ${move(z + 6, top)} C${move(z + 9, top)} ${move(w, top + 0.6)} ${move(w, top + 2)}`;
+      const toe = `V${y + u + 6} Q${move(w, u + 9)} ${move(w - 3, u + 9)} L${move(z, u + 7)}`;
+      // The first two pitches inhabit a single ribbon, not separate heads.
+      const firstRegion = shape(
+        `${upper} L${move(z, u + 7)} ${lower} L${move(0, 6)} Z`,
+        0,
+        -8,
+        z,
+        u + 15,
       );
-    });
-    ink = [...joins, ...notes.map((n) => n.head)];
+      const secondRegion = shape(
+        `M${move(z, u - 5)} ${hook} L${move(w, u - 6)} ${toe} Z`,
+        z,
+        u - 6,
+        12,
+        15,
+      );
+      const terminal = shape(
+        `M${move(z, top + 2)} ${crown} V${y + v + 6} H${x + w - 1.5} Q${move(w - 7, v + 3)} ${move(z, v + 4)} Z`,
+        z,
+        top,
+        12,
+        v + 6 - top,
+      );
+      notes = [
+        note(firstRegion, x + 6, y),
+        note(secondRegion, x + w - 6, y + u),
+        note(terminal, x + w - 6, y + v),
+      ];
+      ink = [
+        shape(
+          `${upper} ${hook} V${y + v + 6} Q${move(w - 7, v + 3)} ${move(z, v + 4)} V${y + top + 2} ${crown} ${toe} ${lower} V${y + stem} H${x} Z`,
+          0,
+          Math.min(-8, top),
+          w,
+          Math.max(stem, u + 9) - Math.min(-8, top),
+        ),
+      ];
+      const split = (u + v) / 2;
+      notes[0].hitBounds = bounds(
+        -6,
+        -14,
+        z + 6,
+        Math.max(stem + 6, u + 15) + 14,
+      );
+      notes[1].hitBounds = bounds(z, split, 18, u + 15 - split);
+      notes[2].hitBounds = bounds(z, top - 6, 18, split - (top - 6));
+    }
   }
   const bounds = getInkBounds(ink);
   return {

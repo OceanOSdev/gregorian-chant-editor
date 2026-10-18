@@ -1,0 +1,825 @@
+{
+  "scope": "Static proposal SVG only, not implemented editor behavior",
+  "checks": [
+    {
+      "kind": "Climacus",
+      "intervals": [1, 1],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 41.5,
+        "height": 40
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 41.5,
+        "height": 40
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 17,
+          "y": 2,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 27.5,
+          "y": 14,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [1, 2],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 50.5,
+        "height": 52
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 50.5,
+        "height": 52
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 17,
+          "y": 2,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 36.5,
+          "y": 26,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [2, 1],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 47.5,
+        "height": 52
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 47.5,
+        "height": 52
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 23,
+          "y": 14,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 33.5,
+          "y": 26,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [2, 2],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 56.5,
+        "height": 64
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 56.5,
+        "height": 64
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 23,
+          "y": 14,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 42.5,
+          "y": 38,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [1, 3],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 58,
+        "height": 64
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 58,
+        "height": 64
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 17,
+          "y": 2,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 44,
+          "y": 38,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1216,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [3, 1],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 53.5,
+        "height": 64
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 53.5,
+        "height": 64
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 29,
+          "y": 26,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 39.5,
+          "y": 38,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [2, 4],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 64,
+        "height": 88
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 64,
+        "height": 88
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 23,
+          "y": 14,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 50,
+          "y": 62,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1216,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [4, 2],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 62.5,
+        "height": 88
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 62.5,
+        "height": 88
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 29,
+          "y": 38,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 48.5,
+          "y": 62,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [5, 5],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 70,
+        "height": 136
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 70,
+        "height": 136
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 29,
+          "y": 50,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 56,
+          "y": 110,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1216,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Climacus",
+      "intervals": [6, 2],
+      "actual": {
+        "x": 0,
+        "y": -6,
+        "width": 62.5,
+        "height": 112
+      },
+      "declared": {
+        "x": 0,
+        "y": -6,
+        "width": 62.5,
+        "height": 112
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        },
+        {
+          "x": 29,
+          "y": 62,
+          "width": 14,
+          "height": 20
+        },
+        {
+          "x": 48.5,
+          "y": 86,
+          "width": 14,
+          "height": 20
+        }
+      ],
+      "samples": 1222,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [1, 1],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 38,
+        "height": 35
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 38,
+        "height": 35
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 26,
+          "height": 27
+        },
+        {
+          "x": 26,
+          "y": 6,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 26,
+          "y": -8,
+          "width": 12,
+          "height": 14
+        }
+      ],
+      "samples": 1830,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [1, 2],
+      "actual": {
+        "x": 0,
+        "y": -18,
+        "width": 34,
+        "height": 45
+      },
+      "declared": {
+        "x": 0,
+        "y": -18,
+        "width": 34,
+        "height": 45
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 22,
+          "height": 27
+        },
+        {
+          "x": 22,
+          "y": 6,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 22,
+          "y": -18,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 1673,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [2, 1],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 46,
+        "height": 41
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 46,
+        "height": 41
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 34,
+          "height": 39
+        },
+        {
+          "x": 34,
+          "y": 18,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 34,
+          "y": 4,
+          "width": 12,
+          "height": 14
+        }
+      ],
+      "samples": 2099,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [2, 2],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 42,
+        "height": 41
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 42,
+        "height": 41
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 30,
+          "height": 39
+        },
+        {
+          "x": 30,
+          "y": 18,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 30,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 1925,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [1, 3],
+      "actual": {
+        "x": 0,
+        "y": -30,
+        "width": 34,
+        "height": 57
+      },
+      "declared": {
+        "x": 0,
+        "y": -30,
+        "width": 34,
+        "height": 57
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 22,
+          "height": 27
+        },
+        {
+          "x": 22,
+          "y": 6,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 22,
+          "y": -30,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 1733,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [3, 1],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 54,
+        "height": 53
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 54,
+        "height": 53
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 42,
+          "height": 51
+        },
+        {
+          "x": 42,
+          "y": 30,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 42,
+          "y": 16,
+          "width": 12,
+          "height": 14
+        }
+      ],
+      "samples": 2441,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [2, 4],
+      "actual": {
+        "x": 0,
+        "y": -30,
+        "width": 42,
+        "height": 63
+      },
+      "declared": {
+        "x": 0,
+        "y": -30,
+        "width": 42,
+        "height": 63
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 30,
+          "height": 39
+        },
+        {
+          "x": 30,
+          "y": 18,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 30,
+          "y": -30,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 1999,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [4, 2],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 58,
+        "height": 65
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 58,
+        "height": 65
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 46,
+          "height": 63
+        },
+        {
+          "x": 46,
+          "y": 42,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 46,
+          "y": 18,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 2606,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [5, 5],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 66,
+        "height": 77
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 66,
+        "height": 77
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 54,
+          "height": 75
+        },
+        {
+          "x": 54,
+          "y": 54,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 54,
+          "y": -6,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 2989,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    },
+    {
+      "kind": "Porrectus",
+      "intervals": [6, 2],
+      "actual": {
+        "x": 0,
+        "y": -8,
+        "width": 74,
+        "height": 89
+      },
+      "declared": {
+        "x": 0,
+        "y": -8,
+        "width": 74,
+        "height": 89
+      },
+      "maxBoundError": 0,
+      "selectionBounds": [
+        {
+          "x": 0,
+          "y": -8,
+          "width": 62,
+          "height": 87
+        },
+        {
+          "x": 62,
+          "y": 66,
+          "width": 12,
+          "height": 15
+        },
+        {
+          "x": 62,
+          "y": 42,
+          "width": 12,
+          "height": 12
+        }
+      ],
+      "samples": 3189,
+      "missed": 0,
+      "wrong": 0,
+      "examples": []
+    }
+  ]
+}
