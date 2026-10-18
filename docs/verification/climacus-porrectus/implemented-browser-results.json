@@ -1,0 +1,304 @@
+{
+  "checks": [
+    {
+      "name": "All five previous engravings identical to pre-change geometry",
+      "cases": 120
+    },
+    {
+      "name": "Actual ink, selection and hit-path bounds match declarations across 196 geometries",
+      "count": 1274,
+      "failures": []
+    },
+    {
+      "name": "All painted ribbon, queue and diamond samples retain correct note ownership",
+      "count": 142163,
+      "failures": []
+    },
+    {
+      "name": "Raster antialiasing: each intended component stays connected without dark overlaps at 50% opacity",
+      "count": 160,
+      "failures": []
+    },
+    {
+      "name": "Integrated fixtures created only through editor UI; exact rendered geometry",
+      "neumes": 20
+    },
+    {
+      "name": "120 actual note clicks at desktop/responsive sizes; Space selection, Tab order and exact selection contours",
+      "failures": []
+    },
+    {
+      "name": "Real polygonal keyboard focus and selection coexist; focus stroke cannot acquire pointer ownership",
+      "focus": {
+        "id": "e5088c61-ce4f-4a0e-a38f-4d2210c18c38",
+        "focusVisible": true,
+        "tag": "path",
+        "stroke": "rgb(30, 100, 210)",
+        "pointerEvents": "fill",
+        "selection": true,
+        "hidden": true
+      },
+      "strokeOwnership": {
+        "count": 2701,
+        "ownershipChanges": 0
+      }
+    },
+    {
+      "name": "Exactly one named accessible button per semantic note; decorative paths add no controls",
+      "buttons": 71
+    },
+    {
+      "name": "Individual/whole movement, rejected equal-outer edits, normalization, deletion, stable IDs, focus and undo/redo",
+      "failures": []
+    },
+    {
+      "name": "Both tools: targets remain pointer-inert and untabbable during placement; disabled keys guarded; responsive previews equal committed ink and focus; Escape restores controls",
+      "failures": []
+    },
+    {
+      "name": "Integrated screenshot fixture order",
+      "fixtures": [
+        {
+          "id": "5db72278-2371-426f-b3c3-6ec90e85f0f9",
+          "kind": "climacus",
+          "a": 1,
+          "b": 1,
+          "positions": [5, 4, 3],
+          "noteIds": [
+            "09fcf3cd-bd8a-47f3-9417-df7950139b8e",
+            "e5088c61-ce4f-4a0e-a38f-4d2210c18c38",
+            "64c30625-551e-4eb3-8fa3-f7b508b87271"
+          ]
+        },
+        {
+          "id": "4bac600d-a3eb-4f97-8713-318dee35614e",
+          "kind": "climacus",
+          "a": 1,
+          "b": 2,
+          "positions": [5, 4, 2],
+          "noteIds": [
+            "c5be87f1-951c-4ec2-9075-ea3103754ce3",
+            "142f2e81-78bb-4bd6-a35b-cd557132df89",
+            "1da5c215-8fe5-46f3-ac93-94b29391d07d"
+          ]
+        },
+        {
+          "id": "e7801440-7e2f-45bc-b94d-560f61aadfeb",
+          "kind": "climacus",
+          "a": 2,
+          "b": 1,
+          "positions": [5, 3, 2],
+          "noteIds": [
+            "08fc54fb-0324-4b70-9791-b4c48c75166e",
+            "6910f46d-aaf1-4253-86be-2330bb6a3d16",
+            "a2b3e1a3-db65-4e16-9f95-8f5d1f5de4a9"
+          ]
+        },
+        {
+          "id": "71e9ec8c-7844-4f2e-9cd0-57c7428fe489",
+          "kind": "climacus",
+          "a": 2,
+          "b": 2,
+          "positions": [5, 3, 1],
+          "noteIds": [
+            "55b09a67-431e-459e-9dea-bedf9c35702f",
+            "4fe67a41-69f4-4a18-aa78-e8b72fb41497",
+            "ee9cbe26-9564-494d-b07c-4d43e2c14c7f"
+          ]
+        },
+        {
+          "id": "9341339f-cc9d-4498-a8ef-8277e9924a90",
+          "kind": "climacus",
+          "a": 1,
+          "b": 3,
+          "positions": [5, 4, 1],
+          "noteIds": [
+            "3116c5e0-ce5b-436b-a3ce-7bccb306ac31",
+            "4e040675-cb43-4ae6-96c6-4a15752b901e",
+            "eb3fb7eb-3760-472b-9e5a-ffa45e815a1e"
+          ]
+        },
+        {
+          "id": "52f36522-7a20-486f-879a-26294ee37681",
+          "kind": "climacus",
+          "a": 3,
+          "b": 1,
+          "positions": [5, 2, 1],
+          "noteIds": [
+            "94fe12a9-9903-488f-820b-a8941784ccbd",
+            "6b5f5cf2-3de7-4cd0-b63d-b857f8b8b44d",
+            "e54fa010-4e15-4319-acbb-b1c82f129e31"
+          ]
+        },
+        {
+          "id": "75154f62-d4a2-4333-9718-04d7697a851b",
+          "kind": "climacus",
+          "a": 2,
+          "b": 4,
+          "positions": [5, 3, -1],
+          "noteIds": [
+            "c068239b-0dd4-4823-9f57-f75608f7b90a",
+            "1476ef0b-edca-4875-a1b0-785f966d2128",
+            "06d90677-30c4-4c6a-ab01-0fee0caba3d1"
+          ]
+        },
+        {
+          "id": "53120f63-5989-4d03-a831-fa0f15c38aa1",
+          "kind": "climacus",
+          "a": 4,
+          "b": 2,
+          "positions": [5, 1, -1],
+          "noteIds": [
+            "602543d5-0475-42f3-9a3b-544e090e646b",
+            "2dbcd722-76fd-46ef-a26d-de711a1d95cc",
+            "d54f195b-8db8-4f53-82fc-da91bacee16e"
+          ]
+        },
+        {
+          "id": "8ce33a8f-105a-4ab7-a9c0-949f56ac2544",
+          "kind": "climacus",
+          "a": 5,
+          "b": 5,
+          "positions": [9, 4, -1],
+          "noteIds": [
+            "97f3b0ee-c85b-41c9-b1d1-d3238832f843",
+            "964e77c5-e5b6-4458-99f8-64b36f5cdad8",
+            "f42e447a-ce9a-4d0b-8292-46f64286bc5b"
+          ]
+        },
+        {
+          "id": "e718b73c-cbe1-4d4d-b988-d61056e67a82",
+          "kind": "climacus",
+          "a": 6,
+          "b": 2,
+          "positions": [7, 1, -1],
+          "noteIds": [
+            "d5e6141e-26e4-4c0b-b6c8-d0c4bd32b486",
+            "fd867ce8-1da3-4db5-98e2-43d6167a223e",
+            "41f4094c-3efe-4a8a-8b9d-92b794ecf616"
+          ]
+        },
+        {
+          "id": "2bb21feb-0e08-439c-99ad-3101f5c12506",
+          "kind": "porrectus",
+          "a": 1,
+          "b": 1,
+          "positions": [3, 2, 3],
+          "noteIds": [
+            "5f9d5c7b-34c7-4adb-9b75-fa9bc16405f0",
+            "24f418be-8bbd-439e-8ead-5100b143124d",
+            "d52053ba-b54d-47cd-b2a0-8755e4f0783d"
+          ]
+        },
+        {
+          "id": "da209cff-c71b-4326-9c38-2418f2c7f0e3",
+          "kind": "porrectus",
+          "a": 1,
+          "b": 2,
+          "positions": [3, 2, 4],
+          "noteIds": [
+            "eee2fb5a-d3a1-403e-91bc-142222d8655d",
+            "290992cf-8c90-450c-b213-fd2b16e75514",
+            "25c9e522-9f98-475b-91f4-c57e6c7d67ad"
+          ]
+        },
+        {
+          "id": "72ca1320-194e-4ca9-9ec3-fced7fd041e4",
+          "kind": "porrectus",
+          "a": 2,
+          "b": 1,
+          "positions": [3, 1, 2],
+          "noteIds": [
+            "34f724ef-6120-4084-818b-99225374e726",
+            "6ddea0b1-2d7c-459c-a83f-ff5e0235f4da",
+            "4add5538-ae43-4b27-a7f9-7bad29392506"
+          ]
+        },
+        {
+          "id": "ff442a7e-a691-4ebe-8673-2004eb2891d5",
+          "kind": "porrectus",
+          "a": 2,
+          "b": 2,
+          "positions": [3, 1, 3],
+          "noteIds": [
+            "4b10db78-44ad-4abb-bcdd-9d01193108d3",
+            "98f5c4d8-2710-4d44-a1c9-b47fbccc5e68",
+            "d42beaf2-8c3d-4d56-8a2b-c0035d79a567"
+          ]
+        },
+        {
+          "id": "2fea2bfa-7760-462c-85ad-3bf672b96123",
+          "kind": "porrectus",
+          "a": 1,
+          "b": 3,
+          "positions": [3, 2, 5],
+          "noteIds": [
+            "3f866623-b2f9-4b43-964b-343c549a3ef1",
+            "9f23d1ef-0bd9-4410-8489-c5c56aafd42b",
+            "f99de8a7-0b4f-467c-8980-5c2e82d20d83"
+          ]
+        },
+        {
+          "id": "a5eca036-09d9-420e-b723-76cdcce4539b",
+          "kind": "porrectus",
+          "a": 3,
+          "b": 1,
+          "positions": [3, 0, 1],
+          "noteIds": [
+            "2f97de31-5e3f-4d76-a421-db4ed60c34c3",
+            "41bd4115-4760-4df3-9777-f521fc9cd51f",
+            "391a31db-884c-4648-b4f3-6952b7257c10"
+          ]
+        },
+        {
+          "id": "4e29616d-e369-4719-acdc-de5acd8cc512",
+          "kind": "porrectus",
+          "a": 2,
+          "b": 4,
+          "positions": [3, 1, 5],
+          "noteIds": [
+            "da63e4d2-f2f3-4cf5-9fce-2b840af0cdeb",
+            "e81ff6c9-f453-40ec-bd20-a529d35d9495",
+            "ba19df73-5967-4d5d-a6b0-d9e9413c1315"
+          ]
+        },
+        {
+          "id": "fb3ffa80-0379-4a19-b46d-209e8b86ddc9",
+          "kind": "porrectus",
+          "a": 4,
+          "b": 2,
+          "positions": [4, 0, 2],
+          "noteIds": [
+            "c2d1f924-5477-4f20-94f8-47131838c8a0",
+            "131a52c0-2d59-47b9-ad8d-763665808298",
+            "5777c4fa-5ac7-4afe-999d-c0dfd7428d68"
+          ]
+        },
+        {
+          "id": "f9d307af-230e-440c-997a-e73fbd5676cb",
+          "kind": "porrectus",
+          "a": 5,
+          "b": 5,
+          "positions": [5, 0, 5],
+          "noteIds": [
+            "c112448e-10cd-428d-9717-49bf926df479",
+            "b8c1d417-1918-40eb-a821-f32f13b6488a",
+            "68b797e3-91e1-43d7-9309-2b18375bad7f"
+          ]
+        },
+        {
+          "id": "2b7be3bb-0a06-4a4f-8ea7-3c256eac9245",
+          "kind": "porrectus",
+          "a": 6,
+          "b": 2,
+          "positions": [6, 0, 2],
+          "noteIds": [
+            "4f88298f-c604-4705-abc4-e1f7f40f62d7",
+            "f358c78d-583f-4fbb-b6a1-9f041ad537d5",
+            "d6832e0a-3f1f-4373-a03c-7e531e6c3f7c"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -31,8 +31,9 @@ guarantee: practical browser and memory limits still apply.
 
 ## Current limitations
 
-- The noteheads, connectors, and C clef are placeholder engraving rather than
-  publication-quality chant typography.
+- The seven initial neumes use the approved project square-notation engraving.
+  The C clef remains a placeholder; engraving is not complete publication-quality
+  chant typography.
 - Only Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus are modeled.
 - Graphical placement uses fixed pitch contours for those seven kinds.
 - Lyric rendering centers the complete text string; it has no vowel-aware

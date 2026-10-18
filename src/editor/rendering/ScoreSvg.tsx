@@ -312,14 +312,28 @@ export function ScoreSvg({
                         )
                       }
                     >
-                      <rect
-                        className="score__note-hit-target"
-                        x={note.hitBounds.x}
-                        y={note.hitBounds.y}
-                        width={note.hitBounds.width}
-                        height={note.hitBounds.height}
+                      <g
                         aria-hidden="true"
-                      />
+                        pointerEvents={
+                          placementActive
+                            ? 'none'
+                            : neume.kind === 'climacus' ||
+                                neume.kind === 'porrectus'
+                              ? 'fill'
+                              : undefined
+                        }
+                      >
+                        <InkShapeView
+                          className="score__note-hit-target"
+                          shape={
+                            note.hitShape ?? {
+                              kind: 'rect',
+                              bounds: note.hitBounds,
+                              radius: 0,
+                            }
+                          }
+                        />
+                      </g>
                       {isNoteSelected ? (
                         <g pointerEvents="none" aria-hidden="true">
                           <InkShapeView

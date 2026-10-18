@@ -57,26 +57,31 @@ on the semantic clef line. Their y coordinates advance by the system offset.
 ## Neume geometry
 
 `buildNeumeGeometry` in `src/editor/layout/neume-geometry.ts` is the pure,
-ID-free source for heads, engraved ink components, placeholder joints,
+ID-free source for note selection contours, engraved ink components,
 painted bounds, nominal note anchors, interaction bounds, musical `lyricAnchorX`,
 and horizontal `advanceX`. Rectangles and short paths carry explicit bounds;
 there is no DOM measurement, notation font, glyph framework, or semantic format
 change. See [drawing metrics](engraving-metrics.md) for the exact project
 recipes, their reference basis, and large-interval extrapolations.
 
-Punctum, ordinary Podatus, Clivis, Scandicus, and Torculus use the approved
+Punctum, ordinary Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus use the approved
 square-notation constructions. Intended joined components render as traced
 filled contours, without internal antialiased boundaries. A semantically unified
 neume may have disconnected ink: Scandicus with adjacent first interval keeps
 its conventional first Punctum separate from the upper pair, including the
 explicit Punctum + Pes construction at (1,1). No artificial connector is added.
 Per-note head shapes exist for selection feedback; they do not separately paint
-the normal silhouette. Climacus and Porrectus retain placeholder heads and joints.
+the normal silhouette. Climacus has a Virga followed by two separate descending
+inclinata. Porrectus has one descending ribbon and fitted ascending terminal;
+its first two notes select regions of that shared ribbon, not artificial heads.
 
 A note's `anchorX` and `anchorY` represent its nominal musical position; its
-`x`, `y`, `width`, and `height` enclose its painted head. These need not have the
+`x`, `y`, `width`, and `height` enclose its selection contour. This may be a
+head or a region of shared ribbon ink. These need not have the
 same center, especially for an optically lifted adjacent Pes upper head.
-`hitBounds` is independent padded interaction geometry. Shared ink parts have
+`hitBounds` encloses independent padded interaction geometry. Optional
+`hitShape?: InkShape` supplies a polygonal pointer/focus target for Climacus;
+absence retains the rectangular target. Shared ink parts have
 no semantic IDs. Only committed `NoteLayout` and `NeumeLayout` attach existing
 note, neume, and syllable IDs.
 
@@ -85,8 +90,8 @@ whole-neume outlines. They exclude interaction padding and selection styling.
 Musical lyric anchors are explicit and never recomputed from the union of all
 ink. `advanceX` is the distance from one glyph's left ink edge to the following
 left ink edge: complete painted width plus the existing 33-unit edge gap.
-Each system's first nominal head center remains x = 230. Mixed engraved and
-placeholder sequences use their own left bearings with the same ink-gap rule.
+Each system's first nominal pitch anchor remains x = 230; all seven kinds now
+use a six-unit first bearing with the same ink-gap rule.
 
 ## Automatic whole-neume wrapping
 
@@ -173,7 +178,8 @@ logic, or continuation marks.
 `NeumeInk` displays the same supplied ink for committed notation and previews;
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.
-Individual note selection adds a stroke-only head overlay.
+Individual note selection adds a stroke-only contour overlay, including ribbon
+regions for Porrectus.
 A selected whole neume
 receives an outline expanded from its raw bounds.
 
@@ -184,12 +190,25 @@ the tab order and pointer interaction and are marked disabled. Stacked Pes hit
 padding is partitioned at the nominal inter-pitch y midpoint; adjacent Clivis
 padding is partitioned at the shared x edge. Visible heads remain independently
 clickable. At an exact shared boundary, the later semantic note's control owns
-the boundary through SVG paint order. Focus feedback uses those hit bounds;
+the boundary through SVG paint order. Focus feedback styles the actual target (polygonal when `hitShape` is supplied,
+rectangular otherwise);
 whole-neume feedback uses complete painted bounds. Scandicus partitions adjacent
 first-note padding at the upper column's left edge and the upper pair at its
 nominal y midpoint. Torculus partitions adjacent padding at shared x edges.
 Wider intervals retain full horizontal padding to preserve visible head interiors;
-no interaction polygon or new semantic identity is introduced.
+these existing controls retain their rectangular targets.
+
+Climacus partitions padded diamond targets with an oblique half-plane so that
+visible tips remain owned by the correct semantic note. Porrectus partitions at
+the right terminal column and the midpoint of its second/third nominal pitches;
+its first target has fixed top y=−14 relative to the first pitch. New Climacus
+and Porrectus targets explicitly use `pointer-events: fill`, preventing focus
+strokes from enlarging ownership. During placement, target descendants also
+receive `pointer-events: none` so explicit fill ownership cannot override the
+disabled parent. Target shapes are aria-hidden, nonfocusable children of the
+existing named note controls. Selection overlays remain hidden and pointer-free.
+No separate rectangular focus outline is rendered for a path target. See
+[drawing metrics](engraving-metrics.md) for exact ownership recipes.
 
 The SVG has a title and generated description. The description totals systems,
 neumes, notes, and rendered lyric syllables across the complete multi-system

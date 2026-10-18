@@ -21,8 +21,10 @@ neume. See the [domain model](domain-model.md).
 
 ### Notehead
 
-The rendered shape representing a note. It is currently a placeholder
-rectangle and is not semantic data.
+A rendered head indicating a musical pitch; its contour is derived, not semantic
+data. Some notes, such as the first two pitches of Porrectus, are indicated by
+regions of a shared ribbon rather than separate noteheads. Nominal pitch anchors
+and individual controls remain distinct from painted contours.
 
 ### Neume
 

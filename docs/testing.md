@@ -144,7 +144,7 @@ requiring all four CI checks in branch protection.
 
 The domain, command, and layout suites cover strict contours, stable survivor
 identities, Porrectus equal-outer-pitch deletion rejection, movement validation,
-atomic history, compact placeholder geometry, first-note lyric anchors, and
+atomic history, approved ribbon/diamond geometry, first-note lyric anchors, and
 preview/commit parity across reflow. Tool mapping and accessibility matrices
 include both kinds. Verify their toolbar and graphical entry, keyboard editing,
 placement cancellation, and actual focus behavior in the browser.
@@ -206,8 +206,21 @@ placement cancellation, and actual focus behavior in the browser.
 
 `neume-geometry.test.ts` covers the approved adjacent contacts, interval/stem
 matrix, large-interval extrapolations, ID-free full-geometry preview parity,
-placeholder metrics, anchor independence, exact-fit interval reflow, stable IDs,
+anchor independence, exact-fit interval reflow, stable IDs,
 normalization, and atomic undo/redo. Existing interaction and accessibility tests
 remain in place. The [browser verification record](verification/engraving/README.md)
 contains screenshots, viewport scales, and the limits of the Chromium checks.
 No browser testing dependency was added.
+
+### Climacus and Porrectus engraving verification
+
+`climacus-porrectus-geometry.test.ts` compares independent approved review
+recipes against application paths, anchors, painted bounds and targets. Matrix
+tests cover interval extrapolations, transposition, complete preview/commit
+geometry (including optional hit paths), exact-fit wrapping, stable identities,
+normalization, focus-survival decisions and atomic history. The
+[implementation verification](verification/climacus-porrectus/implementation.md)
+records real editor pointer/keyboard/focus checks, SVG bounds, accessibility,
+opacity raster checks and integrated normal/responsive screenshots. These
+browser checks remain separate from the plain Vitest suite. No browser test
+dependency or component-test environment was added.

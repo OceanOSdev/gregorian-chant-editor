@@ -1,0 +1,767 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="4655.0" viewBox="0 0 1050 4655.0">
+<title>Climacus: engraving construction review</title>
+<rect width="1050" height="4655.0" fill="#fffdf8"/>
+<g font-family="sans-serif" fill="#191919">
+<text x="24" y="32" font-size="23">Climacus · PROPOSAL ONLY · 2026-10-18</text>
+<text x="24" y="58" font-size="13">Intervals = staff-position steps, not semitones. Alternating first pitches on staff line / space.</text>
+<text x="24" y="80" font-size="13">No application changes. Wide ranges intentionally extend outside the four-line staff; no ledger lines.</text>
+<text x="140" y="120" font-size="13">Placeholder 1×</text>
+<text x="290" y="120" font-size="13">Proposal 1×</text>
+<text x="440" y="120" font-size="13">Greciliae 1.5×</text>
+<text x="635" y="120" font-size="13">Contour 2.5×</text>
+<text x="880" y="120" font-size="13">Reduced 0.55×</text>
+<text x="18" y="175" font-size="18">(1, 1)</text>
+<g transform="translate(165 225.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<rect x="12.5" y="-1.5" width="3" height="15"/><rect x="24.5" y="10.5" width="3" height="15"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="6.5" width="15" height="11" rx="1"/><rect x="24" y="18.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 225.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-1-1-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-1-1-1"/>
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" data-project-ink="Climacus-1-1-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="34.5" cy="24" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 225.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(17 18) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(27.5 30) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 225.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-1-2.5-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-1-2.5-1"/>
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" data-project-ink="Climacus-1-1-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<text x="26" y="0" font-size="5">2</text>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="34.5" cy="24" r=".7" fill="#078665"/>
+<text x="36.5" y="12" font-size="5">3</text>
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 225.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-1-0.55-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-1-0.55-1"/>
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" data-project-ink="Climacus-1-1-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="34.5" cy="24" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="500" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 41.5, 'height': 40}; advance 74.5</text>
+<text x="18" y="535" font-size="18">(1, 2)</text>
+<g transform="translate(165 585.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<rect x="12.5" y="-1.5" width="3" height="15"/><rect x="24.5" y="10.5" width="3" height="27"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="6.5" width="15" height="11" rx="1"/><rect x="24" y="30.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 585.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-2-1-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-2-1-1"/>
+<path d="M36.5,36 L42.5,26 L50.5,35 L44.5,46 Z" data-project-ink="Climacus-1-2-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="43.5" cy="36" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 585.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(17 18) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(36.5 42) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 585.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-2-2.5-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-2-2.5-1"/>
+<path d="M36.5,36 L42.5,26 L50.5,35 L44.5,46 Z" data-project-ink="Climacus-1-2-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<text x="26" y="0" font-size="5">2</text>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="43.5" cy="36" r=".7" fill="#078665"/>
+<text x="45.5" y="24" font-size="5">3</text>
+<path d="M36.5,36 L42.5,26 L50.5,35 L44.5,46 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 585.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-2-0.55-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-2-0.55-1"/>
+<path d="M36.5,36 L42.5,26 L50.5,35 L44.5,46 Z" data-project-ink="Climacus-1-2-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="43.5" cy="36" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="860" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 50.5, 'height': 52}; advance 83.5</text>
+<text x="18" y="895" font-size="18">(2, 1)</text>
+<g transform="translate(165 945.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<rect x="12.5" y="-1.5" width="3" height="27"/><rect x="24.5" y="22.5" width="3" height="15"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="18.5" width="15" height="11" rx="1"/><rect x="24" y="30.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 945.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-1-1-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-1-1-1"/>
+<path d="M33.5,36 L39.5,26 L47.5,35 L41.5,46 Z" data-project-ink="Climacus-2-1-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="40.5" cy="36" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 945.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(23 30) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(33.5 42) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 945.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-1-2.5-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-1-2.5-1"/>
+<path d="M33.5,36 L39.5,26 L47.5,35 L41.5,46 Z" data-project-ink="Climacus-2-1-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<text x="32" y="12" font-size="5">2</text>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="40.5" cy="36" r=".7" fill="#078665"/>
+<text x="42.5" y="24" font-size="5">3</text>
+<path d="M33.5,36 L39.5,26 L47.5,35 L41.5,46 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 945.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-1-0.55-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-1-0.55-1"/>
+<path d="M33.5,36 L39.5,26 L47.5,35 L41.5,46 Z" data-project-ink="Climacus-2-1-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="40.5" cy="36" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="1220" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 47.5, 'height': 52}; advance 80.5</text>
+<text x="18" y="1255" font-size="18">(2, 2)</text>
+<g transform="translate(165 1305.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<rect x="12.5" y="-1.5" width="3" height="27"/><rect x="24.5" y="22.5" width="3" height="27"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="18.5" width="15" height="11" rx="1"/><rect x="24" y="42.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 1305.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-2-1-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-2-1-1"/>
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" data-project-ink="Climacus-2-2-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="49.5" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 1305.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(23 30) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(42.5 54) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 1305.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-2-2.5-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-2-2.5-1"/>
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" data-project-ink="Climacus-2-2-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<text x="32" y="12" font-size="5">2</text>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="49.5" cy="48" r=".7" fill="#078665"/>
+<text x="51.5" y="36" font-size="5">3</text>
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 1305.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-2-0.55-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-2-0.55-1"/>
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" data-project-ink="Climacus-2-2-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="49.5" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="1580" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 56.5, 'height': 64}; advance 89.5</text>
+<text x="18" y="1615" font-size="18">(1, 3)</text>
+<g transform="translate(165 1665.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<rect x="12.5" y="-1.5" width="3" height="15"/><rect x="24.5" y="10.5" width="3" height="39"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="6.5" width="15" height="11" rx="1"/><rect x="24" y="42.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 1665.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-3-1-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-3-1-1"/>
+<path d="M44,48 L50,38 L58,47 L52,58 Z" data-project-ink="Climacus-1-3-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="51" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 1665.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(17 18) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(44 54) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 1665.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-3-2.5-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-3-2.5-1"/>
+<path d="M44,48 L50,38 L58,47 L52,58 Z" data-project-ink="Climacus-1-3-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<text x="26" y="0" font-size="5">2</text>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="51" cy="48" r=".7" fill="#078665"/>
+<text x="53" y="36" font-size="5">3</text>
+<path d="M44,48 L50,38 L58,47 L52,58 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 1665.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-1-3-0.55-0"/>
+<path d="M17,12 L23,2 L31,11 L25,22 Z" data-project-ink="Climacus-1-3-0.55-1"/>
+<path d="M44,48 L50,38 L58,47 L52,58 Z" data-project-ink="Climacus-1-3-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="24" cy="12" r=".7" fill="#078665"/>
+<circle cx="51" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="1940" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 58, 'height': 64}; advance 91</text>
+<text x="18" y="1975" font-size="18">(3, 1)</text>
+<g transform="translate(165 2025.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<rect x="12.5" y="-1.5" width="3" height="39"/><rect x="24.5" y="34.5" width="3" height="15"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="30.5" width="15" height="11" rx="1"/><rect x="24" y="42.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 2025.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-3-1-1-0"/>
+<path d="M29,36 L35,26 L43,35 L37,46 Z" data-project-ink="Climacus-3-1-1-1"/>
+<path d="M39.5,48 L45.5,38 L53.5,47 L47.5,58 Z" data-project-ink="Climacus-3-1-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="36" r=".7" fill="#078665"/>
+<circle cx="46.5" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 2025.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(29 42) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(39.5 54) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 2025.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-3-1-2.5-0"/>
+<path d="M29,36 L35,26 L43,35 L37,46 Z" data-project-ink="Climacus-3-1-2.5-1"/>
+<path d="M39.5,48 L45.5,38 L53.5,47 L47.5,58 Z" data-project-ink="Climacus-3-1-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="36" cy="36" r=".7" fill="#078665"/>
+<text x="38" y="24" font-size="5">2</text>
+<path d="M29,36 L35,26 L43,35 L37,46 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="46.5" cy="48" r=".7" fill="#078665"/>
+<text x="48.5" y="36" font-size="5">3</text>
+<path d="M39.5,48 L45.5,38 L53.5,47 L47.5,58 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 2025.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-3-1-0.55-0"/>
+<path d="M29,36 L35,26 L43,35 L37,46 Z" data-project-ink="Climacus-3-1-0.55-1"/>
+<path d="M39.5,48 L45.5,38 L53.5,47 L47.5,58 Z" data-project-ink="Climacus-3-1-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="36" r=".7" fill="#078665"/>
+<circle cx="46.5" cy="48" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="2300" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 53.5, 'height': 64}; advance 86.5</text>
+<text x="18" y="2335" font-size="18">(2, 4)</text>
+<g transform="translate(165 2385.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<rect x="12.5" y="-1.5" width="3" height="27"/><rect x="24.5" y="22.5" width="3" height="51"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="18.5" width="15" height="11" rx="1"/><rect x="24" y="66.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 2385.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-4-1-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-4-1-1"/>
+<path d="M50,72 L56,62 L64,71 L58,82 Z" data-project-ink="Climacus-2-4-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="57" cy="72" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 2385.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(23 30) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(50 78) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 2385.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-4-2.5-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-4-2.5-1"/>
+<path d="M50,72 L56,62 L64,71 L58,82 Z" data-project-ink="Climacus-2-4-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<text x="32" y="12" font-size="5">2</text>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="57" cy="72" r=".7" fill="#078665"/>
+<text x="59" y="60" font-size="5">3</text>
+<path d="M50,72 L56,62 L64,71 L58,82 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 2385.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-2-4-0.55-0"/>
+<path d="M23,24 L29,14 L37,23 L31,34 Z" data-project-ink="Climacus-2-4-0.55-1"/>
+<path d="M50,72 L56,62 L64,71 L58,82 Z" data-project-ink="Climacus-2-4-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="30" cy="24" r=".7" fill="#078665"/>
+<circle cx="57" cy="72" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="2660" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 64, 'height': 88}; advance 97</text>
+<text x="18" y="2695" font-size="18">(4, 2)</text>
+<g transform="translate(165 2745.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<rect x="12.5" y="-1.5" width="3" height="51"/><rect x="24.5" y="46.5" width="3" height="27"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="42.5" width="15" height="11" rx="1"/><rect x="24" y="66.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 2745.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-4-2-1-0"/>
+<path d="M29,48 L35,38 L43,47 L37,58 Z" data-project-ink="Climacus-4-2-1-1"/>
+<path d="M48.5,72 L54.5,62 L62.5,71 L56.5,82 Z" data-project-ink="Climacus-4-2-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="48" r=".7" fill="#078665"/>
+<circle cx="55.5" cy="72" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 2745.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(29 54) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(48.5 78) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 2745.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-4-2-2.5-0"/>
+<path d="M29,48 L35,38 L43,47 L37,58 Z" data-project-ink="Climacus-4-2-2.5-1"/>
+<path d="M48.5,72 L54.5,62 L62.5,71 L56.5,82 Z" data-project-ink="Climacus-4-2-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="36" cy="48" r=".7" fill="#078665"/>
+<text x="38" y="36" font-size="5">2</text>
+<path d="M29,48 L35,38 L43,47 L37,58 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="55.5" cy="72" r=".7" fill="#078665"/>
+<text x="57.5" y="60" font-size="5">3</text>
+<path d="M48.5,72 L54.5,62 L62.5,71 L56.5,82 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 2745.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-4-2-0.55-0"/>
+<path d="M29,48 L35,38 L43,47 L37,58 Z" data-project-ink="Climacus-4-2-0.55-1"/>
+<path d="M48.5,72 L54.5,62 L62.5,71 L56.5,82 Z" data-project-ink="Climacus-4-2-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="48" r=".7" fill="#078665"/>
+<circle cx="55.5" cy="72" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="3020" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 62.5, 'height': 88}; advance 95.5</text>
+<text x="18" y="3055" font-size="18">(5, 5)</text>
+<text x="18" y="3078" font-size="11">Spacing plateau</text>
+<text x="18" y="3093" font-size="11">project choice</text>
+<g transform="translate(165 3105.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<rect x="12.5" y="-1.5" width="3" height="63"/><rect x="24.5" y="58.5" width="3" height="63"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="54.5" width="15" height="11" rx="1"/><rect x="24" y="114.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 3105.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-5-5-1-0"/>
+<path d="M29,60 L35,50 L43,59 L37,70 Z" data-project-ink="Climacus-5-5-1-1"/>
+<path d="M56,120 L62,110 L70,119 L64,130 Z" data-project-ink="Climacus-5-5-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="60" r=".7" fill="#078665"/>
+<circle cx="63" cy="120" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 3105.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(29 66) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(56 126) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 3105.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-5-5-2.5-0"/>
+<path d="M29,60 L35,50 L43,59 L37,70 Z" data-project-ink="Climacus-5-5-2.5-1"/>
+<path d="M56,120 L62,110 L70,119 L64,130 Z" data-project-ink="Climacus-5-5-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="36" cy="60" r=".7" fill="#078665"/>
+<text x="38" y="48" font-size="5">2</text>
+<path d="M29,60 L35,50 L43,59 L37,70 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="63" cy="120" r=".7" fill="#078665"/>
+<text x="65" y="108" font-size="5">3</text>
+<path d="M56,120 L62,110 L70,119 L64,130 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 3105.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 0)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-5-5-0.55-0"/>
+<path d="M29,60 L35,50 L43,59 L37,70 Z" data-project-ink="Climacus-5-5-0.55-1"/>
+<path d="M56,120 L62,110 L70,119 L64,130 Z" data-project-ink="Climacus-5-5-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="60" r=".7" fill="#078665"/>
+<circle cx="63" cy="120" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="3460.0" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 70, 'height': 136}; advance 103</text>
+<text x="18" y="3495.0" font-size="18">(6, 2)</text>
+<text x="18" y="3518.0" font-size="11">PROJECT</text>
+<text x="18" y="3533.0" font-size="11">EXTRAPOLATION</text>
+<g transform="translate(165 3545.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<rect x="12.5" y="-1.5" width="3" height="75"/><rect x="24.5" y="70.5" width="3" height="27"/><rect x="0" y="-5.5" width="15" height="11" rx="1"/><rect x="12" y="66.5" width="15" height="11" rx="1"/><rect x="24" y="90.5" width="15" height="11" rx="1"/>
+</g></g>
+<g transform="translate(310 3545.0) scale(1)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-6-2-1-0"/>
+<path d="M29,72 L35,62 L43,71 L37,82 Z" data-project-ink="Climacus-6-2-1-1"/>
+<path d="M48.5,96 L54.5,86 L62.5,95 L56.5,106 Z" data-project-ink="Climacus-6-2-1-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="72" r=".7" fill="#078665"/>
+<circle cx="55.5" cy="96" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(455 3545.0) scale(1.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,125 Q0,173 83,173 Q166,173 166,125 L166,-65 L166,-210 L166,-217 L166,-249 Q166,-267 155,-270 Q152,-270 151,-269 Q150,-268 149,-263 Q149,-259 148,-250 Q148,-241 148,-223 L148,-217 L148,-210 L148,-28 Q123,-6 83,-6 Q26,-6 0,-32 L0,125 Z" transform="translate(0 6) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(29 78) scale(0.0761904761904762 -0.0761904761904762)"/><path d="M0,60 L80,196 L185,75 L104,-59 L0,60 Z" transform="translate(48.5 102) scale(0.0761904761904762 -0.0761904761904762)"/>
+</g></g>
+<g transform="translate(655 3545.0) scale(2.5)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-6-2-2.5-0"/>
+<path d="M29,72 L35,62 L43,71 L37,82 Z" data-project-ink="Climacus-6-2-2.5-1"/>
+<path d="M48.5,96 L54.5,86 L62.5,95 L56.5,106 Z" data-project-ink="Climacus-6-2-2.5-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<text x="8" y="-12" font-size="5">1</text>
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#1e78bd" stroke-width=".55"/>
+<circle cx="36" cy="72" r=".7" fill="#078665"/>
+<text x="38" y="60" font-size="5">2</text>
+<path d="M29,72 L35,62 L43,71 L37,82 Z" fill="none" stroke="#bf4c30" stroke-width=".55"/>
+<circle cx="55.5" cy="96" r=".7" fill="#078665"/>
+<text x="57.5" y="84" font-size="5">3</text>
+<path d="M48.5,96 L54.5,86 L62.5,95 L56.5,106 Z" fill="none" stroke="#9c429e" stroke-width=".55"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<g transform="translate(900 3545.0) scale(0.55)">
+<path d="M-15,-48 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,-24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,0 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<path d="M-15,24 H100" stroke="#bdafa2" stroke-width=".65" fill="none"/>
+<g transform="translate(0 12)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" data-project-ink="Climacus-6-2-0.55-0"/>
+<path d="M29,72 L35,62 L43,71 L37,82 Z" data-project-ink="Climacus-6-2-0.55-1"/>
+<path d="M48.5,96 L54.5,86 L62.5,95 L56.5,106 Z" data-project-ink="Climacus-6-2-0.55-2"/>
+<circle cx="6" cy="0" r=".7" fill="#078665"/>
+<circle cx="36" cy="72" r=".7" fill="#078665"/>
+<circle cx="55.5" cy="96" r=".7" fill="#078665"/>
+<path d="M6,12 V20" stroke="#078665" stroke-width=".6"/>
+</g></g>
+<text x="130" y="3840.0" font-size="11">Paint bounds {'x': 0, 'y': -6, 'width': 62.5, 'height': 112}; advance 95.5</text>
+<text x="24" y="3880.0" font-size="19">Constituent selection / hit ownership · (1,1), 3×</text>
+<g transform="translate(90 3960.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M17,12 L23,2 L31,11 L25,22 Z" />
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" />
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M-6,-12 H14.5 V33 H-6 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="24" cy="12" r=".8" fill="#078665"/>
+<text x="24" y="-1" font-size="5">2</text>
+<circle cx="34.5" cy="24" r=".8" fill="#078665"/>
+<text x="34.5" y="11" font-size="5">3</text>
+</g>
+<text x="90" y="4145.0" font-size="13">Note 1: Virga head</text>
+<g transform="translate(395 3960.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M17,12 L23,2 L31,11 L25,22 Z" />
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" />
+<path d="M17,12 L23,2 L31,11 L25,22 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M14.5,9.6 L23,-4 L33.851351351351354,9.564189189189193 L24.30263157894737,27.070175438596493 L14.5,14.0 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="24" cy="12" r=".8" fill="#078665"/>
+<text x="24" y="-1" font-size="5">2</text>
+<circle cx="34.5" cy="24" r=".8" fill="#078665"/>
+<text x="34.5" y="11" font-size="5">3</text>
+</g>
+<text x="395" y="4145.0" font-size="13">Note 2: first inclinatum</text>
+<g transform="translate(700 3960.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M17,12 L23,2 L31,11 L25,22 Z" />
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" />
+<path d="M27.5,24 L33.5,14 L41.5,23 L35.5,34 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M34.21621621621622,8.895270270270274 L45.5,23 L35.5,40 L24.93421052631579,25.91228070175439 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="24" cy="12" r=".8" fill="#078665"/>
+<text x="24" y="-1" font-size="5">2</text>
+<circle cx="34.5" cy="24" r=".8" fill="#078665"/>
+<text x="34.5" y="11" font-size="5">3</text>
+</g>
+<text x="700" y="4145.0" font-size="13">Note 3: second inclinatum</text>
+<text x="24" y="4230.0" font-size="19">Constituent selection / hit ownership · (2,2), 3×</text>
+<g transform="translate(90 4310.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M23,24 L29,14 L37,23 L31,34 Z" />
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" />
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4V5.6 C12,5.9 11.85,6 11.6,6 C9.8,6 8,4.8 6,4.8 C4,4.8 2.2,6 0.4,6 C0.15,6 0,5.9 0,5.6 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M-6,-12 H17.5 V33 H-6 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="30" cy="24" r=".8" fill="#078665"/>
+<text x="30" y="11" font-size="5">2</text>
+<circle cx="49.5" cy="48" r=".8" fill="#078665"/>
+<text x="49.5" y="35" font-size="5">3</text>
+</g>
+<text x="90" y="4495.0" font-size="13">Note 1: Virga head</text>
+<g transform="translate(395 4310.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M23,24 L29,14 L37,23 L31,34 Z" />
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" />
+<path d="M23,24 L29,14 L37,23 L31,34 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M19,24 L29,8 L41,23 L31,40 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="30" cy="24" r=".8" fill="#078665"/>
+<text x="30" y="11" font-size="5">2</text>
+<circle cx="49.5" cy="48" r=".8" fill="#078665"/>
+<text x="49.5" y="35" font-size="5">3</text>
+</g>
+<text x="395" y="4495.0" font-size="13">Note 2: first inclinatum</text>
+<g transform="translate(700 4310.0) scale(3)">
+<path d="M0,-4 C0,-5.4 3,-6 6,-6 C9,-6 12,-5.4 12,-4 V27 H10.5 V5.9 C9,5.7 8,4.8 6,4.8 C4,4.8 2.2,6 .4,6 C.15,6 0,5.9 0,5.6 Z" />
+<path d="M23,24 L29,14 L37,23 L31,34 Z" />
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" />
+<path d="M42.5,48 L48.5,38 L56.5,47 L50.5,58 Z" fill="none" stroke="#227ac2" stroke-width=".8"/>
+<path d="M38.5,48 L48.5,32 L60.5,47 L50.5,64 Z" fill="#2785cc" fill-opacity=".06" stroke="#2785cc" stroke-width=".3" stroke-dasharray="2 1"/>
+<circle cx="6" cy="0" r=".8" fill="#078665"/>
+<text x="6" y="-13" font-size="5">1</text>
+<circle cx="30" cy="24" r=".8" fill="#078665"/>
+<text x="30" y="11" font-size="5">2</text>
+<circle cx="49.5" cy="48" r=".8" fill="#078665"/>
+<text x="49.5" y="35" font-size="5">3</text>
+</g>
+<text x="700" y="4495.0" font-size="13">Note 3: second inclinatum</text>
+<text x="24" y="4555.0" font-size="12">1× = one SVG unit per CSS px at intrinsic width. Reduced = 0.55×. Zooming changes both.</text>
+<text x="24" y="4578.0" font-size="12">Green = nominal pitch / first-note lyric axis. Color contours = interaction only; no colored ink at rest.</text>
+<text x="24" y="4601.0" font-size="12">Reference: Greciliae 6.1.0 actual outlines; nominal-cell baseline +6; no font dependency.</text>
+<text x="24" y="4624.0" font-size="12">Reference uses authentic components with PROJECT spacing: not full GregorioTeX output.</text>
+</g></svg>

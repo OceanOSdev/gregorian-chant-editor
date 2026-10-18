@@ -1,0 +1,20 @@
+{
+  "checks": [
+    {
+      "kind": "climacus",
+      "edge": 656,
+      "systemBefore": 0,
+      "systemAfter": 1,
+      "stableIds": true,
+      "focusRestoredThroughReflowUndoRedo": true
+    },
+    {
+      "kind": "porrectus",
+      "edge": 656,
+      "systemBefore": 0,
+      "systemAfter": 1,
+      "stableIds": true,
+      "focusRestoredThroughReflowUndoRedo": true
+    }
+  ]
+}

@@ -1,4 +1,3 @@
-import { legacyNoteHeight } from './neume-geometry';
 import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
@@ -227,7 +226,7 @@ describe('multi-system chant layout', () => {
     expect(firstHighNote?.x).toBe(224);
     expect(high?.ink).toHaveLength(2);
     expect(high?.bounds.y).toBeGreaterThanOrEqual(layout.systems[1]?.y ?? 0);
-    expect((finalHighNote?.y ?? 0) + legacyNoteHeight).toBeLessThan(
+    expect((finalHighNote?.y ?? 0) + (finalHighNote?.height ?? 0)).toBeLessThan(
       firstSystemLyricBaselineY + systemVerticalAdvance,
     );
   });
