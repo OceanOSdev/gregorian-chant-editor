@@ -134,8 +134,8 @@ describe('multi-system chant layout', () => {
     expect(punctumWidth).toBe(12);
     expect(podatusWidth).toBe(12);
     expect(clivisWidth).toBe(24);
-    expect(scandicusWidth).toBe(39);
-    expect(torculusWidth).toBe(39);
+    expect(scandicusWidth).toBe(24);
+    expect(torculusWidth).toBe(34.5);
     expect(scandicusWidth).toBeLessThan(punctumWidth * 3 + 33 * 2);
   });
 
@@ -224,8 +224,8 @@ describe('multi-system chant layout', () => {
     const finalHighNote = high?.notes[2];
 
     expect(firstPunctum?.notes[0]?.x).toBe(224);
-    expect(firstHighNote?.x).toBe(222.5);
-    expect(high?.ink).toHaveLength(5);
+    expect(firstHighNote?.x).toBe(224);
+    expect(high?.ink).toHaveLength(2);
     expect(high?.bounds.y).toBeGreaterThanOrEqual(layout.systems[1]?.y ?? 0);
     expect((finalHighNote?.y ?? 0) + legacyNoteHeight).toBeLessThan(
       firstSystemLyricBaselineY + systemVerticalAdvance,

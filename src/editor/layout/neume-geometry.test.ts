@@ -425,7 +425,7 @@ describe('approved engraving geometry', () => {
     }
   });
 
-  it.each(['scandicus', 'torculus', 'climacus', 'porrectus'] as const)(
+  it.each(['climacus', 'porrectus'] as const)(
     'preserves %s placeholder metrics and joints',
     (kind) => {
       const positions = {
@@ -453,12 +453,12 @@ describe('approved engraving geometry', () => {
   it('reflows an interval change at an exact fit, preserving IDs and atomic history', () => {
     const legacy: Neume = {
       id: 'legacy',
-      kind: 'scandicus',
+      kind: 'climacus',
       lyricSyllableId: 'lyric',
       notes: [
         { id: 'legacy-0', staffPosition: staffPosition(0) },
-        { id: 'legacy-1', staffPosition: staffPosition(1) },
-        { id: 'legacy-2', staffPosition: staffPosition(2) },
+        { id: 'legacy-1', staffPosition: staffPosition(-1) },
+        { id: 'legacy-2', staffPosition: staffPosition(-2) },
       ],
     };
     // These widths place the final wide Clivis exactly at x=656.

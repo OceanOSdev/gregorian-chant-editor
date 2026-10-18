@@ -173,8 +173,9 @@ placement cancellation, and actual focus behavior in the browser.
 
 - Update shared geometry and painted-bound expectations; do not derive ink-part
   cardinality from semantic note count.
-- Keep engraved compounds as continuous filled contours, and test adjacent
-  contacts at fractional scale. Test both note controls and musical anchors
+- Keep intended joins as continuous filled contours, and test adjacent
+  contacts at fractional scale. Preserve intentional disconnected components
+  such as Scandicus (1,1); never require blanket neume ink connectivity. Test both note controls and musical anchors
   independently of ink bounds.
 - Test compact spacing, following-neume spacing, wrapping thresholds,
   selection outlines, lyric anchors, and preview/commit parity.

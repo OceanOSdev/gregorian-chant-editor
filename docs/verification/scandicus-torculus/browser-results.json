@@ -1,0 +1,241 @@
+{
+  "checks": [
+    {
+      "name": "Browser exact ink/head bounds across 196 line/space/interval geometries",
+      "count": 798,
+      "failures": []
+    },
+    {
+      "name": "Visible head interiors retain pointer ownership",
+      "count": 58664,
+      "failures": []
+    },
+    {
+      "name": "Intended joined components stay connected at fractional scales and 45% opacity; separated Scandicus components checked independently",
+      "samples": 84,
+      "failures": []
+    },
+    {
+      "name": "Review score built entirely through UI insertion and pitch edits; all SVG paths match expected geometry",
+      "neumes": 16
+    },
+    {
+      "name": "96 real head clicks at desktop/responsive sizes, Space selection, Tab order, correct head overlays and accessible button roles",
+      "failures": []
+    },
+    {
+      "name": "Both kinds: whole selection/movement/deletion, note normalization, stable IDs, focus, undo/redo; equal-outer Torculus deletion and invalid movement rejected",
+      "failures": []
+    },
+    {
+      "name": "Both graphical tools: disabled existing controls, translucent preview/commit exact ink parity, committed focus, Escape restoration",
+      "failures": []
+    },
+    {
+      "name": "Screenshot fixture order",
+      "fixtures": [
+        {
+          "id": "5020fe1c-e6c8-4523-b251-e884f5ab69d7",
+          "kind": "scandicus",
+          "a": 1,
+          "b": 1,
+          "positions": [0, 1, 2],
+          "noteIds": [
+            "99f29806-d28c-4a0d-bc5f-e989441877b3",
+            "9c3df9b6-899f-4a09-ba1b-8f2a44cb5258",
+            "45c38394-0621-4fa4-96ed-92f39cc6ca20"
+          ]
+        },
+        {
+          "id": "9f405bd9-e6d7-4e4d-b618-204e55bc9960",
+          "kind": "scandicus",
+          "a": 1,
+          "b": 2,
+          "positions": [1, 2, 4],
+          "noteIds": [
+            "7eb2d740-c009-4f49-a24f-7c23fca63ab5",
+            "2f7b1619-449f-4a5d-8754-36bb404f8b58",
+            "c61e8f46-840b-4355-9a62-6973b6e5a0b7"
+          ]
+        },
+        {
+          "id": "216a13c4-2e02-4c22-b0ef-557e40d901db",
+          "kind": "scandicus",
+          "a": 2,
+          "b": 1,
+          "positions": [0, 2, 3],
+          "noteIds": [
+            "2e666d3b-0457-4843-bf4f-51fff6f088e0",
+            "cf1f231b-e478-424d-8f28-6f7564e35a6c",
+            "ab9f1119-1c9b-451a-880b-c72a93ac63be"
+          ]
+        },
+        {
+          "id": "c0ec3ddf-1a38-420e-ab67-e2900395638d",
+          "kind": "scandicus",
+          "a": 2,
+          "b": 2,
+          "positions": [1, 3, 5],
+          "noteIds": [
+            "7807694d-3312-4cf4-a1eb-c6be7f8f74cc",
+            "ac49d287-59cd-4b98-b387-f854b254d1cf",
+            "1694def0-ea3a-424c-a155-158c0448adee"
+          ]
+        },
+        {
+          "id": "c309b69c-2469-4418-8cd9-f56ec0c8e429",
+          "kind": "scandicus",
+          "a": 1,
+          "b": 3,
+          "positions": [0, 1, 4],
+          "noteIds": [
+            "73e8c720-1809-4a62-90be-7e7115d46598",
+            "4379c4d6-83e2-457d-b99d-ff033e1e3945",
+            "ef2a1be5-0c14-4eb9-a750-567839bffc45"
+          ]
+        },
+        {
+          "id": "cb426818-0e7e-4ed8-83a1-a1367397ac33",
+          "kind": "scandicus",
+          "a": 3,
+          "b": 1,
+          "positions": [1, 4, 5],
+          "noteIds": [
+            "623e701c-9c24-4a56-8b17-c0f96cb7171c",
+            "6522e2aa-1a38-4434-98a3-929cf4eb33b7",
+            "2769a255-6f3c-46ad-8a32-9f16f8d38072"
+          ]
+        },
+        {
+          "id": "7939dea0-da0f-48e2-aa90-cac1b9220576",
+          "kind": "scandicus",
+          "a": 2,
+          "b": 4,
+          "positions": [0, 2, 6],
+          "noteIds": [
+            "923eb477-09a5-4657-85ef-98283020195f",
+            "66ade73c-44f0-471d-bcc3-4845914b3e76",
+            "073c701f-472c-485e-821d-fcf22d4265c3"
+          ]
+        },
+        {
+          "id": "481ce000-d415-4ddf-a276-7d601dde0baa",
+          "kind": "scandicus",
+          "a": 4,
+          "b": 2,
+          "positions": [1, 5, 7],
+          "noteIds": [
+            "db8d07ed-eeb4-406f-a20b-25be388efdb6",
+            "5e940a6e-e583-4539-8731-304106c2ecaa",
+            "6d888a00-68e6-478e-ab20-01858e0c2b69"
+          ]
+        },
+        {
+          "id": "2fe45689-ae4b-45b5-b90c-3857dd81ef04",
+          "kind": "torculus",
+          "a": 1,
+          "b": 1,
+          "positions": [2, 3, 2],
+          "noteIds": [
+            "7dcbae2a-de11-4e27-940f-02f23de37ce8",
+            "6e24b937-51d0-4766-b135-7425d544cad5",
+            "dedcb3aa-bb8e-4dcc-8584-d3f3677658be"
+          ]
+        },
+        {
+          "id": "ed96d0b5-ada0-41a4-acb6-021a0b494e7c",
+          "kind": "torculus",
+          "a": 1,
+          "b": 2,
+          "positions": [3, 4, 2],
+          "noteIds": [
+            "a050126f-e741-4b30-857b-a54d5956c8d0",
+            "4b9dc62e-88bb-429a-bdc8-fbc9bc67445f",
+            "87ded3d1-2ca4-4140-914b-8bcae295c1ff"
+          ]
+        },
+        {
+          "id": "698ec4d8-54dc-4c41-a64a-b061dd4b03ee",
+          "kind": "torculus",
+          "a": 2,
+          "b": 1,
+          "positions": [2, 4, 3],
+          "noteIds": [
+            "b1f91605-936c-4ef3-b4ec-4be93e8b894f",
+            "8fab7900-2365-49b7-9dc5-36d35ce119e2",
+            "166625c9-c5ed-4da7-9701-b6012442bbbd"
+          ]
+        },
+        {
+          "id": "32cf543c-0b32-45cd-957e-216559f6661c",
+          "kind": "torculus",
+          "a": 2,
+          "b": 2,
+          "positions": [3, 5, 3],
+          "noteIds": [
+            "1cbff954-4aa4-4c9f-ad7b-3cf2fd858a55",
+            "b897765d-038a-47d3-b41d-c53888f5df99",
+            "27a99c8d-5d08-46ee-92fb-118466838d3e"
+          ]
+        },
+        {
+          "id": "79ac4cc6-500b-4a32-8a41-0c435edac9b2",
+          "kind": "torculus",
+          "a": 1,
+          "b": 3,
+          "positions": [2, 3, 0],
+          "noteIds": [
+            "7938d774-3452-4c1d-a106-4478100452d0",
+            "a9b54732-7371-4759-ac89-1b6425a39695",
+            "b6b9a995-c085-4ccd-8353-8d9f73afd2bd"
+          ]
+        },
+        {
+          "id": "174de733-1b84-49e4-8156-ca7b3a6036b0",
+          "kind": "torculus",
+          "a": 3,
+          "b": 1,
+          "positions": [3, 6, 5],
+          "noteIds": [
+            "0266b44a-63f5-4901-9d53-d555a7434648",
+            "1dfe76dd-bb99-4d9a-9c67-5b9048dcea7d",
+            "ccdbb587-29f0-4b17-9f79-0ed89a25b013"
+          ]
+        },
+        {
+          "id": "b376ff4e-7146-490f-9847-ed0b828d9f11",
+          "kind": "torculus",
+          "a": 2,
+          "b": 4,
+          "positions": [2, 4, 0],
+          "noteIds": [
+            "01380900-9162-48df-a602-a2f8986971d7",
+            "0f6abc2f-cb15-499d-8023-2888239142fd",
+            "61397c38-8bd0-4b6e-90b6-d7d4d8b7d801"
+          ]
+        },
+        {
+          "id": "a0d0a3ea-8aa9-4ca1-baef-d8e0fc7a45a0",
+          "kind": "torculus",
+          "a": 4,
+          "b": 2,
+          "positions": [3, 7, 5],
+          "noteIds": [
+            "92d50d55-a0e0-4d17-952b-245b078102b1",
+            "f3f422e7-936f-475e-a4e4-359b4cc06867",
+            "41a8a76f-527e-482f-8f79-12df3c50793f"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Both kinds at exact x=656: interval expansion wraps, note IDs and real browser focus survive reparenting, undo and redo restore system membership/focus",
+      "failures": []
+    },
+    {
+      "name": "Both tools at responsive size: new-final-system ghost expands viewBox, commit matches exact ink and focuses stable first note, removal restores extent",
+      "failures": []
+    }
+  ],
+  "errors": []
+}

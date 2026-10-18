@@ -274,7 +274,7 @@ describe('layoutChant', () => {
     }
   });
 
-  it('lays out a Scandicus with three compact notes and two adjacent connectors', () => {
+  it('lays out a Scandicus with a fitted upper column in musical order', () => {
     const neumeLayout = layoutChant(
       createDocument([scandicus('scandicus', 2, 4, 7)]),
     ).systems.flatMap((system) => system.neumes)[0];
@@ -296,19 +296,15 @@ describe('layoutChant', () => {
       'scandicus-middle',
       'scandicus-final',
     ]);
-    expect(noteCenterX(middle) - noteCenterX(first)).toBe(12);
-    expect(noteCenterX(final) - noteCenterX(middle)).toBe(12);
+    expect(middle.anchorX - first.anchorX).toBe(10.5);
+    expect(final.anchorX - middle.anchorX).toBe(0);
     expect(noteCenterY(first)).toBeGreaterThan(noteCenterY(middle));
     expect(noteCenterY(middle)).toBeGreaterThan(noteCenterY(final));
-    expect(neumeLayout.ink).toHaveLength(5);
-    expect(neumeLayout.ink.slice(2)).toEqual(
-      neumeLayout.notes.map((note) => note.head),
-    );
-    expect(neumeLayout.ink[0].bounds).toMatchObject({ width: 3, height: 27 });
-    expect(neumeLayout.ink[1].bounds).toMatchObject({ width: 3, height: 39 });
+    expect(neumeLayout.ink).toHaveLength(1);
+    expect(neumeLayout.bounds).toMatchObject({ width: 22.5, height: 72 });
   });
 
-  it('lays out a Torculus with compact notes and opposite connector directions', () => {
+  it('lays out a Torculus with fitted rising and falling connections', () => {
     const neumeLayout = layoutChant(
       createDocument([torculus('torculus', 2, 5, 3)]),
     ).systems.flatMap((system) => system.neumes)[0];
@@ -329,11 +325,10 @@ describe('layoutChant', () => {
       'torculus-second',
       'torculus-third',
     ]);
-    expect(noteCenterX(second) - noteCenterX(first)).toBe(12);
-    expect(noteCenterX(third) - noteCenterX(second)).toBe(12);
-    expect(neumeLayout.ink).toHaveLength(5);
-    expect(neumeLayout.ink[0].bounds).toMatchObject({ width: 3, height: 39 });
-    expect(neumeLayout.ink[1].bounds).toMatchObject({ width: 3, height: 27 });
+    expect(second.anchorX - first.anchorX).toBe(10.5);
+    expect(third.anchorX - second.anchorX).toBe(10.5);
+    expect(neumeLayout.ink).toHaveLength(1);
+    expect(neumeLayout.bounds).toMatchObject({ width: 33, height: 48 });
   });
 
   it('spaces after a complete Torculus and exposes no interior boundary', () => {

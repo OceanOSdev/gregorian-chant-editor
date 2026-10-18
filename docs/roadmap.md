@@ -15,9 +15,9 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 
 ## Current limitations
 
-- Punctum, ordinary Podatus, and ordinary Clivis use the initial project square
-  notation convention. Scandicus, Torculus, Climacus, and Porrectus retain
-  placeholder heads and connectors; the clef is still a letter C.
+- Punctum, ordinary Podatus, Clivis, Scandicus, and Torculus use the project
+  square-notation conventions. Climacus and
+  Porrectus retain placeholder heads and connectors; the clef is still a letter C.
   See [drawing metrics](engraving-metrics.md) for exact choices and extrapolated
   intervals above the verified Δ5 range. This is not complete publication-quality
   chant typography; extreme pitches can exceed fixed vertical system bounds.
