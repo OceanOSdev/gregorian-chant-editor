@@ -12,8 +12,8 @@ implementation has been reviewed.
 
 The editor's provisional rectangular heads and vertical connectors are not
 sufficient for the distinct modern square-notation forms of Punctum, ordinary
-Podatus, and Clivis. Improving their silhouettes must preserve semantic note
-identity, constituent-note interaction, preview parity, and geometry-derived
+Podatus, Clivis, Scandicus, and Torculus. Improving their silhouettes must preserve
+semantic note identity, constituent-note interaction, preview parity, and geometry-derived
 wrapping. Painted extents, musical alignment points, and padded interaction
 regions serve different purposes and need independent definitions.
 
@@ -41,9 +41,11 @@ derived, distinct from ink measurements. Interval-sensitive geometry is computed
 procedurally rather than selected from a fixed inventory of interval glyphs.
 
 Introduce no notation-font dependency, generalized glyph framework, or semantic
-document fields. Preserve the four other supported kinds' provisional shapes
-until their engraving is explicitly requested. Shape metrics and approved
-contact/stem rules belong in the [drawing-metrics guide](../engraving-metrics.md),
+document fields. Preserve Climacus and Porrectus provisional shapes until their
+engraving is explicitly requested. Intended joins use clean filled contours;
+semantic unity does not require connected ink. Ordinary Scandicus can retain
+separate components when the reference construction calls for them. Shape metrics
+and approved contact/stem rules belong in the [drawing-metrics guide](../engraving-metrics.md),
 not in this ADR. The current
 [browser verification record](../verification/engraving/README.md) accompanies
 implementation review without changing this proposal's status.
@@ -75,7 +77,7 @@ implementation review without changing this proposal's status.
 Rectangles and generic vertical lines alone retain the current simplicity but
 cannot express every fitted contact contour. A notation font offers mature
 outlines but introduces font mapping, metrics, loading, distribution, and
-constituent-note anchoring work beyond this three-shape milestone.
+constituent-note anchoring work beyond the current engraving milestones.
 
 Keep the choice limited to these builders and the existing provisional forms.
 Reconsider a font only when future vocabulary provides a concrete reason.

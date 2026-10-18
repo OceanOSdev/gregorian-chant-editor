@@ -57,18 +57,21 @@ on the semantic clef line. Their y coordinates advance by the system offset.
 ## Neume geometry
 
 `buildNeumeGeometry` in `src/editor/layout/neume-geometry.ts` is the pure,
-ID-free source for heads, continuous engraved silhouettes, placeholder joints,
+ID-free source for heads, engraved ink components, placeholder joints,
 painted bounds, nominal note anchors, interaction bounds, musical `lyricAnchorX`,
 and horizontal `advanceX`. Rectangles and short paths carry explicit bounds;
 there is no DOM measurement, notation font, glyph framework, or semantic format
 change. See [drawing metrics](engraving-metrics.md) for the exact project
 recipes, their reference basis, and large-interval extrapolations.
 
-Punctum, ordinary Podatus, and ordinary Clivis use the approved square-notation
-construction. A complete engraved compound renders as one filled path, so
-adjacent heads and joins have no internal antialiased boundary. Per-note head
-shapes exist for selection feedback; they do not separately paint the normal
-silhouette. The four other kinds retain their placeholder heads and joints.
+Punctum, ordinary Podatus, Clivis, Scandicus, and Torculus use the approved
+square-notation constructions. Intended joined components render as traced
+filled contours, without internal antialiased boundaries. A semantically unified
+neume may have disconnected ink: Scandicus with adjacent first interval keeps
+its conventional first Punctum separate from the upper pair, including the
+explicit Punctum + Pes construction at (1,1). No artificial connector is added.
+Per-note head shapes exist for selection feedback; they do not separately paint
+the normal silhouette. Climacus and Porrectus retain placeholder heads and joints.
 
 A note's `anchorX` and `anchorY` represent its nominal musical position; its
 `x`, `y`, `width`, and `height` enclose its painted head. These need not have the
@@ -168,8 +171,9 @@ logic, or continuation marks.
 
 `ScoreSvg` renders each system's staff, clef, notation, and lyrics.
 `NeumeInk` displays the same supplied ink for committed notation and previews;
-preview opacity changes presentation only. Normal engraved ink is a single
-filled contour. Individual note selection adds a stroke-only head overlay.
+preview opacity changes presentation only. Intended joined ink is painted as a
+continuous filled contour; conventional disconnected components remain separate.
+Individual note selection adds a stroke-only head overlay.
 A selected whole neume
 receives an outline expanded from its raw bounds.
 
@@ -181,7 +185,11 @@ padding is partitioned at the nominal inter-pitch y midpoint; adjacent Clivis
 padding is partitioned at the shared x edge. Visible heads remain independently
 clickable. At an exact shared boundary, the later semantic note's control owns
 the boundary through SVG paint order. Focus feedback uses those hit bounds;
-whole-neume feedback uses complete painted bounds.
+whole-neume feedback uses complete painted bounds. Scandicus partitions adjacent
+first-note padding at the upper column's left edge and the upper pair at its
+nominal y midpoint. Torculus partitions adjacent padding at shared x edges.
+Wider intervals retain full horizontal padding to preserve visible head interiors;
+no interaction polygon or new semantic identity is introduced.
 
 The SVG has a title and generated description. The description totals systems,
 neumes, notes, and rendered lyric syllables across the complete multi-system

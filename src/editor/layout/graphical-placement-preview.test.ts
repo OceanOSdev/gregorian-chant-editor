@@ -243,10 +243,8 @@ describe('graphical placement preview layout', () => {
       }
 
       expect(preview.notes).toHaveLength(3);
-      expect(preview.ink).toHaveLength(5);
-      expect(preview.ink.slice(2)).toEqual(
-        preview.notes.map((note) => note.head),
-      );
+      expect(preview.ink).toHaveLength(1);
+      expect(preview.ink[0].kind).toBe('path');
       expect(second.anchorY).toBeLessThan(first.anchorY);
       expect(third.anchorY).toBeGreaterThan(second.anchorY);
     },
@@ -298,12 +296,10 @@ describe('graphical placement preview layout', () => {
       }
 
       expect(preview.notes).toHaveLength(3);
-      expect(preview.ink).toHaveLength(5);
-      expect(second.x - first.x).toBe(12);
-      expect(third.x - second.x).toBe(12);
-      expect(preview.ink.slice(2)).toEqual(
-        preview.notes.map((note) => note.head),
-      );
+      expect(preview.ink).toHaveLength(2);
+      expect(second.anchorX - first.anchorX).toBe(12);
+      expect(third.anchorX - second.anchorX).toBe(0);
+      expect(preview.ink[0]).toEqual(first.head);
     },
   );
 
