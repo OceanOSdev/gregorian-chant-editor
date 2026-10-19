@@ -1,0 +1,195 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/150.0.7871.128",
+    "revision": "@81891e5ca708047763816c778216799ef14c66cb",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "jsVersion": "15.0.1240245"
+  },
+  "checks": [
+    {
+      "name": "kind lifecycle",
+      "kind": "punctum",
+      "repeat": false,
+      "count": 1,
+      "focus": "5dafdad8-a407-4e23-8894-fe9797976e64"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "podatus",
+      "repeat": false,
+      "count": 1,
+      "focus": "92b76249-2e0a-4fb6-b013-7a82e4473fcd"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "clivis",
+      "repeat": false,
+      "count": 1,
+      "focus": "a03f6324-1696-426b-9ff8-56ba7928b0a4"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "scandicus",
+      "repeat": false,
+      "count": 1,
+      "focus": "8c1bc892-6329-44b9-9314-a24ad04d090b"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "torculus",
+      "repeat": false,
+      "count": 1,
+      "focus": "b141e9a0-3fd5-42e5-9c2e-653a758da7a4"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "climacus",
+      "repeat": false,
+      "count": 1,
+      "focus": "344baf94-637f-4e96-ba7b-e3d99bfe290c"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "porrectus",
+      "repeat": false,
+      "count": 1,
+      "focus": "ed50d505-06c9-4c79-a88d-eeb2ab441df3"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "punctum",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "podatus",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "clivis",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "scandicus",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "torculus",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "climacus",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "kind lifecycle",
+      "kind": "porrectus",
+      "repeat": true,
+      "count": 1,
+      "focus": "score"
+    },
+    {
+      "name": "rapid trusted clicks and history",
+      "clicks": 12,
+      "neumes": 12,
+      "messages": 12,
+      "restoredExactIds": true
+    },
+    {
+      "name": "same-batch clicks",
+      "additionalClicks": 30,
+      "totalNeumes": 42
+    },
+    {
+      "name": "invalid hover switching repetition",
+      "passed": true
+    },
+    {
+      "name": "Add consistency",
+      "cases": 14,
+      "passed": true
+    },
+    {
+      "name": "Finish identity and restoration",
+      "passed": true
+    },
+    {
+      "name": "syllable input history",
+      "passed": true
+    },
+    {
+      "name": "placement key guards and checkbox Escape",
+      "passed": true
+    },
+    {
+      "name": "long score focus",
+      "width": 1440,
+      "systems": 37,
+      "before": 7175,
+      "after": 7175,
+      "shortAccessibleName": "Score placement",
+      "tabFinish": true
+    },
+    {
+      "name": "long score focus",
+      "width": 390,
+      "systems": 37,
+      "before": 3040,
+      "after": 3040,
+      "shortAccessibleName": "Score placement",
+      "tabFinish": true
+    },
+    {
+      "name": "long score focus",
+      "width": 320,
+      "systems": 37,
+      "before": 2542,
+      "after": 2542,
+      "shortAccessibleName": "Score placement",
+      "tabFinish": true
+    },
+    {
+      "name": "late reflow reveal and preview parity",
+      "before": 6764,
+      "after": 7067,
+      "destinationSystem": 25,
+      "inkMatches": true
+    },
+    {
+      "name": "nested scroll preservation",
+      "before": {
+        "window": 166,
+        "container": 6789
+      },
+      "after": {
+        "window": 166,
+        "container": 6789
+      }
+    },
+    {
+      "name": "invalid SVG transform",
+      "passed": true
+    },
+    {
+      "name": "missing target fallback",
+      "passed": true
+    }
+  ]
+}

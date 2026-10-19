@@ -224,3 +224,18 @@ records real editor pointer/keyboard/focus checks, SVG bounds, accessibility,
 opacity raster checks and integrated normal/responsive screenshots. These
 browser checks remain separate from the plain Vitest suite. No browser test
 dependency or component-test environment was added.
+
+## Persistent graphical placement regressions
+
+`editor-session.test.ts` covers all-kind one-shot/persistent lifecycle, toolbar
+exit consistency, same-position sequential insertion, preview parity after
+wrapping, independent history, event announcements, stable selection, and target
+removal. `focus-visibility.test.ts` covers minimal reveal including sticky-strip
+occlusion and oversized bounds.
+
+The [real-browser placement record](verification/placement/README.md) includes a
+standalone development fixture and a dependency-free DevTools Protocol script.
+These exercise the actual StrictMode React editor, including rapid clicks,
+focus timing, long/nested scroll preservation, live-region mutations, and native
+keyboard behavior. They remain separate from the plain Vitest suite. Accessibility
+tree and mutation checks do not replace a spoken screen-reader verification.

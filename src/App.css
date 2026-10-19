@@ -168,3 +168,103 @@
   stroke-width: 2.5;
   vector-effect: non-scaling-stroke;
 }
+
+.editor-score-workspace {
+  position: relative;
+}
+
+.editor-context {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: #28231e;
+  background: #fffdf8;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.editor-context__summary {
+  display: flex;
+  flex: 1 1 15rem;
+  flex-direction: column;
+  overflow-wrap: anywhere;
+}
+
+.editor-context__repeat {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+/* Reserve one line while armed so the first insertion does not resize the
+   sticky strip (and trigger scroll anchoring) on narrow viewports. */
+.editor-context__location {
+  min-height: 1.25em;
+}
+
+.editor-context__small {
+  font-size: 0.75rem;
+}
+
+.editor-context button {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.75rem;
+  color: #fff;
+  background: #285e50;
+  border: 1px solid #285e50;
+  border-radius: 0.25rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.editor-context button:focus-visible,
+.editor-context input:focus-visible {
+  outline: 3px solid #1e64d2;
+  outline-offset: 2px;
+}
+
+.editor-context__help {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.editor-score-workspace:has(.score--placing:focus) .editor-context {
+  border-color: #1e64d2;
+  box-shadow: inset 3px 0 #1e64d2;
+}
+
+.score--placing:focus {
+  outline: none;
+}
+
+.score__placement-context {
+  display: none;
+  fill: none;
+  stroke: #1e64d2;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.score--placing:focus .score__placement-context {
+  display: block;
+}
+
+.editor-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

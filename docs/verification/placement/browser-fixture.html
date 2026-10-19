@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Placement verification fixture — development only</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      // Dev-only browser fixture: imports real production components without
+      // changing the application document or adding a production debug API.
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { ChantEditor } from '../../../src/editor/components/ChantEditor.tsx';
+      import '../../../src/index.css';
+      import '../../../src/App.css';
+      const root = createRoot(document.getElementById('root'));
+      let fixtureKey = 0;
+      window.mountChantFixture = (document) => {
+        root.render(
+          React.createElement(
+            React.StrictMode,
+            null,
+            React.createElement(ChantEditor, { document, key: ++fixtureKey }),
+          ),
+        );
+      };
+    </script>
+  </body>
+</html>

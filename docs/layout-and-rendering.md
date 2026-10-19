@@ -212,7 +212,10 @@ No separate rectangular focus outline is rendered for a path target. See
 
 The SVG has a title and generated description. The description totals systems,
 neumes, notes, and rendered lyric syllables across the complete multi-system
-layout. Preview geometry and purely visual connectors, clefs, hit targets, and
+layout. During placement, the root instead exposes the concise placement
+name/description specified in [editor interactions](editor-interactions.md#focus).
+Its local placement-context cue uses derived neume bounds without altering ink,
+advance, or wrapping. Preview geometry and purely visual connectors, clefs, hit targets, and
 selection outlines are hidden from accessibility APIs where appropriate.
 
 Pure helpers test the accessible strings. Actual browser focus, event

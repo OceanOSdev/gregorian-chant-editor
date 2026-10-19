@@ -1,5 +1,6 @@
 import {
-  useEffect,
+  useLayoutEffect,
+  type RefObject,
   useRef,
   type KeyboardEvent,
   type MouseEvent,
@@ -14,6 +15,8 @@ import {
 } from '../layout/layout-chant';
 import { isPlacementTool, type EditorTool } from '../state/editor-tool';
 import type { EditorSelection } from '../state/selection';
+import type { EditorFocusRequest } from '../state/editor-session';
+import { focusAndReveal } from './focus-visibility';
 import {
   getNoteAccessibleLabel,
   getSelectedNeumeDescription,
@@ -32,8 +35,11 @@ interface ScoreSvgProps {
   placementPreview: GraphicalPlacementPreviewLayout | null;
   selection: EditorSelection;
   activeTool: EditorTool;
-  pendingFocusNoteId: string | null;
-  onNoteFocusHandled: (noteId: string) => void;
+  placementDescription: string;
+  focusRequest: EditorFocusRequest | null;
+  contextStrip: RefObject<HTMLDivElement | null>;
+  finishControl: RefObject<HTMLButtonElement | null>;
+  onFocusHandled: (request: EditorFocusRequest) => void;
   onSelectNote: (noteId: string) => void;
   onSelectNeumeForNote: (noteId: string) => void;
   onPlacementPointerMove: (point: SvgPoint) => void;
@@ -55,8 +61,11 @@ export function ScoreSvg({
   placementPreview,
   selection,
   activeTool,
-  pendingFocusNoteId,
-  onNoteFocusHandled,
+  placementDescription,
+  focusRequest,
+  contextStrip,
+  finishControl,
+  onFocusHandled,
   onSelectNote,
   onSelectNeumeForNote,
   onPlacementPointerMove,
@@ -68,6 +77,7 @@ export function ScoreSvg({
   onDeleteNeume,
   onClearSelection,
 }: ScoreSvgProps) {
+  const scoreElement = useRef<SVGSVGElement>(null);
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
   const displayHeight = Math.max(
@@ -75,24 +85,41 @@ export function ScoreSvg({
     placementPreview?.scoreHeight ?? 0,
   );
 
-  useEffect(() => {
-    if (!pendingFocusNoteId) {
-      return;
+  useLayoutEffect(() => {
+    if (!focusRequest) return;
+    const note =
+      focusRequest.kind === 'control'
+        ? null
+        : noteElements.current.get(focusRequest.noteId);
+    if (
+      focusRequest.kind === 'placement' &&
+      placementActive &&
+      note &&
+      scoreElement.current
+    ) {
+      focusAndReveal(
+        scoreElement.current,
+        note.closest('[data-neume-id]') ?? note,
+        contextStrip.current,
+        note,
+      );
+    } else if (focusRequest.kind === 'note' && !placementActive && note) {
+      focusAndReveal(note, note, contextStrip.current);
+    } else if (!placementActive && finishControl.current) {
+      focusAndReveal(finishControl.current, finishControl.current, null);
     }
-
-    const noteElement = noteElements.current.get(pendingFocusNoteId);
-
-    if (!noteElement) {
-      return;
-    }
-
-    // Stable IDs recover the current element after keyed notes move systems.
-    noteElement.focus();
-    onNoteFocusHandled(pendingFocusNoteId);
-  }, [onNoteFocusHandled, pendingFocusNoteId]);
+    onFocusHandled(focusRequest);
+  }, [
+    focusRequest,
+    onFocusHandled,
+    placementActive,
+    contextStrip,
+    finishControl,
+  ]);
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation();
+    if (placementActive) return;
 
     if (event.shiftKey) {
       onSelectNeumeForNote(noteId);
@@ -149,7 +176,7 @@ export function ScoreSvg({
     isNoteSelected: boolean,
     isNeumeSelected: boolean,
   ) {
-    if (isPlacementTool(activeTool)) {
+    if (isPlacementTool(activeTool) || event.nativeEvent.isComposing) {
       return;
     }
 
@@ -199,14 +226,23 @@ export function ScoreSvg({
 
   return (
     <svg
+      ref={scoreElement}
+      tabIndex={placementActive ? -1 : undefined}
       className={`score${placementActive ? ' score--placing' : ''}`}
       viewBox={`0 0 ${layout.width} ${displayHeight}`}
       role="group"
-      aria-labelledby="score-title score-description"
+      aria-label={placementActive ? 'Score placement' : undefined}
+      aria-labelledby={
+        placementActive ? undefined : 'score-title score-description'
+      }
+      aria-describedby={placementActive ? 'placement-description' : undefined}
       onClick={handleScoreClick}
       onPointerMove={handlePointerMove}
       onPointerLeave={() => onPlacementPointerLeave()}
     >
+      {placementActive ? (
+        <desc id="placement-description">{placementDescription}</desc>
+      ) : null}
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
         {getScoreAccessibleDescription(layout)}
@@ -268,6 +304,23 @@ export function ScoreSvg({
                     width={neume.bounds.width + selectionGap * 2}
                     height={neume.bounds.height + selectionGap * 2}
                     rx="4"
+                    pointerEvents="none"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {placementActive &&
+                (isNeumeSelected ||
+                  (selection.kind === 'note' &&
+                    neume.notes.some(
+                      (note) => note.noteId === selection.noteId,
+                    ))) ? (
+                  <rect
+                    className="score__placement-context"
+                    x={neume.bounds.x - 7}
+                    y={neume.bounds.y - 7}
+                    width={neume.bounds.width + 14}
+                    height={neume.bounds.height + 14}
+                    rx="3"
                     pointerEvents="none"
                     aria-hidden="true"
                   />
