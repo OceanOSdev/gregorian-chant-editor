@@ -8,179 +8,116 @@
   },
   "checks": [
     {
-      "name": "kind lifecycle",
+      "name": "keyboard-only entry and real Tab order",
+      "passed": true,
+      "sequence": "Insert → ↑ → I → T → Right → Enter → I → Shift+Tab → Enter → ↓ → T → Tab → Tab → syllable → Shift+Tab → Enter"
+    },
+    {
+      "name": "roving focus and remembered kind",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
       "kind": "punctum",
-      "repeat": false,
-      "count": 1,
-      "focus": "5dafdad8-a407-4e23-8894-fe9797976e64"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "podatus",
-      "repeat": false,
-      "count": 1,
-      "focus": "92b76249-2e0a-4fb6-b013-7a82e4473fcd"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "clivis",
-      "repeat": false,
-      "count": 1,
-      "focus": "a03f6324-1696-426b-9ff8-56ba7928b0a4"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "scandicus",
-      "repeat": false,
-      "count": 1,
-      "focus": "8c1bc892-6329-44b9-9314-a24ad04d090b"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "torculus",
-      "repeat": false,
-      "count": 1,
-      "focus": "b141e9a0-3fd5-42e5-9c2e-653a758da7a4"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "climacus",
-      "repeat": false,
-      "count": 1,
-      "focus": "344baf94-637f-4e96-ba7b-e3d99bfe290c"
+      "passed": true
     },
     {
-      "name": "kind lifecycle",
+      "name": "persistent kind and contextual insertion",
       "kind": "porrectus",
-      "repeat": false,
-      "count": 1,
-      "focus": "ed50d505-06c9-4c79-a88d-eeb2ab441df3"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "punctum",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "podatus",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "clivis",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "scandicus",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "torculus",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "climacus",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "kind lifecycle",
-      "kind": "porrectus",
-      "repeat": true,
-      "count": 1,
-      "focus": "score"
-    },
-    {
-      "name": "rapid trusted clicks and history",
-      "clicks": 12,
-      "neumes": 12,
-      "messages": 12,
-      "restoredExactIds": true
-    },
-    {
-      "name": "same-batch clicks",
-      "additionalClicks": 30,
-      "totalNeumes": 42
-    },
-    {
-      "name": "invalid hover switching repetition",
       "passed": true
     },
     {
-      "name": "Add consistency",
-      "cases": 14,
+      "name": "surface I and whole-neume Select focus",
       "passed": true
     },
     {
-      "name": "Finish identity and restoration",
+      "name": "rapid clicks and atomic history",
+      "trustedClicks": 12,
+      "sameBatchClicks": 30,
+      "exactIdsRestored": true,
+      "successMutations": 12
+    },
+    {
+      "name": "invalid intent, silent preview, switching and Select",
       "passed": true
     },
     {
-      "name": "syllable input history",
-      "passed": true
+      "name": "text, native select, scope, IME and modifier safeguards",
+      "passed": true,
+      "realIme": false
     },
     {
-      "name": "placement key guards and checkbox Escape",
+      "name": "disabled note guards, target changes, fallback and lyric autofocus",
       "passed": true
     },
     {
       "name": "long score focus",
       "width": 1440,
       "systems": 37,
-      "before": 7175,
-      "after": 7175,
+      "before": 6851,
+      "after": 6851,
       "shortAccessibleName": "Score placement",
-      "tabFinish": true
+      "escapeRestoresFocus": true
     },
     {
       "name": "long score focus",
       "width": 390,
       "systems": 37,
-      "before": 3040,
-      "after": 3040,
+      "before": 2575,
+      "after": 2575,
       "shortAccessibleName": "Score placement",
-      "tabFinish": true
+      "escapeRestoresFocus": true
     },
     {
       "name": "long score focus",
       "width": 320,
       "systems": 37,
-      "before": 2542,
-      "after": 2542,
+      "before": 2114,
+      "after": 2114,
       "shortAccessibleName": "Score placement",
-      "tabFinish": true
+      "escapeRestoresFocus": true
     },
     {
       "name": "late reflow reveal and preview parity",
-      "before": 6764,
-      "after": 7067,
+      "before": 6440,
+      "after": 6743,
       "destinationSystem": 25,
       "inkMatches": true
     },
     {
       "name": "nested scroll preservation",
       "before": {
-        "window": 166,
-        "container": 6789
+        "window": 0,
+        "container": 6660
       },
       "after": {
-        "window": 166,
-        "container": 6789
+        "window": 0,
+        "container": 6660
       }
     },
     {
@@ -190,6 +127,21 @@
     {
       "name": "missing target fallback",
       "passed": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 1440,
+      "noOverflow": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 390,
+      "noOverflow": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 320,
+      "noOverflow": true
     }
   ]
 }

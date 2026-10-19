@@ -29,14 +29,14 @@ import {
 export type EditorFocusRequest =
   | { kind: 'note'; noteId: string }
   | { kind: 'placement'; noteId: string }
-  | { kind: 'control' };
+  | { kind: 'palette'; tool: 'select' | GraphicalNeumeKind };
 
 export interface EditorSession {
   history: DocumentHistory;
   selection: EditorSelection;
   activeSyllableId: string | null;
   activeTool: EditorTool;
-  keepPlacing: boolean;
+  rememberedKind: GraphicalNeumeKind;
   hoveredPoint: { x: number; y: number } | null;
   focusRequest: EditorFocusRequest | null;
   announcement: { sequence: number; text: string };
@@ -44,7 +44,7 @@ export interface EditorSession {
 
 export type EditorAction =
   | { type: 'arm'; tool: EditorTool }
-  | { type: 'repeat'; value: boolean }
+  | { type: 'focus-palette' }
   | { type: 'hover'; point: { x: number; y: number } | null }
   | {
       type: 'place';
@@ -52,8 +52,8 @@ export type EditorAction =
       point: { x: number; y: number };
       ids: InsertionIds;
     }
-  | { type: 'insert'; kind: GraphicalNeumeKind; ids: InsertionIds }
-  | { type: 'finish' }
+  | { type: 'insert'; ids: InsertionIds }
+  | { type: 'select-tool' }
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | { type: 'syllable'; id: string }
   | { type: 'add-syllable'; syllable: LyricSyllable }
@@ -76,7 +76,7 @@ export function createEditorSession(document: ChantDocument): EditorSession {
     selection: clearSelection(),
     activeSyllableId: document.syllables[0]?.id ?? null,
     activeTool: selectTool(),
-    keepPlacing: false,
+    rememberedKind: 'punctum',
     hoveredPoint: null,
     focusRequest: null,
     announcement: { sequence: 0, text: '' },
@@ -119,11 +119,13 @@ function reconcile(state: EditorSession): EditorSession {
     selection,
     activeSyllableId,
     activeTool: noTarget ? selectTool() : state.activeTool,
-    focusRequest: noTarget ? { kind: 'control' } : state.focusRequest,
+    focusRequest: noTarget
+      ? { kind: 'palette', tool: 'select' }
+      : state.focusRequest,
   };
 }
 
-export function getFinishFocusRequest(
+export function getSelectFocusRequest(
   state: EditorSession,
 ): EditorFocusRequest {
   const document = state.history.present;
@@ -139,7 +141,7 @@ export function getFinishFocusRequest(
       : null;
   return neume?.lyricSyllableId === state.activeSyllableId
     ? { kind: 'note', noteId: neume.notes[0].id }
-    : { kind: 'control' };
+    : { kind: 'palette', tool: 'select' };
 }
 
 /** Pure event transitions: no browser work or ID generation in React updaters. */
@@ -151,29 +153,26 @@ export function reduceEditorSession(
   switch (action.type) {
     case 'arm': {
       const kind = getGraphicalNeumeKind(action.tool);
-      if (
-        !state.activeSyllableId ||
-        !kind ||
-        action.tool.kind === state.activeTool.kind
-      )
-        return state;
+      if (!kind || action.tool.kind === state.activeTool.kind) return state;
       return announce(
         {
           ...state,
           activeTool: action.tool,
+          rememberedKind: kind,
           hoveredPoint: null,
           focusRequest: null,
         },
         `Placing ${neumeName(kind)}.`,
       );
     }
-    case 'repeat':
-      return state.keepPlacing === action.value
-        ? state
-        : { ...state, keepPlacing: action.value };
+    case 'focus-palette':
+      return {
+        ...state,
+        focusRequest: { kind: 'palette', tool: state.rememberedKind },
+      };
     case 'hover':
       return { ...state, hoveredPoint: placing ? action.point : null };
-    case 'finish':
+    case 'select-tool':
       return !placing
         ? state
         : announce(
@@ -181,9 +180,9 @@ export function reduceEditorSession(
               ...state,
               activeTool: selectTool(),
               hoveredPoint: null,
-              focusRequest: getFinishFocusRequest(state),
+              focusRequest: getSelectFocusRequest(state),
             },
-            'Placement finished.',
+            'Select tool.',
           );
     case 'select': {
       if (placing) return state;
@@ -235,6 +234,7 @@ export function reduceEditorSession(
     case 'place': {
       if (!state.activeSyllableId) return state;
       if (action.type === 'place' && placing !== action.kind) return state;
+      const kind = action.type === 'place' ? action.kind : state.rememberedKind;
       const document = state.history.present;
       // Recompute on the reducer's current document, never the handler's render closure.
       const insertion =
@@ -243,14 +243,14 @@ export function reduceEditorSession(
               document,
               layoutChant(document),
               state.activeSyllableId,
-              action.kind,
+              kind,
               action.point,
             )
           : resolveEditorToolbarInsertion(
               document,
               state.activeSyllableId,
               state.selection.kind === 'note' ? state.selection.noteId : null,
-              action.kind,
+              kind,
             );
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
@@ -261,20 +261,17 @@ export function reduceEditorSession(
         action.ids,
       );
       if (nextDocument === document) return state;
-      const persistent = action.type === 'place' && state.keepPlacing;
+      const graphical = action.type === 'place';
       const noteId = action.ids.noteIds[0];
       const next: EditorSession = {
         ...state,
         history: applyDocumentEdit(state.history, () => nextDocument),
         selection: selectNote(noteId),
-        activeTool: persistent ? state.activeTool : selectTool(),
+        activeTool: graphical ? state.activeTool : selectTool(),
         hoveredPoint: null,
-        focusRequest: { kind: persistent ? 'placement' : 'note', noteId },
+        focusRequest: { kind: graphical ? 'placement' : 'note', noteId },
       };
-      return announce(
-        next,
-        `${neumeName(action.kind)} added.${!persistent && placing ? ' Placement finished.' : ''}`,
-      );
+      return announce(next, `${neumeName(kind)} added.`);
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);
@@ -312,7 +309,7 @@ export function reduceEditorSession(
       if (!placing) return next;
       const changedTarget = next.activeSyllableId !== state.activeSyllableId;
       const message = !next.activeSyllableId
-        ? ' No target syllable. Placement finished.'
+        ? ' No target syllable. Select tool.'
         : changedTarget
           ? ` Target: ${syllableDescription(next)}.`
           : '';

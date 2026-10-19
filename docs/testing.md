@@ -227,11 +227,13 @@ dependency or component-test environment was added.
 
 ## Persistent graphical placement regressions
 
-`editor-session.test.ts` covers all-kind one-shot/persistent lifecycle, toolbar
-exit consistency, same-position sequential insertion, preview parity after
+`editor-session.test.ts` covers all-kind persistent placement and contextual
+insertion, remembered-kind invariants, same-position sequential insertion, preview parity after
 wrapping, independent history, event announcements, stable selection, and target
-removal. `focus-visibility.test.ts` covers minimal reveal including sticky-strip
-occlusion and oversized bounds.
+removal. `focus-visibility.test.ts` covers minimal reveal of clipped notation and oversized bounds.
+
+`palette-navigation.test.ts` covers roving focus destinations and shortcut
+scope/modifier/composition guards.
 
 The [real-browser placement record](verification/placement/README.md) includes a
 standalone development fixture and a dependency-free DevTools Protocol script.

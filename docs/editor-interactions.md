@@ -60,55 +60,38 @@ score surface owns pointer placement input.
 Each committed note is a focusable SVG control keyed by stable note ID.
 `ScoreSvg` maintains a map from note IDs to mounted SVG groups.
 
-`ChantEditor` uses a pure editor-session reducer to coordinate history and
-transient state. History still stores semantic documents only. Focus requests
-contain a stable note ID and a destination (enabled note, placement surface,
-or Finish/Select/Edit control). `ScoreSvg` handles these in a layout effect
-after committed geometry and refs are available, then acknowledges that exact
-request. A stale acknowledgement cannot clear a newer request.
+`ChantEditor` uses a pure session reducer; history contains semantic documents
+only. Focus requests identify an enabled note, the placement surface anchored to
+a committed note, or a palette tool. Layout effects resolve mounted refs after
+React commits and acknowledge the exact request; stale acknowledgements cannot
+clear newer requests. The parent handles palette focus, `ScoreSvg` handles notes
+and the surface. Insertion and whole-neume movement restore stable note IDs even
+across system reflow. Undo/Redo restores a surviving focused note in Select.
 
-Enabled-note insertion and whole-neume movement request note focus. Undo/Redo
-in Select/Edit restores the focused note only if it survives by stable ID,
-including after systems reflow. Placement discards pending enabled-note requests
-and never programmatically focuses disabled constituent notes.
+Automatic focus uses `focus({ preventScroll: true })`, without refocusing an
+already focused destination. Separately, clipped notation is minimally revealed
+in nested scroll containers and the window with an 8 px margin. An oversized
+neume uses its first-note anchor. The SVG/system is never centered. Document
+shrinkage can still cause native scroll-range clamping.
 
-All automatic focus uses `focus({ preventScroll: true })`, and an already
-focused destination is not refocused. Separately, the visibility helper reveals
-only a clipped note/neume using the smallest necessary scroll adjustment. It
-accounts for scroll containers, the sticky context strip, and an 8 px margin;
-if complete neume bounds exceed the usable viewport, the first-note anchor
-wins. It never centers the whole SVG/system. Browser scroll-range clamping
-when Undo shortens a document can still change scroll offsets.
+Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
+while armed), never a disabled constituent note. Its concise accessible name is
+“Score placement”; its description gives kind, target syllable and Escape. The
+full score summary is excluded while placing. A decorative local outline marks
+the selected neume in its actual derived system while the root owns focus. It
+is aria-hidden, pointer-inert and independent of the hover preview and engraving.
 
-After persistent placement, the existing SVG root owns programmatic focus
-(`tabIndex=-1` while armed); there are no extra system controls or ordinary Tab
-stops. Its placement name is “Score placement” and its short description gives
-the kind, target syllable, repetition preference, and Escape instruction. The
-full score summary is not referenced by that focused placement group. Leaving
-placement restores the normal title/summary naming relationship.
+Escape or Select first enables note editing, then focuses the surviving selected
+note in the active syllable (first semantic note for whole-neume selection).
+Otherwise it focuses the palette's Select button and makes that its roving Tab
+stop. Select when already active leaves selection and focus alone. No separate
+last-inserted-note field or extra placement Tab stop is needed.
 
-A local decorative outline follows selected notation in the actual derived
-system while the SVG owns focus. The sticky tool/target strip is also accented.
-Both refer to existing state and geometry, not stored system ownership or a
-new placement target. One context line is reserved while armed so showing the
-first selected system does not resize the strip on narrow screens. The local cue is distinct from the preview, aria-hidden,
-and pointer-inert; it does not affect engraving or wrapping.
-
-The sticky strip contains **one button that remains mounted**: “Finish placing”
-while armed and “Select/Edit” otherwise. Finish/Escape first enables ordinary
-note controls, then focuses the surviving selected note in the active syllable.
-For whole selection it uses the first semantic note; otherwise it focuses that
-same visible strip button. It preserves selection and Keep placing. Activating
-Select/Edit when already in that tool does not clear selection or force focus
-away from the control. No separate last-inserted-note state is stored.
-
-Tab/Shift+Tab retain ordinary browser traversal, skipping placement-disabled
-notes. Reverse traversal from the root reaches the strip action; forward
-traversal may leave page content if no later control exists. There is no focus
-trap or Enter/Space insertion on the root. Escape and history shortcuts work
-on the surface and the Keep placing checkbox. Native text editing, selects,
-contenteditable elements, and IME composition are excluded from document-level
-shortcut handling. Escape in the lyric input remains draft rollback.
+Tab/Shift+Tab use browser traversal, skipping disabled notes during placement;
+there is no focus trap. Reverse Tab from the surface reaches Keyboard help;
+forward Tab may leave page content. Escape and Undo/Redo work on the surface.
+Text fields, native selects, contenteditable and composition are excluded from
+document shortcuts. Lyric Escape retains draft rollback.
 
 Browser focus and reparenting remain separate from pure unit tests. See the
 [placement verification record](verification/placement/README.md).
@@ -120,9 +103,36 @@ selection shapes add no accessible controls. Exact geometry and placement-mode
 pointer ownership are described in
 [layout and rendering](layout-and-rendering.md#rendering-and-accessibility).
 
-## Toolbar insertion
+## Palette and contextual keyboard insertion
 
-Toolbar insertion first resolves a complete-neume semantic boundary and a
+The single toolbar contains Select and seven neume tools. Only one palette
+button is in the Tab order. Arrow Left/Right/Up/Down browse sequentially and wrap;
+Home/End focus the first/last tool. Focus browsing changes only the roving Tab
+stop. Native Enter/Space or click activates the focused button. `aria-pressed`
+and the filled style identify the active tool independently of focus.
+
+The remembered neume starts at Punctum and changes only when a neume tool is
+activated. Select, Escape, focus browsing, score selection, syllable changes,
+and Undo/Redo do not erase or replace it. It is transient state outside history.
+The visible **Insert Punctum** (or remembered name) command is always available
+when a syllable exists. Its label follows remembered state, not palette focus.
+
+Unmodified **I** inserts the remembered kind; **T** focuses its palette button
+and updates the roving Tab stop without activation. These shortcuts apply only
+to score notes/surface, palette buttons and the contextual Insert button. They
+ignore text inputs, textareas, native selects, contenteditable, IME composition,
+already handled events, modifier chords and autorepeat. Native Enter/Space and
+pitch arrows retain their existing meanings. Collapsed Keyboard help and the
+visible I hint make the shortcuts discoverable without a permanent help panel.
+
+The ordinary Tab order is palette → Insert → active syllable select → Add
+syllable → lyric input → enabled Undo/Redo → Keyboard help → enabled score
+notes. Disabled controls are skipped. After insertion, note focus supports
+pitch arrows then I directly. T → arrows → Enter → I switches kind and inserts
+without traversing every toolbar button or existing note. To retarget, T → Tab
+→ Tab reaches the native syllable selector; Shift+Tab returns to Insert.
+
+Contextual insertion first resolves a complete-neume semantic boundary and a
 reference pitch for the active syllable:
 
 1. use the selected note when it belongs to the active syllable;
@@ -136,8 +146,8 @@ Clivis, Scandicus, Torculus, Climacus, or Porrectus.
 
 The constructed neume uses stable IDs generated by the editor. After an
 accepted insertion, its first note is selected and receives pending focus.
-All accepted Add actions, including Punctum, return to Select/Edit, clear the
-preview, and focus the new first note even if Keep placing is enabled. A rejected
+Every accepted contextual insertion returns to Select, clears the preview,
+and focuses its new first note, including when invoked during placement. A rejected
 insertion changes neither document nor tool. Whole-neume selection remains
 excluded from toolbar anchoring; it still falls back to the final active-syllable
 note. This milestone does not change those insertion semantics.
@@ -229,33 +239,23 @@ geometry matches the preview.
 
 ### Lifecycle
 
-Keep placing is a session-only boolean, initially false. It is independent of
-the current `EditorTool`; checking it in Select/Edit does not arm a tool.
-There is no shared-palette Insert/Place preference yet: existing Add and Place
-buttons remain separate.
+Graphical placement is always persistent, with no repetition preference or
+Insert/Place toggle.
 
-- Place K arms that kind; changing kind clears hover, and activating the already
-  armed kind is idempotent. Neither action inserts or changes history.
-- Pointer movement updates the ID-free preview. Pointer leave clears it.
-- Invalid coordinates/transforms or rejected resolution do not commit.
-- A successful one-shot placement returns to Select/Edit, clears hover, selects
-  the new first note, and requests enabled-note focus.
-- With Keep placing on, success keeps the same kind armed, selects the first
-  note, clears hover, and requests root placement focus plus minimal destination
-  reveal. Disabled constituent notes are never focused.
-- Turning Keep placing off while armed affects the next accepted click; it
-  does not finish immediately. Finish never resets the preference.
-- Finish/Select/Edit or Escape outside native text editing ends placement and
-  clears hover. Committed notation remains. A second Escape in Select/Edit can
-  clear selection as before.
-- Choosing/adding a syllable clears score selection and hover but retains the
-  armed kind and repetition. The existing lyric-input autofocus is preserved
-  when adding a syllable.
-- Undo/Redo retains tool and repetition, clears hover, and reconciles selection
-  and active syllable by stable ID. Selection wins, otherwise a surviving active
-  target wins, otherwise the final syllable wins. With no surviving syllable,
-  placement ends and requests the strip control. History does not chase a
-  previous selection with new focus while placement remains active.
+- Activating neume K arms it and remembers K; switching kind clears hover.
+  Activating the already armed kind is idempotent. None changes history.
+- Pointer movement updates the ID-free preview; leaving clears it. Invalid
+  points/transforms or rejected resolution never commit.
+- Each success keeps the kind armed, selects the new first note, clears hover,
+  and requests surface focus plus minimal destination reveal.
+- Select or Escape outside text editing exits placement and clears hover while
+  preserving selection and remembered kind. A second Escape can clear selection.
+- Changing/adding a syllable clears selection and hover while retaining tool
+  and remembered kind. Add syllable focuses the lyric input as before.
+- Undo/Redo retains tool and remembered kind, clears hover, and reconciles stable
+  selection and target: selection wins, then a surviving active target, then the
+  final syllable. Removing the only syllable exits to Select and focuses its
+  palette button. History never focuses disabled notes while placing.
 
 ### Consecutive clicks and history
 
@@ -274,40 +274,35 @@ edits. ID allocation occurs in event handling, not reducer replay.
 
 Only `click` commits; pointer-down/up and `dblclick` add no commits. A double-click
 may generate two click events and hence two insertions while persistent, but no
-third insertion. After one-shot entry, the second click instead follows ordinary
-Select/Edit behavior. Each insertion is separately undoable; repetition is not
+third insertion. Each insertion is separately undoable; repetition is not
 a passage-level transaction, and a new edit after Undo clears the redo branch.
 
 ### Persistent status and event announcements
 
-The visible context strip is non-live content derived from the tool, active
-syllable ordinal/text, and Keep placing preference. Optional system context is
-resolved from stable selection IDs and current layout. There is no second
-stored status model or authoritative placement-system index.
+The active tool is derived from `activeTool` through the palette's pressed state.
+The compact native syllable selector shows the active ordinal and lyric text;
+the adjacent input edits that lyric. Neither is a live region. There is no
+context panel, sticky strip, repetition checkbox or Finish control.
 
-One initially empty, unfocusable `role="status"` region emits polite atomic
-event messages. An event sequence identifies accepted notifications; a keyed
-text child exposes a fresh mutation even when consecutive messages match.
-Announcements originate in accepted transitions, not pointer/render effects:
+One initially empty, unfocusable polite atomic status region emits concise event
+messages. A sequence-keyed child exposes a fresh mutation for identical messages.
+Accepted reducer transitions announce, never pointer/render effects:
 
-| Event                               | Message                                                                                              |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Arm/switch kind                     | “Placing Podatus.”                                                                                   |
-| Persistent success                  | “Punctum added.”                                                                                     |
-| One-shot success or Add while armed | “Punctum added. Placement finished.”                                                                 |
-| Add in Select/Edit                  | “Punctum added.”                                                                                     |
-| Explicit Finish                     | “Placement finished.”                                                                                |
-| Change/add target while armed       | “Target: syllable 3, empty.” (actual ordinal/text)                                                   |
-| Undo/Redo while armed               | “Undo.” / “Redo.”; combine an actual target-change or no-target/Finish outcome into the same message |
+| Event                          | Message                                                             |
+| ------------------------------ | ------------------------------------------------------------------- |
+| Activate/switch neume          | “Placing Podatus.”                                                  |
+| Graphical/contextual insertion | “Punctum added.”                                                    |
+| Exit placement                 | “Select tool.”                                                      |
+| Change/add target while armed  | “Target: syllable 3, empty.”                                        |
+| Undo/Redo while armed          | “Undo.” / “Redo.” plus an actual target-change or no-target outcome |
 
-The checkbox exposes its native checked state without duplicate live speech.
-Hover, snapping, preview updates/clearing, unchanged tool activation, lyric
-keystrokes, rejected clicks, and no-op history produce no announcement. Rapid
-polite messages may be coalesced by assistive technology; no guarantee is made
-that every rapid insertion is spoken. No full score summary is appended to
-make repeated strings different.
+Focus browsing, hover/preview, lyric keystrokes, unchanged tool activation,
+rejected clicks and no-op history stay silent. Native focus/selection states
+provide their own accessibility feedback. Rapid polite events can be coalesced
+by assistive technology; every rapid insertion is not guaranteed to be spoken.
 
-Pure tests cover lifecycle, insertion/history invariants, context reconciliation,
-and visibility calculations. Actual DOM focus, pointer ownership, scroll,
-accessibility-tree naming, live-region mutations, and keyboard propagation are
-verified separately in the browser; spoken output requires a screen-reader pass.
+Pure tests cover transitions, memory, insertion/history/preview invariants,
+palette navigation and scroll calculations. Actual focus, native keyboard and
+Tab order, pointer ownership, scrolling, accessible naming and status mutations
+are separately verified in the browser. Spoken output requires a screen-reader
+pass. See [testing](testing.md) and the linked verification record.

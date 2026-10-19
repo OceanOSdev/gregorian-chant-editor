@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useReducer,
   useRef,
   useState,
@@ -14,10 +15,16 @@ import { type ChantDocument } from '../domain/chant-document';
 import { findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import type { InsertionIds } from '../interaction/insert-editor-neume';
+import {
+  getNotationShortcut,
+  nextPaletteTool,
+  paletteTools,
+  type PaletteTool,
+} from '../interaction/palette-navigation';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
-import { getSelectedLayoutContext } from '../rendering/placement-context';
+import { focusAndReveal } from '../rendering/focus-visibility';
 import {
   createEditorSession,
   neumeName,
@@ -45,19 +52,15 @@ const neumeTools = [
   { kind: 'clivis', tool: placeClivisTool },
   { kind: 'scandicus', tool: placeScandicusTool },
   { kind: 'torculus', tool: placeTorculusTool },
-  { kind: 'porrectus', tool: placePorrectusTool },
   { kind: 'climacus', tool: placeClimacusTool },
+  { kind: 'porrectus', tool: placePorrectusTool },
 ] as const;
 
 function isEditableTarget(target: EventTarget | null) {
   return (
     target instanceof HTMLElement &&
     (target.isContentEditable ||
-      ['TEXTAREA', 'SELECT'].includes(target.tagName) ||
-      (target instanceof HTMLInputElement &&
-        !['checkbox', 'radio', 'button', 'submit', 'reset'].includes(
-          target.type,
-        )))
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
   );
 }
 
@@ -81,15 +84,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     initialDocument,
     createEditorSession,
   );
-  const { history, selection, activeTool, keepPlacing } = session;
+  const { history, selection, activeTool, rememberedKind } = session;
   const [lyricDraft, setLyricDraft] = useState('');
   const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null);
   const [committedLyricText, setCommittedLyricText] = useState('');
   const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false);
   const skipNextLyricBlurCommit = useRef(false);
   const lyricInput = useRef<HTMLInputElement>(null);
-  const contextStrip = useRef<HTMLDivElement>(null);
-  const finishControl = useRef<HTMLButtonElement>(null);
+  const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
+  const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const layout = layoutChant(history.present);
@@ -107,10 +110,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           session.hoveredPoint,
         )?.preview ?? null)
       : null;
-  const context = getSelectedLayoutContext(layout, selection);
   const target = syllableDescription(session);
   const placementDescription = placementKind
-    ? `${neumeName(placementKind)}. Target ${target}. Keep placing ${keepPlacing ? 'on' : 'off'}. Escape finishes.`
+    ? `${neumeName(placementKind)}. Target ${target}. Escape selects the editing tool.`
     : '';
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
@@ -180,14 +182,49 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     setPendingLyricInputFocus(false);
   }, [activeSyllable, pendingLyricInputFocus]);
 
+  useLayoutEffect(() => {
+    const request = session.focusRequest;
+    if (request?.kind !== 'palette') return;
+    const button = paletteButtons.current.get(request.tool);
+    if (button) focusAndReveal(button);
+    dispatch({ type: 'focus-handled', request });
+  }, [session.focusRequest]);
+
+  function insertRememberedNeume() {
+    if (activeSyllable)
+      dispatch({ type: 'insert', ids: allocateInsertionIds() });
+  }
+
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if (event.isComposing || isEditableTarget(event.target)) return;
-      if (event.key === 'Escape') {
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        isEditableTarget(event.target)
+      )
+        return;
+      const notationFocused =
+        event.target instanceof Element &&
+        !!event.target.closest('[data-notation-shortcuts], .score');
+      const shortcut = getNotationShortcut(event, notationFocused);
+      if (shortcut) {
+        event.preventDefault();
+        if (shortcut === 'insert') {
+          if (activeSyllable)
+            dispatch({ type: 'insert', ids: allocateInsertionIds() });
+        } else dispatch({ type: 'focus-palette' });
+        return;
+      }
+      if (
+        event.key === 'Escape' &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
         event.preventDefault();
         dispatch(
           placementKind
-            ? { type: 'finish' }
+            ? { type: 'select-tool' }
             : { type: 'select', selection: clearSelection() },
         );
         return;
@@ -208,37 +245,134 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [placementKind, canUndo, canRedo]);
+  }, [placementKind, canUndo, canRedo, activeSyllable]);
 
   return (
     <main className="chant-editor">
       <h1>{layout.title}</h1>
-      <div className="editor-controls" aria-label="Editor controls">
-        {neumeTools.map(({ kind }) => (
+      <div
+        className="neume-palette"
+        role="toolbar"
+        aria-label="Neume tools"
+        aria-describedby="palette-instructions"
+        data-notation-shortcuts
+        onKeyDown={(event) => {
+          if (
+            event.nativeEvent.isComposing ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey
+          )
+            return;
+          const focusedTool =
+            event.target instanceof Element
+              ? event.target.closest<HTMLButtonElement>('button')?.dataset.tool
+              : undefined;
+          const current = paletteTools.find((tool) => tool === focusedTool);
+          const next = current && nextPaletteTool(current, event.key);
+          if (!next) return;
+          event.preventDefault();
+          const button = paletteButtons.current.get(next);
+          if (button) focusAndReveal(button);
+        }}
+      >
+        {paletteTools.map((tool) => (
           <button
-            key={`add-${kind}`}
+            key={tool}
             type="button"
-            aria-label={`Add ${kind}`}
+            data-tool={tool}
+            ref={(button) => {
+              if (button) paletteButtons.current.set(tool, button);
+              else paletteButtons.current.delete(tool);
+            }}
+            tabIndex={rovingTool === tool ? 0 : -1}
+            aria-pressed={
+              tool === 'select' ? !placementKind : placementKind === tool
+            }
+            onFocus={() => setRovingTool(tool)}
+            onClick={() => {
+              if (tool === 'select') dispatch({ type: 'select-tool' });
+              else {
+                const choice = neumeTools.find(
+                  (choice) => choice.kind === tool,
+                );
+                if (choice) dispatch({ type: 'arm', tool: choice.tool() });
+              }
+            }}
+          >
+            {tool === 'select' ? 'Select' : neumeName(tool)}
+          </button>
+        ))}
+      </div>
+      <p id="palette-instructions" className="editor-sr-only">
+        Arrow keys browse tools; Enter or Space activates. I inserts the
+        remembered neume. T focuses its palette button.
+      </p>
+      <div className="editor-actions">
+        <button
+          className="editor-insert"
+          type="button"
+          data-notation-shortcuts
+          aria-keyshortcuts="I"
+          disabled={!activeSyllable}
+          onClick={insertRememberedNeume}
+        >
+          Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
+        </button>
+        <label>
+          Syllable{' '}
+          <select
+            aria-label="Active syllable"
+            value={activeSyllable?.id ?? ''}
             disabled={!activeSyllable}
-            onClick={() =>
-              dispatch({ type: 'insert', kind, ids: allocateInsertionIds() })
+            onChange={(event) =>
+              dispatch({ type: 'syllable', id: event.currentTarget.value })
             }
           >
-            Add {kind}
-          </button>
-        ))}
-        {neumeTools.map(({ kind, tool }) => (
-          <button
-            key={`place-${kind}`}
-            type="button"
-            aria-label={`Place ${kind}`}
-            aria-pressed={placementKind === kind}
+            {!activeSyllable ? <option value="">No syllable</option> : null}
+            {history.present.syllables.map((syllable, index) => (
+              <option key={syllable.id} value={syllable.id}>
+                {index + 1}. {syllable.text || '(empty)'}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          aria-label="Add syllable"
+          onClick={() => {
+            dispatch({
+              type: 'add-syllable',
+              syllable: { id: crypto.randomUUID(), text: '' },
+            });
+            setPendingLyricInputFocus(true);
+          }}
+        >
+          + Syllable
+        </button>
+        <div className="editor-lyric">
+          <label htmlFor="lyric-syllable">Lyric syllable</label>
+          <input
+            ref={lyricInput}
+            id="lyric-syllable"
+            type="text"
+            value={displayedLyricDraft}
             disabled={!activeSyllable}
-            onClick={() => dispatch({ type: 'arm', tool: tool() })}
-          >
-            Place {kind}
-          </button>
-        ))}
+            onChange={(event) => {
+              skipNextLyricBlurCommit.current = false;
+              setLyricDraft(event.currentTarget.value);
+              setDraftSyllableId(activeSyllable?.id ?? null);
+            }}
+            onKeyDown={handleLyricKeyDown}
+            onBlur={(event) => {
+              if (skipNextLyricBlurCommit.current) {
+                skipNextLyricBlurCommit.current = false;
+                return;
+              }
+              commitLyricDraft(event.currentTarget.value);
+            }}
+          />
+        </div>
         <button
           type="button"
           aria-label="Undo last edit"
@@ -258,177 +392,73 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Redo
         </button>
       </div>
-      <section className="editor-lyrics" aria-labelledby="lyrics-heading">
-        <h2 id="lyrics-heading">Lyrics</h2>
-        <ol>
-          {history.present.syllables.map((syllable, index) => (
-            <li key={syllable.id}>
-              <button
-                type="button"
-                aria-label={`Syllable ${index + 1}: ${syllable.text || 'empty'}`}
-                aria-pressed={syllable.id === activeSyllable?.id}
-                onClick={() => dispatch({ type: 'syllable', id: syllable.id })}
-              >
-                <span aria-hidden="true">{index + 1}. </span>
-                {syllable.text || '(empty)'}
-              </button>
-            </li>
-          ))}
-        </ol>
-        <button
-          type="button"
-          onClick={() => {
+      <details className="editor-help">
+        <summary>Keyboard help</summary>
+        <p>
+          <kbd>I</kbd> insert · <kbd>T</kbd> tools · <kbd>Esc</kbd> Select. In
+          the palette, arrows browse and Enter/Space activates. In Select,
+          Enter/Space selects a focused note, ↑/↓ changes pitch, and
+          Shift+Enter/Space selects its neume. I/T apply only in notation
+          controls.
+        </p>
+      </details>
+      <ScoreSvg
+        layout={layout}
+        placementPreview={placementPreview}
+        selection={selection}
+        activeTool={activeTool}
+        placementDescription={placementDescription}
+        focusRequest={session.focusRequest}
+        onFocusHandled={(request) =>
+          dispatch({ type: 'focus-handled', request })
+        }
+        onSelectNote={(noteId) =>
+          dispatch({ type: 'select', selection: selectNote(noteId) })
+        }
+        onSelectNeumeForNote={(noteId) => {
+          const note = findNote(history.present, noteId);
+          if (note)
             dispatch({
-              type: 'add-syllable',
-              syllable: { id: crypto.randomUUID(), text: '' },
-            });
-            setPendingLyricInputFocus(true);
-          }}
-        >
-          Add syllable
-        </button>
-      </section>
-      <section className="editor-properties" aria-label="Properties">
-        <label htmlFor="lyric-syllable">Lyric syllable</label>
-        <input
-          ref={lyricInput}
-          id="lyric-syllable"
-          type="text"
-          value={displayedLyricDraft}
-          disabled={!activeSyllable}
-          onChange={(event) => {
-            skipNextLyricBlurCommit.current = false;
-            setLyricDraft(event.currentTarget.value);
-            setDraftSyllableId(activeSyllable?.id ?? null);
-          }}
-          onKeyDown={handleLyricKeyDown}
-          onBlur={(event) => {
-            if (skipNextLyricBlurCommit.current) {
-              skipNextLyricBlurCommit.current = false;
-              return;
-            }
-            commitLyricDraft(event.currentTarget.value);
-          }}
-        />
-      </section>
-      <div className="editor-score-workspace">
-        <div
-          className="editor-context"
-          ref={contextStrip}
-          role="group"
-          aria-label="Editing context"
-        >
-          <div className="editor-context__summary">
-            <strong>
-              Tool:{' '}
-              {placementKind
-                ? `Placing ${neumeName(placementKind)}`
-                : 'Select/Edit'}
-            </strong>
-            <span>
-              {activeSyllable
-                ? `${placementKind ? 'Target' : 'Active'} ${target}`
-                : 'No target syllable'}
-            </span>
-            <span>Repetition: {keepPlacing ? 'On' : 'Off'}</span>
-            {placementKind ? (
-              <span className="editor-context__location">
-                {context
-                  ? `Placement context: system ${context.systemIndex + 1}`
-                  : ''}
-              </span>
-            ) : null}
-          </div>
-          <label className="editor-context__repeat">
-            <input
-              type="checkbox"
-              checked={keepPlacing}
-              onChange={(event) =>
-                dispatch({ type: 'repeat', value: event.currentTarget.checked })
-              }
-            />
-            Keep placing
-            <span className="editor-context__small">Graphical entry only</span>
-          </label>
-          <button
-            ref={finishControl}
-            type="button"
-            onClick={() => dispatch({ type: 'finish' })}
-          >
-            {placementKind ? 'Finish placing' : 'Select/Edit'}
-          </button>
-          {placementKind ? (
-            <p className="editor-context__help">
-              Staff clicks insert into this syllable.{' '}
-              {keepPlacing
-                ? 'Stays active after each insertion.'
-                : 'Returns to Select/Edit after one insertion.'}{' '}
-              Finish placing or press Escape to edit notes.
-            </p>
-          ) : null}
-        </div>
-        <ScoreSvg
-          layout={layout}
-          placementPreview={placementPreview}
-          selection={selection}
-          activeTool={activeTool}
-          placementDescription={placementDescription}
-          focusRequest={session.focusRequest}
-          contextStrip={contextStrip}
-          finishControl={finishControl}
-          onFocusHandled={(request) =>
-            dispatch({ type: 'focus-handled', request })
-          }
-          onSelectNote={(noteId) =>
-            dispatch({ type: 'select', selection: selectNote(noteId) })
-          }
-          onSelectNeumeForNote={(noteId) => {
-            const note = findNote(history.present, noteId);
-            if (note)
-              dispatch({
-                type: 'select',
-                selection: selectNeume(note.neume.id),
-                focusNoteId: noteId,
-              });
-          }}
-          onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
-          onPlacementPointerLeave={() =>
-            dispatch({ type: 'hover', point: null })
-          }
-          onPlaceNeume={handlePlaceNeume}
-          onMoveNote={(noteId, delta) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => moveNoteVertically(document, noteId, delta),
+              type: 'select',
+              selection: selectNeume(note.neume.id),
               focusNoteId: noteId,
-            })
-          }
-          onMoveNeume={(neumeId, delta, invokingNoteId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => moveNeumeVertically(document, neumeId, delta),
-              focusNoteId: invokingNoteId,
-            })
-          }
-          onDeleteNote={(noteId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => deleteNote(document, noteId),
-              clearSelection: true,
-            })
-          }
-          onDeleteNeume={(neumeId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => deleteNeume(document, neumeId),
-              clearSelection: true,
-            })
-          }
-          onClearSelection={() =>
-            dispatch({ type: 'select', selection: clearSelection() })
-          }
-        />
-      </div>
+            });
+        }}
+        onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
+        onPlacementPointerLeave={() => dispatch({ type: 'hover', point: null })}
+        onPlaceNeume={handlePlaceNeume}
+        onMoveNote={(noteId, delta) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => moveNoteVertically(document, noteId, delta),
+            focusNoteId: noteId,
+          })
+        }
+        onMoveNeume={(neumeId, delta, invokingNoteId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => moveNeumeVertically(document, neumeId, delta),
+            focusNoteId: invokingNoteId,
+          })
+        }
+        onDeleteNote={(noteId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => deleteNote(document, noteId),
+            clearSelection: true,
+          })
+        }
+        onDeleteNeume={(neumeId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => deleteNeume(document, neumeId),
+            clearSelection: true,
+          })
+        }
+        onClearSelection={() =>
+          dispatch({ type: 'select', selection: clearSelection() })
+        }
+      />
       <div
         className="editor-announcement"
         role="status"

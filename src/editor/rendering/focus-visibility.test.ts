@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getVisibilityAdjustment } from './focus-visibility';
 
-const viewport = { left: 8, right: 712, top: 148, bottom: 892 };
+const viewport = { left: 8, right: 712, top: 8, bottom: 892 };
 describe('nearest necessary focus reveal', () => {
   it('preserves the viewport for already visible notation', () => {
     expect(
@@ -11,10 +11,10 @@ describe('nearest necessary focus reveal', () => {
       ),
     ).toEqual({ x: 0, y: 0 });
   });
-  it('reveals below the sticky strip without centering the root/system', () => {
+  it('reveals clipped notation without centering the root/system', () => {
     expect(
       getVisibilityAdjustment(
-        { left: 100, right: 150, top: 120, bottom: 160 },
+        { left: 100, right: 150, top: -20, bottom: 20 },
         viewport,
       ),
     ).toEqual({ x: 0, y: -28 });
@@ -51,7 +51,7 @@ describe('nearest necessary focus reveal', () => {
       getVisibilityAdjustment(
         { left: -100, right: 900, top: -200, bottom: 1200 },
         viewport,
-        { left: 100, right: 120, top: 100, bottom: 130 },
+        { left: 100, right: 120, top: -40, bottom: -10 },
       ),
     ).toEqual({ x: 0, y: -48 });
   });

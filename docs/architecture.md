@@ -82,7 +82,7 @@ Contains semantic document history and transient, ID-based selection and tool
 types. The pure editor-session reducer coordinates commands, active-syllable
 reconciliation, placement lifecycle, ID-based focus requests, and event
 notifications. Its history field contains semantic snapshots only; tools,
-repetition, hover, selection, focus, and announcements remain outside history.
+remembered neume kind, hover, selection, focus, and announcements remain outside history.
 
 ### `src/editor/interaction/`
 

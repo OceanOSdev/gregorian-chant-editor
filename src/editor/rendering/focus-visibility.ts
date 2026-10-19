@@ -48,8 +48,7 @@ export function getVisibilityAdjustment(
 /** Focus never scrolls implicitly; reveal only a clipped target, container by container. */
 export function focusAndReveal(
   element: HTMLElement | SVGElement,
-  target: Element,
-  strip: HTMLElement | null,
+  target: Element = element,
   anchor: Element = target,
 ) {
   if (document.activeElement !== element)
@@ -77,17 +76,12 @@ export function focusAndReveal(
     const bottom = top + (container?.clientHeight ?? window.innerHeight);
     const right =
       left + (container?.clientWidth ?? document.documentElement.clientWidth);
-    const stripRect = strip?.getBoundingClientRect();
-    const visibleTop =
-      stripRect && stripRect.top <= top + 1 && stripRect.bottom > top
-        ? Math.min(bottom - 16, stripRect.bottom)
-        : top;
     const delta = getVisibilityAdjustment(
       target.getBoundingClientRect(),
       {
         left: left + 8,
         right: right - 8,
-        top: visibleTop + 8,
+        top: top + 8,
         bottom: bottom - 8,
       },
       anchor.getBoundingClientRect(),

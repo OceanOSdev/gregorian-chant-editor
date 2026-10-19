@@ -5,10 +5,9 @@ import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import type { InsertionIds } from '../interaction/insert-editor-neume';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
-import { getSelectedLayoutContext } from '../rendering/placement-context';
 import {
   createEditorSession,
-  getFinishFocusRequest,
+  getSelectFocusRequest,
   reduceEditorSession,
   type EditorSession,
 } from './editor-session';
@@ -53,13 +52,8 @@ function ids(index: number): InsertionIds {
 function tool(kind: GraphicalNeumeKind): EditorTool {
   return { kind: `place-${kind}` };
 }
-function arm(
-  kind: GraphicalNeumeKind = 'punctum',
-  repeat = false,
-  initial = document(),
-) {
+function arm(kind: GraphicalNeumeKind = 'punctum', initial = document()) {
   let state = createEditorSession(initial);
-  state = reduceEditorSession(state, { type: 'repeat', value: repeat });
   return reduceEditorSession(state, { type: 'arm', tool: tool(kind) });
 }
 function place(state: EditorSession, index = 1, point = { x: 300, y: 100 }) {
@@ -74,25 +68,9 @@ function place(state: EditorSession, index = 1, point = { x: 300, y: 100 }) {
 
 describe('placement lifecycle', () => {
   it.each(kinds)(
-    'keeps %s one-shot by default and ignores a subsequent stale placement action',
-    (kind) => {
-      const start = arm(kind);
-      expect(start.keepPlacing).toBe(false);
-      const next = place(start);
-      expect(next.activeTool.kind).toBe('select');
-      expect(next.selection).toEqual(selectNote('a1'));
-      expect(next.focusRequest).toEqual({ kind: 'note', noteId: 'a1' });
-      expect(next.history.past).toHaveLength(1);
-      expect(next.announcement.sequence).toBe(start.announcement.sequence + 1);
-      expect(next.announcement.text).toContain('added. Placement finished.');
-      expect(place(next, 2)).toBe(next);
-    },
-  );
-
-  it.each(kinds)(
     'repeats %s using fresh document/layout and preserves preview parity',
     (kind) => {
-      let state = arm(kind, true);
+      let state = arm(kind);
       const initial = state.history.present;
       const messages = [];
       for (let i = 1; i <= 35; i++) {
@@ -110,10 +88,9 @@ describe('placement lifecycle', () => {
           state.history.present.neumes[intent?.insertionIndex ?? -1]?.id,
         ).toBe(`n${i}`);
         expect(
-          getSelectedLayoutContext(
-            layoutChant(state.history.present),
-            state.selection,
-          )?.neume.ink,
+          layoutChant(state.history.present)
+            .systems.flatMap((system) => system.neumes)
+            .find((neume) => neume.neumeId === `n${i}`)?.ink,
         ).toEqual(intent?.preview.ink);
         expect(state.history.past).toHaveLength(i);
         expect(state.history.present.neumes).toHaveLength(i);
@@ -150,7 +127,7 @@ describe('placement lifecycle', () => {
           focusedNoteId: null,
         });
       expect(state.history.present).toBe(inserted);
-      expect(state.keepPlacing).toBe(true);
+      expect(state.rememberedKind).toBe(kind);
       state = reduceEditorSession(state, {
         type: 'history',
         direction: 'undo',
@@ -161,54 +138,59 @@ describe('placement lifecycle', () => {
     },
   );
 
-  const cases = kinds.flatMap((armed) =>
-    kinds.flatMap((inserted) =>
-      [false, true].map((repeat) => ({ armed, inserted, repeat })),
-    ),
-  );
-  it.each(cases)(
-    'Add $inserted exits $armed with repetition=$repeat',
-    ({ armed, inserted, repeat }) => {
-      let state = arm(armed, repeat);
-      state = reduceEditorSession(state, {
-        type: 'hover',
-        point: { x: 300, y: 100 },
-      });
-      const next = reduceEditorSession(state, {
-        type: 'insert',
-        kind: inserted,
-        ids: ids(1),
-      });
+  it.each(kinds)(
+    'contextually inserts remembered %s, selects its first note, and exits placement',
+    (kind) => {
+      const state = arm(kind);
+      const next = reduceEditorSession(state, { type: 'insert', ids: ids(1) });
       expect(next.activeTool.kind).toBe('select');
-      expect(next.keepPlacing).toBe(repeat);
-      expect(next.hoveredPoint).toBeNull();
+      expect(next.rememberedKind).toBe(kind);
+      expect(next.selection).toEqual(selectNote('a1'));
       expect(next.focusRequest).toEqual({ kind: 'note', noteId: 'a1' });
       expect(next.history.past).toHaveLength(1);
       expect(
         next.history.present.neumes[0]?.notes.map((note) => note.staffPosition),
-      ).toEqual(contours[kinds.indexOf(inserted)]);
-      expect(next.announcement.sequence).toBe(state.announcement.sequence + 1);
+      ).toEqual(contours[kinds.indexOf(kind)]);
+      const repeated = reduceEditorSession(next, {
+        type: 'insert',
+        ids: ids(2),
+      });
+      expect(repeated.history.present.neumes[1]?.kind).toBe(kind);
+      expect(repeated.history.past).toHaveLength(2);
     },
   );
 
-  it('does not arm on repetition changes; turning it off affects the next accepted click', () => {
+  it('remembers activation across Select, focus browsing, selection, target changes, and history', () => {
     let state = createEditorSession(document());
-    const original = state.history;
-    state = reduceEditorSession(state, { type: 'repeat', value: true });
+    expect(state.rememberedKind).toBe('punctum');
+    state = reduceEditorSession(state, { type: 'arm', tool: tool('podatus') });
+    state = place(state);
+    state = reduceEditorSession(state, { type: 'select-tool' });
+    const original = state;
+    state = reduceEditorSession(state, { type: 'focus-palette' });
+    expect(state.focusRequest).toEqual({ kind: 'palette', tool: 'podatus' });
+    expect(state.history).toBe(original.history);
+    expect(state.selection).toBe(original.selection);
+    expect(state.announcement).toBe(original.announcement);
     expect(state.activeTool.kind).toBe('select');
-    expect(state.announcement.sequence).toBe(0);
-    state = reduceEditorSession(state, { type: 'arm', tool: tool('punctum') });
-    expect(
-      reduceEditorSession(state, { type: 'arm', tool: tool('punctum') }),
-    ).toBe(state);
-    state = reduceEditorSession(state, { type: 'repeat', value: false });
-    expect(state.history).toBe(original);
-    expect(state.activeTool.kind).toBe('place-punctum');
-    expect(place(state).activeTool.kind).toBe('select');
+    state = reduceEditorSession(state, {
+      type: 'select',
+      selection: selectNeume('n1'),
+    });
+    state = reduceEditorSession(state, { type: 'syllable', id: 's2' });
+    state = reduceEditorSession(state, {
+      type: 'history',
+      direction: 'undo',
+      focusedNoteId: null,
+    });
+    expect(state.rememberedKind).toBe('podatus');
+    state = reduceEditorSession(state, { type: 'insert', ids: ids(2) });
+    expect(state.history.present.neumes[0]?.kind).toBe('podatus');
+    expect(state.history.present.neumes[0]?.lyricSyllableId).toBe('s2');
   });
 
   it('clears old preview on kind changes and rejects invalid points without history/events', () => {
-    let state = arm('punctum', true);
+    let state = arm('punctum');
     const history = state.history;
     state = reduceEditorSession(state, {
       type: 'hover',
@@ -238,39 +220,39 @@ describe('placement lifecycle', () => {
     ).toBe(state);
     const none = createEditorSession({ ...document(), syllables: [] });
     expect(
-      reduceEditorSession(none, { type: 'arm', tool: tool('punctum') }),
-    ).toBe(none);
+      reduceEditorSession(none, { type: 'arm', tool: tool('punctum') })
+        .activeTool.kind,
+    ).toBe('place-punctum');
     expect(
       reduceEditorSession(none, {
         type: 'insert',
-        kind: 'punctum',
         ids: ids(1),
       }),
     ).toBe(none);
   });
 
-  it('finishes without an edit, preserves repetition, and resolves focus without a last-note field', () => {
-    const state = place(arm('punctum', true));
-    const next = reduceEditorSession(state, { type: 'finish' });
+  it('selects without an edit, remembers kind, and restores focus by stable ID', () => {
+    const state = place(arm('punctum'));
+    const next = reduceEditorSession(state, { type: 'select-tool' });
     expect(next.history).toBe(state.history);
-    expect(next.keepPlacing).toBe(true);
+    expect(next.rememberedKind).toBe('punctum');
     expect(next.selection).toEqual(state.selection);
     expect(next.focusRequest).toEqual({ kind: 'note', noteId: 'a1' });
-    expect(next.announcement.text).toBe('Placement finished.');
-    expect(reduceEditorSession(next, { type: 'finish' })).toBe(next);
+    expect(next.announcement.text).toBe('Select tool.');
+    expect(reduceEditorSession(next, { type: 'select-tool' })).toBe(next);
     expect(
-      getFinishFocusRequest({ ...state, selection: selectNeume('n1') }),
+      getSelectFocusRequest({ ...state, selection: selectNeume('n1') }),
     ).toEqual({ kind: 'note', noteId: 'a1' });
     expect(
-      getFinishFocusRequest({ ...state, selection: selectNote('gone') }),
-    ).toEqual({ kind: 'control' });
-    expect(getFinishFocusRequest({ ...state, activeSyllableId: 's2' })).toEqual(
-      { kind: 'control' },
+      getSelectFocusRequest({ ...state, selection: selectNote('gone') }),
+    ).toEqual({ kind: 'palette', tool: 'select' });
+    expect(getSelectFocusRequest({ ...state, activeSyllableId: 's2' })).toEqual(
+      { kind: 'palette', tool: 'select' },
     );
     expect(
       reduceEditorSession(next, {
         type: 'focus-handled',
-        request: { kind: 'control' },
+        request: { kind: 'palette', tool: 'select' },
       }),
     ).toBe(next);
     if (next.focusRequest)
@@ -283,7 +265,7 @@ describe('placement lifecycle', () => {
   });
 
   it('retargets without disarming or selection-driven reversal, and uses actual target text', () => {
-    let state = place(arm('punctum', true));
+    let state = place(arm('punctum'));
     state = reduceEditorSession(state, { type: 'syllable', id: 's2' });
     expect(state.selection.kind).toBe('none');
     expect(state.announcement.text).toBe('Target: syllable 2, ri.');
@@ -326,9 +308,9 @@ describe('placement lifecycle', () => {
     });
     expect(state.activeSyllableId).toBeNull();
     expect(state.activeTool.kind).toBe('select');
-    expect(state.focusRequest).toEqual({ kind: 'control' });
+    expect(state.focusRequest).toEqual({ kind: 'palette', tool: 'select' });
     expect(state.announcement.text).toBe(
-      'Undo. No target syllable. Placement finished.',
+      'Undo. No target syllable. Select tool.',
     );
   });
 
@@ -348,14 +330,14 @@ describe('placement lifecycle', () => {
         notes: [{ id: 'old2', staffPosition: staffPosition(1) }],
       },
     ];
-    const start = createEditorSession(initial);
+    let start = arm('podatus', initial);
+    start = reduceEditorSession(start, { type: 'select-tool' });
     const selected = reduceEditorSession(start, {
       type: 'select',
       selection: selectNote('old1'),
     });
     const middle = reduceEditorSession(selected, {
       type: 'insert',
-      kind: 'podatus',
       ids: ids(1),
     });
     expect(middle.history.present.neumes.map((n) => n.id)).toEqual([
@@ -373,7 +355,6 @@ describe('placement lifecycle', () => {
     });
     const appended = reduceEditorSession(whole, {
       type: 'insert',
-      kind: 'podatus',
       ids: ids(1),
     });
     expect(appended.history.present.neumes.map((n) => n.id)).toEqual([
@@ -393,7 +374,7 @@ describe('placement lifecycle', () => {
       lyricSyllableId: 's1',
       notes: [{ id: `old-note-${i}`, staffPosition: staffPosition(2) }],
     }));
-    let state = arm('punctum', true, initial);
+    let state = arm('punctum', initial);
     const point = { x: 300, y: 344 };
     state = place(state, 1, point);
     expect(state.history.present.neumes).toHaveLength(21);
@@ -408,7 +389,7 @@ describe('placement lifecycle', () => {
   });
 
   it('is replay-safe with caller-supplied stable IDs and does not mutate prior state', () => {
-    const state = arm('podatus', true);
+    const state = arm('podatus');
     const action = {
       type: 'place',
       kind: 'podatus',

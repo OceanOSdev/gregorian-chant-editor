@@ -1,6 +1,5 @@
 import {
   useLayoutEffect,
-  type RefObject,
   useRef,
   type KeyboardEvent,
   type MouseEvent,
@@ -37,8 +36,6 @@ interface ScoreSvgProps {
   activeTool: EditorTool;
   placementDescription: string;
   focusRequest: EditorFocusRequest | null;
-  contextStrip: RefObject<HTMLDivElement | null>;
-  finishControl: RefObject<HTMLButtonElement | null>;
   onFocusHandled: (request: EditorFocusRequest) => void;
   onSelectNote: (noteId: string) => void;
   onSelectNeumeForNote: (noteId: string) => void;
@@ -63,8 +60,6 @@ export function ScoreSvg({
   activeTool,
   placementDescription,
   focusRequest,
-  contextStrip,
-  finishControl,
   onFocusHandled,
   onSelectNote,
   onSelectNeumeForNote,
@@ -86,11 +81,8 @@ export function ScoreSvg({
   );
 
   useLayoutEffect(() => {
-    if (!focusRequest) return;
-    const note =
-      focusRequest.kind === 'control'
-        ? null
-        : noteElements.current.get(focusRequest.noteId);
+    if (!focusRequest || focusRequest.kind === 'palette') return;
+    const note = noteElements.current.get(focusRequest.noteId);
     if (
       focusRequest.kind === 'placement' &&
       placementActive &&
@@ -100,22 +92,13 @@ export function ScoreSvg({
       focusAndReveal(
         scoreElement.current,
         note.closest('[data-neume-id]') ?? note,
-        contextStrip.current,
         note,
       );
     } else if (focusRequest.kind === 'note' && !placementActive && note) {
-      focusAndReveal(note, note, contextStrip.current);
-    } else if (!placementActive && finishControl.current) {
-      focusAndReveal(finishControl.current, finishControl.current, null);
+      focusAndReveal(note);
     }
     onFocusHandled(focusRequest);
-  }, [
-    focusRequest,
-    onFocusHandled,
-    placementActive,
-    contextStrip,
-    finishControl,
-  ]);
+  }, [focusRequest, onFocusHandled, placementActive]);
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation();
