@@ -52,6 +52,26 @@
       "passed": true
     },
     {
+      "name": "prospective wrapping scene",
+      "scenario": "new-system",
+      "systems": 2,
+      "staffAndClefParity": true,
+      "allInkParity": true,
+      "decorative": true,
+      "cancellationNoHistory": true,
+      "atomicHistory": true
+    },
+    {
+      "name": "prospective wrapping scene",
+      "scenario": "reflow-existing",
+      "systems": 2,
+      "staffAndClefParity": true,
+      "allInkParity": true,
+      "decorative": true,
+      "cancellationNoHistory": true,
+      "atomicHistory": true
+    },
+    {
       "name": "surface I and whole-neume Select focus",
       "passed": true
     },

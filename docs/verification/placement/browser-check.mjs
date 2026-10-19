@@ -271,6 +271,138 @@ for (const kind of kinds) {
   );
   record('persistent kind and contextual insertion', { kind, passed: true });
 }
+// Prospective systems replace visible ink without changing committed controls.
+for (const scenario of ['new-system', 'reflow-existing']) {
+  const document = {
+    ...base,
+    clef: { type: 'c', staffLine: 2 },
+    neumes: Array.from({ length: 10 }, (_, i) => ({
+      id: 'wrap' + i,
+      kind: 'punctum',
+      lyricSyllableId: scenario === 'reflow-existing' && i === 9 ? 's2' : 's1',
+      notes: [{ id: 'wrap-note' + i, staffPosition: 2 }],
+    })),
+  };
+  await mount(document);
+  const original = await notation();
+  const kind = scenario === 'new-system' ? 'punctum' : 'torculus';
+  await choose(kind);
+  const point = await scorePoint(scenario === 'new-system' ? 655 : 220, 100);
+  const show = async () => {
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+    await pause();
+  };
+  await show();
+  assert.equal(
+    await ev(`document.querySelectorAll('[data-preview-system-index]').length`),
+    2,
+  );
+  assert.equal(
+    await ev(
+      `document.querySelectorAll('[data-preview-system-index="1"] .score__staff-line').length`,
+    ),
+    4,
+  );
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-preview-system-index="1"] .score__clef').textContent.trim()`,
+    ),
+    'C',
+  );
+  assert(
+    await ev(
+      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+    ),
+  );
+  assert.deepEqual(await notation(), original);
+  assert(
+    await ev(
+      `(()=>{const s=document.querySelector('.score__preview-scene');return s.getAttribute('aria-hidden')==='true'&&getComputedStyle(s).pointerEvents==='none'&&!s.querySelector('[role], [tabindex], [data-note-id], [data-neume-id]')})()`,
+    ),
+  );
+  assert(
+    await ev(
+      `(()=>{const p=document.elementFromPoint(${point.x},${point.y});return !p.closest('.score__preview-scene')})()`,
+    ),
+  );
+  if (scenario === 'reflow-existing')
+    assert(
+      await ev(
+        `Array.from(document.querySelectorAll('[data-preview-system-index="1"] .score__lyric')).some(n=>n.textContent==='ri')`,
+      ),
+    );
+  await key('Escape');
+  assert.equal((await snapshot()).preview, false);
+  assert.equal(
+    await ev(`document.querySelector('.score__preview-scene')`),
+    null,
+  );
+  assert.deepEqual(await notation(), original);
+  assert(
+    await ev(
+      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+    ),
+  );
+  await choose(kind);
+  await show();
+  const prospective = await ev(
+    `Array.from(document.querySelectorAll('[data-preview-neume] > .score__ink')).map(n=>n.outerHTML)`,
+  );
+  const prospectiveStaff = await ev(
+    `Array.from(document.querySelectorAll('.score__preview-scene .score__staff-line,.score__preview-scene .score__clef')).map(n=>n.outerHTML)`,
+  );
+  const previewImage = await send('Page.captureScreenshot', {
+    format: 'png',
+    captureBeyondViewport: true,
+  });
+  await writeFile(
+    out + '/' + scenario + '-before.png',
+    Buffer.from(previewImage.data, 'base64'),
+  );
+  await clickAt(point);
+  await pause();
+  assert.equal((await snapshot()).count, 11);
+  assert.equal((await snapshot()).tool, kind);
+  assert.equal((await snapshot()).preview, false);
+  assert.equal(
+    await ev(`document.querySelectorAll('[data-system-index]').length`),
+    2,
+  );
+  assert.deepEqual(
+    await ev(
+      `Array.from(document.querySelectorAll('[data-neume-id] > .score__ink')).map(n=>n.outerHTML)`,
+    ),
+    prospective,
+  );
+  assert.deepEqual(
+    await ev(
+      `Array.from(document.querySelectorAll('[data-system-index] .score__staff-line,[data-system-index] .score__clef')).map(n=>n.outerHTML)`,
+    ),
+    prospectiveStaff,
+  );
+  const afterImage = await send('Page.captureScreenshot', {
+    format: 'png',
+    captureBeyondViewport: true,
+  });
+  await writeFile(
+    out + '/' + scenario + '-after.png',
+    Buffer.from(afterImage.data, 'base64'),
+  );
+  const inserted = await notation();
+  await key('z', 2);
+  assert.deepEqual(await notation(), original);
+  await key('z', 10);
+  assert.deepEqual(await notation(), inserted);
+  record('prospective wrapping scene', {
+    scenario,
+    systems: 2,
+    staffAndClefParity: true,
+    allInkParity: true,
+    decorative: true,
+    cancellationNoHistory: true,
+    atomicHistory: true,
+  });
+}
 await mount();
 await choose('clivis');
 await clickAt(await scorePoint());

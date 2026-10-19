@@ -9,6 +9,7 @@ import type { StaffPositionDelta } from '../commands/move-note';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   type ChantLayout,
+  type ChantSystemLayout,
   type GraphicalPlacementPreviewLayout,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant';
@@ -234,30 +235,14 @@ export function ScoreSvg({
         {wholeNeumeSelectionInstruction}
       </desc>
 
+      {/* Keep committed controls/refs mounted; only their visual ink is replaced. */}
       {layout.systems.map((system) => (
-        <g key={system.index} data-system-index={system.index}>
-          {system.staffLines.map((line, lineIndex) => (
-            <line
-              className="score__staff-line"
-              key={`system-${system.index}-staff-line-${lineIndex}`}
-              x1={line.x1}
-              x2={line.x2}
-              y1={line.y}
-              y2={line.y}
-            />
-          ))}
-
-          <text
-            className="score__clef"
-            x={system.clef.x}
-            y={system.clef.y}
-            fontSize={system.clef.fontSize}
-            textAnchor="middle"
-            dominantBaseline="central"
-            aria-hidden="true"
-          >
-            C
-          </text>
+        <g
+          key={system.index}
+          data-system-index={system.index}
+          opacity={placementPreview?.systems ? 0 : undefined}
+        >
+          <SystemStaff system={system} />
 
           {system.neumes.map((neume) => {
             const isNeumeSelected =
@@ -401,7 +386,42 @@ export function ScoreSvg({
         </g>
       ))}
 
-      {placementPreview ? (
+      {placementPreview?.systems ? (
+        <g
+          className="score__preview-scene"
+          pointerEvents="none"
+          aria-hidden="true"
+        >
+          {placementPreview.systems.map((system) => (
+            <g key={system.index} data-preview-system-index={system.index}>
+              <SystemStaff system={system} />
+              {system.neumes.map((neume, index) => (
+                <g
+                  key={index}
+                  className={
+                    neume.candidate ? 'score__placement-preview' : undefined
+                  }
+                  data-preview-neume=""
+                >
+                  <NeumeInk ink={neume.ink} />
+                </g>
+              ))}
+              {system.lyrics.map((lyric) => (
+                <text
+                  key={lyric.syllableId}
+                  className="score__lyric"
+                  x={lyric.x}
+                  y={lyric.y}
+                  fontSize={lyric.fontSize}
+                  textAnchor="middle"
+                >
+                  {lyric.text}
+                </text>
+              ))}
+            </g>
+          ))}
+        </g>
+      ) : placementPreview ? (
         <g
           className="score__placement-preview"
           pointerEvents="none"
@@ -411,6 +431,40 @@ export function ScoreSvg({
         </g>
       ) : null}
     </svg>
+  );
+}
+
+/** Identical staff/clef rendering for committed and prospective systems. */
+function SystemStaff({
+  system,
+}: {
+  system: Pick<ChantSystemLayout, 'index' | 'staffLines' | 'clef'>;
+}) {
+  return (
+    <>
+      {system.staffLines.map((line, lineIndex) => (
+        <line
+          className="score__staff-line"
+          key={`system-${system.index}-staff-line-${lineIndex}`}
+          x1={line.x1}
+          x2={line.x2}
+          y1={line.y}
+          y2={line.y}
+        />
+      ))}
+
+      <text
+        className="score__clef"
+        x={system.clef.x}
+        y={system.clef.y}
+        fontSize={system.clef.fontSize}
+        textAnchor="middle"
+        dominantBaseline="central"
+        aria-hidden="true"
+      >
+        C
+      </text>
+    </>
   );
 }
 

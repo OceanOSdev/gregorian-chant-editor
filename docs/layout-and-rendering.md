@@ -54,6 +54,15 @@ responsively while the layout retains stable internal units.
 Every system repeats the same four staff-line x extents and a C clef positioned
 on the semantic clef line. Their y coordinates advance by the system offset.
 
+Graphical preview layout can include a complete prospective visual scene. The
+same system assembly and lyric alignment pass decorates the shared positioned
+geometry for committed layout and previews. A preview marks the candidate without
+allocating semantic note/neume identities; existing syllable references only
+supply lyric ownership. `ScoreSvg` shares staff/clef and ink rendering, paints
+the prospective scene non-interactively, and keeps committed interaction controls
+mounted underneath. This covers both newly created systems and existing notation
+and lyrics displaced by wrapping. It changes no engraving metrics or wrap rules.
+
 ## Neume geometry
 
 `buildNeumeGeometry` in `src/editor/layout/neume-geometry.ts` is the pure,

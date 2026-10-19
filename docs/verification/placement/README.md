@@ -52,6 +52,26 @@ pixel at the requested 8 px margin. Document shrinkage can still trigger native
 scroll-range clamping. Ordinary Tab from the SVG surface can leave page content;
 there is no focus trap. T intentionally reveals the palette at the page top.
 
+## Wrapping-preview regression
+
+The candidate-only preview previously expanded the SVG but rendered staff/clef
+and existing neumes from committed layout, leaving a new-system candidate floating
+and displaced notation at old positions. The preview now paints the complete
+prospective visual result using shared system/lyric assembly and staff/ink
+renderers. Only the candidate is translucent. Committed controls remain mounted;
+the visual scene has no note/neume identities, focus targets or pointer ownership.
+No semantic edit or history entry is created until click.
+
+Eight focused scene tests compare new-system previews for every neume kind and
+existing-neume/lyric reflow against full committed geometry. Chromium checks
+verify both scenarios, cancellation without history, non-interactivity, exact
+staff/clef and all-ink parity, and one-entry Undo/Redo with exact IDs. The full
+keyboard/palette, rapid-click, long-score and responsive regression script also
+passes. All 571 tests across 37 files, formatting, lint and build pass.
+
+- New system: [before commit](new-system-before.png) / [after commit](new-system-after.png)
+- Displaced existing notation and lyric: [before commit](reflow-existing-before.png) / [after commit](reflow-existing-after.png)
+
 ## Screenshots
 
 - [Desktop palette and placement](placement-1440.png)

@@ -232,6 +232,11 @@ insertion, remembered-kind invariants, same-position sequential insertion, previ
 wrapping, independent history, event announcements, stable selection, and target
 removal. `focus-visibility.test.ts` covers minimal reveal of clipped notation and oversized bounds.
 
+`graphical-placement-scene.test.ts` compares full prospective staff, clef,
+neume and lyric geometry with committed results for new-system insertion and
+existing-notation reflow. The browser script captures before/after screenshots,
+checks non-interactivity, cancellation without history and atomic commit parity.
+
 `palette-navigation.test.ts` covers roving focus destinations and shortcut
 scope/modifier/composition guards.
 

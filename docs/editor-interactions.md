@@ -232,6 +232,17 @@ and advance), with no semantic IDs, selection, or focus state. Its prospective
 `scoreHeight` keeps a candidate on a new final system inside the SVG viewBox;
 canceling placement restores committed dimensions.
 
+Runtime previews also include the complete prospective visual systems: four
+staff lines, the document's clef, all neume ink and lyrics at post-reflow positions.
+Existing notation displaced across a boundary is shown at its prospective position
+rather than duplicated at its old location. Only the candidate is translucent.
+The preview scene is aria-hidden and pointer-inert, with no note/neume IDs or
+focusable controls. Committed controls stay mounted (their visuals are transparent
+while previewing), preserving refs and accessibility. Hit testing and commits
+still use the committed systems and current document; prospective new systems
+are not new placement targets. Clearing hover restores committed visuals without
+any document/history edit.
+
 Preview and commit use the same geometry builder, sequence placement, and SVG
 ink renderer. Adjacent Pes and Clivis hit-region partitioning is described in
 [layout and rendering](layout-and-rendering.md#rendering-and-accessibility). After commit and normal `layoutChant`, the created neume's

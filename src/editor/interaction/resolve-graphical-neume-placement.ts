@@ -100,37 +100,57 @@ export function resolveGraphicalNeumePlacement(
   const preview = (() => {
     switch (placement.kind) {
       case 'punctum':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
+        return layoutGraphicalPlacementPreview(
+          document.neumes,
+          {
+            kind: placement.kind,
+            staffPositions: placement.staffPositions,
+            insertionIndex,
+          },
+          { document, lyricSyllableId: activeSyllableId },
+        );
       case 'podatus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
+        return layoutGraphicalPlacementPreview(
+          document.neumes,
+          {
+            kind: placement.kind,
+            staffPositions: placement.staffPositions,
+            insertionIndex,
+          },
+          { document, lyricSyllableId: activeSyllableId },
+        );
       case 'clivis':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
+        return layoutGraphicalPlacementPreview(
+          document.neumes,
+          {
+            kind: placement.kind,
+            staffPositions: placement.staffPositions,
+            insertionIndex,
+          },
+          { document, lyricSyllableId: activeSyllableId },
+        );
       case 'scandicus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
+        return layoutGraphicalPlacementPreview(
+          document.neumes,
+          {
+            kind: placement.kind,
+            staffPositions: placement.staffPositions,
+            insertionIndex,
+          },
+          { document, lyricSyllableId: activeSyllableId },
+        );
       case 'climacus':
       case 'porrectus':
       case 'torculus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
+        return layoutGraphicalPlacementPreview(
+          document.neumes,
+          {
+            kind: placement.kind,
+            staffPositions: placement.staffPositions,
+            insertionIndex,
+          },
+          { document, lyricSyllableId: activeSyllableId },
+        );
     }
   })();
 
