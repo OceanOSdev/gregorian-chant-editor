@@ -4,13 +4,13 @@ import {
   useReducer,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
 import { moveNeumeVertically } from '../commands/move-neume';
 import { moveNoteVertically } from '../commands/move-note';
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
+import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
@@ -85,12 +85,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     createEditorSession,
   );
   const { history, selection, activeTool, rememberedKind } = session;
-  const [lyricDraft, setLyricDraft] = useState('');
-  const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null);
-  const [committedLyricText, setCommittedLyricText] = useState('');
-  const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false);
-  const skipNextLyricBlurCommit = useRef(false);
-  const lyricInput = useRef<HTMLInputElement>(null);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   const canUndo = history.past.length > 0;
@@ -114,43 +108,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const placementDescription = placementKind
     ? `${neumeName(placementKind)}. Target ${target}. Escape selects the editing tool.`
     : '';
-  const displayedLyricDraft =
-    activeSyllable?.id === draftSyllableId
-      ? lyricDraft
-      : (activeSyllable?.text ?? '');
-
   function navigateHistory(direction: 'undo' | 'redo') {
     dispatch({
       type: 'history',
       direction,
       focusedNoteId: getFocusedScoreNoteId(),
     });
-  }
-
-  function commitLyricDraft(text: string) {
-    if (!activeSyllable || draftSyllableId !== activeSyllable.id) return;
-    dispatch({
-      type: 'edit',
-      edit: (document) =>
-        updateLyricSyllableText(document, activeSyllable.id, text),
-    });
-    setLyricDraft(text);
-    setCommittedLyricText(text);
-  }
-
-  function handleLyricKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
-    if (event.nativeEvent.isComposing) return;
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      commitLyricDraft(event.currentTarget.value);
-      return;
-    }
-    if (event.key !== 'Escape' || !activeSyllable) return;
-    event.preventDefault();
-    event.stopPropagation();
-    skipNextLyricBlurCommit.current = true;
-    setLyricDraft(committedLyricText);
-    setDraftSyllableId(activeSyllable.id);
   }
 
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
@@ -168,19 +131,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       return;
     dispatch({ type: 'place', kind, point, ids: allocateInsertionIds() });
   }
-
-  useEffect(() => {
-    setLyricDraft(activeSyllable?.text ?? '');
-    setDraftSyllableId(activeSyllable?.id ?? null);
-    setCommittedLyricText(activeSyllable?.text ?? '');
-    skipNextLyricBlurCommit.current = false;
-  }, [activeSyllable?.id, activeSyllable?.text]);
-
-  useEffect(() => {
-    if (!pendingLyricInputFocus || !activeSyllable) return;
-    lyricInput.current?.focus();
-    setPendingLyricInputFocus(false);
-  }, [activeSyllable, pendingLyricInputFocus]);
 
   useLayoutEffect(() => {
     const request = session.focusRequest;
@@ -319,60 +269,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         >
           Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
         </button>
-        <label>
-          Syllable{' '}
-          <select
-            aria-label="Active syllable"
-            value={activeSyllable?.id ?? ''}
-            disabled={!activeSyllable}
-            onChange={(event) =>
-              dispatch({ type: 'syllable', id: event.currentTarget.value })
-            }
-          >
-            {!activeSyllable ? <option value="">No syllable</option> : null}
-            {history.present.syllables.map((syllable, index) => (
-              <option key={syllable.id} value={syllable.id}>
-                {index + 1}. {syllable.text || '(empty)'}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          aria-label="Add syllable"
-          onClick={() => {
-            dispatch({
-              type: 'add-syllable',
-              syllable: { id: crypto.randomUUID(), text: '' },
-            });
-            setPendingLyricInputFocus(true);
-          }}
-        >
-          + Syllable
-        </button>
-        <div className="editor-lyric">
-          <label htmlFor="lyric-syllable">Lyric syllable</label>
-          <input
-            ref={lyricInput}
-            id="lyric-syllable"
-            type="text"
-            value={displayedLyricDraft}
-            disabled={!activeSyllable}
-            onChange={(event) => {
-              skipNextLyricBlurCommit.current = false;
-              setLyricDraft(event.currentTarget.value);
-              setDraftSyllableId(activeSyllable?.id ?? null);
-            }}
-            onKeyDown={handleLyricKeyDown}
-            onBlur={(event) => {
-              if (skipNextLyricBlurCommit.current) {
-                skipNextLyricBlurCommit.current = false;
-                return;
-              }
-              commitLyricDraft(event.currentTarget.value);
-            }}
-          />
-        </div>
         <button
           type="button"
           aria-label="Undo last edit"
@@ -392,6 +288,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Redo
         </button>
       </div>
+      <SyllableControls
+        syllables={history.present.syllables}
+        activeId={session.activeSyllableId}
+        onSelect={(id) => dispatch({ type: 'syllable', id })}
+        onAdd={(text) =>
+          dispatch({
+            type: 'add-syllable',
+            syllable: { id: crypto.randomUUID(), text },
+          })
+        }
+        onSave={(id, text) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => updateLyricSyllableText(document, id, text),
+          })
+        }
+      />
       <details className="editor-help">
         <summary>Keyboard help</summary>
         <p>
