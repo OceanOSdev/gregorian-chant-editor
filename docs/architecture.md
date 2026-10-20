@@ -79,7 +79,10 @@ boundaries. See [commands and history](commands-and-history.md).
 ### `src/editor/state/`
 
 Contains semantic document history and transient, ID-based selection and tool
-types. History and transient editor state remain separate.
+types. The pure editor-session reducer coordinates commands, active-syllable
+reconciliation, placement lifecycle, ID-based focus requests, and event
+notifications. Its history field contains semantic snapshots only; tools,
+remembered neume kind, hover, selection, focus, and announcements remain outside history.
 
 ### `src/editor/interaction/`
 

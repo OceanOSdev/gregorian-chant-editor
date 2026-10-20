@@ -22,7 +22,11 @@ import {
   redoDocumentEdit,
   undoDocumentEdit,
 } from '../state/document-history';
-import { buildNeumeGeometry, type LayoutBounds } from './neume-geometry';
+import {
+  firstHeadHalfWidth,
+  buildNeumeGeometry,
+  type LayoutBounds,
+} from './neume-geometry';
 import {
   layoutChant,
   layoutGraphicalPlacementPreview,
@@ -215,7 +219,7 @@ describe('ordinary Scandicus and Torculus engraving', () => {
   );
 
   it.each(kinds)(
-    '%s previews exactly match committed geometry across insertion boundaries and systems',
+    '%s shared geometry matches committed layout across insertion boundaries and systems',
     (kind) => {
       const before = Array.from({ length: 24 }, (_, i) =>
         three(i % 2 ? 'scandicus' : 'torculus', 1, 1, 1, `existing-${i}`),
@@ -229,11 +233,6 @@ describe('ordinary Scandicus and Torculus engraving', () => {
               candidate.notes[1].staffPosition,
               candidate.notes[2].staffPosition,
             ] as const;
-            const preview = layoutGraphicalPlacementPreview(before, {
-              kind,
-              staffPositions,
-              insertionIndex,
-            });
             const prospective = layoutChant(
               documentWith([
                 ...before.slice(0, insertionIndex),
@@ -247,12 +246,18 @@ describe('ordinary Scandicus and Torculus engraving', () => {
             const {
               neumeId: _id,
               lyricSyllableId: _lyric,
+              kind: _kind,
               notes,
               ...geometry
             } = committed;
+            const preview = buildNeumeGeometry(
+              kind,
+              staffPositions,
+              committed.notes[0].anchorX - firstHeadHalfWidth(kind),
+              committed.notes[0].anchorY + staffPositions[0] * 12,
+            );
             expect(preview).toEqual({
               ...geometry,
-              scoreHeight: prospective.height,
               notes: notes.map(({ noteId: _note, ...n }) => n),
             });
             expect(measureNeumeWidth(candidate)).toBe(committed.bounds.width);
@@ -324,7 +329,7 @@ describe('ordinary Scandicus and Torculus engraving', () => {
   );
 
   it.each(kinds)(
-    '%s previews a new final system without IDs or clipped score height',
+    '%s keeps its local ghost on the committed staff until wrapping is committed',
     (kind) => {
       // The complete prefix ends exactly at x=656.
       const prefix = [
@@ -338,21 +343,25 @@ describe('ordinary Scandicus and Torculus engraving', () => {
       const before = layoutChant(documentWith(prefix));
       expect(before.systems).toHaveLength(1);
       const candidate = three(kind, 1, 1, 2);
-      const preview = layoutGraphicalPlacementPreview(prefix, {
-        kind,
-        staffPositions: [
-          candidate.notes[0].staffPosition,
-          candidate.notes[1].staffPosition,
-          candidate.notes[2].staffPosition,
-        ],
-        insertionIndex: prefix.length,
-      });
+      const preview = layoutGraphicalPlacementPreview(
+        before,
+        {
+          kind,
+          staffPositions: [
+            candidate.notes[0].staffPosition,
+            candidate.notes[1].staffPosition,
+            candidate.notes[2].staffPosition,
+          ],
+          insertionIndex: prefix.length,
+        },
+        { x: 655, y: 100 },
+      );
       const committed = layoutChant(documentWith([...prefix, candidate]));
       expect(committed.systems).toHaveLength(2);
-      expect(preview?.scoreHeight).toBe(committed.height);
-      expect(preview?.scoreHeight).toBeGreaterThan(before.height);
-      expect(preview?.ink).toEqual(committed.systems[1].neumes[0].ink);
-      expect(preview?.notes[0].anchorX).toBe(230);
+      expect(before.systems).toHaveLength(1);
+      expect(preview).not.toHaveProperty('scoreHeight');
+      expect(preview?.notes[0].anchorY).toBe(100);
+      expect(preview?.bounds.x).toBeLessThan(656);
       expect(preview).not.toHaveProperty('neumeId');
       expect(preview?.notes.every((n) => !('noteId' in n))).toBe(true);
     },

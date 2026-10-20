@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useRef,
   type KeyboardEvent,
   type MouseEvent,
@@ -9,11 +9,14 @@ import type { StaffPositionDelta } from '../commands/move-note';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   type ChantLayout,
+  type ChantSystemLayout,
   type GraphicalPlacementPreviewLayout,
   type GraphicalNeumeKind,
 } from '../layout/layout-chant';
 import { isPlacementTool, type EditorTool } from '../state/editor-tool';
 import type { EditorSelection } from '../state/selection';
+import type { EditorFocusRequest } from '../state/editor-session';
+import { focusAndReveal } from './focus-visibility';
 import {
   getNoteAccessibleLabel,
   getSelectedNeumeDescription,
@@ -32,8 +35,9 @@ interface ScoreSvgProps {
   placementPreview: GraphicalPlacementPreviewLayout | null;
   selection: EditorSelection;
   activeTool: EditorTool;
-  pendingFocusNoteId: string | null;
-  onNoteFocusHandled: (noteId: string) => void;
+  placementDescription: string;
+  focusRequest: EditorFocusRequest | null;
+  onFocusHandled: (request: EditorFocusRequest) => void;
   onSelectNote: (noteId: string) => void;
   onSelectNeumeForNote: (noteId: string) => void;
   onPlacementPointerMove: (point: SvgPoint) => void;
@@ -55,8 +59,9 @@ export function ScoreSvg({
   placementPreview,
   selection,
   activeTool,
-  pendingFocusNoteId,
-  onNoteFocusHandled,
+  placementDescription,
+  focusRequest,
+  onFocusHandled,
   onSelectNote,
   onSelectNeumeForNote,
   onPlacementPointerMove,
@@ -68,31 +73,32 @@ export function ScoreSvg({
   onDeleteNeume,
   onClearSelection,
 }: ScoreSvgProps) {
+  const scoreElement = useRef<SVGSVGElement>(null);
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
-  const displayHeight = Math.max(
-    layout.height,
-    placementPreview?.scoreHeight ?? 0,
-  );
-
-  useEffect(() => {
-    if (!pendingFocusNoteId) {
-      return;
+  useLayoutEffect(() => {
+    if (!focusRequest || focusRequest.kind === 'palette') return;
+    const note = noteElements.current.get(focusRequest.noteId);
+    if (
+      focusRequest.kind === 'placement' &&
+      placementActive &&
+      note &&
+      scoreElement.current
+    ) {
+      focusAndReveal(
+        scoreElement.current,
+        note.closest('[data-neume-id]') ?? note,
+        note,
+      );
+    } else if (focusRequest.kind === 'note' && !placementActive && note) {
+      focusAndReveal(note);
     }
-
-    const noteElement = noteElements.current.get(pendingFocusNoteId);
-
-    if (!noteElement) {
-      return;
-    }
-
-    // Stable IDs recover the current element after keyed notes move systems.
-    noteElement.focus();
-    onNoteFocusHandled(pendingFocusNoteId);
-  }, [onNoteFocusHandled, pendingFocusNoteId]);
+    onFocusHandled(focusRequest);
+  }, [focusRequest, onFocusHandled, placementActive]);
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation();
+    if (placementActive) return;
 
     if (event.shiftKey) {
       onSelectNeumeForNote(noteId);
@@ -149,7 +155,7 @@ export function ScoreSvg({
     isNoteSelected: boolean,
     isNeumeSelected: boolean,
   ) {
-    if (isPlacementTool(activeTool)) {
+    if (isPlacementTool(activeTool) || event.nativeEvent.isComposing) {
       return;
     }
 
@@ -199,14 +205,23 @@ export function ScoreSvg({
 
   return (
     <svg
+      ref={scoreElement}
+      tabIndex={placementActive ? -1 : undefined}
       className={`score${placementActive ? ' score--placing' : ''}`}
-      viewBox={`0 0 ${layout.width} ${displayHeight}`}
+      viewBox={`0 0 ${layout.width} ${layout.height}`}
       role="group"
-      aria-labelledby="score-title score-description"
+      aria-label={placementActive ? 'Score placement' : undefined}
+      aria-labelledby={
+        placementActive ? undefined : 'score-title score-description'
+      }
+      aria-describedby={placementActive ? 'placement-description' : undefined}
       onClick={handleScoreClick}
       onPointerMove={handlePointerMove}
       onPointerLeave={() => onPlacementPointerLeave()}
     >
+      {placementActive ? (
+        <desc id="placement-description">{placementDescription}</desc>
+      ) : null}
       <title id="score-title">{layout.title}</title>
       <desc id="score-description">
         {getScoreAccessibleDescription(layout)}
@@ -217,28 +232,7 @@ export function ScoreSvg({
 
       {layout.systems.map((system) => (
         <g key={system.index} data-system-index={system.index}>
-          {system.staffLines.map((line, lineIndex) => (
-            <line
-              className="score__staff-line"
-              key={`system-${system.index}-staff-line-${lineIndex}`}
-              x1={line.x1}
-              x2={line.x2}
-              y1={line.y}
-              y2={line.y}
-            />
-          ))}
-
-          <text
-            className="score__clef"
-            x={system.clef.x}
-            y={system.clef.y}
-            fontSize={system.clef.fontSize}
-            textAnchor="middle"
-            dominantBaseline="central"
-            aria-hidden="true"
-          >
-            C
-          </text>
+          <SystemStaff system={system} />
 
           {system.neumes.map((neume) => {
             const isNeumeSelected =
@@ -268,6 +262,23 @@ export function ScoreSvg({
                     width={neume.bounds.width + selectionGap * 2}
                     height={neume.bounds.height + selectionGap * 2}
                     rx="4"
+                    pointerEvents="none"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {placementActive &&
+                (isNeumeSelected ||
+                  (selection.kind === 'note' &&
+                    neume.notes.some(
+                      (note) => note.noteId === selection.noteId,
+                    ))) ? (
+                  <rect
+                    className="score__placement-context"
+                    x={neume.bounds.x - 7}
+                    y={neume.bounds.y - 7}
+                    width={neume.bounds.width + 14}
+                    height={neume.bounds.height + 14}
+                    rx="3"
                     pointerEvents="none"
                     aria-hidden="true"
                   />
@@ -371,10 +382,67 @@ export function ScoreSvg({
           pointerEvents="none"
           aria-hidden="true"
         >
-          <NeumeInk ink={placementPreview.ink} />
+          <g className="score__placement-caret">
+            <line
+              x1={placementPreview.caret.x}
+              x2={placementPreview.caret.x}
+              y1={placementPreview.caret.top}
+              y2={placementPreview.caret.bottom}
+            />
+            <path
+              d={`M${placementPreview.caret.x - 4},${placementPreview.caret.top} h8`}
+            />
+          </g>
+          <g className="score__placement-ghost">
+            <NeumeInk ink={placementPreview.ink} />
+          </g>
+          {placementPreview.caret.systemIndex !==
+          placementPreview.pointerSystemIndex ? (
+            <text
+              className="score__placement-target"
+              x="64"
+              y={layout.systems[placementPreview.pointerSystemIndex].y + 208}
+            >
+              Insertion: system {placementPreview.caret.systemIndex + 1}
+            </text>
+          ) : null}
         </g>
       ) : null}
     </svg>
+  );
+}
+
+/** Shared committed staff and clef rendering. */
+function SystemStaff({
+  system,
+}: {
+  system: Pick<ChantSystemLayout, 'index' | 'staffLines' | 'clef'>;
+}) {
+  return (
+    <>
+      {system.staffLines.map((line, lineIndex) => (
+        <line
+          className="score__staff-line"
+          key={`system-${system.index}-staff-line-${lineIndex}`}
+          x1={line.x1}
+          x2={line.x2}
+          y1={line.y}
+          y2={line.y}
+        />
+      ))}
+
+      <text
+        className="score__clef"
+        x={system.clef.x}
+        y={system.clef.y}
+        fontSize={system.clef.fontSize}
+        textAnchor="middle"
+        dominantBaseline="central"
+        aria-hidden="true"
+      >
+        C
+      </text>
+    </>
   );
 }
 

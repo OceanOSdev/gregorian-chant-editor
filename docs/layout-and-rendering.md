@@ -54,6 +54,12 @@ responsively while the layout retains stable internal units.
 Every system repeats the same four staff-line x extents and a C clef positioned
 on the semantic clef line. Their y coordinates advance by the system offset.
 
+Graphical placement previews contain an ID-free local ghost and a caret on
+committed systems. They do not assemble hypothetical systems or lyrics, or
+change score dimensions. Shared engraving builders still determine the actual
+neume shape; [editor interactions](editor-interactions.md#caret-and-cursor-ghost)
+owns caret boundary, local pitch, clamping and remote-target feedback rules.
+
 ## Neume geometry
 
 `buildNeumeGeometry` in `src/editor/layout/neume-geometry.ts` is the pure,
@@ -122,8 +128,8 @@ Changing an individual pitch can switch between adjacent and wider Clivis
 construction, changing width and system membership. Whole-neume transposition
 retains interval widths. Insertion, deletion, normalization, and interval edits
 can reflow later entities while preserving semantic IDs and pending focus.
-`wrapNeumes`, committed layout, and hypothetical preview layout use the same
-sequence walker, including exact-fit and oversized progress rules.
+`wrapNeumes` and committed layout use the same sequence walker, including
+exact-fit and oversized progress rules. Hover does not run a wrapping pass.
 
 ## Committed layout and previews
 
@@ -132,15 +138,13 @@ Committed layout copies semantic neume and note IDs into `NeumeLayout` and
 data attributes. Coordinates remain derived and carry no authority back into
 the semantic document.
 
-Graphical previews reuse the same complete `NeumeGeometry` and sequence walker.
-The preview simulates inserting an ID-free candidate into the semantic order
-and returns its absolute position after hypothetical reflow. Its `scoreHeight`
-is the prospective score extent from that same pass. `ScoreSvg` temporarily
-expands its viewBox to the larger of committed and prospective height so a
-candidate on a new final system is visible before commit. Canceling restores the
-committed extent. Only the candidate is ghosted; existing notation and staff
-remain the committed layout until insertion succeeds.
-See [editor interactions](editor-interactions.md#graphical-placement-and-preview)
+Graphical previews reuse complete ID-free `NeumeGeometry` for a ghost on the
+hovered staff, alongside caret coordinates for the clamped semantic insertion
+index. They share shape, snapped pitch and ink rendering with committed notation;
+final spacing and system assignment are derived only after insertion. `ScoreSvg`
+renders committed systems directly throughout hover, without hiding/replacing
+ink or expanding its viewBox. The preview overlay contains no semantic IDs or
+interactive controls. See [editor interactions](editor-interactions.md#graphical-placement-and-preview)
 for input and lifecycle rules.
 
 ## Lyrics
@@ -212,7 +216,10 @@ No separate rectangular focus outline is rendered for a path target. See
 
 The SVG has a title and generated description. The description totals systems,
 neumes, notes, and rendered lyric syllables across the complete multi-system
-layout. Preview geometry and purely visual connectors, clefs, hit targets, and
+layout. During placement, the root instead exposes the concise placement
+name/description specified in [editor interactions](editor-interactions.md#focus).
+Its local placement-context cue uses derived neume bounds without altering ink,
+advance, or wrapping. Preview geometry and purely visual connectors, clefs, hit targets, and
 selection outlines are hidden from accessibility APIs where appropriate.
 
 Pure helpers test the accessible strings. Actual browser focus, event

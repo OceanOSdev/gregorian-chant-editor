@@ -15,11 +15,14 @@ import {
   redoDocumentEdit,
   undoDocumentEdit,
 } from '../state/document-history';
-import { buildNeumeGeometry, getInkBounds } from './neume-geometry';
+import {
+  firstHeadHalfWidth,
+  buildNeumeGeometry,
+  getInkBounds,
+} from './neume-geometry';
 import {
   getNeumeLyricAlignmentX,
   layoutChant,
-  layoutGraphicalPlacementPreview,
   measureNeumeWidth,
   wrapNeumes,
 } from './layout-chant';
@@ -138,7 +141,7 @@ describe('approved engraving geometry', () => {
   );
 
   it.each(['podatus', 'clivis'] as const)(
-    'measures and previews %s identically over line/space and wide intervals',
+    'measures and builds %s committed geometry identically over line/space and wide intervals',
     (kind) => {
       for (const first of [-1, 0, 1, 6])
         for (const distance of [1, 2, 3, 4, 5, 6, 8, 12]) {
@@ -153,11 +156,6 @@ describe('approved engraving geometry', () => {
             twoNote(i % 2 ? 'podatus' : 'clivis', (i % 5) + 1, `existing-${i}`),
           );
           for (const insertionIndex of [0, 7, 21]) {
-            const preview = layoutGraphicalPlacementPreview(before, {
-              kind,
-              staffPositions: positions,
-              insertionIndex,
-            });
             const neumes = [
               ...before.slice(0, insertionIndex),
               neume,
@@ -170,12 +168,18 @@ describe('approved engraving geometry', () => {
             const {
               neumeId: _id,
               lyricSyllableId: _lyric,
+              kind: _kind,
               notes,
               ...geometry
             } = committed;
+            const preview = buildNeumeGeometry(
+              kind,
+              positions,
+              committed.notes[0].anchorX - firstHeadHalfWidth(kind),
+              committed.notes[0].anchorY + positions[0] * 12,
+            );
             expect(preview).toEqual({
               ...geometry,
-              scoreHeight: prospective.height,
               notes: notes.map(({ noteId: _note, ...n }) => n),
             });
             expect(measureNeumeWidth(neume)).toBe(committed.bounds.width);

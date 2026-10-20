@@ -19,16 +19,12 @@ import {
 import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing';
 import { reconcileSelection, selectNote } from '../state/selection';
 import {
+  firstHeadHalfWidth,
   buildNeumeGeometry,
   getInkBounds,
   type LayoutBounds,
 } from './neume-geometry';
-import {
-  layoutChant,
-  layoutGraphicalPlacementPreview,
-  measureNeumeWidth,
-  wrapNeumes,
-} from './layout-chant';
+import { layoutChant, measureNeumeWidth, wrapNeumes } from './layout-chant';
 
 type Kind = 'climacus' | 'porrectus';
 interface ApprovedRecipe {
@@ -169,7 +165,7 @@ describe('approved Climacus and Porrectus engraving', () => {
   );
 
   it.each(kinds)(
-    '%s preview equals committed geometry including targets after multi-system reflow',
+    '%s shared geometry equals committed layout including targets after multi-system reflow',
     (kind) => {
       const prefix = Array.from({ length: 20 }, (_, i) =>
         three(i % 2 ? 'climacus' : 'porrectus', 1, 2, 3, `existing-${i}`),
@@ -178,15 +174,6 @@ describe('approved Climacus and Porrectus engraving', () => {
         for (const b of [1, 2, 5, 6])
           for (const insertionIndex of [0, 6, 20]) {
             const candidate = three(kind, a, b, 3);
-            const preview = layoutGraphicalPlacementPreview(prefix, {
-              kind,
-              staffPositions: [
-                candidate.notes[0].staffPosition,
-                candidate.notes[1].staffPosition,
-                candidate.notes[2].staffPosition,
-              ],
-              insertionIndex,
-            });
             const layout = layoutChant(
               documentWith([
                 ...prefix.slice(0, insertionIndex),
@@ -200,13 +187,20 @@ describe('approved Climacus and Porrectus engraving', () => {
             const {
               neumeId: _id,
               lyricSyllableId: _lyric,
+              kind: _kind,
               notes,
               ...geometry
             } = committed;
+            const preview = buildNeumeGeometry(
+              kind,
+              candidate.notes.map((note) => note.staffPosition),
+              committed.notes[0].anchorX - firstHeadHalfWidth(kind),
+              committed.notes[0].anchorY +
+                candidate.notes.map((note) => note.staffPosition)[0] * 12,
+            );
             expect(preview).toEqual({
               ...geometry,
               notes: notes.map(({ noteId: _note, ...n }) => n),
-              scoreHeight: layout.height,
             });
             expect(layout.systems[0].lyrics[0].x).toBe(230);
             expect(

@@ -142,7 +142,7 @@ describe('resolveGraphicalNeumePlacement', () => {
     ).toBe(2);
   });
 
-  it('clamps across systems and previews the actual destination', () => {
+  it('clamps the caret across systems while keeping the ghost on the hovered system', () => {
     const neumes = [
       ...Array.from({ length: 11 }, (_, index) =>
         punctum(`first-${index}`, 'syllable-1'),
@@ -160,21 +160,10 @@ describe('resolveGraphicalNeumePlacement', () => {
       'punctum',
       656,
     );
-    const destination = layoutChant({
-      ...document,
-      neumes: [
-        ...document.neumes.slice(0, result?.insertionIndex),
-        punctum('candidate', 'syllable-1'),
-        ...document.neumes.slice(result?.insertionIndex),
-      ],
-    })
-      .systems.flatMap((system) => system.neumes)
-      .find((neume) => neume.neumeId === 'neume-candidate');
-
     expect(result?.insertionIndex).toBe(11);
-    expect(result?.preview.notes).toEqual(
-      destination?.notes.map(({ noteId: _noteId, ...note }) => note),
-    );
+    expect(result?.preview.caret.systemIndex).toBe(1);
+    expect(result?.preview.pointerSystemIndex).toBe(layout.systems.length - 1);
+    expect(result?.preview.notes[0].anchorY).toBeGreaterThan(488);
   });
 
   it('keeps resolving long documents without a global capacity', () => {

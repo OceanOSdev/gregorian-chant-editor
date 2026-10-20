@@ -46,7 +46,7 @@ export type ResolvedGraphicalNeumePlacement =
 
 /**
  * Couples system hit testing, a global whole-neume boundary, active-syllable
- * clamping, graphical fit validation, and an ID-free post-reflow preview.
+ * clamping, graphical fit validation, and an ID-free caret and local ghost.
  */
 export function resolveGraphicalNeumePlacement(
   document: ChantDocument,
@@ -97,46 +97,15 @@ export function resolveGraphicalNeumePlacement(
     return null;
   }
 
-  const preview = (() => {
-    switch (placement.kind) {
-      case 'punctum':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
-      case 'podatus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
-      case 'clivis':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
-      case 'scandicus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
-      case 'climacus':
-      case 'porrectus':
-      case 'torculus':
-        return layoutGraphicalPlacementPreview(document.neumes, {
-          kind: placement.kind,
-          staffPositions: placement.staffPositions,
-          insertionIndex,
-        });
-    }
-  })();
-
-  if (!preview || preview.kind !== placement.kind) {
-    return null;
-  }
+  const preview = layoutGraphicalPlacementPreview(
+    layout,
+    {
+      ...placement,
+      insertionIndex,
+    },
+    point,
+  );
+  if (!preview) return null;
 
   switch (placement.kind) {
     case 'punctum':

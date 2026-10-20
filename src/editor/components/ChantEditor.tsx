@@ -1,49 +1,37 @@
 import {
   useEffect,
+  useLayoutEffect,
+  useReducer,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import { appendLyricSyllable } from '../commands/append-lyric-syllable';
 import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
-import { insertClimacus } from '../commands/insert-climacus';
-import { insertClivis } from '../commands/insert-clivis';
-import { insertPodatus } from '../commands/insert-podatus';
-import { insertPorrectus } from '../commands/insert-porrectus';
-import { insertPunctum } from '../commands/insert-punctum';
-import { insertScandicus } from '../commands/insert-scandicus';
-import { insertTorculus } from '../commands/insert-torculus';
 import { moveNeumeVertically } from '../commands/move-neume';
 import { moveNoteVertically } from '../commands/move-note';
-import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
-import {
-  staffPosition,
-  type ChantDocument,
-  type ClimacusNeume,
-  type ClivisNeume,
-  type LyricSyllable,
-  type PodatusNeume,
-  type PorrectusNeume,
-  type PunctumNeume,
-  type ScandicusNeume,
-  type TorculusNeume,
-} from '../domain/chant-document';
-import { findNeume, findNote } from '../domain/neume';
+import { type ChantDocument } from '../domain/chant-document';
+import { findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
-import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing';
+import type { InsertionIds } from '../interaction/insert-editor-neume';
+import {
+  getNotationShortcut,
+  nextPaletteTool,
+  paletteTools,
+  type PaletteTool,
+} from '../interaction/palette-navigation';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
+import { focusAndReveal } from '../rendering/focus-visibility';
 import {
-  applyDocumentEdit,
-  createDocumentHistory,
-  redoDocumentEdit,
-  undoDocumentEdit,
-} from '../state/document-history';
+  createEditorSession,
+  neumeName,
+  reduceEditorSession,
+  syllableDescription,
+} from '../state/editor-session';
 import {
-  isPlacementTool,
   placeClimacusTool,
   placeClivisTool,
   placePodatusTool,
@@ -51,849 +39,135 @@ import {
   placePunctumTool,
   placeScandicusTool,
   placeTorculusTool,
-  selectTool,
-  type EditorTool,
 } from '../state/editor-tool';
-import {
-  clearSelection,
-  reconcileSelection,
-  resolveSelectionSyllableId,
-  selectNeume,
-  selectNote,
-  type EditorSelection,
-} from '../state/selection';
+import { clearSelection, selectNeume, selectNote } from '../state/selection';
 
 interface ChantEditorProps {
   document: ChantDocument;
 }
 
-function isEditableTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
+const neumeTools = [
+  { kind: 'punctum', tool: placePunctumTool },
+  { kind: 'podatus', tool: placePodatusTool },
+  { kind: 'clivis', tool: placeClivisTool },
+  { kind: 'scandicus', tool: placeScandicusTool },
+  { kind: 'torculus', tool: placeTorculusTool },
+  { kind: 'climacus', tool: placeClimacusTool },
+  { kind: 'porrectus', tool: placePorrectusTool },
+] as const;
 
+function isEditableTarget(target: EventTarget | null) {
   return (
-    target.isContentEditable ||
-    target.tagName === 'INPUT' ||
-    target.tagName === 'TEXTAREA' ||
-    target.tagName === 'SELECT'
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
   );
 }
 
 function getFocusedScoreNoteId() {
   const focused = globalThis.document.activeElement;
+  return focused instanceof Element
+    ? (focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null)
+    : null;
+}
 
-  if (!(focused instanceof Element)) {
-    return null;
-  }
-
-  return focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null;
+function allocateInsertionIds(): InsertionIds {
+  return {
+    neumeId: crypto.randomUUID(),
+    noteIds: [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()],
+  };
 }
 
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
-  const [history, setHistory] = useState(() =>
-    createDocumentHistory(initialDocument),
+  const [session, dispatch] = useReducer(
+    reduceEditorSession,
+    initialDocument,
+    createEditorSession,
   );
-  const [selection, setSelection] = useState<EditorSelection>(clearSelection);
-  const [activeSyllableId, setActiveSyllableId] = useState<string | null>(
-    initialDocument.syllables[0]?.id ?? null,
-  );
-  const [activeTool, setActiveTool] = useState<EditorTool>(selectTool);
-  const [pendingFocusNoteId, setPendingFocusNoteId] = useState<string | null>(
-    null,
-  );
-  const [hoveredScorePoint, setHoveredScorePoint] = useState<SvgPoint | null>(
-    null,
-  );
+  const { history, selection, activeTool, rememberedKind } = session;
   const [lyricDraft, setLyricDraft] = useState('');
   const [draftSyllableId, setDraftSyllableId] = useState<string | null>(null);
   const [committedLyricText, setCommittedLyricText] = useState('');
   const [pendingLyricInputFocus, setPendingLyricInputFocus] = useState(false);
   const skipNextLyricBlurCommit = useRef(false);
   const lyricInput = useRef<HTMLInputElement>(null);
+  const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
+  const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const layout = layoutChant(history.present);
   const activeSyllable = history.present.syllables.find(
-    (syllable) => syllable.id === activeSyllableId,
+    (s) => s.id === session.activeSyllableId,
   );
   const placementKind = getGraphicalNeumeKind(activeTool);
-  const resolvedPlacement =
-    placementKind && hoveredScorePoint
-      ? resolveGraphicalNeumePlacement(
+  const placementPreview =
+    placementKind && session.hoveredPoint
+      ? (resolveGraphicalNeumePlacement(
           history.present,
           layout,
           activeSyllable?.id ?? null,
           placementKind,
-          hoveredScorePoint,
-        )
+          session.hoveredPoint,
+        )?.preview ?? null)
       : null;
-  const placementPreview = resolvedPlacement?.preview ?? null;
-  const canInsertNeume = Boolean(activeSyllable);
+  const target = syllableDescription(session);
+  const placementDescription = placementKind
+    ? `${neumeName(placementKind)}. Target ${target}. Escape selects the editing tool.`
+    : '';
   const displayedLyricDraft =
     activeSyllable?.id === draftSyllableId
       ? lyricDraft
       : (activeSyllable?.text ?? '');
 
-  function returnToSelect() {
-    setActiveTool(selectTool());
-    setHoveredScorePoint(null);
+  function navigateHistory(direction: 'undo' | 'redo') {
+    dispatch({
+      type: 'history',
+      direction,
+      focusedNoteId: getFocusedScoreNoteId(),
+    });
   }
 
-  function applyHistoryNavigation(
-    navigate: typeof undoDocumentEdit | typeof redoDocumentEdit,
-  ) {
-    const focusedNoteId = getFocusedScoreNoteId();
-    const nextHistory = navigate(history);
-
-    if (nextHistory === history) {
-      return;
-    }
-
-    setHistory(nextHistory);
-    setPendingFocusNoteId(
-      getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-    );
-  }
-
-  // Draft text follows the active syllable, while committed text is the Escape
-  // rollback point. A draft is committed explicitly or when the input blurs.
   function commitLyricDraft(text: string) {
-    if (!activeSyllable || draftSyllableId !== activeSyllable.id) {
-      return;
-    }
-
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
+    if (!activeSyllable || draftSyllableId !== activeSyllable.id) return;
+    dispatch({
+      type: 'edit',
+      edit: (document) =>
         updateLyricSyllableText(document, activeSyllable.id, text),
-      ),
-    );
+    });
     setLyricDraft(text);
     setCommittedLyricText(text);
   }
 
   function handleLyricKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.nativeEvent.isComposing) return;
     if (event.key === 'Enter') {
       event.preventDefault();
       commitLyricDraft(event.currentTarget.value);
       return;
     }
-
-    if (event.key !== 'Escape' || !activeSyllable) {
-      return;
-    }
-
+    if (event.key !== 'Escape' || !activeSyllable) return;
     event.preventDefault();
     event.stopPropagation();
-    // Escape restores the last semantic value; do not let the resulting blur
-    // immediately commit the abandoned draft again.
     skipNextLyricBlurCommit.current = true;
     setLyricDraft(committedLyricText);
     setDraftSyllableId(activeSyllable.id);
   }
 
-  function handleScoreSelection(
-    nextSelection: EditorSelection,
-    focusNoteId?: string,
-  ) {
-    const syllableId = resolveSelectionSyllableId(
-      history.present,
-      nextSelection,
-    );
-
-    if (!syllableId) {
-      return;
-    }
-
-    setSelection(nextSelection);
-    setActiveSyllableId(syllableId);
-
-    if (focusNoteId) {
-      setPendingFocusNoteId(focusNoteId);
-    }
-  }
-
-  function handleSelectNote(noteId: string) {
-    handleScoreSelection(selectNote(noteId));
-  }
-
-  function handleSelectNeumeForNote(noteId: string) {
-    const locatedNote = findNote(history.present, noteId);
-
-    if (!locatedNote) {
-      return;
-    }
-
-    handleScoreSelection(selectNeume(locatedNote.neume.id), noteId);
-  }
-
-  function handleSelectSyllable(syllableId: string) {
-    setActiveSyllableId(syllableId);
-    setSelection(clearSelection());
-  }
-
-  function handleAddSyllable() {
-    const syllableId = globalThis.crypto.randomUUID();
-    const syllable: LyricSyllable = { id: syllableId, text: '' };
-
-    setHistory((currentHistory) =>
-      applyDocumentEdit(currentHistory, (document) =>
-        appendLyricSyllable(document, syllable),
-      ),
-    );
-    setActiveSyllableId(syllableId);
-    setSelection(clearSelection());
-    setPendingLyricInputFocus(true);
-  }
-
-  function handleAddPunctum() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(2),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const noteId = globalThis.crypto.randomUUID();
-    const punctum: PunctumNeume = {
-      id: neumeId,
-      kind: 'punctum',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: noteId,
-          staffPosition: insertion.referenceStaffPosition,
-        },
-      ],
-    };
-
-    const insertedDocument = insertPunctum(
-      history.present,
-      punctum,
-      insertion.insertionIndex,
-    );
-
-    if (insertedDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => insertedDocument));
-    setSelection(selectNote(noteId));
-    setPendingFocusNoteId(noteId);
-  }
-
-  function handleAddPodatus() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(2),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const lowerNoteId = globalThis.crypto.randomUUID();
-    const upperNoteId = globalThis.crypto.randomUUID();
-    const podatus: PodatusNeume = {
-      id: neumeId,
-      kind: 'podatus',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: lowerNoteId,
-          staffPosition: insertion.referenceStaffPosition,
-        },
-        {
-          id: upperNoteId,
-          staffPosition: staffPosition(insertion.referenceStaffPosition + 1),
-        },
-      ],
-    };
-    const insertedDocument = insertPodatus(
-      history.present,
-      podatus,
-      insertion.insertionIndex,
-    );
-
-    if (insertedDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => insertedDocument));
-    setSelection(selectNote(lowerNoteId));
-    setPendingFocusNoteId(lowerNoteId);
-    returnToSelect();
-  }
-
-  function handleAddClivis() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(3),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const upperNoteId = globalThis.crypto.randomUUID();
-    const lowerNoteId = globalThis.crypto.randomUUID();
-    const clivis: ClivisNeume = {
-      id: neumeId,
-      kind: 'clivis',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: upperNoteId,
-          staffPosition: insertion.referenceStaffPosition,
-        },
-        {
-          id: lowerNoteId,
-          staffPosition: staffPosition(insertion.referenceStaffPosition - 1),
-        },
-      ],
-    };
-    const insertedDocument = insertClivis(
-      history.present,
-      clivis,
-      insertion.insertionIndex,
-    );
-
-    if (insertedDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => insertedDocument));
-    setSelection(selectNote(upperNoteId));
-    setPendingFocusNoteId(upperNoteId);
-    returnToSelect();
-  }
-
-  function handleAddScandicus() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(2),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const firstNoteId = globalThis.crypto.randomUUID();
-    const secondNoteId = globalThis.crypto.randomUUID();
-    const thirdNoteId = globalThis.crypto.randomUUID();
-    const firstStaffPosition = insertion.referenceStaffPosition;
-    const scandicus: ScandicusNeume = {
-      id: neumeId,
-      kind: 'scandicus',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: firstNoteId,
-          staffPosition: firstStaffPosition,
-        },
-        {
-          id: secondNoteId,
-          staffPosition: staffPosition(firstStaffPosition + 1),
-        },
-        {
-          id: thirdNoteId,
-          staffPosition: staffPosition(firstStaffPosition + 2),
-        },
-      ],
-    };
-    const nextDocument = insertScandicus(
-      history.present,
-      scandicus,
-      insertion.insertionIndex,
-    );
-
-    if (nextDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => nextDocument));
-    setSelection(selectNote(firstNoteId));
-    setPendingFocusNoteId(firstNoteId);
-    returnToSelect();
-  }
-
-  function handleAddTorculus() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(2),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const firstNoteId = globalThis.crypto.randomUUID();
-    const secondNoteId = globalThis.crypto.randomUUID();
-    const thirdNoteId = globalThis.crypto.randomUUID();
-    const firstStaffPosition = insertion.referenceStaffPosition;
-    const torculus: TorculusNeume = {
-      id: neumeId,
-      kind: 'torculus',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: firstNoteId,
-          staffPosition: firstStaffPosition,
-        },
-        {
-          id: secondNoteId,
-          staffPosition: staffPosition(firstStaffPosition + 2),
-        },
-        {
-          id: thirdNoteId,
-          staffPosition: staffPosition(firstStaffPosition + 1),
-        },
-      ],
-    };
-    const nextDocument = insertTorculus(
-      history.present,
-      torculus,
-      insertion.insertionIndex,
-    );
-
-    if (nextDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => nextDocument));
-    setSelection(selectNote(firstNoteId));
-    setPendingFocusNoteId(firstNoteId);
-    returnToSelect();
-  }
-
-  function handleAddPorrectus() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(3),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const firstNoteId = globalThis.crypto.randomUUID();
-    const secondNoteId = globalThis.crypto.randomUUID();
-    const thirdNoteId = globalThis.crypto.randomUUID();
-    const firstStaffPosition = insertion.referenceStaffPosition;
-    const porrectus: PorrectusNeume = {
-      id: neumeId,
-      kind: 'porrectus',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: firstNoteId,
-          staffPosition: firstStaffPosition,
-        },
-        {
-          id: secondNoteId,
-          staffPosition: staffPosition(firstStaffPosition - 2),
-        },
-        {
-          id: thirdNoteId,
-          staffPosition: staffPosition(firstStaffPosition - 1),
-        },
-      ],
-    };
-    const nextDocument = insertPorrectus(
-      history.present,
-      porrectus,
-      insertion.insertionIndex,
-    );
-
-    if (nextDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => nextDocument));
-    setSelection(selectNote(firstNoteId));
-    setPendingFocusNoteId(firstNoteId);
-    returnToSelect();
-  }
-
-  function handleAddClimacus() {
-    if (!activeSyllable) {
-      return;
-    }
-
-    const insertion = resolveToolbarNeumeInsertion(
-      history.present,
-      activeSyllable.id,
-      selection.kind === 'note' ? selection.noteId : null,
-      staffPosition(3),
-    );
-
-    if (!insertion) {
-      return;
-    }
-
-    const neumeId = globalThis.crypto.randomUUID();
-    const firstNoteId = globalThis.crypto.randomUUID();
-    const secondNoteId = globalThis.crypto.randomUUID();
-    const thirdNoteId = globalThis.crypto.randomUUID();
-    const firstStaffPosition = insertion.referenceStaffPosition;
-    const climacus: ClimacusNeume = {
-      id: neumeId,
-      kind: 'climacus',
-      lyricSyllableId: activeSyllable.id,
-      notes: [
-        {
-          id: firstNoteId,
-          staffPosition: firstStaffPosition,
-        },
-        {
-          id: secondNoteId,
-          staffPosition: staffPosition(firstStaffPosition - 1),
-        },
-        {
-          id: thirdNoteId,
-          staffPosition: staffPosition(firstStaffPosition - 2),
-        },
-      ],
-    };
-    const nextDocument = insertClimacus(
-      history.present,
-      climacus,
-      insertion.insertionIndex,
-    );
-
-    if (nextDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => nextDocument));
-    setSelection(selectNote(firstNoteId));
-    setPendingFocusNoteId(firstNoteId);
-    returnToSelect();
-  }
-
-  // The resolver supplies validated semantic intent and post-reflow preview
-  // geometry. Stable IDs are allocated only when that intent is committed.
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
-    if (!activeSyllable) {
+    // Invalid pointer intent allocates no IDs. The reducer resolves again against
+    // its latest document to serialize even several clicks in the same React batch.
+    if (
+      !resolveGraphicalNeumePlacement(
+        history.present,
+        layout,
+        session.activeSyllableId,
+        kind,
+        point,
+      )
+    )
       return;
-    }
-
-    const placement = resolveGraphicalNeumePlacement(
-      history.present,
-      layout,
-      activeSyllable.id,
-      kind,
-      point,
-    );
-
-    if (!placement) {
-      return;
-    }
-
-    let nextDocument: ChantDocument;
-    let firstNoteId: string;
-
-    if (placement.kind === 'punctum') {
-      const [firstStaffPosition] = placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const punctum: PunctumNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertPunctum(
-        history.present,
-        punctum,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'podatus') {
-      const [firstStaffPosition, secondStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const podatus: PodatusNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertPodatus(
-        history.present,
-        podatus,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'clivis') {
-      const [firstStaffPosition, secondStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const clivis: ClivisNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertClivis(
-        history.present,
-        clivis,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'scandicus') {
-      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const thirdNoteId = globalThis.crypto.randomUUID();
-      const scandicus: ScandicusNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-          {
-            id: thirdNoteId,
-            staffPosition: thirdStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertScandicus(
-        history.present,
-        scandicus,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'torculus') {
-      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const thirdNoteId = globalThis.crypto.randomUUID();
-      const torculus: TorculusNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-          {
-            id: thirdNoteId,
-            staffPosition: thirdStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertTorculus(
-        history.present,
-        torculus,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'porrectus') {
-      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const thirdNoteId = globalThis.crypto.randomUUID();
-      const porrectus: PorrectusNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-          {
-            id: thirdNoteId,
-            staffPosition: thirdStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertPorrectus(
-        history.present,
-        porrectus,
-        placement.insertionIndex,
-      );
-    } else if (placement.kind === 'climacus') {
-      const [firstStaffPosition, secondStaffPosition, thirdStaffPosition] =
-        placement.staffPositions;
-      const neumeId = globalThis.crypto.randomUUID();
-
-      firstNoteId = globalThis.crypto.randomUUID();
-      const secondNoteId = globalThis.crypto.randomUUID();
-      const thirdNoteId = globalThis.crypto.randomUUID();
-      const climacus: ClimacusNeume = {
-        id: neumeId,
-        kind: placement.kind,
-        lyricSyllableId: activeSyllable.id,
-        notes: [
-          {
-            id: firstNoteId,
-            staffPosition: firstStaffPosition,
-          },
-          {
-            id: secondNoteId,
-            staffPosition: secondStaffPosition,
-          },
-          {
-            id: thirdNoteId,
-            staffPosition: thirdStaffPosition,
-          },
-        ],
-      };
-
-      nextDocument = insertClimacus(
-        history.present,
-        climacus,
-        placement.insertionIndex,
-      );
-    } else {
-      const unsupportedPlacement: never = placement;
-
-      throw new Error(
-        `Unsupported graphical neume placement: ${JSON.stringify(unsupportedPlacement)}`,
-      );
-    }
-
-    if (nextDocument === history.present) {
-      return;
-    }
-
-    setHistory(applyDocumentEdit(history, () => nextDocument));
-    returnToSelect();
-    setSelection(selectNote(firstNoteId));
-    setPendingFocusNoteId(firstNoteId);
+    dispatch({ type: 'place', kind, point, ids: allocateInsertionIds() });
   }
-
-  // Selection owns active-syllable precedence. Otherwise preserve a still-valid
-  // active syllable, falling back only when document history removes it.
-  useEffect(() => {
-    const selectedSyllableId = resolveSelectionSyllableId(
-      history.present,
-      selection,
-    );
-
-    setSelection((currentSelection) =>
-      reconcileSelection(history.present, currentSelection),
-    );
-
-    setActiveSyllableId((currentSyllableId) => {
-      if (selectedSyllableId) {
-        return selectedSyllableId;
-      }
-
-      if (
-        currentSyllableId &&
-        history.present.syllables.some(
-          (syllable) => syllable.id === currentSyllableId,
-        )
-      ) {
-        return currentSyllableId;
-      }
-
-      return history.present.syllables.at(-1)?.id ?? null;
-    });
-  }, [history.present, selection]);
 
   useEffect(() => {
     setLyricDraft(activeSyllable?.text ?? '');
@@ -903,216 +177,208 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [activeSyllable?.id, activeSyllable?.text]);
 
   useEffect(() => {
-    if (!pendingLyricInputFocus || !activeSyllable) {
-      return;
-    }
-
+    if (!pendingLyricInputFocus || !activeSyllable) return;
     lyricInput.current?.focus();
     setPendingLyricInputFocus(false);
   }, [activeSyllable, pendingLyricInputFocus]);
 
+  useLayoutEffect(() => {
+    const request = session.focusRequest;
+    if (request?.kind !== 'palette') return;
+    const button = paletteButtons.current.get(request.tool);
+    if (button) focusAndReveal(button);
+    dispatch({ type: 'focus-handled', request });
+  }, [session.focusRequest]);
+
+  function insertRememberedNeume() {
+    if (activeSyllable)
+      dispatch({ type: 'insert', ids: allocateInsertionIds() });
+  }
+
   useEffect(() => {
-    function handleHistoryShortcut(event: KeyboardEvent) {
-      if (isEditableTarget(event.target)) {
+    function handleKey(event: KeyboardEvent) {
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        isEditableTarget(event.target)
+      )
+        return;
+      const notationFocused =
+        event.target instanceof Element &&
+        !!event.target.closest('[data-notation-shortcuts], .score');
+      const shortcut = getNotationShortcut(event, notationFocused);
+      if (shortcut) {
+        event.preventDefault();
+        if (shortcut === 'insert') {
+          if (activeSyllable)
+            dispatch({ type: 'insert', ids: allocateInsertionIds() });
+        } else dispatch({ type: 'focus-palette' });
         return;
       }
-
+      if (
+        event.key === 'Escape' &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
+        event.preventDefault();
+        dispatch(
+          placementKind
+            ? { type: 'select-tool' }
+            : { type: 'select', selection: clearSelection() },
+        );
+        return;
+      }
       const key = event.key.toLowerCase();
-      const usesCommandModifier = event.ctrlKey || event.metaKey;
-      const requestsUndo =
-        usesCommandModifier && key === 'z' && !event.shiftKey;
-      const requestsRedo =
-        (usesCommandModifier && key === 'z' && event.shiftKey) ||
-        (event.ctrlKey && key === 'y');
-
-      if (requestsUndo && canUndo) {
+      const command = event.ctrlKey || event.metaKey;
+      if (command && key === 'z' && !event.shiftKey && canUndo) {
         event.preventDefault();
-        // Capture semantic focus before navigation; keyed rendering may move
-        // the surviving note to a different system and DOM parent.
-        const focusedNoteId = getFocusedScoreNoteId();
-        setHistory((currentHistory) => {
-          const nextHistory = undoDocumentEdit(currentHistory);
-
-          setPendingFocusNoteId(
-            getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-          );
-
-          return nextHistory;
-        });
-      } else if (requestsRedo && canRedo) {
+        navigateHistory('undo');
+      } else if (
+        ((command && key === 'z' && event.shiftKey) ||
+          (event.ctrlKey && key === 'y')) &&
+        canRedo
+      ) {
         event.preventDefault();
-        // Redo uses the same stable-ID restoration path as undo.
-        const focusedNoteId = getFocusedScoreNoteId();
-        setHistory((currentHistory) => {
-          const nextHistory = redoDocumentEdit(currentHistory);
-
-          setPendingFocusNoteId(
-            getSurvivingFocusNoteId(nextHistory.present, focusedNoteId),
-          );
-
-          return nextHistory;
-        });
+        navigateHistory('redo');
       }
     }
-
-    globalThis.document.addEventListener('keydown', handleHistoryShortcut);
-
-    return () =>
-      globalThis.document.removeEventListener('keydown', handleHistoryShortcut);
-  }, [canRedo, canUndo]);
-
-  useEffect(() => {
-    function handleSelectionEscape(event: KeyboardEvent) {
-      if (event.key !== 'Escape') {
-        return;
-      }
-
-      if (isEditableTarget(event.target)) {
-        return;
-      }
-
-      event.preventDefault();
-
-      if (isPlacementTool(activeTool)) {
-        returnToSelect();
-      } else {
-        setSelection(clearSelection());
-      }
-    }
-
-    globalThis.document.addEventListener('keydown', handleSelectionEscape);
-
-    return () =>
-      globalThis.document.removeEventListener('keydown', handleSelectionEscape);
-  }, [activeTool]);
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [placementKind, canUndo, canRedo, activeSyllable]);
 
   return (
     <main className="chant-editor">
       <h1>{layout.title}</h1>
-      <div className="editor-controls" aria-label="Editor controls">
+      <div
+        className="neume-palette"
+        role="toolbar"
+        aria-label="Neume tools"
+        aria-describedby="palette-instructions"
+        data-notation-shortcuts
+        onKeyDown={(event) => {
+          if (
+            event.nativeEvent.isComposing ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey
+          )
+            return;
+          const focusedTool =
+            event.target instanceof Element
+              ? event.target.closest<HTMLButtonElement>('button')?.dataset.tool
+              : undefined;
+          const current = paletteTools.find((tool) => tool === focusedTool);
+          const next = current && nextPaletteTool(current, event.key);
+          if (!next) return;
+          event.preventDefault();
+          const button = paletteButtons.current.get(next);
+          if (button) focusAndReveal(button);
+        }}
+      >
+        {paletteTools.map((tool) => (
+          <button
+            key={tool}
+            type="button"
+            data-tool={tool}
+            ref={(button) => {
+              if (button) paletteButtons.current.set(tool, button);
+              else paletteButtons.current.delete(tool);
+            }}
+            tabIndex={rovingTool === tool ? 0 : -1}
+            aria-pressed={
+              tool === 'select' ? !placementKind : placementKind === tool
+            }
+            onFocus={() => setRovingTool(tool)}
+            onClick={() => {
+              if (tool === 'select') dispatch({ type: 'select-tool' });
+              else {
+                const choice = neumeTools.find(
+                  (choice) => choice.kind === tool,
+                );
+                if (choice) dispatch({ type: 'arm', tool: choice.tool() });
+              }
+            }}
+          >
+            {tool === 'select' ? 'Select' : neumeName(tool)}
+          </button>
+        ))}
+      </div>
+      <p id="palette-instructions" className="editor-sr-only">
+        Arrow keys browse tools; Enter or Space activates. I inserts the
+        remembered neume. T focuses its palette button.
+      </p>
+      <div className="editor-actions">
+        <button
+          className="editor-insert"
+          type="button"
+          data-notation-shortcuts
+          aria-keyshortcuts="I"
+          disabled={!activeSyllable}
+          onClick={insertRememberedNeume}
+        >
+          Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
+        </button>
+        <label>
+          Syllable{' '}
+          <select
+            aria-label="Active syllable"
+            value={activeSyllable?.id ?? ''}
+            disabled={!activeSyllable}
+            onChange={(event) =>
+              dispatch({ type: 'syllable', id: event.currentTarget.value })
+            }
+          >
+            {!activeSyllable ? <option value="">No syllable</option> : null}
+            {history.present.syllables.map((syllable, index) => (
+              <option key={syllable.id} value={syllable.id}>
+                {index + 1}. {syllable.text || '(empty)'}
+              </option>
+            ))}
+          </select>
+        </label>
         <button
           type="button"
-          aria-label="Add punctum"
-          disabled={!canInsertNeume}
-          onClick={handleAddPunctum}
+          aria-label="Add syllable"
+          onClick={() => {
+            dispatch({
+              type: 'add-syllable',
+              syllable: { id: crypto.randomUUID(), text: '' },
+            });
+            setPendingLyricInputFocus(true);
+          }}
         >
-          Add punctum
+          + Syllable
         </button>
-        <button
-          type="button"
-          disabled={!canInsertNeume}
-          onClick={handleAddPodatus}
-        >
-          Add podatus
-        </button>
-        <button
-          type="button"
-          disabled={!canInsertNeume}
-          onClick={handleAddClivis}
-        >
-          Add clivis
-        </button>
-        <button
-          type="button"
-          aria-label="Add scandicus"
-          disabled={!canInsertNeume}
-          onClick={handleAddScandicus}
-        >
-          Add scandicus
-        </button>
-        <button
-          type="button"
-          aria-label="Add torculus"
-          disabled={!canInsertNeume}
-          onClick={handleAddTorculus}
-        >
-          Add torculus
-        </button>
-        <button
-          type="button"
-          aria-label="Add porrectus"
-          disabled={!canInsertNeume}
-          onClick={handleAddPorrectus}
-        >
-          Add porrectus
-        </button>
-        <button
-          type="button"
-          aria-label="Add climacus"
-          disabled={!canInsertNeume}
-          onClick={handleAddClimacus}
-        >
-          Add climacus
-        </button>
-        <button
-          type="button"
-          aria-label="Place punctum"
-          aria-pressed={activeTool.kind === 'place-punctum'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placePunctumTool())}
-        >
-          Place punctum
-        </button>
-        <button
-          type="button"
-          aria-label="Place podatus"
-          aria-pressed={activeTool.kind === 'place-podatus'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placePodatusTool())}
-        >
-          Place podatus
-        </button>
-        <button
-          type="button"
-          aria-label="Place clivis"
-          aria-pressed={activeTool.kind === 'place-clivis'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placeClivisTool())}
-        >
-          Place clivis
-        </button>
-        <button
-          type="button"
-          aria-label="Place scandicus"
-          aria-pressed={activeTool.kind === 'place-scandicus'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placeScandicusTool())}
-        >
-          Place scandicus
-        </button>
-        <button
-          type="button"
-          aria-label="Place torculus"
-          aria-pressed={activeTool.kind === 'place-torculus'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placeTorculusTool())}
-        >
-          Place torculus
-        </button>
-        <button
-          type="button"
-          aria-label="Place porrectus"
-          aria-pressed={activeTool.kind === 'place-porrectus'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placePorrectusTool())}
-        >
-          Place porrectus
-        </button>
-        <button
-          type="button"
-          aria-label="Place climacus"
-          aria-pressed={activeTool.kind === 'place-climacus'}
-          disabled={!canInsertNeume}
-          onClick={() => setActiveTool(placeClimacusTool())}
-        >
-          Place climacus
-        </button>
+        <div className="editor-lyric">
+          <label htmlFor="lyric-syllable">Lyric syllable</label>
+          <input
+            ref={lyricInput}
+            id="lyric-syllable"
+            type="text"
+            value={displayedLyricDraft}
+            disabled={!activeSyllable}
+            onChange={(event) => {
+              skipNextLyricBlurCommit.current = false;
+              setLyricDraft(event.currentTarget.value);
+              setDraftSyllableId(activeSyllable?.id ?? null);
+            }}
+            onKeyDown={handleLyricKeyDown}
+            onBlur={(event) => {
+              if (skipNextLyricBlurCommit.current) {
+                skipNextLyricBlurCommit.current = false;
+                return;
+              }
+              commitLyricDraft(event.currentTarget.value);
+            }}
+          />
+        </div>
         <button
           type="button"
           aria-label="Undo last edit"
           aria-keyshortcuts="Control+Z Meta+Z"
           disabled={!canUndo}
-          onClick={() => applyHistoryNavigation(undoDocumentEdit)}
+          onClick={() => navigateHistory('undo')}
         >
           Undo
         </button>
@@ -1121,130 +387,90 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label="Redo last undone edit"
           aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y"
           disabled={!canRedo}
-          onClick={() => applyHistoryNavigation(redoDocumentEdit)}
+          onClick={() => navigateHistory('redo')}
         >
           Redo
         </button>
       </div>
-      <section className="editor-lyrics" aria-labelledby="lyrics-heading">
-        <h2 id="lyrics-heading">Lyrics</h2>
-        <ol>
-          {history.present.syllables.map((syllable, index) => {
-            const position = index + 1;
-            const displayText = syllable.text || '(empty)';
-            const accessibleText = syllable.text || 'empty';
-
-            return (
-              <li key={syllable.id}>
-                <button
-                  type="button"
-                  aria-label={`Syllable ${position}: ${accessibleText}`}
-                  aria-pressed={syllable.id === activeSyllable?.id}
-                  onClick={() => handleSelectSyllable(syllable.id)}
-                >
-                  <span aria-hidden="true">{position}. </span>
-                  {displayText}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-        <button type="button" onClick={handleAddSyllable}>
-          Add syllable
-        </button>
-      </section>
-      <section className="editor-properties" aria-label="Properties">
-        <label htmlFor="lyric-syllable">Lyric syllable</label>
-        <input
-          ref={lyricInput}
-          id="lyric-syllable"
-          type="text"
-          value={displayedLyricDraft}
-          disabled={!activeSyllable}
-          onChange={(event) => {
-            skipNextLyricBlurCommit.current = false;
-            setLyricDraft(event.currentTarget.value);
-            setDraftSyllableId(activeSyllable?.id ?? null);
-          }}
-          onKeyDown={handleLyricKeyDown}
-          onBlur={(event) => {
-            if (skipNextLyricBlurCommit.current) {
-              skipNextLyricBlurCommit.current = false;
-              return;
-            }
-
-            commitLyricDraft(event.currentTarget.value);
-          }}
-        />
-      </section>
+      <details className="editor-help">
+        <summary>Keyboard help</summary>
+        <p>
+          <kbd>I</kbd> insert · <kbd>T</kbd> tools · <kbd>Esc</kbd> Select. In
+          the palette, arrows browse and Enter/Space activates. In Select,
+          Enter/Space selects a focused note, ↑/↓ changes pitch, and
+          Shift+Enter/Space selects its neume. I/T apply only in notation
+          controls.
+        </p>
+      </details>
       <ScoreSvg
         layout={layout}
         placementPreview={placementPreview}
         selection={selection}
         activeTool={activeTool}
-        pendingFocusNoteId={pendingFocusNoteId}
-        onNoteFocusHandled={(noteId) =>
-          setPendingFocusNoteId((currentNoteId) =>
-            currentNoteId === noteId ? null : currentNoteId,
-          )
+        placementDescription={placementDescription}
+        focusRequest={session.focusRequest}
+        onFocusHandled={(request) =>
+          dispatch({ type: 'focus-handled', request })
         }
-        onSelectNote={handleSelectNote}
-        onSelectNeumeForNote={handleSelectNeumeForNote}
-        onPlacementPointerMove={setHoveredScorePoint}
-        onPlacementPointerLeave={() => setHoveredScorePoint(null)}
+        onSelectNote={(noteId) =>
+          dispatch({ type: 'select', selection: selectNote(noteId) })
+        }
+        onSelectNeumeForNote={(noteId) => {
+          const note = findNote(history.present, noteId);
+          if (note)
+            dispatch({
+              type: 'select',
+              selection: selectNeume(note.neume.id),
+              focusNoteId: noteId,
+            });
+        }}
+        onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
+        onPlacementPointerLeave={() => dispatch({ type: 'hover', point: null })}
         onPlaceNeume={handlePlaceNeume}
-        onMoveNote={(noteId, delta) => {
-          const nextHistory = applyDocumentEdit(history, (currentDocument) =>
-            moveNoteVertically(currentDocument, noteId, delta),
-          );
-
-          if (nextHistory === history) {
-            return;
-          }
-
-          setHistory(nextHistory);
-          setPendingFocusNoteId(
-            getSurvivingFocusNoteId(nextHistory.present, noteId),
-          );
-        }}
-        onMoveNeume={(neumeId, delta, invokingNoteId) => {
-          const nextHistory = applyDocumentEdit(history, (currentDocument) =>
-            moveNeumeVertically(currentDocument, neumeId, delta),
-          );
-
-          if (nextHistory === history) {
-            return;
-          }
-
-          setHistory(nextHistory);
-          setPendingFocusNoteId(
-            getSurvivingFocusNoteId(nextHistory.present, invokingNoteId),
-          );
-        }}
-        onDeleteNote={(noteId) => {
-          const nextDocument = deleteNote(history.present, noteId);
-
-          if (nextDocument === history.present) {
-            return;
-          }
-
-          setHistory(applyDocumentEdit(history, () => nextDocument));
-          setSelection(clearSelection());
-        }}
-        onDeleteNeume={(neumeId) => {
-          if (!findNeume(history.present, neumeId)) {
-            return;
-          }
-
-          setHistory((currentHistory) =>
-            applyDocumentEdit(currentHistory, (currentDocument) =>
-              deleteNeume(currentDocument, neumeId),
-            ),
-          );
-          setSelection(clearSelection());
-        }}
-        onClearSelection={() => setSelection(clearSelection())}
+        onMoveNote={(noteId, delta) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => moveNoteVertically(document, noteId, delta),
+            focusNoteId: noteId,
+          })
+        }
+        onMoveNeume={(neumeId, delta, invokingNoteId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => moveNeumeVertically(document, neumeId, delta),
+            focusNoteId: invokingNoteId,
+          })
+        }
+        onDeleteNote={(noteId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => deleteNote(document, noteId),
+            clearSelection: true,
+          })
+        }
+        onDeleteNeume={(neumeId) =>
+          dispatch({
+            type: 'edit',
+            edit: (document) => deleteNeume(document, neumeId),
+            clearSelection: true,
+          })
+        }
+        onClearSelection={() =>
+          dispatch({ type: 'select', selection: clearSelection() })
+        }
       />
+      <div
+        className="editor-announcement"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {session.announcement.sequence > 0 ? (
+          <span key={session.announcement.sequence}>
+            {session.announcement.text}
+          </span>
+        ) : null}
+      </div>
     </main>
   );
 }

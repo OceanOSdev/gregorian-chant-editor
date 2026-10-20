@@ -1,0 +1,243 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/150.0.7871.128",
+    "revision": "@81891e5ca708047763816c778216799ef14c66cb",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "jsVersion": "15.0.1240245"
+  },
+  "checks": [
+    {
+      "name": "keyboard-only entry and real Tab order",
+      "passed": true,
+      "sequence": "Insert → ↑ → I → T → Right → Enter → I → Shift+Tab → Enter → ↓ → T → Tab → Tab → syllable → Shift+Tab → Enter"
+    },
+    {
+      "name": "roving focus and remembered kind",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "punctum",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "podatus",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "clivis",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "scandicus",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "torculus",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "climacus",
+      "passed": true
+    },
+    {
+      "name": "persistent kind and contextual insertion",
+      "kind": "porrectus",
+      "passed": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 1440,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 1440,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 390,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 390,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 320,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 320,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "clamped remote boundary",
+      "caretSystem": 1,
+      "ghostSystem": 3,
+      "committedIndex": 5
+    },
+    {
+      "name": "surface I and whole-neume Select focus",
+      "passed": true
+    },
+    {
+      "name": "rapid clicks and atomic history",
+      "trustedClicks": 12,
+      "sameBatchClicks": 30,
+      "exactIdsRestored": true,
+      "successMutations": 12
+    },
+    {
+      "name": "invalid intent, silent preview, switching and Select",
+      "passed": true
+    },
+    {
+      "name": "text, native select, scope, IME and modifier safeguards",
+      "passed": true,
+      "realIme": false
+    },
+    {
+      "name": "disabled note guards, target changes, fallback and lyric autofocus",
+      "passed": true
+    },
+    {
+      "name": "long score focus",
+      "width": 1440,
+      "systems": 37,
+      "before": 6851,
+      "after": 6851,
+      "shortAccessibleName": "Score placement",
+      "escapeRestoresFocus": true
+    },
+    {
+      "name": "long score focus",
+      "width": 390,
+      "systems": 37,
+      "before": 2575,
+      "after": 2575,
+      "shortAccessibleName": "Score placement",
+      "escapeRestoresFocus": true
+    },
+    {
+      "name": "long score focus",
+      "width": 320,
+      "systems": 37,
+      "before": 2114,
+      "after": 2114,
+      "shortAccessibleName": "Score placement",
+      "escapeRestoresFocus": true
+    },
+    {
+      "name": "late reflow reveal after local ghost",
+      "before": 6440,
+      "after": 6743,
+      "destinationSystem": 25,
+      "localGhostDiffersFromCommittedPosition": true
+    },
+    {
+      "name": "nested scroll preservation",
+      "before": {
+        "window": 0,
+        "container": 6660
+      },
+      "after": {
+        "window": 0,
+        "container": 6660
+      }
+    },
+    {
+      "name": "invalid SVG transform",
+      "passed": true
+    },
+    {
+      "name": "missing target fallback",
+      "passed": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 1440,
+      "noOverflow": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 390,
+      "noOverflow": true
+    },
+    {
+      "name": "responsive layout",
+      "width": 320,
+      "noOverflow": true
+    }
+  ]
+}
