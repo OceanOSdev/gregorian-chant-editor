@@ -205,7 +205,7 @@ placement cancellation, and actual focus behavior in the browser.
 ## Initial square-notation engraving verification
 
 `neume-geometry.test.ts` covers the approved adjacent contacts, interval/stem
-matrix, large-interval extrapolations, ID-free full-geometry preview parity,
+matrix, large-interval extrapolations, shared geometry/committed-layout equivalence,
 anchor independence, exact-fit interval reflow, stable IDs,
 normalization, and atomic undo/redo. Existing interaction and accessibility tests
 remain in place. The [browser verification record](verification/engraving/README.md)
@@ -216,7 +216,7 @@ No browser testing dependency was added.
 
 `climacus-porrectus-geometry.test.ts` compares independent approved review
 recipes against application paths, anchors, painted bounds and targets. Matrix
-tests cover interval extrapolations, transposition, complete preview/commit
+tests cover interval extrapolations, transposition, shared builder/committed
 geometry (including optional hit paths), exact-fit wrapping, stable identities,
 normalization, focus-survival decisions and atomic history. The
 [implementation verification](verification/climacus-porrectus/implementation.md)
@@ -228,14 +228,19 @@ dependency or component-test environment was added.
 ## Persistent graphical placement regressions
 
 `editor-session.test.ts` covers all-kind persistent placement and contextual
-insertion, remembered-kind invariants, same-position sequential insertion, preview parity after
+insertion, remembered-kind invariants, same-position sequential insertion, pitch/contour intent across
 wrapping, independent history, event announcements, stable selection, and target
 removal. `focus-visibility.test.ts` covers minimal reveal of clipped notation and oversized bounds.
 
-`graphical-placement-scene.test.ts` compares full prospective staff, clef,
-neume and lyric geometry with committed results for new-system insertion and
-existing-notation reflow. The browser script captures before/after screenshots,
-checks non-interactivity, cancellation without history and atomic commit parity.
+`graphical-placement-preview.test.ts` checks caret placement at semantic
+boundaries, local ghost shapes/pitches for every kind, staff-end clamping,
+shared system boundaries, crowded insertion, remote syllable constraints,
+ID-free output, stable committed layout during hover, and actual wrapping on
+commit. Geometry matrices continue checking approved shapes and committed
+layout; obsolete full prospective-scene parity assertions were removed.
+The browser script checks committed SVG ink/lyrics/positions and height across
+pointer sweeps, ghost shapes/pitch against shared committed ink, non-interactivity,
+cancellation, actual wrapped destination reveal, and atomic commit history.
 
 `palette-navigation.test.ts` covers roving focus destinations and shortcut
 scope/modifier/composition guards.

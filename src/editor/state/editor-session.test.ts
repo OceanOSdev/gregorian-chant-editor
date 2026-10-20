@@ -68,7 +68,7 @@ function place(state: EditorSession, index = 1, point = { x: 300, y: 100 }) {
 
 describe('placement lifecycle', () => {
   it.each(kinds)(
-    'repeats %s using fresh document/layout and preserves preview parity',
+    'repeats %s using fresh document/layout and preserves insertion intent',
     (kind) => {
       let state = arm(kind);
       const initial = state.history.present;
@@ -88,10 +88,10 @@ describe('placement lifecycle', () => {
           state.history.present.neumes[intent?.insertionIndex ?? -1]?.id,
         ).toBe(`n${i}`);
         expect(
-          layoutChant(state.history.present)
-            .systems.flatMap((system) => system.neumes)
-            .find((neume) => neume.neumeId === `n${i}`)?.ink,
-        ).toEqual(intent?.preview.ink);
+          state.history.present.neumes
+            .find((neume) => neume.id === `n${i}`)
+            ?.notes.map((note) => note.staffPosition),
+        ).toEqual(intent?.staffPositions);
         expect(state.history.past).toHaveLength(i);
         expect(state.history.present.neumes).toHaveLength(i);
         expect(state.activeTool).toBe(previous.activeTool);

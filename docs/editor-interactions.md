@@ -217,36 +217,48 @@ empty syllable is placed before the next later syllable group or at the end.
 This clamping can redirect a point on one system to a legal destination on
 another.
 
-### Hypothetical post-reflow preview
+### Caret and cursor ghost
 
 Hover state stores only the score point. The resolver combines the current
-document, committed layout, active syllable, graphical kind, and point. It
-simulates inserting an ID-free candidate at the resolved global boundary and
-runs the same spacing and whole-neume wrapping rules used by committed
-notation.
+semantic document, committed layout, active syllable, graphical kind and point.
+It snaps pitch and resolves the global whole-neume insertion boundary using the
+existing active-syllable constraints. It does not simulate a new score layout.
 
-The returned preview is positioned at the candidate's hypothetical destination
-after reflow, which may differ from the initially hit system after
-active-syllable clamping. It contains kind and the shared ID-free geometry (ink, notes, bounds, anchors,
-and advance), with no semantic IDs, selection, or focus state. Its prospective
-`scoreHeight` keeps a candidate on a new final system inside the SVG viewBox;
-canceling placement restores committed dimensions.
+The ID-free preview contains two distinct cues:
 
-Runtime previews also include the complete prospective visual systems: four
-staff lines, the document's clef, all neume ink and lyrics at post-reflow positions.
-Existing notation displaced across a boundary is shown at its prospective position
-rather than duplicated at its old location. Only the candidate is translucent.
-The preview scene is aria-hidden and pointer-inert, with no note/neume IDs or
-focusable controls. Committed controls stay mounted (their visuals are transparent
-while previewing), preserving refs and accessibility. Hit testing and commits
-still use the committed systems and current document; prospective new systems
-are not new placement targets. Clearing hover restores committed visuals without
-any document/history edit.
+- A dashed vertical **caret** marks the resolved semantic boundary in committed
+  layout. Between neumes it uses the midpoint of the previous painted right edge
+  and following painted left edge. Before/after a system's notation it uses half
+  the normal ink gap, clamped inside the staff; an empty system uses the first
+  normal neume anchor. At a boundary shared by two systems, use the hovered
+  system when it contains that boundary. Otherwise use the system containing
+  the following semantic neume, or the final committed system at document end.
+- A translucent blue **ghost** follows the pointer horizontally and shows the
+  selected neume's actual contour at the snapped pitch on the hovered staff.
+  The shared builder supplies its full geometry. Horizontal clamping keeps its
+  painted bounds inside that staff with a 3-unit margin, without changing pitch,
+  contour or scale. Ghost overlap with existing notation is intentional; a pale
+  outline helps distinguish the ghost. It does not claim final engraved x/y.
 
-Preview and commit use the same geometry builder, sequence placement, and SVG
-ink renderer. Adjacent Pes and Clivis hit-region partitioning is described in
-[layout and rendering](layout-and-rendering.md#rendering-and-accessibility). After commit and normal `layoutChant`, the created neume's
-geometry matches the preview.
+When syllable-order constraints put the caret on another system, the ghost stays
+local and a small, non-live “Insertion: system N” label identifies the caret's
+system. Hover never auto-scrolls to a remote caret. It never displays a false
+local caret to match the pointer. The clamped index remains the commit boundary.
+
+Both cues are pointer-inert, aria-hidden and unfocusable. Committed neumes,
+lyrics, staff lines, accessible controls and their refs remain unchanged and
+visible. The SVG viewBox and visible dimensions use only committed layout.
+No system is added, removed, reserved or rearranged during hover. There is no
+prospective scene or speculative score height.
+
+On click, current document/layout/point are resolved again; then semantic
+insertion and normal `layoutChant` apply spacing and whole-neume wrapping. The
+new note's actual committed destination drives the existing postcommit focus
+and minimal reveal. The tool stays active and hover clears. Preview/commit
+accuracy means the same semantic boundary, snapped pitches and neume shape,
+not the same absolute horizontal or system position. Shared ink construction
+and [hit geometry](layout-and-rendering.md#rendering-and-accessibility) remain
+unchanged.
 
 ### Lifecycle
 

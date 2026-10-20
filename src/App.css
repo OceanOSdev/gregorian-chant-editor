@@ -164,8 +164,32 @@ kbd {
 }
 
 .score__placement-preview {
-  opacity: 0.5;
+  color: #1e64d2;
   pointer-events: none;
+}
+.score__placement-ghost {
+  opacity: 0.6;
+}
+.score__placement-ghost .score__ink {
+  stroke: #fffdf8;
+  stroke-width: 1.5;
+  paint-order: stroke;
+}
+.score__placement-caret {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.8;
+}
+.score__placement-caret line,
+.score__placement-caret path {
+  vector-effect: non-scaling-stroke;
+}
+.score__placement-target {
+  fill: currentColor;
+  font:
+    12px system-ui,
+    sans-serif;
 }
 
 .score__note-selection {

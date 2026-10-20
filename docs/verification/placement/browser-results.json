@@ -52,24 +52,100 @@
       "passed": true
     },
     {
-      "name": "prospective wrapping scene",
-      "scenario": "new-system",
-      "systems": 2,
-      "staffAndClefParity": true,
-      "allInkParity": true,
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 1440,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
       "decorative": true,
-      "cancellationNoHistory": true,
-      "atomicHistory": true
+      "atomicHistory": true,
+      "insertedNoteVisible": true
     },
     {
-      "name": "prospective wrapping scene",
-      "scenario": "reflow-existing",
-      "systems": 2,
-      "staffAndClefParity": true,
-      "allInkParity": true,
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 1440,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
       "decorative": true,
-      "cancellationNoHistory": true,
-      "atomicHistory": true
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 390,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 390,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 320,
+      "kind": "punctum",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "stationary caret/ghost sweep and wrapping commit",
+      "width": 320,
+      "kind": "torculus",
+      "sweep": [
+        655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550,
+        610, 655
+      ],
+      "hoverSystems": 1,
+      "committedSystems": 2,
+      "stationaryInkAndLyrics": true,
+      "decorative": true,
+      "atomicHistory": true,
+      "insertedNoteVisible": true
+    },
+    {
+      "name": "clamped remote boundary",
+      "caretSystem": 1,
+      "ghostSystem": 3,
+      "committedIndex": 5
     },
     {
       "name": "surface I and whole-neume Select focus",
@@ -123,11 +199,11 @@
       "escapeRestoresFocus": true
     },
     {
-      "name": "late reflow reveal and preview parity",
+      "name": "late reflow reveal after local ghost",
       "before": 6440,
       "after": 6743,
       "destinationSystem": 25,
-      "inkMatches": true
+      "localGhostDiffersFromCommittedPosition": true
     },
     {
       "name": "nested scroll preservation",

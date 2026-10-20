@@ -76,11 +76,6 @@ export function ScoreSvg({
   const scoreElement = useRef<SVGSVGElement>(null);
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
-  const displayHeight = Math.max(
-    layout.height,
-    placementPreview?.scoreHeight ?? 0,
-  );
-
   useLayoutEffect(() => {
     if (!focusRequest || focusRequest.kind === 'palette') return;
     const note = noteElements.current.get(focusRequest.noteId);
@@ -213,7 +208,7 @@ export function ScoreSvg({
       ref={scoreElement}
       tabIndex={placementActive ? -1 : undefined}
       className={`score${placementActive ? ' score--placing' : ''}`}
-      viewBox={`0 0 ${layout.width} ${displayHeight}`}
+      viewBox={`0 0 ${layout.width} ${layout.height}`}
       role="group"
       aria-label={placementActive ? 'Score placement' : undefined}
       aria-labelledby={
@@ -235,13 +230,8 @@ export function ScoreSvg({
         {wholeNeumeSelectionInstruction}
       </desc>
 
-      {/* Keep committed controls/refs mounted; only their visual ink is replaced. */}
       {layout.systems.map((system) => (
-        <g
-          key={system.index}
-          data-system-index={system.index}
-          opacity={placementPreview?.systems ? 0 : undefined}
-        >
+        <g key={system.index} data-system-index={system.index}>
           <SystemStaff system={system} />
 
           {system.neumes.map((neume) => {
@@ -386,55 +376,43 @@ export function ScoreSvg({
         </g>
       ))}
 
-      {placementPreview?.systems ? (
-        <g
-          className="score__preview-scene"
-          pointerEvents="none"
-          aria-hidden="true"
-        >
-          {placementPreview.systems.map((system) => (
-            <g key={system.index} data-preview-system-index={system.index}>
-              <SystemStaff system={system} />
-              {system.neumes.map((neume, index) => (
-                <g
-                  key={index}
-                  className={
-                    neume.candidate ? 'score__placement-preview' : undefined
-                  }
-                  data-preview-neume=""
-                >
-                  <NeumeInk ink={neume.ink} />
-                </g>
-              ))}
-              {system.lyrics.map((lyric) => (
-                <text
-                  key={lyric.syllableId}
-                  className="score__lyric"
-                  x={lyric.x}
-                  y={lyric.y}
-                  fontSize={lyric.fontSize}
-                  textAnchor="middle"
-                >
-                  {lyric.text}
-                </text>
-              ))}
-            </g>
-          ))}
-        </g>
-      ) : placementPreview ? (
+      {placementPreview ? (
         <g
           className="score__placement-preview"
           pointerEvents="none"
           aria-hidden="true"
         >
-          <NeumeInk ink={placementPreview.ink} />
+          <g className="score__placement-caret">
+            <line
+              x1={placementPreview.caret.x}
+              x2={placementPreview.caret.x}
+              y1={placementPreview.caret.top}
+              y2={placementPreview.caret.bottom}
+            />
+            <path
+              d={`M${placementPreview.caret.x - 4},${placementPreview.caret.top} h8`}
+            />
+          </g>
+          <g className="score__placement-ghost">
+            <NeumeInk ink={placementPreview.ink} />
+          </g>
+          {placementPreview.caret.systemIndex !==
+          placementPreview.pointerSystemIndex ? (
+            <text
+              className="score__placement-target"
+              x="64"
+              y={layout.systems[placementPreview.pointerSystemIndex].y + 208}
+            >
+              Insertion: system {placementPreview.caret.systemIndex + 1}
+            </text>
+          ) : null}
         </g>
       ) : null}
     </svg>
   );
 }
 
-/** Identical staff/clef rendering for committed and prospective systems. */
+/** Shared committed staff and clef rendering. */
 function SystemStaff({
   system,
 }: {

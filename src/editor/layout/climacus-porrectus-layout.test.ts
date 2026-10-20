@@ -1,4 +1,9 @@
-import { getInkBounds, interNeumeInkGap } from './neume-geometry';
+import {
+  buildNeumeGeometry,
+  firstHeadHalfWidth,
+  getInkBounds,
+  interNeumeInkGap,
+} from './neume-geometry';
 import { describe, expect, it } from 'vitest';
 import {
   staffPosition,
@@ -20,7 +25,6 @@ import {
   measureNeumeWidth,
   wrapNeumes,
   firstNeumeCenterX,
-  systemVerticalAdvance,
   staffEndX,
 } from './layout-chant';
 
@@ -135,7 +139,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       },
     );
     it.each([0, 3, 6, 7, 18, 24])(
-      'matches ID-free previews to committed geometry at boundary %s after reflow',
+      'matches ID-free ghost shape to shared geometry at boundary %s after reflow',
       (insertionIndex) => {
         const neumes = Array.from({ length: 24 }, (_, i) => punctum(i));
         const neume = candidate();
@@ -144,11 +148,15 @@ for (const kind of ['climacus', 'porrectus'] as const) {
           neume.notes[1].staffPosition,
           neume.notes[2].staffPosition,
         ];
-        const preview = layoutGraphicalPlacementPreview(neumes, {
-          kind,
-          staffPositions: positions,
-          insertionIndex,
-        });
+        const preview = layoutGraphicalPlacementPreview(
+          layoutChant(documentWith(neumes)),
+          {
+            kind,
+            staffPositions: positions,
+            insertionIndex,
+          },
+          { x: 300, y: 88 },
+        );
         const document = documentWith(neumes);
         const committed =
           neume.kind === 'climacus'
@@ -157,10 +165,16 @@ for (const kind of ['climacus', 'porrectus'] as const) {
         const layout = layoutChant(committed).systems.flatMap(
           (system) => system.neumes,
         )[insertionIndex];
-        expect(preview?.notes).toEqual(
-          layout?.notes.map(({ noteId: _id, ...geometry }) => geometry),
+        if (!preview || !layout) throw new Error('Missing geometry');
+        const shared = buildNeumeGeometry(
+          kind,
+          positions,
+          preview.notes[0].anchorX - firstHeadHalfWidth(kind),
+          124,
         );
-        expect(preview?.ink).toEqual(layout?.ink);
+        expect(preview.notes).toEqual(shared.notes);
+        expect(preview.ink).toEqual(shared.ink);
+        expect(preview.bounds.width).toBe(layout.bounds.width);
         expect(preview?.notes.every((note) => !('noteId' in note))).toBe(true);
       },
     );
@@ -179,7 +193,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       expect(resolved?.preview.ink).toHaveLength(kind === 'climacus' ? 3 : 1);
       expect(document.neumes).toEqual([]);
     });
-    it('clamps to the active syllable across systems and previews the final destination', () => {
+    it('clamps the caret across systems while keeping its ghost local', () => {
       const document = documentWith([
         ...Array.from({ length: 24 }, (_, i) => punctum(i)),
         punctum(24, 'last'),
@@ -194,9 +208,8 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       );
       if (!resolved) throw new Error('Missing placement');
       expect(resolved.insertionIndex).toBe(24);
-      expect(resolved.preview.notes[0].y).toBeGreaterThan(
-        systemVerticalAdvance,
-      );
+      expect(resolved.preview.notes[0].anchorY).toBe(88);
+      expect(resolved.preview.caret.systemIndex).toBeGreaterThan(0);
       expect(resolved.staffPositions).toEqual(
         kind === 'climacus' ? [3, 2, 1] : [3, 1, 2],
       );
@@ -208,9 +221,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       const result = layoutChant(committed)
         .systems.flatMap((system) => system.neumes)
         .find((n) => n.neumeId === kind);
-      expect(resolved.preview.notes).toEqual(
-        result?.notes.map(({ noteId: _id, ...geometry }) => geometry),
-      );
+      expect(resolved.preview.bounds.width).toBe(result?.bounds.width);
       expect(
         resolveGraphicalNeumePlacement(document, layout, 'last', kind, {
           x: 250,

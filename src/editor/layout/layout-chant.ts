@@ -9,6 +9,7 @@ import {
   buildNeumeGeometry,
   firstHeadHalfWidth,
   engravingStaffStep,
+  interNeumeInkGap,
   type NeumeGeometry,
   type NoteGeometry,
 } from './neume-geometry';
@@ -130,23 +131,12 @@ export type GraphicalNeumePlacement =
       preferredNeumeInsertionIndex: number;
     };
 
+/** Insertion intent on committed systems, not hypothetical engraved placement. */
 export type GraphicalPlacementPreviewLayout = NeumeGeometry & {
   kind: GraphicalNeumeKind;
-  /** Prospective score extent, so a ghost on a new system is not clipped. */
-  scoreHeight: number;
-  /** Complete visual result; candidate has no semantic IDs or controls. */
-  systems?: readonly GraphicalPreviewSystemLayout[];
+  pointerSystemIndex: number;
+  caret: { systemIndex: number; x: number; top: number; bottom: number };
 };
-
-export interface GraphicalPreviewSystemLayout extends Omit<
-  ChantSystemLayout,
-  'neumes'
-> {
-  neumes: readonly (NeumeGeometry & {
-    candidate: boolean;
-    lyricSyllableId: string;
-  })[];
-}
 
 export type GraphicalPlacementPreviewInput =
   | {
@@ -347,57 +337,88 @@ export function getNeumeBoundaryCenterX(
     : firstNeumeCenterX;
 }
 
-/** The candidate is ID-free and runs through exactly the committed placement pass. */
+/** Ghost follows the pointer; caret follows the clamped semantic boundary. */
 export function layoutGraphicalPlacementPreview(
-  neumes: readonly Neume[],
+  layout: ChantLayout,
   placement: GraphicalPlacementPreviewInput,
-  context?: { document: ChantDocument; lyricSyllableId: string },
+  point: { x: number; y: number },
 ): GraphicalPlacementPreviewLayout | null {
+  const total = layout.systems.reduce(
+    (count, system) => count + system.neumes.length,
+    0,
+  );
   if (
     !Number.isInteger(placement.insertionIndex) ||
     placement.insertionIndex < 0 ||
-    placement.insertionIndex > neumes.length
+    placement.insertionIndex > total ||
+    !Number.isFinite(point.x) ||
+    !Number.isFinite(point.y)
   )
     return null;
-  const inputs = neumes.map(geometryInput);
-  inputs.splice(placement.insertionIndex, 0, placement);
-  const systems = placeNeumeSequence(inputs);
-  const system = systems.find(
-    (candidate) =>
-      placement.insertionIndex >= candidate.startNeumeIndex &&
-      placement.insertionIndex <
-        candidate.startNeumeIndex + candidate.geometries.length,
+  const source = layout.systems.find(
+    (system) => point.y >= system.y && point.y <= system.y + system.height,
   );
-  const geometry =
-    system?.geometries[placement.insertionIndex - system.startNeumeIndex];
-  return geometry
-    ? {
-        ...geometry,
-        kind: placement.kind,
-        ...(context
-          ? {
-              systems: layoutSystems(
-                context.document,
-                systems,
-                (geometry, index) => ({
-                  ...geometry,
-                  candidate: index === placement.insertionIndex,
-                  lyricSyllableId:
-                    index === placement.insertionIndex
-                      ? context.lyricSyllableId
-                      : neumes[
-                          index < placement.insertionIndex ? index : index - 1
-                        ].lyricSyllableId,
-                }),
-              ),
-            }
-          : {}),
-        scoreHeight:
-          firstSystemBottomY +
-          (systems.length - 1) * systemVerticalAdvance +
-          svgBottomPadding,
-      }
+  if (!source?.staffLines.length) return null;
+  // A boundary shared by two systems belongs to the hovered system when possible.
+  // Otherwise follow the next semantic neume, or the final committed system.
+  const at = placement.insertionIndex;
+  const target =
+    at >= source.startNeumeIndex &&
+    at <= source.startNeumeIndex + source.neumes.length
+      ? source
+      : (layout.systems.find(
+          (system) =>
+            at >= system.startNeumeIndex &&
+            at < system.startNeumeIndex + system.neumes.length,
+        ) ?? layout.systems.at(-1));
+  if (!target?.staffLines.length) return null;
+  const offset = at - target.startNeumeIndex;
+  const previous = target.neumes[offset - 1];
+  const following = target.neumes[offset];
+  const previousRight = previous
+    ? previous.bounds.x + previous.bounds.width
     : null;
+  const boundaryX = following
+    ? previousRight === null
+      ? following.bounds.x - interNeumeInkGap / 2
+      : (previousRight + following.bounds.x) / 2
+    : previousRight === null
+      ? firstNeumeCenterX
+      : previousRight + interNeumeInkGap / 2;
+  const bottomStaffY = Math.max(...source.staffLines.map((line) => line.y));
+  const measured = buildNeumeGeometry(
+    placement.kind,
+    placement.staffPositions,
+    0,
+    bottomStaffY,
+  );
+  // Keep the actual shape visible at crowded ends without changing its pitch or scale.
+  const left = Math.max(
+    source.staffLines[0].x1 + 3,
+    Math.min(
+      source.staffLines[0].x2 - measured.bounds.width - 3,
+      point.x - firstHeadHalfWidth(placement.kind),
+    ),
+  );
+  return {
+    ...buildNeumeGeometry(
+      placement.kind,
+      placement.staffPositions,
+      left,
+      bottomStaffY,
+    ),
+    kind: placement.kind,
+    pointerSystemIndex: source.index,
+    caret: {
+      systemIndex: target.index,
+      x: Math.max(
+        target.staffLines[0].x1 + 3,
+        Math.min(target.staffLines[0].x2 - 3, boundaryX),
+      ),
+      top: Math.min(...target.staffLines.map((line) => line.y)) - 12,
+      bottom: Math.max(...target.staffLines.map((line) => line.y)) + 12,
+    },
+  };
 }
 
 function createGraphicalNeumePlacement(
@@ -550,13 +571,10 @@ function layoutCommittedNeume(
   };
 }
 
-function layoutSystems<T extends NeumeGeometry & { lyricSyllableId: string }>(
-  document: Pick<ChantDocument, 'clef' | 'syllables'>,
-  wrappedSystems: readonly PositionedSystem[],
-  decorate: (geometry: NeumeGeometry, index: number) => T,
-) {
+export function layoutChant(document: ChantDocument): ChantLayout {
+  const wrappedSystems = placeNeumeSequence(document.neumes.map(geometryInput));
   const systemsWithoutLyrics = wrappedSystems.map(
-    ({ startNeumeIndex, geometries }, index) => {
+    ({ startNeumeIndex, geometries }, index): ChantSystemLayout => {
       const y = firstSystemTopY + index * systemVerticalAdvance;
       const bottomStaffY = firstSystemBottomStaffY + y;
 
@@ -579,7 +597,10 @@ function layoutSystems<T extends NeumeGeometry & { lyricSyllableId: string }>(
           fontSize: 38,
         },
         neumes: geometries.map((geometry, offset) =>
-          decorate(geometry, startNeumeIndex + offset),
+          layoutCommittedNeume(
+            document.neumes[startNeumeIndex + offset],
+            geometry,
+          ),
         ),
         lyrics: [],
         startNeumeIndex,
@@ -588,7 +609,7 @@ function layoutSystems<T extends NeumeGeometry & { lyricSyllableId: string }>(
   );
   const firstNeumeBySyllableId = new Map<
     string,
-    { neume: T; systemIndex: number }
+    { neume: NeumeLayout; systemIndex: number }
   >();
 
   // A syllable is laid out once, on the system containing its first neume.
@@ -632,15 +653,6 @@ function layoutSystems<T extends NeumeGeometry & { lyricSyllableId: string }>(
     lyrics: lyricsBySystem[system.index] ?? [],
   }));
 
-  return systems;
-}
-
-export function layoutChant(document: ChantDocument): ChantLayout {
-  const systems = layoutSystems(
-    document,
-    placeNeumeSequence(document.neumes.map(geometryInput)),
-    (geometry, index) => layoutCommittedNeume(document.neumes[index], geometry),
-  );
   return {
     title: document.title,
     width: scoreWidth,

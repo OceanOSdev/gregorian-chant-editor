@@ -242,10 +242,21 @@ for (const kind of kinds) {
   await mount();
   await choose(kind);
   const p = await scorePoint();
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p });
+  await pause();
+  const ghostBounds = await ev(
+    `(()=>{const r=document.querySelector('.score__placement-ghost .score__ink').getBBox();return {y:r.y,width:r.width,height:r.height}})()`,
+  );
   await clickAt(p);
   await pause();
   let s = await snapshot();
   assert.equal(s.count, 1);
+  assert.deepEqual(
+    await ev(
+      `(()=>{const r=document.querySelector('[data-neume-id] > .score__ink').getBBox();return {y:r.y,width:r.width,height:r.height}})()`,
+    ),
+    ghostBounds,
+  );
   assert.equal(s.tool, kind);
   assert.equal(s.focus, 'score');
   assert.equal(s.preview, false);
@@ -271,138 +282,200 @@ for (const kind of kinds) {
   );
   record('persistent kind and contextual insertion', { kind, passed: true });
 }
-// Prospective systems replace visible ink without changing committed controls.
-for (const scenario of ['new-system', 'reflow-existing']) {
-  const document = {
-    ...base,
-    clef: { type: 'c', staffLine: 2 },
-    neumes: Array.from({ length: 10 }, (_, i) => ({
-      id: 'wrap' + i,
-      kind: 'punctum',
-      lyricSyllableId: scenario === 'reflow-existing' && i === 9 ? 's2' : 's1',
-      notes: [{ id: 'wrap-note' + i, staffPosition: 2 }],
-    })),
-  };
-  await mount(document);
-  const original = await notation();
-  const kind = scenario === 'new-system' ? 'punctum' : 'torculus';
-  await choose(kind);
-  const point = await scorePoint(scenario === 'new-system' ? 655 : 220, 100);
-  const show = async () => {
-    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
-    await pause();
-  };
-  await show();
-  assert.equal(
-    await ev(`document.querySelectorAll('[data-preview-system-index]').length`),
-    2,
+// Reproduce right edge → middle boundaries → right edge without hover reflow.
+const committedVisuals = () =>
+  ev(
+    `({viewBox:document.querySelector('.score').getAttribute('viewBox'),height:document.querySelector('.score').getBoundingClientRect().height,systems:document.querySelectorAll('[data-system-index]').length,ink:Array.from(document.querySelectorAll('[data-neume-id] > .score__ink')).map(n=>n.outerHTML),staff:Array.from(document.querySelectorAll('[data-system-index] .score__staff-line,[data-system-index] .score__clef,[data-system-index] .score__lyric')).map(n=>n.outerHTML),positions:Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height]}),scrollY})`,
   );
-  assert.equal(
+const pointerSweep = [
+  655, 610, 550, 450, 411, 409, 360, 280, 230, 64, 230, 409, 411, 550, 610, 655,
+];
+for (const width of [1440, 390, 320])
+  for (const kind of ['punctum', 'torculus']) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    const document = {
+      ...base,
+      neumes: Array.from({ length: 10 }, (_, i) => ({
+        id: 'wrap' + i,
+        kind: 'punctum',
+        lyricSyllableId: 's1',
+        notes: [{ id: 'wrap-note' + i, staffPosition: 2 }],
+      })),
+    };
+    await mount(document);
+    await choose(kind);
     await ev(
-      `document.querySelectorAll('[data-preview-system-index="1"] .score__staff-line').length`,
-    ),
-    4,
-  );
-  assert.equal(
-    await ev(
-      `document.querySelector('[data-preview-system-index="1"] .score__clef').textContent.trim()`,
-    ),
-    'C',
-  );
-  assert(
-    await ev(
-      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
-    ),
-  );
-  assert.deepEqual(await notation(), original);
-  assert(
-    await ev(
-      `(()=>{const s=document.querySelector('.score__preview-scene');return s.getAttribute('aria-hidden')==='true'&&getComputedStyle(s).pointerEvents==='none'&&!s.querySelector('[role], [tabindex], [data-note-id], [data-neume-id]')})()`,
-    ),
-  );
-  assert(
-    await ev(
-      `(()=>{const p=document.elementFromPoint(${point.x},${point.y});return !p.closest('.score__preview-scene')})()`,
-    ),
-  );
-  if (scenario === 'reflow-existing')
+      `document.querySelector('.score').scrollIntoView({block:'nearest',behavior:'instant'})`,
+    );
+    const original = await notation();
+    const stationary = await committedVisuals();
+    for (const x of pointerSweep) {
+      await send('Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        ...(await scorePoint(x, 100)),
+      });
+      await pause();
+      assert.deepEqual(await committedVisuals(), stationary);
+      assert.equal((await snapshot()).preview, true);
+    }
+    assert.equal(
+      await ev(
+        `document.querySelector('.score__placement-caret line').getAttribute('x1')`,
+      ),
+      '653',
+    );
     assert(
       await ev(
-        `Array.from(document.querySelectorAll('[data-preview-system-index="1"] .score__lyric')).some(n=>n.textContent==='ri')`,
+        `(()=>{const s=document.querySelector('.score__placement-preview');return s.getAttribute('aria-hidden')==='true'&&getComputedStyle(s).pointerEvents==='none'&&!s.querySelector('[role], [tabindex], [data-note-id], [data-neume-id]')})()`,
       ),
     );
-  await key('Escape');
-  assert.equal((await snapshot()).preview, false);
-  assert.equal(
-    await ev(`document.querySelector('.score__preview-scene')`),
-    null,
-  );
-  assert.deepEqual(await notation(), original);
-  assert(
-    await ev(
-      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
-    ),
-  );
-  await choose(kind);
-  await show();
-  const prospective = await ev(
-    `Array.from(document.querySelectorAll('[data-preview-neume] > .score__ink')).map(n=>n.outerHTML)`,
-  );
-  const prospectiveStaff = await ev(
-    `Array.from(document.querySelectorAll('.score__preview-scene .score__staff-line,.score__preview-scene .score__clef')).map(n=>n.outerHTML)`,
-  );
-  const previewImage = await send('Page.captureScreenshot', {
-    format: 'png',
-    captureBeyondViewport: true,
-  });
-  await writeFile(
-    out + '/' + scenario + '-before.png',
-    Buffer.from(previewImage.data, 'base64'),
-  );
-  await clickAt(point);
-  await pause();
-  assert.equal((await snapshot()).count, 11);
-  assert.equal((await snapshot()).tool, kind);
-  assert.equal((await snapshot()).preview, false);
-  assert.equal(
-    await ev(`document.querySelectorAll('[data-system-index]').length`),
-    2,
-  );
-  assert.deepEqual(
-    await ev(
-      `Array.from(document.querySelectorAll('[data-neume-id] > .score__ink')).map(n=>n.outerHTML)`,
-    ),
-    prospective,
-  );
-  assert.deepEqual(
-    await ev(
-      `Array.from(document.querySelectorAll('[data-system-index] .score__staff-line,[data-system-index] .score__clef')).map(n=>n.outerHTML)`,
-    ),
-    prospectiveStaff,
-  );
-  const afterImage = await send('Page.captureScreenshot', {
-    format: 'png',
-    captureBeyondViewport: true,
-  });
-  await writeFile(
-    out + '/' + scenario + '-after.png',
-    Buffer.from(afterImage.data, 'base64'),
-  );
-  const inserted = await notation();
-  await key('z', 2);
-  assert.deepEqual(await notation(), original);
-  await key('z', 10);
-  assert.deepEqual(await notation(), inserted);
-  record('prospective wrapping scene', {
-    scenario,
-    systems: 2,
-    staffAndClefParity: true,
-    allInkParity: true,
-    decorative: true,
-    cancellationNoHistory: true,
-    atomicHistory: true,
-  });
-}
+    const point = await scorePoint(655, 100);
+    assert(
+      await ev(
+        `!document.elementFromPoint(${point.x},${point.y}).closest('.score__placement-preview')`,
+      ),
+    );
+    assert.deepEqual(await notation(), original);
+    assert(
+      await ev(
+        `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+      ),
+    );
+    const beforeImage = await send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: true,
+    });
+    await writeFile(
+      out + `/intent-${kind}-${width}-before.png`,
+      Buffer.from(beforeImage.data, 'base64'),
+    );
+    await key('Escape');
+    assert.equal((await snapshot()).preview, false);
+    assert.deepEqual(await notation(), original);
+    await choose(kind);
+    await send('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      ...(await scorePoint(655, 100)),
+    });
+    await pause();
+    await clickAt(await scorePoint(655, 100));
+    await pause();
+    assert.equal((await snapshot()).count, 11);
+    assert.equal((await snapshot()).tool, kind);
+    assert.equal((await snapshot()).focus, 'score');
+    assert.equal((await snapshot()).preview, false);
+    assert.equal(
+      await ev(`document.querySelectorAll('[data-system-index]').length`),
+      2,
+    );
+    assert(
+      await ev(
+        `(()=>{const r=document.querySelector('.score__note[aria-pressed=true]').getBoundingClientRect();return r.top>=7.5&&r.bottom<=innerHeight-7.5})()`,
+      ),
+    );
+    const afterImage = await send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: true,
+    });
+    await writeFile(
+      out + `/intent-${kind}-${width}-after.png`,
+      Buffer.from(afterImage.data, 'base64'),
+    );
+    const inserted = await notation();
+    await key('z', 2);
+    assert.deepEqual(await notation(), original);
+    await key('z', 10);
+    assert.deepEqual(await notation(), inserted);
+    // Middle insertion: existing ink/lyric moves only after commit.
+    await mount({
+      ...document,
+      neumes: document.neumes.map((n, i) => ({
+        ...n,
+        lyricSyllableId: i === 9 ? 's2' : 's1',
+      })),
+    });
+    await choose(kind);
+    const middleStationary = await committedVisuals();
+    await send('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      ...(await scorePoint(220, 100)),
+    });
+    await pause();
+    assert.deepEqual(await committedVisuals(), middleStationary);
+    await clickAt(await scorePoint(220, 100));
+    await pause();
+    assert.equal((await snapshot()).count, 11);
+    assert(
+      await ev(
+        `!!document.querySelector('[data-system-index="1"] [data-syllable-id="s2"]')`,
+      ),
+    );
+    record('stationary caret/ghost sweep and wrapping commit', {
+      width,
+      kind,
+      sweep: pointerSweep,
+      hoverSystems: 1,
+      committedSystems: 2,
+      stationaryInkAndLyrics: true,
+      decorative: true,
+      atomicHistory: true,
+      insertedNoteVisible: true,
+    });
+  }
+// Remote syllable constraints: caret is at the real boundary, ghost remains local.
+await send('Emulation.setDeviceMetricsOverride', {
+  width: 1440,
+  height: 900,
+  deviceScaleFactor: 1,
+  mobile: false,
+});
+await mount({
+  ...base,
+  neumes: Array.from({ length: 30 }, (_, i) => ({
+    id: 'remote' + i,
+    kind: 'punctum',
+    lyricSyllableId: i < 5 ? 's1' : 's2',
+    notes: [{ id: 'remote-note' + i, staffPosition: 2 }],
+  })),
+});
+await choose('torculus');
+await ev(
+  `document.querySelector('[data-system-index="2"]').scrollIntoView({block:'center',behavior:'instant'})`,
+);
+await send('Input.dispatchMouseEvent', {
+  type: 'mouseMoved',
+  ...(await scorePoint(655, 588)),
+});
+await pause();
+assert.equal(
+  await ev(`document.querySelector('.score__placement-target').textContent`),
+  'Insertion: system 1',
+);
+assert.equal(
+  await ev(
+    `document.querySelector('.score__placement-caret line').getAttribute('x1')`,
+  ),
+  '432.5',
+);
+assert.equal(
+  await ev(
+    `document.querySelector('.score__placement-caret line').getAttribute('y1')`,
+  ),
+  '40',
+);
+await clickAt(await scorePoint(655, 588));
+await pause();
+assert.equal((await notation())[5].kind, 'torculus');
+record('clamped remote boundary', {
+  caretSystem: 1,
+  ghostSystem: 3,
+  committedIndex: 5,
+});
 await mount();
 await choose('clivis');
 await clickAt(await scorePoint());
@@ -650,7 +723,7 @@ for (const width of [1440, 390, 320]) {
     escapeRestoresFocus: true,
   });
 }
-// Actual reflow reveal and committed/preview shared ink in a late system.
+// Local ghost remains on the hit system; commit reveals the real reflow destination.
 await send('Emulation.setDeviceMetricsOverride', {
   width: 1440,
   height: 900,
@@ -678,15 +751,15 @@ await pause();
 const revealed = await ev(
   `(()=>{const n=document.querySelector('.score__note[aria-pressed=true]');const parent=n.closest('[data-neume-id]');const r=parent.getBoundingClientRect();return {scrollY,top:r.top,bottom:r.bottom,system:Number(parent.closest('[data-system-index]').dataset.systemIndex),ink:parent.querySelector('.score__ink').outerHTML}})()`,
 );
-assert.equal(revealed.ink, previewInk);
+assert.notEqual(revealed.ink, previewInk);
 assert(revealed.scrollY > wrapBefore);
 assert(revealed.top >= 8);
 assert(revealed.bottom <= 900 - 7);
-record('late reflow reveal and preview parity', {
+record('late reflow reveal after local ghost', {
   before: wrapBefore,
   after: revealed.scrollY,
   destinationSystem: revealed.system + 1,
-  inkMatches: true,
+  localGhostDiffersFromCommittedPosition: true,
 });
 // Nested scroll container: focusing a visible late destination preserves both offsets.
 await mount(long);

@@ -1,90 +1,84 @@
-# Simplified neume entry verification
+# Simplified entry and caret/ghost placement verification
 
-PR #35 revised interaction model; 2026-10-18. The toolbar is one persistent
-neume palette, with one contextual Insert command and compact syllable/lyric
-controls. No repetition preference, Finish control, context panel, or sticky
-strip remains.
+PR #35; 2026-10-19. The persistent palette, contextual Insert command, I/T and
+roving keyboard navigation are unchanged. Moving the pointer now communicates
+insertion intent without rearranging the score. Actual reflow happens on click.
 
-## Implementation decisions
+## Preview decisions
 
-- Retained the pure session reducer, serialized current-document resolution,
-  caller-allocated stable IDs, atomic semantic history, shared insertion commands,
-  preview geometry, and postcommit focus requests. No semantic model, insertion
-  anchor, engraving, whole-neume wrapping, or dependency changes.
-- Replaced repetition state with a transient remembered kind, initially Punctum.
-  Only neume activation changes it. Contextual insertion resolves that kind from
-  the reducer's latest state, returns to Select, and focuses the new first note.
-- Palette focus is local UI state: one roving Tab stop. Arrows and T move focus
-  without activation. Enter/Space remain native. I inserts from notation controls;
-  native editing, composition, modified keys and repeated keydown are excluded.
-- Removed one-shot placement branches, Finish-specific focus identity, the large
-  panel and its layout-context helper, and sticky-strip scroll calculations.
-  Select remains an ordinary palette button. Escape/Select restores a surviving
-  enabled note, otherwise the visible Select palette button and its Tab stop.
-- Retained scroll-prevented SVG-root focus after placement, a local decorative
-  focus cue, concise placement naming, nearest clipped-destination reveal, and
-  one event-keyed polite status region. Hover and focus browsing stay silent.
-  Focus requests are consumed in layout effects after refs and geometry commit.
+- One preview path: a caret for the resolved semantic boundary and a translucent
+  blue ghost for the actual neume shape/pitch on the hovered committed staff.
+- The caret uses painted gap midpoints, half-gap offsets at system ends and the
+  normal first anchor on an empty system. A boundary shared by systems stays on
+  the hovered system when possible. Active-syllable clamping is authoritative;
+  a remote caret gets a compact “Insertion: system N” label at the hovered staff.
+- The ghost follows pointer x with horizontal bounds clamped inside the staff.
+  Its pitch uses the same snapping and contours as insertion. Crowded ghosts may
+  overlap ink; their pale outline is presentation only. Final engraved x/system
+  position is intentionally not predicted.
+- Removed prospective scene/system/lyric assembly, speculative score height,
+  committed-ink hiding, and full-scene parity tests. Committed layout and shared
+  engraving builders remain unchanged. No parallel legacy preview renderer.
+- Preview output is ID-free; SVG cues are aria-hidden, pointer-inert and
+  unfocusable. No hover announcements, focus requests, document edits, history,
+  reserved staff space or viewBox changes. Existing committed controls stay
+  mounted and visible.
+- Commit re-resolves current document/layout/point, allocates stable IDs once,
+  adds one history entry and retains the tool. Existing layout-effect focus
+  uses preventScroll, then minimally reveals the actual committed destination.
+  No semantic, insertion-order, contour, wrapping, keyboard or dependency change.
+  ADR 0007's shared geometry boundary is preserved; no new ADR is needed.
 
-## Browser verification
+## Real-browser results
 
-[Recorded results](browser-results.json) exercise the real editor in React
-StrictMode in Linux headless Chromium 150.0.7871.128, scale factor 1. The script
-uses trusted DevTools pointer/key events except where explicitly testing batched
-React events or synthetic composition/modifier guards.
+[Recorded results](browser-results.json) use the actual StrictMode React editor
+in headless Linux Chromium 150.0.7871.128. Trusted pointer/key events exercise
+DOM behavior, with synthetic events explicitly used for batching and guard tests.
 
-| Check                 | Verified behavior                                                                                                                                                                                                 |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Keyboard-only entry   | Visible Insert into empty notation → pitch arrow → I → T/Right/Enter → I inserts Podatus → Shift+Tab selects/edits an earlier note → native syllable selector → Insert into the new syllable                      |
-| Palette               | Exactly one Tab stop; arrows/Home/End browse without activation/memory changes; native Enter and Space activate; T restores remembered focus                                                                      |
-| Seven kinds           | Repeated graphical placement, disabled-note guards, Escape restoration, contextual Insert exits to an enabled first note                                                                                          |
-| Rapid clicks/history  | 12 trusted clicks without pointer movement plus 30 dispatched in one JS turn retain all edits; individual Undo/Redo restores exact IDs; identical success messages produce distinct mutations                     |
-| Preview               | Hover is silent; switching clears preview; invalid points/CTM do nothing; committed ink exactly matches preview after late-system reflow                                                                          |
-| Native editing/guards | I/T ignored in lyric, textarea, contenteditable, native select, unrelated controls and composing/modified/repeated events; native lyric Undo/Redo and Escape rollback preserved                                   |
-| Target/fallback       | Changing syllables preserves tool; adding focuses lyric; removing the only target restores Select focus and a single combined status message                                                                      |
-| Long score            | 37 systems, placement at system 24: exact window offset preserved at 1440, 390, 320 px; Escape restores visible enabled note; pitch edits/history and contextual insertion retain appropriate focus across reflow |
-| Nested scrolling      | Visible late-system placement preserves both container and window offsets                                                                                                                                         |
-| Accessibility         | Focused placement group has short name/description, no entire-score summary, no programmatic disabled-note focus; one polite atomic live region                                                                   |
-| Responsive/Tab order  | No page overflow at 1440, 390, 320 px; native Tab visits Insert, syllable, Add syllable, lyric, enabled history, help; focused controls remain visible                                                            |
+| Check                    | Result                                                                                                                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nearly full first system | Punctum and Torculus swept right → left across boundaries → right at 1440, 390, 320 px; committed ink, lyrics, staff count, bounding rectangles, viewBox, height and scroll offset stayed identical |
+| Wrapping commit          | Only the click created the second system; inserted note visible, root focused without disabled-note focus, tool active, one-step Undo/Redo restored exact IDs                                       |
+| Middle insertion         | Existing neumes and the later syllable's lyric moved to the next system only after commit                                                                                                           |
+| Seven kinds              | Ghost painted width/height and pitch placement matched the corresponding committed ink on the same staff; persistent placement and contextual insertion still passed                                |
+| Remote syllable boundary | Pointer/ghost on system 3, caret correctly on system 1 at insertion index 5; target label accurate; click committed index 5                                                                         |
+| Preview DOM              | No accessible controls/semantic IDs in overlay; pointer hit testing bypassed it; hover/cancellation added no history                                                                                |
+| Rapid input              | 12 trusted same-position clicks plus 30 in one JS turn retained every edit; atomic Undo/Redo restored exact IDs; repeated success strings produced distinct status mutations                        |
+| Long score               | Visible placement at system 24 of 37 preserved exact scroll offsets at all widths; Escape and contextual entry restored enabled-note focus                                                          |
+| Offscreen wrapping       | A local ghost near the viewport bottom stayed on the hit staff; click placed the neume on system 25 and minimally revealed its actual destination (scroll 6440 → 6743)                              |
+| Nested scrolling         | Visible late-system insertion preserved both window and container offsets                                                                                                                           |
+| Keyboard/accessibility   | Native I/T workflow, roving Tab order, note pitch editing, text/select/contenteditable/composition/modifier guards, concise root accessible name and polite status mutations passed                 |
+| Responsive               | No horizontal page overflow at 1440, 390, 320 px; focused controls remained visible                                                                                                                 |
 
-Browser scrolling rounds CSS-pixel offsets: visibility assertions allow half a
-pixel at the requested 8 px margin. Document shrinkage can still trigger native
-scroll-range clamping. Ordinary Tab from the SVG surface can leave page content;
-there is no focus trap. T intentionally reveals the palette at the page top.
+Visibility assertions allow half a CSS pixel for browser scroll rounding at the
+8 px reveal margin. Hover never auto-scrolls to a caret on another system.
+Document shrinkage can trigger native scroll-range clamping. T intentionally
+reveals the palette; ordinary Tab can leave score content without a focus trap.
 
-## Wrapping-preview regression
+## Screenshots and reproducible pointer sequence
 
-The candidate-only preview previously expanded the SVG but rendered staff/clef
-and existing neumes from committed layout, leaving a new-system candidate floating
-and displaced notation at old positions. The preview now paints the complete
-prospective visual result using shared system/lyric assembly and staff/ink
-renderers. Only the candidate is translucent. Committed controls remain mounted;
-the visual scene has no note/neume identities, focus targets or pointer ownership.
-No semantic edit or history entry is created until click.
+| Width | Punctum                                                                              | Torculus                                                                               |
+| ----- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 1440  | [Hover](intent-punctum-1440-before.png) / [Committed](intent-punctum-1440-after.png) | [Hover](intent-torculus-1440-before.png) / [Committed](intent-torculus-1440-after.png) |
+| 390   | [Hover](intent-punctum-390-before.png) / [Committed](intent-punctum-390-after.png)   | [Hover](intent-torculus-390-before.png) / [Committed](intent-torculus-390-after.png)   |
+| 320   | [Hover](intent-punctum-320-before.png) / [Committed](intent-punctum-320-after.png)   | [Hover](intent-torculus-320-before.png) / [Committed](intent-torculus-320-after.png)   |
 
-Eight focused scene tests compare new-system previews for every neume kind and
-existing-neume/lyric reflow against full committed geometry. Chromium checks
-verify both scenarios, cancellation without history, non-interactivity, exact
-staff/clef and all-ink parity, and one-entry Undo/Redo with exact IDs. The full
-keyboard/palette, rapid-click, long-score and responsive regression script also
-passes. All 571 tests across 37 files, formatting, lint and build pass.
+The browser fixture starts with ten Puncta on one nearly full system. With
+Punctum selected, move at SVG y=100 through x values
+`655,610,550,450,411,409,360,280,230,64,230,409,411,550,610,655`, then click.
+The script converts coordinates through the current SVG screen transform.
+Repeat with Torculus, then at 390 and 320 px. Reset the fixture per case.
+This is a reproducible real-pointer sequence rather than a recording.
 
-- New system: [before commit](new-system-before.png) / [after commit](new-system-after.png)
-- Displaced existing notation and lyric: [before commit](reflow-existing-before.png) / [after commit](reflow-existing-after.png)
+Existing [desktop](placement-1440.png), [390 px](placement-390.png) and
+[320 px](placement-320.png) palette screenshots and late-system screenshots
+remain available. Earlier prospective-scene images were removed to avoid
+presenting superseded behavior as current.
 
-## Screenshots
+## Reproduce the automated browser checks
 
-- [Desktop palette and placement](placement-1440.png)
-- [390 px palette and placement](placement-390.png)
-- [320 px palette and placement](placement-320.png)
-- [Desktop late-system editing](late-system-1440.png)
-- [390 px late-system editing](late-system-390.png)
-- [320 px late-system editing](late-system-320.png)
-
-## Reproduce
-
-No browser automation dependency is added. Use a Chromium binary with remote
-DevTools enabled and a recent Node with built-in fetch/WebSocket:
+No browser automation dependency is added. Use a recent Node with built-in
+fetch/WebSocket and a Chromium DevTools endpoint:
 
 ```bash
 npm run dev -- --host 127.0.0.1
@@ -92,23 +86,23 @@ chromium --headless --no-sandbox --disable-gpu --remote-debugging-port=9250 --us
 CHANT_EDITOR_URL=http://127.0.0.1:5173 node docs/verification/placement/browser-check.mjs
 ```
 
-Use flags appropriate to the environment. `CHANT_CHROME_URL` overrides the
-DevTools endpoint (default `http://127.0.0.1:9250`). The script runs from the repo
-root, writes results/screenshots here and opens the development-only
-[browser fixture](browser-fixture.html), which mounts production components with
-explicit documents. It adds no debug API to the application.
+Use browser flags appropriate to the environment. `CHANT_CHROME_URL` overrides
+the endpoint (default `http://127.0.0.1:9250`). Run from the repo root. Results
+and screenshots are written here. The [development fixture](browser-fixture.html)
+mounts production components with explicit documents and no production debug API.
 
-## Automated checks and limits
+## Tests and limits
 
-Session tests cover all seven kinds, persistent lifecycle, remembered-kind
-invariants, contextual insertion contours and unchanged note-only anchors,
-preview parity after wrapping, stable history identity, target removal,
-deterministic replay and fresh resolution after layout changes. Palette tests
-cover focus navigation and shortcut guards. Visibility tests cover minimum
-scroll calculations. Existing domain/command/engraving suites are unchanged.
+`graphical-placement-preview.test.ts` covers seven-kind local contours across
+low/high line/space pitches, caret boundaries, crowded ends, remote syllable
+constraints, empty/shared system boundaries, ID-free output, stable layout and
+on-click reflow. Geometry matrices retain approved specimen, wide-interval,
+measurement and committed-layout checks without claiming complete prospective
+parity. Session/history, palette navigation and focus visibility tests remain.
 
-Chromium accessibility-tree and live-region mutation checks do not establish
-spoken screen-reader output. Screen-reader speech, Safari/Firefox, physical
-touch and real IME integration remain unverified. Composition guards are tested
-with synthetic events; rapid polite announcements may be coalesced by assistive
-technology. The existing score scales down on narrow screens; zoom is deferred.
+Screen-reader speech, Firefox/Safari, physical touch and actual IME integration
+remain unverified. Composition guards use synthetic events; polite rapid
+announcements may be coalesced by assistive technology. On narrow screens,
+existing score scaling remains small; zoom is outside scope. Crowded ghost
+opacity/overlap and a remote caret beyond the viewport remain reviewable visual
+tradeoffs of the approved interaction.
