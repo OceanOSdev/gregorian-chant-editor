@@ -126,7 +126,7 @@ pitch arrows retain their existing meanings. Collapsed Keyboard help and the
 visible I hint make the shortcuts discoverable without a permanent help panel.
 
 The ordinary Tab order is palette → Insert → enabled Undo/Redo → New syllable
-→ Add (when nonblank) → existing syllable buttons → any open edit field and
+→ Add (when nonblank) → one existing-syllable Tab stop → any open edit field and
 Save/Cancel → Keyboard help → enabled score notes. Native traversal is preserved.
 After insertion, note focus supports pitch arrows then I directly. T → arrows →
 Enter → I switches kind and inserts.
@@ -140,6 +140,20 @@ The field clears and retains focus for consecutive entry. Existing text is
 never changed by creation. Escape in this field has no semantic effect.
 
 Existing syllables appear in an ordered, horizontally scrollable button strip.
+Only one button participates in Tab order. Left/Right browse with wrapping;
+Home/End focus the first/last button. Browsing changes only the roving Tab stop,
+never the active target or document. Native Enter/Space activates and opens the
+editor; Tab/Shift+Tab traverse into and out of the strip normally. Modifier
+chords and composition are excluded from browsing. Focus has its own outline,
+separate from the pressed active target.
+
+Adding or changing the active syllable minimally reveals its button horizontally
+within the strip after rendering, without moving focus. Focusing a strip button
+also reveals it. Only the strip scrolls; ancestor containers, the window and score
+are not scroll targets. New-syllable entry therefore retains focus while its
+new active target remains visible. The existing pure visibility calculation is
+reused without the score's ancestor/window reveal behavior.
+
 Ordinal labels distinguish repeated text; pressed state identifies the active
 placement target. Activating a button selects that target and opens an explicitly
 labeled editor populated with its current text. Focus moves to the edit field.
@@ -147,7 +161,8 @@ Enter or Save changes only that stable syllable's text; Escape or Cancel discard
 the draft without a command or history entry. Both return focus to its strip
 button. Unchanged saves are semantic no-ops. Existing text can still be cleared.
 
-Blur never saves. Selecting another target or changing its historical text
+Reselecting the syllable already being edited focuses its existing editor and
+preserves its unsaved draft. Blur never saves. Selecting another target or changing its historical text
 discards the existing edit draft; adding a syllable closes it. The New syllable
 draft survives target changes and editing. Neither draft is part of semantic
 history. Cancel changes no selection, tool or notation state. Native input

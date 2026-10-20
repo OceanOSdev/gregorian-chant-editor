@@ -1,5 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { LyricSyllable } from '../domain/chant-document';
+import { nextSyllableId } from '../interaction/syllable-navigation';
+import { getVisibilityAdjustment } from '../rendering/focus-visibility';
 
 interface SyllableControlsProps {
   syllables: LyricSyllable[];
@@ -25,7 +27,38 @@ export function SyllableControls({
   const newInput = useRef<HTMLInputElement>(null);
   const editInput = useRef<HTMLInputElement>(null);
   const buttons = useRef(new Map<string, HTMLButtonElement>());
+  const strip = useRef<HTMLDivElement>(null);
+  const [rovingId, setRovingId] = useState(activeId);
+  const tabStopId = syllables.some((s) => s.id === rovingId)
+    ? rovingId
+    : (activeId ?? syllables[0]?.id);
   const composing = useRef(false);
+
+  function revealSyllable(id: string) {
+    const container = strip.current;
+    const button = buttons.current.get(id);
+    if (!container || !button) return;
+    const viewport = container.getBoundingClientRect();
+    const left = viewport.left + container.clientLeft + 4;
+    const right =
+      viewport.left + container.clientLeft + container.clientWidth - 4;
+    const bounds = button.getBoundingClientRect();
+    const { x } = getVisibilityAdjustment(
+      bounds,
+      { left, right, top: bounds.top, bottom: bounds.bottom },
+      {
+        left: bounds.left,
+        right: bounds.left,
+        top: bounds.top,
+        bottom: bounds.bottom,
+      },
+    );
+    if (x) container.scrollBy({ left: x, behavior: 'instant' });
+  }
+
+  useLayoutEffect(() => {
+    if (activeId) revealSyllable(activeId);
+  }, [activeId, syllables]);
   const active = syllables.find((syllable) => syllable.id === activeId);
   // A changed target or historical text invalidates a draft, never commits it.
   const editing =
@@ -85,7 +118,33 @@ export function SyllableControls({
       </p>
       <div
         className="syllable-strip"
+        ref={strip}
         role="group"
+        aria-describedby="syllable-navigation-help"
+        onKeyDown={(event) => {
+          if (
+            event.nativeEvent.isComposing ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey
+          )
+            return;
+          const id =
+            event.target instanceof HTMLElement
+              ? event.target.dataset.syllableId
+              : undefined;
+          const next =
+            id &&
+            nextSyllableId(
+              syllables.map((s) => s.id),
+              id,
+              event.key,
+            );
+          if (!next) return;
+          event.preventDefault();
+          buttons.current.get(next)?.focus({ preventScroll: true });
+        }}
         aria-labelledby="existing-syllables-label"
       >
         {syllables.length === 0 ? (
@@ -100,11 +159,19 @@ export function SyllableControls({
                 if (button) buttons.current.set(syllable.id, button);
                 else buttons.current.delete(syllable.id);
               }}
+              tabIndex={syllable.id === tabStopId ? 0 : -1}
+              onFocus={() => {
+                setRovingId(syllable.id);
+                revealSyllable(syllable.id);
+              }}
               aria-pressed={syllable.id === activeId}
               aria-label={`Syllable ${index + 1}: ${syllable.text || '(empty)'}`}
               onClick={() => {
-                if (editing?.id === syllable.id)
+                revealSyllable(syllable.id);
+                if (editing?.id === syllable.id) {
                   editInput.current?.focus({ preventScroll: true });
+                  return;
+                }
                 onSelect(syllable.id);
                 setEdit({
                   id: syllable.id,
@@ -120,6 +187,10 @@ export function SyllableControls({
           ))
         )}
       </div>
+      <p id="syllable-navigation-help" className="editor-sr-only">
+        Left and Right browse syllables; Home and End jump to the first and
+        last. Enter or Space selects and edits. Tab leaves the strip.
+      </p>
       {editing ? (
         <form
           className="syllable-form syllable-edit"

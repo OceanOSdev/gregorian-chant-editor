@@ -24,6 +24,16 @@ keyboard events:
   no history. Text edits retain the original note ID and target ID.
 - Target switching and creation never blur-save an edit; creation drafts survive
   editing. Graphical insertion still targets the active syllable.
+- At 320 px, 25 consecutive additions each retain cleared-input focus and reveal
+  the active button. The strip moves only enough to reveal its right edge, with
+  4 px padding. Window, root and score scroll offsets stay unchanged.
+- Exactly one strip button is tabbable. Native Tab/Shift+Tab enter and leave in
+  one step; Left/Right (including wrapping) and Home/End move focus without
+  changing the active target. Native Enter/Space activates and edits. Modified
+  or composing navigation keys are ignored. Offscreen activation reveals its
+  button within the strip.
+- Reselecting `Ky` while its draft is `Kyr` preserves the draft and focuses the
+  editor. Escape still cancels it without changing saved text.
 - Save/Cancel are reached with native Tab. At 390 px and 320 px the page has no
   horizontal overflow. Eighty syllables stay in a horizontally scrollable strip.
 - Synthetic composing key events check the Enter guards in both inputs.
@@ -34,6 +44,12 @@ Screenshots:
 | ---------------------- | ----------------------------------- | ------------------------------ | ------------------------------ |
 | New syllable draft     | [Desktop](new-syllable-desktop.png) | [390 px](new-syllable-390.png) | [320 px](new-syllable-320.png) |
 | Existing syllable edit | [Desktop](editing-desktop.png)      | [390 px](editing-390.png)      | [320 px](editing-320.png)      |
+
+Additional 320 px revision screenshots:
+
+- [25 additions with the last target revealed](long-entry-320.png)
+- [Roving keyboard focus in the long strip](roving-focus-320.png)
+- [Draft preserved after reselection](reselected-draft-320.png)
 
 These checks do not replace testing with a physical IME or spoken screen reader.
 The semantic regression tests separately assert exact history restoration,

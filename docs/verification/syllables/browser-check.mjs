@@ -79,8 +79,17 @@ const key = async (key, modifiers = 0) => {
     windowsVirtualKeyCode:
       key.length === 1
         ? key.toUpperCase().charCodeAt(0)
-        : ({ Tab: 9, Escape: 27, Enter: 13 }[key] ?? 0),
+        : ({
+            Tab: 9,
+            Escape: 27,
+            Enter: 13,
+            Home: 36,
+            End: 35,
+            ArrowLeft: 37,
+            ArrowRight: 39,
+          }[key] ?? 0),
     ...(key === 'Enter' ? { text: '\r', windowsVirtualKeyCode: 13 } : {}),
+    ...(key === ' ' ? { text: ' ', windowsVirtualKeyCode: 32 } : {}),
   });
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key, modifiers });
   await pause();
@@ -347,6 +356,142 @@ record('long sequence and drafts', {
   creationDraftPreserved: true,
   editCompositionGuard: true,
 });
+// At 320px, consecutive additions reveal only the strip and retain input focus.
+await ev(
+  `mountChantFixture(${JSON.stringify(base)});document.body.style.minHeight='2000px'`,
+);
+await pause();
+await click('#new-syllable');
+await ev(`window.scrollTo(0,120)`);
+const pagePosition = () =>
+  ev(
+    `({x:scrollX,y:scrollY,scoreScrollTop:document.querySelector('.score').scrollTop,scoreScrollLeft:document.querySelector('.score').scrollLeft,rootScrollTop:document.querySelector('#root').scrollTop})`,
+  );
+const stationaryPage = await pagePosition();
+const stripState = () =>
+  ev(`(()=>{
+  const strip=document.querySelector('.syllable-strip');
+  const b=strip.querySelector('[aria-pressed=true]');
+  const r=strip.getBoundingClientRect(), t=b.getBoundingClientRect();
+  return {left:strip.scrollLeft,rightGap:r.right-t.right,visible:t.left>=r.left+3 && t.right<=r.right-3};
+})()`);
+for (let i = 0; i < 25; i++) {
+  await type('syllable' + i);
+  const before = await ev(
+    `document.querySelector('.syllable-strip').scrollLeft`,
+  );
+  await key('Enter');
+  assert.equal(await focus(), 'new-syllable');
+  assert.equal(await ev(`document.querySelector('#new-syllable').value`), '');
+  assert.equal(
+    await ev(
+      `document.querySelector('.syllable-strip [aria-pressed=true]').textContent.trim().endsWith('syllable${i}')`,
+    ),
+    true,
+  );
+  assert.equal((await stripState()).visible, true);
+  const revealed = await stripState();
+  assert.ok(revealed.left >= before);
+  if (revealed.left > before) assert.ok(Math.abs(revealed.rightGap - 4) <= 1);
+  assert.deepEqual(await pagePosition(), stationaryPage);
+}
+const lastId = await active();
+await screenshot('long-entry-320');
+// Exactly one Tab stop; Tab exits and Shift+Tab re-enters without selection.
+const tabStops = () =>
+  ev(
+    `Array.from(document.querySelectorAll('.syllable-strip button')).filter(b=>b.tabIndex===0).length`,
+  );
+assert.equal(await tabStops(), 1);
+await key('Tab');
+assert.equal(
+  await ev(`document.activeElement.matches('.syllable-strip button')`),
+  true,
+);
+await key('Tab');
+assert.equal(
+  await ev(`document.activeElement.matches('.editor-help summary')`),
+  true,
+);
+await key('Tab', 8);
+assert.equal(
+  await ev(`document.activeElement.matches('.syllable-strip button')`),
+  true,
+);
+await key('Home');
+assert.equal(await focus(), 's1');
+assert.equal(await active(), lastId);
+await key('ArrowRight');
+assert.equal(
+  await ev(`document.activeElement.textContent.trim().endsWith('syllable0')`),
+  true,
+);
+await key('ArrowLeft');
+assert.equal(await focus(), 's1');
+await key('ArrowLeft');
+assert.equal(await focus(), lastId); // wraps
+await key('End');
+assert.equal(await focus(), lastId);
+assert.equal((await stripState()).visible, true);
+assert.deepEqual(await pagePosition(), stationaryPage);
+// Modifier/composition keys must not browse.
+await key('Home', 2);
+assert.equal(await focus(), lastId);
+await ev(
+  `document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',isComposing:true,bubbles:true,cancelable:true}))`,
+);
+assert.equal(await focus(), lastId);
+await key('Home');
+await screenshot('roving-focus-320'); // Ky focused, final syllable still active.
+assert.equal(await tabStops(), 1);
+assert.equal(await active(), lastId);
+await key('Enter');
+assert.equal(await active(), 's1');
+assert.equal(await focus(), 'edit-syllable');
+await key('a', 2);
+await type('Kyr');
+await click('[data-syllable-id="s1"]');
+assert.equal(await focus(), 'edit-syllable');
+assert.equal(await ev(`document.querySelector('#edit-syllable').value`), 'Kyr');
+assert.equal((await texts())[0], 'Ky');
+await screenshot('reselected-draft-320');
+await key('Escape');
+assert.equal(await focus(), 's1');
+assert.equal((await texts())[0], 'Ky');
+await key('End');
+assert.equal(await focus(), lastId);
+await key(' ');
+assert.equal(await active(), lastId);
+assert.equal(await focus(), 'edit-syllable');
+await key('Escape');
+await key('Tab');
+assert.equal(
+  await ev(`document.activeElement.matches('.editor-help summary')`),
+  true,
+);
+await key('Tab', 8);
+assert.equal(await focus(), lastId);
+await key('Tab', 8);
+assert.equal(await focus(), 'new-syllable');
+record('25 consecutive additions and roving navigation at 320px', {
+  eachAdditionVisible: true,
+  eachAdditionRetainsInputFocus: true,
+  pageAndScoreStationary: true,
+  oneTabStop: true,
+  tabExitsAndReenters: true,
+  leftRightHomeEndAndWrap: true,
+  browsingDoesNotActivate: true,
+  enterAndSpaceActivate: true,
+  reselectRetainsDraft: true,
+  modifiersAndCompositionGuard: true,
+});
+// A programmatic target change (e.g. score selection) also reveals its button.
+await ev(
+  `document.querySelector('.syllable-strip').scrollLeft=0;document.querySelector('[data-syllable-id="${lastId}"]').click()`,
+);
+await pause();
+assert.equal((await stripState()).visible, true);
+record('selection reveal', { offscreenSelectionRevealed: true });
 await writeFile(
   `${out}/browser-results.json`,
   JSON.stringify(results, null, 2) + '\n',

@@ -56,6 +56,23 @@
       "noPageOverflow": true,
       "creationDraftPreserved": true,
       "editCompositionGuard": true
+    },
+    {
+      "name": "25 consecutive additions and roving navigation at 320px",
+      "eachAdditionVisible": true,
+      "eachAdditionRetainsInputFocus": true,
+      "pageAndScoreStationary": true,
+      "oneTabStop": true,
+      "tabExitsAndReenters": true,
+      "leftRightHomeEndAndWrap": true,
+      "browsingDoesNotActivate": true,
+      "enterAndSpaceActivate": true,
+      "reselectRetainsDraft": true,
+      "modifiersAndCompositionGuard": true
+    },
+    {
+      "name": "selection reveal",
+      "offscreenSelectionRevealed": true
     }
   ]
 }
