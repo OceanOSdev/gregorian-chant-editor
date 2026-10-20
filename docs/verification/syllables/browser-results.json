@@ -1,0 +1,61 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/150.0.7871.128",
+    "revision": "@81891e5ca708047763816c778216799ef14c66cb",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "jsVersion": "15.0.1240245"
+  },
+  "checks": [
+    {
+      "name": "creation",
+      "enterAndButtonEquivalent": true,
+      "retainedFocus": true,
+      "clearedInput": true,
+      "noOverwrite": true,
+      "blankRejected": true,
+      "nativeUndoGuard": true
+    },
+    {
+      "name": "editing",
+      "populated": true,
+      "enterSave": true,
+      "cancelAndEscape": true,
+      "cancelNoHistory": true,
+      "stableIdAndNote": true,
+      "undoRedo": true,
+      "focusReturned": true
+    },
+    {
+      "name": "targets and drafts",
+      "switching": true,
+      "saveButton": true,
+      "blurNoCommit": true,
+      "creationUndoRedo": true,
+      "compositionGuard": true,
+      "graphicalPlacement": true
+    },
+    {
+      "name": "responsive 390",
+      "noPageOverflow": true,
+      "keyboardSaveCancel": true
+    },
+    {
+      "name": "responsive 320",
+      "noPageOverflow": true,
+      "keyboardSaveCancel": true
+    },
+    {
+      "name": "cancel isolation",
+      "noteMovePreserved": true,
+      "selectionPreserved": true
+    },
+    {
+      "name": "long sequence and drafts",
+      "horizontalScroll": true,
+      "noPageOverflow": true,
+      "creationDraftPreserved": true,
+      "editCompositionGuard": true
+    }
+  ]
+}

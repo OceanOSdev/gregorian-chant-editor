@@ -225,3 +225,63 @@ kbd {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.syllable-controls {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid #d8d1c5;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+.syllable-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.syllable-form label {
+  flex-basis: 100%;
+}
+.syllable-form input {
+  flex: 1 1 8rem;
+  min-width: 0;
+  min-height: 2.5rem;
+  box-sizing: border-box;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  background: #fffdf8;
+  color: #28231e;
+  font: inherit;
+}
+.syllable-form input:focus-visible {
+  outline: 3px solid #1e64d2;
+  outline-offset: 2px;
+}
+.syllable-controls p {
+  margin: 0.75rem 0 0.35rem;
+}
+.syllable-strip {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.25rem;
+}
+.syllable-strip button {
+  flex: 0 0 auto;
+  max-width: 14rem;
+  overflow-wrap: anywhere;
+}
+.syllable-strip button[aria-pressed='true'] {
+  border-color: #1e64d2;
+  background: #e7effc;
+}
+.syllable-number {
+  color: #675f55;
+  font-size: 0.75rem;
+}
+.syllable-edit {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #d8d1c5;
+}

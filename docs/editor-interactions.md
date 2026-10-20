@@ -91,7 +91,7 @@ Tab/Shift+Tab use browser traversal, skipping disabled notes during placement;
 there is no focus trap. Reverse Tab from the surface reaches Keyboard help;
 forward Tab may leave page content. Escape and Undo/Redo work on the surface.
 Text fields, native selects, contenteditable and composition are excluded from
-document shortcuts. Lyric Escape retains draft rollback.
+document shortcuts. Lyric Escape cancels the explicit existing-syllable edit.
 
 Browser focus and reparenting remain separate from pure unit tests. See the
 [placement verification record](verification/placement/README.md).
@@ -125,12 +125,35 @@ already handled events, modifier chords and autorepeat. Native Enter/Space and
 pitch arrows retain their existing meanings. Collapsed Keyboard help and the
 visible I hint make the shortcuts discoverable without a permanent help panel.
 
-The ordinary Tab order is palette → Insert → active syllable select → Add
-syllable → lyric input → enabled Undo/Redo → Keyboard help → enabled score
-notes. Disabled controls are skipped. After insertion, note focus supports
-pitch arrows then I directly. T → arrows → Enter → I switches kind and inserts
-without traversing every toolbar button or existing note. To retarget, T → Tab
-→ Tab reaches the native syllable selector; Shift+Tab returns to Insert.
+The ordinary Tab order is palette → Insert → enabled Undo/Redo → New syllable
+→ Add (when nonblank) → existing syllable buttons → any open edit field and
+Save/Cancel → Keyboard help → enabled score notes. Native traversal is preserved.
+After insertion, note focus supports pitch arrows then I directly. T → arrows →
+Enter → I switches kind and inserts.
+
+## Lyric creation and editing
+
+New syllable is an independent transient text draft. Enter and Add submit the
+same form: trim outer whitespace, reject a blank result, append one syllable
+with a fresh stable ID in one semantic history operation, and make it active.
+The field clears and retains focus for consecutive entry. Existing text is
+never changed by creation. Escape in this field has no semantic effect.
+
+Existing syllables appear in an ordered, horizontally scrollable button strip.
+Ordinal labels distinguish repeated text; pressed state identifies the active
+placement target. Activating a button selects that target and opens an explicitly
+labeled editor populated with its current text. Focus moves to the edit field.
+Enter or Save changes only that stable syllable's text; Escape or Cancel discards
+the draft without a command or history entry. Both return focus to its strip
+button. Unchanged saves are semantic no-ops. Existing text can still be cleared.
+
+Blur never saves. Selecting another target or changing its historical text
+discards the existing edit draft; adding a syllable closes it. The New syllable
+draft survives target changes and editing. Neither draft is part of semantic
+history. Cancel changes no selection, tool or notation state. Native input
+Undo/Redo remains browser-owned; semantic Undo/Redo uses the explicit controls
+or shortcuts outside text inputs. IME Enter does not submit during composition.
+No new document contract or architectural decision is required.
 
 Contextual insertion first resolves a complete-neume semantic boundary and a
 reference pitch for the active syllable:
@@ -274,7 +297,7 @@ Insert/Place toggle.
 - Select or Escape outside text editing exits placement and clears hover while
   preserving selection and remembered kind. A second Escape can clear selection.
 - Changing/adding a syllable clears selection and hover while retaining tool
-  and remembered kind. Add syllable focuses the lyric input as before.
+  and remembered kind. Add focuses the cleared New syllable input.
 - Undo/Redo retains tool and remembered kind, clears hover, and reconciles stable
   selection and target: selection wins, then a surviving active target, then the
   final syllable. Removing the only syllable exits to Select and focuses its
@@ -303,9 +326,8 @@ a passage-level transaction, and a new edit after Undo clears the redo branch.
 ### Persistent status and event announcements
 
 The active tool is derived from `activeTool` through the palette's pressed state.
-The compact native syllable selector shows the active ordinal and lyric text;
-the adjacent input edits that lyric. Neither is a live region. There is no
-context panel, sticky strip, repetition checkbox or Finish control.
+The syllable strip shows ordinal and lyric text with a pressed active target.
+Creation and explicit editing use separate inputs. These are not live regions.
 
 One initially empty, unfocusable polite atomic status region emits concise event
 messages. A sequence-keyed child exposes a fresh mutation for identical messages.
