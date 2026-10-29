@@ -15,11 +15,10 @@ import {
 } from '../state/document-history';
 import { insertTorculus } from './insert-torculus';
 
-function punctum(id: string, syllableId: string): PunctumNeume {
+function punctum(id: string): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: syllableId,
     notes: [{ id: `note-${id}`, staffPosition: staffPosition(2) }],
   };
 }
@@ -29,10 +28,20 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-before',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: 'neume-after',
+        boundaryBefore: 'word',
+      },
     ],
-    neumes: [punctum('before', 'syllable-1'), punctum('after', 'syllable-2')],
+    neumes: [punctum('before'), punctum('after')],
   };
 }
 
@@ -42,7 +51,6 @@ function torculus(
   return {
     id: 'neume-torculus',
     kind: 'torculus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-torculus-1', staffPosition: staffPosition(positions[0]) },
       { id: 'note-torculus-2', staffPosition: staffPosition(positions[1]) },
@@ -66,7 +74,6 @@ describe('insertTorculus', () => {
     expect(
       inserted.neumes[index]?.notes.map((note) => note.staffPosition),
     ).toEqual([2, 5, 3]);
-    expect(inserted.neumes[index]?.lyricSyllableId).toBe('syllable-1');
     expect(inserted.syllables).toBe(document.syllables);
   });
 
@@ -78,11 +85,6 @@ describe('insertTorculus', () => {
     { name: 'negative boundary', index: -1, candidate: torculus() },
     { name: 'past-end boundary', index: 3, candidate: torculus() },
     { name: 'fractional boundary', index: 1.5, candidate: torculus() },
-    {
-      name: 'missing syllable',
-      index: 1,
-      candidate: { ...torculus(), lyricSyllableId: 'missing' },
-    },
     { name: 'flat first pair', index: 1, candidate: torculus([2, 2, 1]) },
     { name: 'reversed first pair', index: 1, candidate: torculus([3, 2, 1]) },
     { name: 'flat second pair', index: 1, candidate: torculus([2, 4, 4]) },
@@ -145,13 +147,10 @@ describe('insertTorculus', () => {
     const bottomStaffY = Math.max(
       ...(layout.systems[0]?.staffLines.map((line) => line.y) ?? []),
     );
-    const placement = resolveGraphicalNeumePlacement(
-      document,
-      layout,
-      'syllable-1',
-      'torculus',
-      { x: 300, y: bottomStaffY - 24 },
-    );
+    const placement = resolveGraphicalNeumePlacement(layout, 'torculus', {
+      x: 300,
+      y: bottomStaffY - 24,
+    });
 
     if (!placement || placement.kind !== 'torculus') {
       throw new Error('Missing graphical Torculus placement');
@@ -161,7 +160,6 @@ describe('insertTorculus', () => {
     const candidate: TorculusNeume = {
       id: 'graphical-torculus',
       kind: 'torculus',
-      lyricSyllableId: 'syllable-1',
       notes: [
         { id: 'graphical-first', staffPosition: first },
         { id: 'graphical-second', staffPosition: second },
@@ -183,7 +181,7 @@ describe('insertTorculus', () => {
     expect(candidate.notes.map((note) => note.staffPosition)).toEqual([
       2, 4, 3,
     ]);
-    expect(placement.insertionIndex).toBe(1);
+    expect(placement.insertionIndex).toBe(2);
     expect(inserted.neumes[placement.insertionIndex]).toBe(candidate);
     expect(edited.past).toEqual([document]);
     expect(edited.present.neumes[placement.insertionIndex]).toBe(candidate);

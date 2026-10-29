@@ -20,11 +20,10 @@ import {
   wrapNeumes,
 } from './layout-chant';
 
-function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
+function punctum(id: string): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: syllableId,
     notes: [{ id: `note-${id}`, staffPosition: staffPosition(2) }],
   };
 }
@@ -32,7 +31,6 @@ function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
 function compact(
   kind: 'podatus' | 'clivis' | 'scandicus' | 'torculus',
   id: string,
-  syllableId = 'syllable-1',
 ): Neume {
   if (kind === 'scandicus' || kind === 'torculus') {
     const positions = kind === 'scandicus' ? [2, 3, 4] : [2, 4, 3];
@@ -40,7 +38,7 @@ function compact(
     return {
       id: `neume-${id}`,
       kind,
-      lyricSyllableId: syllableId,
+
       notes: [
         { id: `note-${id}-1`, staffPosition: staffPosition(positions[0]) },
         { id: `note-${id}-2`, staffPosition: staffPosition(positions[1]) },
@@ -54,7 +52,7 @@ function compact(
   return {
     id: `neume-${id}`,
     kind,
-    lyricSyllableId: syllableId,
+
     notes: [
       { id: `note-${id}-1`, staffPosition: staffPosition(positions[0]) },
       { id: `note-${id}-2`, staffPosition: staffPosition(positions[1]) },
@@ -64,7 +62,16 @@ function compact(
 
 function documentWith(
   neumes: Neume[],
-  syllables = [{ id: 'syllable-1', text: 'Ky-' }],
+  syllables: ChantDocument['syllables'] = neumes.length
+    ? [
+        {
+          id: 'syllable-1',
+          text: 'Ky',
+          startsAtNeumeId: neumes[0].id,
+          boundaryBefore: 'word',
+        },
+      ]
+    : [],
 ): ChantDocument {
   return {
     title: 'Test chant',
@@ -249,11 +256,20 @@ describe('multi-system chant layout', () => {
     );
     const layout = layoutChant(
       documentWith(
-        [...firstSyllable, compact('clivis', 'second', 'syllable-2')],
+        [...firstSyllable, compact('clivis', 'second')],
         [
-          { id: 'syllable-1', text: 'Ky-' },
-          { id: 'syllable-2', text: 'ri-' },
-          { id: 'unassociated', text: 'hidden' },
+          {
+            id: 'syllable-1',
+            text: 'Ky',
+            startsAtNeumeId: 'neume-0',
+            boundaryBefore: 'word',
+          },
+          {
+            id: 'syllable-2',
+            text: 'ri',
+            startsAtNeumeId: 'neume-second',
+            boundaryBefore: 'word',
+          },
         ],
       ),
     );

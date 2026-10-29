@@ -47,9 +47,17 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 - Add GABC import and export adapters around the internal semantic document.
 
 Automatic measured multi-system wrapping, graphical placement on rendered
-systems, active-syllable clamping across systems, hypothetical post-reflow
+systems, independent musical insertion across systems, hypothetical post-reflow
 previews, and the removal of an explicit global semantic creation cap are
 current behavior, not roadmap items.
 
 Features excluded by the repository's current scope rules are not implied
 commitments merely because they are technically possible.
+
+## Lyric redesign stages
+
+Stage 1 introduces independent music and unique ordered syllable anchors. The
+explicit forms remain; creation requires a free selected neume. Continuous Lyrics
+mode, L, underscore skipping and commit-on-navigation are Stage 2; anchor-correction
+UI is Stage 3; generated hyphens are Stage 4. Boundary/reassignment commands exist
+as domain foundations. No persistence migration is required.

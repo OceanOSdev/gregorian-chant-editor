@@ -19,7 +19,6 @@ import {
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
   kind: 'punctum',
-  lyricSyllableId: 'syllable-1',
   notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
 };
 
@@ -27,7 +26,6 @@ function podatus(firstPosition: number, secondPosition: number): PodatusNeume {
   return {
     id: 'neume-podatus',
     kind: 'podatus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-1', staffPosition: staffPosition(firstPosition) },
       { id: 'note-2', staffPosition: staffPosition(secondPosition) },
@@ -39,7 +37,6 @@ function clivis(firstPosition: number, secondPosition: number): ClivisNeume {
   return {
     id: 'neume-clivis',
     kind: 'clivis',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-1', staffPosition: staffPosition(firstPosition) },
       { id: 'note-2', staffPosition: staffPosition(secondPosition) },
@@ -55,7 +52,6 @@ function scandicus(
   return {
     id: 'neume-scandicus',
     kind: 'scandicus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-scandicus-1', staffPosition: staffPosition(firstPosition) },
       { id: 'note-scandicus-2', staffPosition: staffPosition(secondPosition) },
@@ -72,7 +68,6 @@ function torculus(
   return {
     id: 'neume-torculus',
     kind: 'torculus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-torculus-1', staffPosition: staffPosition(firstPosition) },
       { id: 'note-torculus-2', staffPosition: staffPosition(secondPosition) },
@@ -162,7 +157,14 @@ describe('neume lookup', () => {
   const document: ChantDocument = {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: [
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: punctum.id,
+        boundaryBefore: 'word',
+      },
+    ],
     neumes: [punctum, podatus(2, 4), scandicus(2, 4, 7), torculus(2, 5, 3)],
   };
 
@@ -194,7 +196,6 @@ describe('neume lookup', () => {
     expect(countNotes([locatedScandicus])).toBe(3);
     expect(locatedScandicus).toMatchObject({
       id: 'neume-scandicus',
-      lyricSyllableId: 'syllable-1',
     });
     expect(locatedScandicus.notes.map((note) => note.id)).toEqual([
       'note-scandicus-1',

@@ -4,7 +4,8 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted
+Accepted. The neume-to-syllable reference direction is superseded by
+[ADR 0008](0008-anchor-lyrics-to-neumes.md); stable semantic identity remains accepted.
 
 ## Context
 

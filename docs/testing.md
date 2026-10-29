@@ -167,7 +167,7 @@ placement cancellation, and actual focus behavior in the browser.
 - Extend placement contours, typed resolver results, preview input/output,
   connector geometry, and commit handling.
 - Test system hit behavior, snapping, complete-neume midpoint boundaries,
-  active-syllable clamping, long documents, reflow, and preview/commit parity.
+  unrestricted semantic insertion, long documents, reflow, and preview/commit parity.
 
 ### Change connector or notehead geometry
 
@@ -234,7 +234,7 @@ removal. `focus-visibility.test.ts` covers minimal reveal of clipped notation an
 
 `graphical-placement-preview.test.ts` checks caret placement at semantic
 boundaries, local ghost shapes/pitches for every kind, staff-end clamping,
-shared system boundaries, crowded insertion, remote syllable constraints,
+shared system boundaries, crowded insertion, lyric-independent boundaries,
 ID-free output, stable committed layout during hover, and actual wrapping on
 commit. Geometry matrices continue checking approved shapes and committed
 layout; obsolete full prospective-scene parity assertions were removed.
@@ -251,3 +251,14 @@ These exercise the actual StrictMode React editor, including rapid clicks,
 focus timing, long/nested scroll preservation, live-region mutations, and native
 keyboard behavior. They remain separate from the plain Vitest suite. Accessibility
 tree and mutation checks do not replace a spoken screen-reader verification.
+
+## Anchored lyric regression coverage
+
+`lyric-anchors.test.ts` covers ordered/unique anchors, inferred spans, lyricless
+prefixes, free-anchor creation, boundary repair, constrained reassignment,
+normalization, anchored deletion and atomic history. Layout and placement suites
+use anchor fixtures and verify lyric-independent music insertion. Stage 1 browser
+checks should cover selecting a free neume to add lyrics, occupied-anchor protection,
+text validation, insertion without lyrics, anchored deletion and undo/redo.
+
+The [Stage 1 browser record](verification/lyric-anchors/README.md) records the exercised interactions and verification limits.

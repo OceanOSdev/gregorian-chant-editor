@@ -15,11 +15,10 @@ import {
 } from '../state/document-history';
 import { insertScandicus } from './insert-scandicus';
 
-function punctum(id: string, syllableId = 'syllable-1'): PunctumNeume {
+function punctum(id: string): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum' as const,
-    lyricSyllableId: syllableId,
     notes: [{ id, staffPosition: staffPosition(2) }],
   };
 }
@@ -29,10 +28,20 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-before',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: 'neume-after',
+        boundaryBefore: 'word',
+      },
     ],
-    neumes: [punctum('before', 'syllable-1'), punctum('after', 'syllable-2')],
+    neumes: [punctum('before'), punctum('after')],
   };
 }
 
@@ -42,7 +51,6 @@ function scandicus(
   return {
     id: 'neume-scandicus',
     kind: 'scandicus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-scandicus-1', staffPosition: staffPosition(positions[0]) },
       { id: 'note-scandicus-2', staffPosition: staffPosition(positions[1]) },
@@ -64,7 +72,6 @@ describe('insertScandicus', () => {
     expect(inserted.neumes[index]).toBe(candidate);
     expect(inserted.neumes[index]).toMatchObject({
       kind: 'scandicus',
-      lyricSyllableId: 'syllable-1',
       notes: [
         { id: 'note-scandicus-1', staffPosition: 2 },
         { id: 'note-scandicus-2', staffPosition: 3 },
@@ -81,11 +88,6 @@ describe('insertScandicus', () => {
     { name: 'negative boundary', index: -1, candidate: scandicus() },
     { name: 'past-end boundary', index: 3, candidate: scandicus() },
     { name: 'fractional boundary', index: 1.5, candidate: scandicus() },
-    {
-      name: 'missing syllable',
-      index: 1,
-      candidate: { ...scandicus(), lyricSyllableId: 'missing' },
-    },
     { name: 'equal first pair', index: 1, candidate: scandicus([2, 2, 4]) },
     { name: 'equal second pair', index: 1, candidate: scandicus([2, 4, 4]) },
     { name: 'reversed contour', index: 1, candidate: scandicus([2, 5, 4]) },
@@ -153,13 +155,10 @@ describe('insertScandicus', () => {
       throw new Error('Missing staff geometry');
     }
 
-    const placement = resolveGraphicalNeumePlacement(
-      document,
-      layout,
-      'syllable-1',
-      'scandicus',
-      { x: staffLine.x2, y: bottomStaffY - 24 },
-    );
+    const placement = resolveGraphicalNeumePlacement(layout, 'scandicus', {
+      x: staffLine.x2,
+      y: bottomStaffY - 24,
+    });
 
     if (!placement || placement.kind !== 'scandicus') {
       throw new Error('Missing graphical Scandicus placement');
@@ -169,7 +168,6 @@ describe('insertScandicus', () => {
     const candidate: ScandicusNeume = {
       id: 'graphical-scandicus',
       kind: 'scandicus',
-      lyricSyllableId: 'syllable-1',
       notes: [
         { id: 'graphical-first', staffPosition: first },
         { id: 'graphical-second', staffPosition: second },
@@ -193,7 +191,6 @@ describe('insertScandicus', () => {
     expect(restored).toEqual({
       id: 'graphical-scandicus',
       kind: 'scandicus',
-      lyricSyllableId: 'syllable-1',
       notes: [
         { id: 'graphical-first', staffPosition: 2 },
         { id: 'graphical-second', staffPosition: 3 },

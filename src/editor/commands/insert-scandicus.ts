@@ -2,7 +2,7 @@ import type { ChantDocument, ScandicusNeume } from '../domain/chant-document';
 import { isValidNeume } from '../domain/neume';
 
 /**
- * Accepts only a complete boundary, an existing syllable, three unique
+ * Accepts only a complete boundary, three unique
  * collision-free note IDs, and a runtime-valid ascending Scandicus.
  */
 export function insertScandicus(
@@ -20,15 +20,11 @@ export function insertScandicus(
       neume.id === scandicus.id ||
       neume.notes.some((note) => candidateNoteIds.includes(note.id)),
   );
-  const hasSyllable = document.syllables.some(
-    (syllable) => syllable.id === scandicus.lyricSyllableId,
-  );
 
   if (
     !Number.isInteger(insertionIndex) ||
     insertionIndex < 0 ||
     insertionIndex > document.neumes.length ||
-    !hasSyllable ||
     !hasUniqueCandidateNoteIds ||
     hasIdCollision ||
     !isValidNeume(scandicus)

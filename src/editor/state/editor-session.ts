@@ -1,6 +1,6 @@
 import type { ChantDocument, LyricSyllable } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
-import { appendLyricSyllable } from '../commands/append-lyric-syllable';
+import { createLyricSyllable } from '../commands/create-lyric-syllable';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   insertEditorNeume,
@@ -23,6 +23,7 @@ import {
   reconcileSelection,
   resolveSelectionSyllableId,
   selectNote,
+  selectNeume,
   type EditorSelection,
 } from './selection';
 
@@ -83,16 +84,6 @@ export function createEditorSession(document: ChantDocument): EditorSession {
   };
 }
 
-export function syllableDescription(state: EditorSession): string {
-  const index = state.history.present.syllables.findIndex(
-    (s) => s.id === state.activeSyllableId,
-  );
-  const syllable = state.history.present.syllables[index];
-  return syllable
-    ? `syllable ${index + 1}, ${syllable.text || 'empty'}`
-    : 'no target syllable';
-}
-
 export function neumeName(kind: GraphicalNeumeKind): string {
   return kind[0].toUpperCase() + kind.slice(1);
 }
@@ -113,15 +104,10 @@ function reconcile(state: EditorSession): EditorSession {
     (document.syllables.some((s) => s.id === state.activeSyllableId)
       ? state.activeSyllableId
       : (document.syllables.at(-1)?.id ?? null));
-  const noTarget = !activeSyllableId && getGraphicalNeumeKind(state.activeTool);
   return {
     ...state,
     selection,
     activeSyllableId,
-    activeTool: noTarget ? selectTool() : state.activeTool,
-    focusRequest: noTarget
-      ? { kind: 'palette', tool: 'select' }
-      : state.focusRequest,
   };
 }
 
@@ -133,13 +119,12 @@ export function getSelectFocusRequest(
     state.selection.kind === 'note'
       ? findNote(document, state.selection.noteId)
       : null;
-  if (note?.neume.lyricSyllableId === state.activeSyllableId)
-    return { kind: 'note', noteId: note.note.id };
+  if (note) return { kind: 'note', noteId: note.note.id };
   const neume =
     state.selection.kind === 'neume'
       ? findNeume(document, state.selection.neumeId)?.neume
       : null;
-  return neume?.lyricSyllableId === state.activeSyllableId
+  return neume
     ? { kind: 'note', noteId: neume.notes[0].id }
     : { kind: 'palette', tool: 'select' };
 }
@@ -200,22 +185,22 @@ export function reduceEditorSession(
       };
     }
     case 'syllable': {
-      if (!state.history.present.syllables.some((s) => s.id === action.id))
-        return state;
+      const syllable = state.history.present.syllables.find(
+        (s) => s.id === action.id,
+      );
+      if (!syllable) return state;
       const next = {
         ...state,
         activeSyllableId: action.id,
-        selection: clearSelection(),
+        selection: selectNeume(syllable.startsAtNeumeId),
         hoveredPoint: null,
         focusRequest: null,
       };
-      return placing && state.activeSyllableId !== action.id
-        ? announce(next, `Target: ${syllableDescription(next)}.`)
-        : next;
+      return next;
     }
     case 'add-syllable': {
       const history = applyDocumentEdit(state.history, (document) =>
-        appendLyricSyllable(document, action.syllable),
+        createLyricSyllable(document, action.syllable),
       );
       if (history === state.history) return state;
       const next = {
@@ -226,13 +211,10 @@ export function reduceEditorSession(
         hoveredPoint: null,
         focusRequest: null,
       };
-      return placing
-        ? announce(next, `Target: ${syllableDescription(next)}.`)
-        : next;
+      return next;
     }
     case 'insert':
     case 'place': {
-      if (!state.activeSyllableId) return state;
       if (action.type === 'place' && placing !== action.kind) return state;
       const kind = action.type === 'place' ? action.kind : state.rememberedKind;
       const document = state.history.present;
@@ -240,26 +222,14 @@ export function reduceEditorSession(
       const insertion =
         action.type === 'place'
           ? resolveGraphicalNeumePlacement(
-              document,
               layoutChant(document),
-              state.activeSyllableId,
               kind,
               action.point,
             )
-          : resolveEditorToolbarInsertion(
-              document,
-              state.activeSyllableId,
-              state.selection.kind === 'note' ? state.selection.noteId : null,
-              kind,
-            );
+          : resolveEditorToolbarInsertion(document, state.selection, kind);
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
-      const nextDocument = insertEditorNeume(
-        document,
-        state.activeSyllableId,
-        insertion,
-        action.ids,
-      );
+      const nextDocument = insertEditorNeume(document, insertion, action.ids);
       if (nextDocument === document) return state;
       const graphical = action.type === 'place';
       const noteId = action.ids.noteIds[0];
@@ -307,16 +277,7 @@ export function reduceEditorSession(
             : null,
       });
       if (!placing) return next;
-      const changedTarget = next.activeSyllableId !== state.activeSyllableId;
-      const message = !next.activeSyllableId
-        ? ' No target syllable. Select tool.'
-        : changedTarget
-          ? ` Target: ${syllableDescription(next)}.`
-          : '';
-      return announce(
-        next,
-        `${action.direction === 'undo' ? 'Undo.' : 'Redo.'}${message}`,
-      );
+      return announce(next, action.direction === 'undo' ? 'Undo.' : 'Redo.');
     }
     case 'focus-handled':
       return state.focusRequest === action.request

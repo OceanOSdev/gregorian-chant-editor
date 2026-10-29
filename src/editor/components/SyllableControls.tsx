@@ -1,3 +1,4 @@
+import { isValidLyricText } from '../domain/lyrics';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { LyricSyllable } from '../domain/chant-document';
 import { nextSyllableId } from '../interaction/syllable-navigation';
@@ -6,6 +7,7 @@ import { getVisibilityAdjustment } from '../rendering/focus-visibility';
 interface SyllableControlsProps {
   syllables: LyricSyllable[];
   activeId: string | null;
+  canAdd: boolean;
   onSelect: (id: string) => void;
   onAdd: (text: string) => void;
   onSave: (id: string, text: string) => void;
@@ -14,6 +16,7 @@ interface SyllableControlsProps {
 export function SyllableControls({
   syllables,
   activeId,
+  canAdd,
   onSelect,
   onAdd,
   onSave,
@@ -74,6 +77,7 @@ export function SyllableControls({
 
   function finishEdit(save: boolean) {
     if (!editing) return;
+    if (save && !isValidLyricText(editing.text)) return;
     if (save) onSave(editing.id, editing.text);
     setEdit(null);
     buttons.current.get(editing.id)?.focus({ preventScroll: true });
@@ -81,11 +85,16 @@ export function SyllableControls({
 
   return (
     <section className="syllable-controls" aria-label="Lyric syllables">
+      <p>
+        Select an unoccupied neume to add a syllable. Each entry is one
+        syllable.
+      </p>
       <form
         className="syllable-form"
         onSubmit={(event) => {
           event.preventDefault();
-          if (composing.current || !newText.trim()) return;
+          if (composing.current || !canAdd || !isValidLyricText(newText.trim()))
+            return;
           onAdd(newText.trim());
           setNewText('');
           setEdit(null);
@@ -109,13 +118,19 @@ export function SyllableControls({
               event.preventDefault();
           }}
         />
-        <button type="submit" disabled={!newText.trim()}>
+        <button
+          type="submit"
+          disabled={!canAdd || !isValidLyricText(newText.trim())}
+        >
           Add
         </button>
       </form>
-      <p id="existing-syllables-label">
-        Existing syllables · select to target and edit
-      </p>
+      {newText.trim() && !isValidLyricText(newText.trim()) ? (
+        <p role="status">
+          Enter one nonblank syllable without spaces, hyphens, or underscores.
+        </p>
+      ) : null}
+      <p id="existing-syllables-label">Existing syllables · select to edit</p>
       <div
         className="syllable-strip"
         ref={strip}
@@ -231,7 +246,15 @@ export function SyllableControls({
               }
             }}
           />
-          <button type="submit">Save</button>
+          <button type="submit" disabled={!isValidLyricText(editing.text)}>
+            Save
+          </button>
+          {!isValidLyricText(editing.text) ? (
+            <p role="status">
+              Enter one nonblank syllable without spaces, hyphens, or
+              underscores.
+            </p>
+          ) : null}
           <button type="button" onClick={() => finishEdit(false)}>
             Cancel
           </button>

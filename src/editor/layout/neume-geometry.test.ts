@@ -35,7 +35,7 @@ function twoNote(
   return {
     id,
     kind,
-    lyricSyllableId: 'lyric',
+
     notes: [
       { id: `${id}-first`, staffPosition: staffPosition(0) },
       {
@@ -49,7 +49,16 @@ function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
     title: 'Engraving',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'lyric', text: 'a' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'lyric',
+            text: 'Ky',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes: [...neumes],
   };
 }
@@ -167,7 +176,7 @@ describe('approved engraving geometry', () => {
             ];
             const {
               neumeId: _id,
-              lyricSyllableId: _lyric,
+
               kind: _kind,
               notes,
               ...geometry
@@ -433,7 +442,6 @@ describe('approved engraving geometry', () => {
     const compound: Neume = {
       id: 'compound',
       kind: 'torculus',
-      lyricSyllableId: 'lyric',
       notes: [
         { id: 'compound-0', staffPosition: staffPosition(0) },
         { id: 'compound-1', staffPosition: staffPosition(1) },

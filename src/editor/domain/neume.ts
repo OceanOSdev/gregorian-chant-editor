@@ -162,7 +162,6 @@ export function normalizeNeumeAfterNoteDeletion(
     const podatus: PodatusNeume = {
       id: neume.id,
       kind: 'podatus',
-      lyricSyllableId: neume.lyricSyllableId,
       notes: survivingNotes,
     };
 
@@ -194,7 +193,6 @@ export function normalizeNeumeAfterNoteDeletion(
       const podatus: PodatusNeume = {
         id: neume.id,
         kind: 'podatus',
-        lyricSyllableId: neume.lyricSyllableId,
         notes: survivingNotes,
       };
 
@@ -204,7 +202,6 @@ export function normalizeNeumeAfterNoteDeletion(
     const clivis: ClivisNeume = {
       id: neume.id,
       kind: 'clivis',
-      lyricSyllableId: neume.lyricSyllableId,
       notes: survivingNotes,
     };
 
@@ -216,7 +213,6 @@ export function normalizeNeumeAfterNoteDeletion(
   const punctum: PunctumNeume = {
     id: neume.id,
     kind: 'punctum',
-    lyricSyllableId: neume.lyricSyllableId,
     notes: [survivingNote],
   };
 

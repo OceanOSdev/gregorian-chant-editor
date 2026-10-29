@@ -1,3 +1,4 @@
+import type { EditorSelection } from '../state/selection';
 import { insertClimacus } from '../commands/insert-climacus';
 import { insertClivis } from '../commands/insert-clivis';
 import { insertPodatus } from '../commands/insert-podatus';
@@ -25,11 +26,10 @@ type Insertion = {
 /** Browser-allocated IDs enter once; this bridge is safe to replay in a reducer. */
 export function insertEditorNeume(
   document: ChantDocument,
-  syllableId: string,
   insertion: Insertion,
   ids: InsertionIds,
 ): ChantDocument {
-  const base = { id: ids.neumeId, lyricSyllableId: syllableId };
+  const base = { id: ids.neumeId };
   const note = (index: 0 | 1 | 2, position: number) => ({
     id: ids.noteIds[index],
     staffPosition: staffPosition(position),
@@ -131,19 +131,17 @@ export function insertEditorNeume(
   }
 }
 
-/** Preserve the existing toolbar fallback pitches, contours, and note-only anchor. */
+/** Resolve toolbar pitches and contours from a musical selection. */
 export function resolveEditorToolbarInsertion(
   document: ChantDocument,
-  syllableId: string,
-  selectedNoteId: string | null,
+  selection: EditorSelection,
   kind: GraphicalNeumeKind,
 ): Insertion | null {
   const fallback =
     kind === 'clivis' || kind === 'climacus' || kind === 'porrectus' ? 3 : 2;
   const boundary = resolveToolbarNeumeInsertion(
     document,
-    syllableId,
-    selectedNoteId,
+    selection,
     staffPosition(fallback),
   );
   if (!boundary) return null;

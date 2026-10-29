@@ -32,31 +32,45 @@ function documentWith(neumes: Neume[] = []): ChantDocument {
   return {
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [
-      { id: 'first', text: 'Ky-' },
-      { id: 'last', text: 'ri-' },
-    ],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'first',
+            text: 'Ky',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+          ...(neumes.length >= 20
+            ? [
+                {
+                  id: 'last',
+                  text: 'ri',
+                  startsAtNeumeId: neumes[19].id,
+                  boundaryBefore: 'word' as const,
+                },
+              ]
+            : []),
+        ]
+      : [],
     neumes,
   };
 }
-function punctum(index: number, syllable = 'first'): Neume {
+function punctum(index: number): Neume {
   return {
     id: `p-${index}`,
     kind: 'punctum',
-    lyricSyllableId: syllable,
     notes: [{ id: `n-${index}`, staffPosition: staffPosition(3) }],
   };
 }
 for (const kind of ['climacus', 'porrectus'] as const) {
   function candidate(
     id: string = kind,
-    syllable = 'first',
     first = 3,
   ): ClimacusNeume | PorrectusNeume {
     return {
       id,
       kind,
-      lyricSyllableId: syllable,
+
       notes: [
         { id: `${id}-1`, staffPosition: staffPosition(first) },
         {
@@ -181,69 +195,18 @@ for (const kind of ['climacus', 'porrectus'] as const) {
     it('previews placement in an empty document without allocating semantic IDs', () => {
       const document = documentWith();
       const layout = layoutChant(document);
-      const resolved = resolveGraphicalNeumePlacement(
-        document,
-        layout,
-        'first',
-        kind,
-        { x: 250, y: 88 },
-      );
+      const resolved = resolveGraphicalNeumePlacement(layout, kind, {
+        x: 250,
+        y: 88,
+      });
       expect(resolved?.insertionIndex).toBe(0);
       expect(resolved?.preview.notes).toHaveLength(3);
       expect(resolved?.preview.ink).toHaveLength(kind === 'climacus' ? 3 : 1);
       expect(document.neumes).toEqual([]);
     });
-    it('clamps the caret across systems while keeping its ghost local', () => {
-      const document = documentWith([
-        ...Array.from({ length: 24 }, (_, i) => punctum(i)),
-        punctum(24, 'last'),
-      ]);
-      const layout = layoutChant(document);
-      const resolved = resolveGraphicalNeumePlacement(
-        document,
-        layout,
-        'last',
-        kind,
-        { x: 250, y: 88 },
-      );
-      if (!resolved) throw new Error('Missing placement');
-      expect(resolved.insertionIndex).toBe(24);
-      expect(resolved.preview.notes[0].anchorY).toBe(88);
-      expect(resolved.preview.caret.systemIndex).toBeGreaterThan(0);
-      expect(resolved.staffPositions).toEqual(
-        kind === 'climacus' ? [3, 2, 1] : [3, 1, 2],
-      );
-      const neume = candidate(kind, 'last');
-      const committed =
-        neume.kind === 'climacus'
-          ? insertClimacus(document, neume, 24)
-          : insertPorrectus(document, neume, 24);
-      const result = layoutChant(committed)
-        .systems.flatMap((system) => system.neumes)
-        .find((n) => n.neumeId === kind);
-      expect(resolved.preview.bounds.width).toBe(result?.bounds.width);
-      expect(
-        resolveGraphicalNeumePlacement(document, layout, 'last', kind, {
-          x: 250,
-          y: 230,
-        }),
-      ).toBeNull();
-      expect(
-        resolveGraphicalNeumePlacement(document, layout, null, kind, {
-          x: 250,
-          y: 88,
-        }),
-      ).toBeNull();
-      expect(
-        resolveGraphicalNeumePlacement(document, layout, 'last', kind, {
-          x: NaN,
-          y: 88,
-        }),
-      ).toBeNull();
-    });
     it('keeps one lyric per melisma and stable identities when deletion reflows later systems', () => {
       const neumes = Array.from({ length: 20 }, (_, i) =>
-        candidate(`neume-${i}`, i < 12 ? 'first' : 'last'),
+        candidate(`neume-${i}`),
       );
       const document = documentWith(neumes);
       const before = layoutChant(document);

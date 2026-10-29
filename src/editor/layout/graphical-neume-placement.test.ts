@@ -14,7 +14,6 @@ function punctum(id: string): Neume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
     notes: [{ id, staffPosition: staffPosition(2) }],
   };
 }
@@ -23,7 +22,16 @@ function documentWith(neumes: Neume[]): ChantDocument {
   return {
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'syllable-1',
+            text: 'Ky',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes,
   };
 }

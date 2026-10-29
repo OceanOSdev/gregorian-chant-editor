@@ -13,15 +13,10 @@ function documentWith(count = 0): ChantDocument {
   return {
     title: 'Intent',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [
-      { id: 's1', text: 'Ky' },
-      { id: 's2', text: 'ri' },
-      { id: 'empty', text: '' },
-    ],
+    syllables: [],
     neumes: Array.from({ length: count }, (_, i) => ({
       id: `n${i}`,
       kind: 'punctum',
-      lyricSyllableId: 's1',
       notes: [{ id: `a${i}`, staffPosition: staffPosition(2) }],
     })),
   };
@@ -40,15 +35,11 @@ function resolve(
   x = 300,
   y = 100,
   kind: GraphicalNeumeKind = 'punctum',
-  syllable = 's1',
 ) {
-  const intent = resolveGraphicalNeumePlacement(
-    document,
-    layoutChant(document),
-    syllable,
-    kind,
-    { x, y },
-  );
+  const intent = resolveGraphicalNeumePlacement(layoutChant(document), kind, {
+    x,
+    y,
+  });
   if (!intent) throw new Error('Expected insertion intent');
   return intent;
 }
@@ -90,7 +81,7 @@ describe('caret and local ghost insertion intent', () => {
       noIds(ghost);
       expect(document).toEqual(original);
       expect(layoutChant(document)).toEqual(layout);
-      const committed = insertEditorNeume(document, 's1', intent, {
+      const committed = insertEditorNeume(document, intent, {
         neumeId: 'new',
         noteIds: ['new1', 'new2', 'new3'],
       });
@@ -139,33 +130,6 @@ describe('caret and local ghost insertion intent', () => {
     expect(a.preview.notes[0].anchorY).toBe(b.preview.notes[0].anchorY);
     expect(layoutChant(document)).toEqual(layout);
   });
-  it('uses clamped semantic boundaries across systems while keeping the ghost local', () => {
-    const document = documentWith(30);
-    document.neumes.forEach((n, i) => {
-      n.lyricSyllableId = i < 5 ? 's1' : 's2';
-    });
-    const layout = layoutChant(document);
-    const intent = resolve(document, 655, 588, 'torculus');
-    expect(intent.insertionIndex).toBe(5);
-    expect(intent.preview.pointerSystemIndex).toBe(2);
-    expect(intent.preview.caret).toEqual({
-      systemIndex: 0,
-      x: 432.5,
-      top: 40,
-      bottom: 136,
-    });
-    expect(intent.preview.notes[0].anchorY).toBe(588);
-    expect(
-      insertEditorNeume(document, 's1', intent, {
-        neumeId: 'new',
-        noteIds: ['new1', 'new2', 'new3'],
-      }).neumes[5].id,
-    ).toBe('new');
-    const empty = resolve(document, 300, 100, 'punctum', 'empty');
-    expect(empty.insertionIndex).toBe(30);
-    expect(empty.preview.caret.systemIndex).toBe(2);
-    expect(layoutChant(document)).toEqual(layout);
-  });
   it('represents a boundary shared by systems on the hovered system', () => {
     const document = documentWith(20);
     const end = resolve(document, 655);
@@ -187,7 +151,14 @@ describe('caret and local ghost insertion intent', () => {
   });
   it('moves existing notes and their lyrics only on commit', () => {
     const document = documentWith(10);
-    document.neumes[9].lyricSyllableId = 's2';
+    document.syllables = [
+      {
+        id: 's2',
+        text: 'ri',
+        startsAtNeumeId: document.neumes[9].id,
+        boundaryBefore: 'word',
+      },
+    ];
     const before = layoutChant(document);
     const intent = resolve(document, 220, 100, 'torculus');
     expect(before.systems).toHaveLength(1);
@@ -195,7 +166,7 @@ describe('caret and local ghost insertion intent', () => {
       before.systems[0].lyrics.some((lyric) => lyric.syllableId === 's2'),
     ).toBe(true);
     expect(layoutChant(document)).toEqual(before);
-    const committed = insertEditorNeume(document, 's1', intent, {
+    const committed = insertEditorNeume(document, intent, {
       neumeId: 'new',
       noteIds: ['new1', 'new2', 'new3'],
     });
@@ -213,13 +184,13 @@ describe('caret and local ghost insertion intent', () => {
     const layout = layoutChant(document);
     for (const x of [-1, NaN, Infinity])
       expect(
-        resolveGraphicalNeumePlacement(document, layout, 's1', 'punctum', {
+        resolveGraphicalNeumePlacement(layout, 'punctum', {
           x,
           y: 100,
         }),
       ).toBeNull();
     expect(
-      resolveGraphicalNeumePlacement(document, layout, 's1', 'punctum', {
+      resolveGraphicalNeumePlacement(layout, 'punctum', {
         x: 300,
         y: 230,
       }),

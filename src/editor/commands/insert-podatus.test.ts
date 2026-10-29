@@ -17,7 +17,6 @@ function punctum(id: string): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
     notes: [{ id, staffPosition: staffPosition(3) }],
   };
 }
@@ -30,7 +29,6 @@ function podatus(
   return {
     id,
     kind: 'podatus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: lowerNoteId, staffPosition: staffPosition(2) },
       { id: upperNoteId, staffPosition: staffPosition(3) },
@@ -42,7 +40,14 @@ function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: [
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-note-1',
+        boundaryBefore: 'word',
+      },
+    ],
     neumes: [punctum('note-1'), punctum('note-2')],
   };
 }
@@ -84,13 +89,6 @@ describe('insertPodatus', () => {
   it.each([
     { insertionIndex: -1, candidate: podatus() },
     { insertionIndex: 3, candidate: podatus() },
-    {
-      insertionIndex: 1,
-      candidate: {
-        ...podatus(),
-        lyricSyllableId: 'unknown',
-      },
-    },
     {
       insertionIndex: 1,
       candidate: {

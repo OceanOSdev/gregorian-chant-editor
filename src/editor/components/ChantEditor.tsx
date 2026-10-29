@@ -1,3 +1,5 @@
+import { findNeume, findNote } from '../domain/neume';
+import { findSyllableAtNeume } from '../domain/lyrics';
 import {
   useEffect,
   useLayoutEffect,
@@ -12,7 +14,6 @@ import { moveNoteVertically } from '../commands/move-note';
 import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
 import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
-import { findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import type { InsertionIds } from '../interaction/insert-editor-neume';
 import {
@@ -29,7 +30,6 @@ import {
   createEditorSession,
   neumeName,
   reduceEditorSession,
-  syllableDescription,
 } from '../state/editor-session';
 import {
   placeClimacusTool,
@@ -90,23 +90,27 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const layout = layoutChant(history.present);
-  const activeSyllable = history.present.syllables.find(
-    (s) => s.id === session.activeSyllableId,
-  );
+  const selectedNeume =
+    selection.kind === 'note'
+      ? findNote(history.present, selection.noteId)?.neume
+      : selection.kind === 'neume'
+        ? findNeume(history.present, selection.neumeId)?.neume
+        : null;
+  const lyricTarget =
+    selectedNeume && !findSyllableAtNeume(history.present, selectedNeume.id)
+      ? selectedNeume
+      : null;
   const placementKind = getGraphicalNeumeKind(activeTool);
   const placementPreview =
     placementKind && session.hoveredPoint
       ? (resolveGraphicalNeumePlacement(
-          history.present,
           layout,
-          activeSyllable?.id ?? null,
           placementKind,
           session.hoveredPoint,
         )?.preview ?? null)
       : null;
-  const target = syllableDescription(session);
   const placementDescription = placementKind
-    ? `${neumeName(placementKind)}. Target ${target}. Escape selects the editing tool.`
+    ? `${neumeName(placementKind)}. Escape selects the editing tool.`
     : '';
   function navigateHistory(direction: 'undo' | 'redo') {
     dispatch({
@@ -119,16 +123,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     // Invalid pointer intent allocates no IDs. The reducer resolves again against
     // its latest document to serialize even several clicks in the same React batch.
-    if (
-      !resolveGraphicalNeumePlacement(
-        history.present,
-        layout,
-        session.activeSyllableId,
-        kind,
-        point,
-      )
-    )
-      return;
+    if (!resolveGraphicalNeumePlacement(layout, kind, point)) return;
     dispatch({ type: 'place', kind, point, ids: allocateInsertionIds() });
   }
 
@@ -141,8 +136,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [session.focusRequest]);
 
   function insertRememberedNeume() {
-    if (activeSyllable)
-      dispatch({ type: 'insert', ids: allocateInsertionIds() });
+    dispatch({ type: 'insert', ids: allocateInsertionIds() });
   }
 
   useEffect(() => {
@@ -160,8 +154,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       if (shortcut) {
         event.preventDefault();
         if (shortcut === 'insert') {
-          if (activeSyllable)
-            dispatch({ type: 'insert', ids: allocateInsertionIds() });
+          dispatch({ type: 'insert', ids: allocateInsertionIds() });
         } else dispatch({ type: 'focus-palette' });
         return;
       }
@@ -195,7 +188,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [placementKind, canUndo, canRedo, activeSyllable]);
+  }, [placementKind, canUndo, canRedo]);
 
   return (
     <main className="chant-editor">
@@ -264,7 +257,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           data-notation-shortcuts
           aria-keyshortcuts="I"
-          disabled={!activeSyllable}
           onClick={insertRememberedNeume}
         >
           Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
@@ -291,13 +283,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <SyllableControls
         syllables={history.present.syllables}
         activeId={session.activeSyllableId}
+        canAdd={Boolean(lyricTarget)}
         onSelect={(id) => dispatch({ type: 'syllable', id })}
-        onAdd={(text) =>
+        onAdd={(text) => {
+          if (!lyricTarget) return;
           dispatch({
             type: 'add-syllable',
-            syllable: { id: crypto.randomUUID(), text },
-          })
-        }
+            syllable: {
+              id: crypto.randomUUID(),
+              text,
+              startsAtNeumeId: lyricTarget.id,
+              boundaryBefore: 'word',
+            },
+          });
+        }}
         onSave={(id, text) =>
           dispatch({
             type: 'edit',

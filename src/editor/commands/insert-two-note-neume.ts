@@ -8,7 +8,7 @@ import { isValidNeume } from '../domain/neume';
 export type TwoNoteNeume = PodatusNeume | ClivisNeume;
 
 /**
- * Accepts only a complete boundary, an existing syllable, collision-free
+ * Accepts only a complete boundary, collision-free
  * identities, and a runtime-valid Podatus or Clivis contour.
  */
 export function insertTwoNoteNeume(
@@ -16,6 +16,7 @@ export function insertTwoNoteNeume(
   neume: TwoNoteNeume,
   insertionIndex: number,
 ): ChantDocument {
+  if (!isValidNeume(neume)) return document;
   const [firstNote, secondNote] = neume.notes;
   const hasDuplicateId =
     firstNote.id === secondNote.id ||
@@ -26,15 +27,11 @@ export function insertTwoNoteNeume(
           (note) => note.id === firstNote.id || note.id === secondNote.id,
         ),
     );
-  const hasSyllable = document.syllables.some(
-    (syllable) => syllable.id === neume.lyricSyllableId,
-  );
 
   if (
     !Number.isInteger(insertionIndex) ||
     insertionIndex < 0 ||
     insertionIndex > document.neumes.length ||
-    !hasSyllable ||
     hasDuplicateId ||
     !isValidNeume(neume)
   ) {

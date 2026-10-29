@@ -16,7 +16,6 @@ function createPunctum(id: string, noteId = `${id}-note`): PunctumNeume {
   return {
     id,
     kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
     notes: [{ id: noteId, staffPosition: staffPosition(3) }],
   };
 }
@@ -25,7 +24,14 @@ function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: [
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-1',
+        boundaryBefore: 'word',
+      },
+    ],
     neumes: [
       createPunctum('neume-1', 'note-1'),
       createPunctum('neume-2', 'note-2'),

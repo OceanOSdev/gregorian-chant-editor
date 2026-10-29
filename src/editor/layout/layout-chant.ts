@@ -35,7 +35,7 @@ export interface NoteLayout extends NoteGeometry {
 
 export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
   neumeId: string;
-  lyricSyllableId: string;
+
   kind: Neume['kind'];
   notes: readonly NoteLayout[];
 }
@@ -337,7 +337,7 @@ export function getNeumeBoundaryCenterX(
     : firstNeumeCenterX;
 }
 
-/** Ghost follows the pointer; caret follows the clamped semantic boundary. */
+/** Ghost follows the pointer; caret follows the semantic boundary. */
 export function layoutGraphicalPlacementPreview(
   layout: ChantLayout,
   placement: GraphicalPlacementPreviewInput,
@@ -562,7 +562,7 @@ function layoutCommittedNeume(
   return {
     ...geometry,
     neumeId: neume.id,
-    lyricSyllableId: neume.lyricSyllableId,
+
     kind: neume.kind,
     notes: geometry.notes.map((note, index) => ({
       ...note,
@@ -607,27 +607,19 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       };
     },
   );
-  const firstNeumeBySyllableId = new Map<
-    string,
-    { neume: NeumeLayout; systemIndex: number }
-  >();
-
-  // A syllable is laid out once, on the system containing its first neume.
-  for (const system of systemsWithoutLyrics) {
-    for (const neume of system.neumes) {
-      if (!firstNeumeBySyllableId.has(neume.lyricSyllableId)) {
-        firstNeumeBySyllableId.set(neume.lyricSyllableId, {
-          neume,
-          systemIndex: system.index,
-        });
-      }
-    }
-  }
+  const neumesById = new Map(
+    systemsWithoutLyrics.flatMap((system) =>
+      system.neumes.map(
+        (neume) =>
+          [neume.neumeId, { neume, systemIndex: system.index }] as const,
+      ),
+    ),
+  );
 
   const lyricsBySystem = systemsWithoutLyrics.map(() => [] as LyricLayout[]);
 
   for (const syllable of document.syllables) {
-    const first = firstNeumeBySyllableId.get(syllable.id);
+    const first = neumesById.get(syllable.startsAtNeumeId);
 
     if (!first) {
       continue;

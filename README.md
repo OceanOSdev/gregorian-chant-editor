@@ -12,14 +12,14 @@ interface may still change.
 
 The editor currently supports:
 
-- semantic lyric syllables associated with ordered neumes;
+- semantic lyric syllables anchored to independent ordered neumes;
 - Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus neumes;
 - note selection and whole-neume selection with pointer or keyboard controls;
 - vertical movement of an individual note or a complete neume;
 - individual-note deletion with neume normalization, and whole-neume deletion;
 - lyric editing plus neume insertion from toolbar controls;
 - graphical placement with a post-reflow preview on any rendered system;
-- active-syllable insertion constraints that preserve semantic ordering;
+- independent music insertion with stable lyric anchors;
 - immutable semantic edits with atomic undo and redo;
 - measured, whole-neume automatic wrapping across multiple systems;
 - stable semantic identity when notation reflows;

@@ -14,26 +14,33 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-1',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: 'neume-2',
+        boundaryBefore: 'word',
+      },
     ],
     neumes: [
       {
         id: 'neume-1',
         kind: 'punctum',
-        lyricSyllableId: 'syllable-1',
         notes: [{ id: 'note-1', staffPosition: staffPosition(3) }],
       },
       {
         id: 'neume-2',
         kind: 'punctum',
-        lyricSyllableId: 'syllable-1',
         notes: [{ id: 'note-2', staffPosition: staffPosition(4) }],
       },
       {
         id: 'neume-3',
         kind: 'punctum',
-        lyricSyllableId: 'syllable-2',
         notes: [{ id: 'note-3', staffPosition: staffPosition(5) }],
       },
     ],
@@ -46,15 +53,12 @@ describe('updateLyricSyllableText', () => {
     const updatedDocument = updateLyricSyllableText(
       document,
       'syllable-1',
-      'Kyr-',
+      'Kyr',
     );
 
-    expect(updatedDocument.syllables[0]?.text).toBe('Kyr-');
+    expect(updatedDocument.syllables[0]?.text).toBe('Kyr');
     expect(updatedDocument.syllables[1]).toBe(document.syllables[1]);
     expect(updatedDocument.neumes).toBe(document.neumes);
-    expect(
-      updatedDocument.neumes.map((neume) => neume.lyricSyllableId),
-    ).toEqual(document.neumes.map((neume) => neume.lyricSyllableId));
   });
 
   it('does not mutate the original document', () => {
@@ -64,12 +68,12 @@ describe('updateLyricSyllableText', () => {
     const updatedDocument = updateLyricSyllableText(
       document,
       'syllable-1',
-      'Kyr-',
+      'Kyr',
     );
 
     expect(document.syllables).toBe(originalSyllables);
     expect(document.syllables[0]).toBe(originalSyllable);
-    expect(document.syllables[0]?.text).toBe('Ky-');
+    expect(document.syllables[0]?.text).toBe('Ky');
     expect(updatedDocument).not.toBe(document);
     expect(updatedDocument.syllables).not.toBe(originalSyllables);
   });
@@ -85,7 +89,7 @@ describe('updateLyricSyllableText', () => {
   it('returns the original document when the text is unchanged', () => {
     const document = createDocument();
 
-    expect(updateLyricSyllableText(document, 'syllable-1', 'Ky-')).toBe(
+    expect(updateLyricSyllableText(document, 'syllable-1', 'Ky')).toBe(
       document,
     );
   });
@@ -95,14 +99,14 @@ describe('updateLyricSyllableText', () => {
     const editedHistory = applyDocumentEdit(
       createDocumentHistory(document),
       (currentDocument) =>
-        updateLyricSyllableText(currentDocument, 'syllable-1', 'Kyr-'),
+        updateLyricSyllableText(currentDocument, 'syllable-1', 'Kyr'),
     );
     const undoneHistory = undoDocumentEdit(editedHistory);
     const redoneHistory = redoDocumentEdit(undoneHistory);
 
-    expect(editedHistory.present.syllables[0]?.text).toBe('Kyr-');
-    expect(undoneHistory.present.syllables[0]?.text).toBe('Ky-');
-    expect(redoneHistory.present.syllables[0]?.text).toBe('Kyr-');
+    expect(editedHistory.present.syllables[0]?.text).toBe('Kyr');
+    expect(undoneHistory.present.syllables[0]?.text).toBe('Ky');
+    expect(redoneHistory.present.syllables[0]?.text).toBe('Kyr');
   });
 
   it('does not create a history entry for an unchanged edit', () => {
@@ -110,20 +114,20 @@ describe('updateLyricSyllableText', () => {
 
     expect(
       applyDocumentEdit(history, (document) =>
-        updateLyricSyllableText(document, 'syllable-1', 'Ky-'),
+        updateLyricSyllableText(document, 'syllable-1', 'Ky'),
       ),
     ).toBe(history);
   });
 
   it('lays out updated shared text exactly once', () => {
     const layout = layoutChant(
-      updateLyricSyllableText(createDocument(), 'syllable-1', 'Kyr-'),
+      updateLyricSyllableText(createDocument(), 'syllable-1', 'Kyr'),
     );
     const updatedLyrics = layout.systems
       .flatMap((system) => system.lyrics)
       .filter((lyric) => lyric.syllableId === 'syllable-1');
 
     expect(updatedLyrics).toHaveLength(1);
-    expect(updatedLyrics[0]?.text).toBe('Kyr-');
+    expect(updatedLyrics[0]?.text).toBe('Kyr');
   });
 });
