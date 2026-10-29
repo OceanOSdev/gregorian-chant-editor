@@ -17,7 +17,7 @@ The editor currently supports:
 - note selection and whole-neume selection with pointer or keyboard controls;
 - vertical movement of an individual note or a complete neume;
 - individual-note deletion with neume normalization, and whole-neume deletion;
-- lyric editing plus neume insertion from toolbar controls;
+- continuous lyric entry with underscore skipping and independent neume insertion;
 - graphical placement with a post-reflow preview on any rendered system;
 - independent music insertion with stable lyric anchors;
 - immutable semantic edits with atomic undo and redo;

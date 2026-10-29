@@ -1,6 +1,13 @@
-import type { ChantDocument, LyricSyllable } from '../domain/chant-document';
+import {
+  transitionLyrics,
+  reconcileLyricEntry,
+  lyricTargetId,
+  isDirtyLyricEntry,
+  type LyricAction,
+  type LyricEntry,
+} from './lyric-entry';
+import type { ChantDocument } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
-import { createLyricSyllable } from '../commands/create-lyric-syllable';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   insertEditorNeume,
@@ -21,21 +28,27 @@ import { selectTool, type EditorTool } from './editor-tool';
 import {
   clearSelection,
   reconcileSelection,
-  resolveSelectionSyllableId,
   selectNote,
   selectNeume,
+  selectSyllable,
   type EditorSelection,
 } from './selection';
 
 export type EditorFocusRequest =
+  | { kind: 'lyrics'; selectText?: boolean }
+  | { kind: 'lyric'; syllableId: string }
   | { kind: 'note'; noteId: string }
   | { kind: 'placement'; noteId: string }
   | { kind: 'palette'; tool: 'select' | GraphicalNeumeKind };
 
 export interface EditorSession {
   history: DocumentHistory;
+  lyrics: LyricEntry | null;
+  pendingHistory: {
+    direction: 'undo' | 'redo';
+    focusedNoteId: string | null;
+  } | null;
   selection: EditorSelection;
-  activeSyllableId: string | null;
   activeTool: EditorTool;
   rememberedKind: GraphicalNeumeKind;
   hoveredPoint: { x: number; y: number } | null;
@@ -44,7 +57,13 @@ export interface EditorSession {
 }
 
 export type EditorAction =
-  | { type: 'arm'; tool: EditorTool }
+  | { type: 'lyrics'; action: LyricAction; newId: string }
+  | {
+      type: 'resolve-history';
+      choice: 'save' | 'discard' | 'cancel';
+      newId: string;
+    }
+  | { type: 'arm'; tool: EditorTool; lyricCommitId?: string }
   | { type: 'focus-palette' }
   | { type: 'hover'; point: { x: number; y: number } | null }
   | {
@@ -53,11 +72,9 @@ export type EditorAction =
       point: { x: number; y: number };
       ids: InsertionIds;
     }
-  | { type: 'insert'; ids: InsertionIds }
+  | { type: 'insert'; ids: InsertionIds; lyricCommitId?: string }
   | { type: 'select-tool' }
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
-  | { type: 'syllable'; id: string }
-  | { type: 'add-syllable'; syllable: LyricSyllable }
   | {
       type: 'edit';
       edit: DocumentEdit;
@@ -74,8 +91,9 @@ export type EditorAction =
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
     history: createDocumentHistory(document),
+    lyrics: null,
+    pendingHistory: null,
     selection: clearSelection(),
-    activeSyllableId: document.syllables[0]?.id ?? null,
     activeTool: selectTool(),
     rememberedKind: 'punctum',
     hoveredPoint: null,
@@ -95,19 +113,14 @@ function announce(state: EditorSession, text: string): EditorSession {
   };
 }
 
-/** One reconciliation policy, including history removal of the active syllable. */
+/** Reconcile semantic targets without losing dirty lyric drafts. */
 function reconcile(state: EditorSession): EditorSession {
   const document = state.history.present;
   const selection = reconcileSelection(document, state.selection);
-  const activeSyllableId =
-    resolveSelectionSyllableId(document, selection) ??
-    (document.syllables.some((s) => s.id === state.activeSyllableId)
-      ? state.activeSyllableId
-      : (document.syllables.at(-1)?.id ?? null));
   return {
     ...state,
     selection,
-    activeSyllableId,
+    lyrics: reconcileLyricEntry(document, state.lyrics),
   };
 }
 
@@ -115,6 +128,12 @@ export function getSelectFocusRequest(
   state: EditorSession,
 ): EditorFocusRequest {
   const document = state.history.present;
+  const selection = state.selection;
+  if (
+    selection.kind === 'syllable' &&
+    document.syllables.some((s) => s.id === selection.syllableId)
+  )
+    return { kind: 'lyric', syllableId: selection.syllableId };
   const note =
     state.selection.kind === 'note'
       ? findNote(document, state.selection.noteId)
@@ -130,12 +149,15 @@ export function getSelectFocusRequest(
 }
 
 /** Pure event transitions: no browser work or ID generation in React updaters. */
-export function reduceEditorSession(
+function reduceSessionAction(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
   const placing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'lyrics':
+    case 'resolve-history':
+      return state;
     case 'arm': {
       const kind = getGraphicalNeumeKind(action.tool);
       if (!kind || action.tool.kind === state.activeTool.kind) return state;
@@ -171,47 +193,13 @@ export function reduceEditorSession(
           );
     case 'select': {
       if (placing) return state;
-      const id = resolveSelectionSyllableId(
-        state.history.present,
-        action.selection,
-      );
       return {
         ...state,
         selection: action.selection,
-        activeSyllableId: id ?? state.activeSyllableId,
         focusRequest: action.focusNoteId
           ? { kind: 'note', noteId: action.focusNoteId }
           : null,
       };
-    }
-    case 'syllable': {
-      const syllable = state.history.present.syllables.find(
-        (s) => s.id === action.id,
-      );
-      if (!syllable) return state;
-      const next = {
-        ...state,
-        activeSyllableId: action.id,
-        selection: selectNeume(syllable.startsAtNeumeId),
-        hoveredPoint: null,
-        focusRequest: null,
-      };
-      return next;
-    }
-    case 'add-syllable': {
-      const history = applyDocumentEdit(state.history, (document) =>
-        createLyricSyllable(document, action.syllable),
-      );
-      if (history === state.history) return state;
-      const next = {
-        ...state,
-        history,
-        activeSyllableId: action.syllable.id,
-        selection: clearSelection(),
-        hoveredPoint: null,
-        focusRequest: null,
-      };
-      return next;
     }
     case 'insert':
     case 'place': {
@@ -241,7 +229,17 @@ export function reduceEditorSession(
         hoveredPoint: null,
         focusRequest: { kind: graphical ? 'placement' : 'note', noteId },
       };
-      return announce(next, `${neumeName(kind)} added.`);
+      const reconciled = reconcile(next);
+      return announce(
+        {
+          ...reconciled,
+          focusRequest:
+            state.lyrics?.kind === 'end' && reconciled.lyrics?.kind !== 'end'
+              ? { kind: 'lyrics' }
+              : reconciled.focusRequest,
+        },
+        `${neumeName(kind)} added.`,
+      );
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);
@@ -284,4 +282,112 @@ export function reduceEditorSession(
         ? { ...state, focusRequest: null }
         : state;
   }
+}
+
+function applyLyrics(
+  state: EditorSession,
+  action: LyricAction,
+  newId: string,
+): EditorSession {
+  const document = state.history.present;
+  let entry = state.lyrics;
+  if (!entry && action.type === 'edit') {
+    const syllable = document.syllables.find((s) => s.id === action.syllableId);
+    if (!syllable) return state;
+    entry = transitionLyrics(
+      document,
+      null,
+      { type: 'start', neumeId: syllable.startsAtNeumeId },
+      newId,
+    ).entry;
+  }
+  const next = transitionLyrics(document, entry, action, newId);
+  const target = lyricTargetId(next.document, next.entry);
+  const selection =
+    next.entry?.kind === 'selected'
+      ? selectSyllable(next.entry.syllableId)
+      : target
+        ? selectNeume(target)
+        : state.selection;
+  const updated: EditorSession = {
+    ...state,
+    history: applyDocumentEdit(state.history, () => next.document),
+    lyrics: next.entry,
+    selection,
+    activeTool: selectTool(),
+    hoveredPoint: null,
+    focusRequest: next.focus
+      ? next.entry?.kind === 'selected'
+        ? { kind: 'lyric', syllableId: next.entry.syllableId }
+        : next.entry
+          ? {
+              kind: 'lyrics',
+              selectText:
+                action.type === 'edit' && action.replacement === undefined,
+            }
+          : getSelectFocusRequest({ ...state, selection })
+      : null,
+  };
+  return next.message ? announce(updated, next.message) : updated;
+}
+
+/** Coordinates semantic history and the single transient lyric draft. */
+export function reduceEditorSession(
+  state: EditorSession,
+  action: EditorAction,
+): EditorSession {
+  if (state.pendingHistory) {
+    if (action.type === 'focus-handled')
+      return reduceSessionAction(state, action);
+    if (action.type !== 'resolve-history') return state;
+    if (action.choice === 'cancel')
+      return {
+        ...state,
+        pendingHistory: null,
+        focusRequest: { kind: 'lyrics' },
+      };
+    const pending = state.pendingHistory;
+    const resolved =
+      action.choice === 'save'
+        ? applyLyrics(state, { type: 'done' }, action.newId)
+        : { ...state, lyrics: null };
+    if (resolved.lyrics) return resolved;
+    return reduceSessionAction(
+      { ...resolved, pendingHistory: null },
+      { type: 'history', ...pending },
+    );
+  }
+  if (action.type === 'lyrics')
+    return applyLyrics(state, action.action, action.newId);
+  if (action.type === 'resolve-history') return state;
+  if (action.type === 'history' && isDirtyLyricEntry(state.lyrics))
+    return {
+      ...state,
+      pendingHistory: {
+        direction: action.direction,
+        focusedNoteId: action.focusedNoteId,
+      },
+      focusRequest: null,
+    };
+  if (
+    (action.type === 'arm' ||
+      (action.type === 'insert' && state.lyrics?.kind !== 'end')) &&
+    state.lyrics
+  ) {
+    const resolved = applyLyrics(
+      state,
+      { type: 'done' },
+      action.lyricCommitId ?? '',
+    );
+    // Fresh lyric IDs, like musical IDs, enter through event handling.
+    if (resolved.lyrics) return resolved;
+    return reduceSessionAction(resolved, action);
+  }
+  const next = reduceSessionAction(state, action);
+  if (next.lyrics?.kind === 'recovery' && state.lyrics?.kind !== 'recovery')
+    return announce(
+      { ...next, focusRequest: { kind: 'lyrics' } },
+      'Draft target changed. Your text is preserved; retry at a free neume or discard.',
+    );
+  return next;
 }

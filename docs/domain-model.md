@@ -43,8 +43,8 @@ anchor, music has no lyrics; the last syllable extends to document end.
 Explicit lyricless tails and unanchored lyrics are future extensions.
 
 Text cannot be blank or contain whitespace, ASCII hyphens, or underscores.
-Word structure is metadata, not literal entry delimiters. Generated hyphens
-and continuous lyric entry are deferred implementation stages.
+Word structure is metadata, not literal entry delimiters. Continuous entry interprets these delimiters outside the domain. Generated
+hyphens remain a deferred engraving stage.
 
 Semantic order is the order of `ChantDocument.neumes`. Layout preserves that
 order while partitioning it into derived systems. Array indexes are useful

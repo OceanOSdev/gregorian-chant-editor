@@ -104,7 +104,7 @@ History stores semantic documents, not a snapshot of the whole interface. It
 excludes:
 
 - note or whole-neume selection;
-- active syllable;
+- lyric mode, target, draft, pending boundary, and history-resolution prompt;
 - active tool;
 - hover point;
 - preview geometry;
@@ -115,3 +115,14 @@ excludes:
 Those values are transient and are reconciled with the restored semantic
 document. Keeping them out of history makes undo and redo musical actions
 rather than complete UI rewinds.
+
+## Continuous-entry transactions
+
+The lyric workflow computes a semantic candidate through existing commands;
+the session records it once. Text and word-boundary changes in one commit are
+therefore one undo step. Click navigation and delimiters commit valid drafts
+before moving; skips without text do not enter history. Occupied targets never
+convert insertion intent into update intent. Stale dirty targets retain their
+draft in recovery. Native input undo stays browser-owned; explicit semantic
+history resolves a dirty draft through Save / Discard / Cancel. Save then Undo
+undoes that newly saved syllable first, making it available to Redo.

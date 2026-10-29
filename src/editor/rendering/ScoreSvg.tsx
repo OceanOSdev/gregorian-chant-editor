@@ -52,6 +52,9 @@ interface ScoreSvgProps {
   onDeleteNote: (noteId: string) => void;
   onDeleteNeume: (neumeId: string) => void;
   onClearSelection: () => void;
+  onEditSyllable: (id: string, replacement?: string) => void;
+  onAdvanceLyric: (key: '-' | ' ' | '_') => void;
+  onDeleteSyllable: () => void;
 }
 
 export function ScoreSvg({
@@ -72,12 +75,27 @@ export function ScoreSvg({
   onDeleteNote,
   onDeleteNeume,
   onClearSelection,
+  onEditSyllable,
+  onAdvanceLyric,
+  onDeleteSyllable,
 }: ScoreSvgProps) {
   const scoreElement = useRef<SVGSVGElement>(null);
+  const lyricElements = useRef(new Map<string, SVGTextElement>());
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
   useLayoutEffect(() => {
-    if (!focusRequest || focusRequest.kind === 'palette') return;
+    if (
+      !focusRequest ||
+      focusRequest.kind === 'palette' ||
+      focusRequest.kind === 'lyrics'
+    )
+      return;
+    if (focusRequest.kind === 'lyric') {
+      const lyric = lyricElements.current.get(focusRequest.syllableId);
+      if (lyric && !placementActive) focusAndReveal(lyric);
+      onFocusHandled(focusRequest);
+      return;
+    }
     const note = noteElements.current.get(focusRequest.noteId);
     if (
       focusRequest.kind === 'placement' &&
@@ -363,6 +381,66 @@ export function ScoreSvg({
           {system.lyrics.map((lyric) => (
             <text
               className="score__lyric"
+              ref={(element) => {
+                if (element)
+                  lyricElements.current.set(lyric.syllableId, element);
+                else lyricElements.current.delete(lyric.syllableId);
+              }}
+              role="button"
+              tabIndex={placementActive ? -1 : 0}
+              aria-label={`Syllable: ${lyric.text}. Enter edits; minus continues a word; Space starts a word; underscore skips.`}
+              aria-pressed={
+                selection.kind === 'syllable' &&
+                selection.syllableId === lyric.syllableId
+              }
+              aria-disabled={placementActive}
+              pointerEvents={placementActive ? 'none' : 'all'}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (!placementActive) onEditSyllable(lyric.syllableId);
+              }}
+              onKeyDown={(event) => {
+                if (
+                  placementActive ||
+                  event.nativeEvent.isComposing ||
+                  event.altKey ||
+                  event.ctrlKey ||
+                  event.metaKey
+                )
+                  return;
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!event.repeat) onEditSyllable(lyric.syllableId);
+                  return;
+                }
+                if (
+                  selection.kind !== 'syllable' ||
+                  selection.syllableId !== lyric.syllableId
+                )
+                  return;
+                if (
+                  event.key === '-' ||
+                  event.key === ' ' ||
+                  event.key === '_'
+                ) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!event.repeat) onAdvanceLyric(event.key);
+                  return;
+                }
+                if (event.key === 'Delete' || event.key === 'Backspace') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!event.repeat) onDeleteSyllable();
+                  return;
+                }
+                if (event.key.length === 1) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onEditSyllable(lyric.syllableId, event.key);
+                }
+              }}
               key={lyric.syllableId}
               data-syllable-id={lyric.syllableId}
               x={lyric.x}

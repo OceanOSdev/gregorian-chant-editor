@@ -56,8 +56,8 @@ commitments merely because they are technically possible.
 
 ## Lyric redesign stages
 
-Stage 1 introduces independent music and unique ordered syllable anchors. The
-explicit forms remain; creation requires a free selected neume. Continuous Lyrics
-mode, L, underscore skipping and commit-on-navigation are Stage 2; anchor-correction
-UI is Stage 3; generated hyphens are Stage 4. Boundary/reassignment commands exist
-as domain foundations. No persistence migration is required.
+Stage 1 introduced independent music and unique ordered syllable anchors. Stage 2
+provides continuous Lyrics mode, scoped L activation, underscore skipping,
+commit-on-navigation, explicit replacement, occupied-anchor pauses, end-of-music
+resumption and draft/history recovery. Anchor-correction UI remains Stage 3;
+generated hyphens remain Stage 4. No persistence migration is required.

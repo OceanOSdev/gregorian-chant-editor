@@ -262,3 +262,12 @@ checks should cover selecting a free neume to add lyrics, occupied-anchor protec
 text validation, insertion without lyrics, anchored deletion and undo/redo.
 
 The [Stage 1 browser record](verification/lyric-anchors/README.md) records the exercised interactions and verification limits.
+
+## Continuous lyric-entry verification
+
+`syllable-workflow.test.ts` exercises continuous entry through the pure session
+reducer: delimiters, skips, commit-on-navigation, occupied protection, replacement,
+empty/invalid drafts, end resumption, recovery and history choices. Keyboard
+guards have plain TypeScript tests. The [Stage 2 browser record](verification/continuous-lyrics/README.md)
+checks native focus/Tab, composition guards, paste rejection, replacement caret
+behavior and responsive input positioning in the actual React editor.

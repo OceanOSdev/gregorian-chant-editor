@@ -285,3 +285,44 @@ kbd {
   padding-top: 0.75rem;
   border-top: 1px solid #d8d1c5;
 }
+
+.score-workspace {
+  position: relative;
+  container-type: inline-size;
+}
+.lyric-floating-entry {
+  position: absolute;
+  width: min(13rem, 65%);
+  z-index: 1;
+  background: #fffdf8;
+  border-radius: 0.25rem;
+}
+.lyric-floating-entry input {
+  width: 100%;
+}
+.lyric-actions,
+.lyric-history-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.lyric-actions p,
+.lyric-history-choice p {
+  flex-basis: 100%;
+}
+.lyric-actions select {
+  min-height: 2.5rem;
+  font: inherit;
+}
+.score__lyric[role='button'] {
+  cursor: pointer;
+}
+.score__lyric[aria-pressed='true'] {
+  fill: #1e64d2;
+  text-decoration: underline;
+}
+.score__lyric:focus-visible {
+  outline: 2px solid #1e64d2;
+  outline-offset: 4px;
+}
