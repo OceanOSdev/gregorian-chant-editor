@@ -88,3 +88,15 @@ it('leaves Tab and Shift+Tab entirely browser-owned without changing selection',
       ).toBeNull();
   }
 });
+
+it('lets unmodified L reach score-level activation instead of replacing selected lyrics', () => {
+  for (const selected of [false, true])
+    expect(getSyllableKeyAction(key, selected, false)).toBeNull();
+  expect(
+    getSyllableKeyAction({ ...key, key: 'L', shiftKey: true }, true, false),
+  ).toEqual({ type: 'replace', text: 'L' });
+  expect(getSyllableKeyAction({ ...key, key: 'a' }, true, false)).toEqual({
+    type: 'replace',
+    text: 'a',
+  });
+});

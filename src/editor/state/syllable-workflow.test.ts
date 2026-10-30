@@ -602,3 +602,104 @@ describe('deletion of a focused engraved syllable', () => {
     expect(act(state, { type: 'delete', syllableId: 'missing' })).toBe(state);
   });
 });
+
+describe('L activation from focused score elements', () => {
+  function twoLyrics(): ChantDocument {
+    const doc = fixture();
+    doc.syllables = [
+      { id: 'al', text: 'Al', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
+      {
+        id: 'le',
+        text: 'le',
+        startsAtNeumeId: 'n4',
+        boundaryBefore: 'continuation',
+      },
+    ];
+    return doc;
+  }
+  it.each([null, 'al', 'le'])(
+    'targets focused le while preserving selection %s and protecting text',
+    (selectedId) => {
+      const doc = twoLyrics();
+      const initial = selectedId
+        ? act(createEditorSession(doc), {
+            type: 'select',
+            syllableId: selectedId,
+          })
+        : createEditorSession(doc);
+      const next = reduceEditorSession(initial, {
+        type: 'start-lyrics-at-focus',
+        target: { kind: 'syllable', syllableId: 'le' },
+        newId: 'unused',
+      });
+      expect(next.lyrics).toEqual({ kind: 'occupied', syllableId: 'le' });
+      expect(next.selection).toBe(initial.selection);
+      expect(next.history).toBe(initial.history);
+      expect(next.focusRequest).toEqual({ kind: 'lyrics' });
+      expect(act(next, { type: 'text', text: 'overwrite' }).history).toBe(
+        initial.history,
+      );
+    },
+  );
+  it('resolves a focused note rather than a different selection', () => {
+    const initial = act(createEditorSession(twoLyrics()), {
+      type: 'select',
+      syllableId: 'al',
+    });
+    const next = reduceEditorSession(initial, {
+      type: 'start-lyrics-at-focus',
+      target: { kind: 'note', noteId: 'note3' },
+      newId: 'unused',
+    });
+    expect(next.lyrics).toMatchObject({
+      kind: 'draft',
+      neumeId: 'n3',
+      original: null,
+      text: '',
+    });
+    expect(next.selection).toBe(initial.selection);
+    expect(next.history).toBe(initial.history);
+  });
+  it('navigates an active workflow using the existing draft policy without implicit selection', () => {
+    const initial = text(start(twoLyrics(), 'n0'), 'Ky');
+    const next = reduceEditorSession(initial, {
+      type: 'start-lyrics-at-focus',
+      target: { kind: 'syllable', syllableId: 'le' },
+      newId: 'ky',
+    });
+    expect(next.history.present.syllables.map((s) => s.text)).toEqual([
+      'Ky',
+      'Al',
+      'le',
+    ]);
+    expect(next.history.past).toHaveLength(1);
+    expect(next.lyrics).toEqual({ kind: 'occupied', syllableId: 'le' });
+    expect(next.selection).toBe(initial.selection);
+    const invalid = text(start(twoLyrics(), 'n0'), 'two words');
+    const blocked = reduceEditorSession(invalid, {
+      type: 'start-lyrics-at-focus',
+      target: { kind: 'syllable', syllableId: 'le' },
+      newId: 'unused',
+    });
+    expect(blocked.lyrics).toBe(invalid.lyrics);
+    expect(blocked.history).toBe(invalid.history);
+    expect(blocked.selection).toBe(invalid.selection);
+  });
+  it('rejects missing focused IDs instead of falling back to selection or the first neume', () => {
+    const initial = act(createEditorSession(twoLyrics()), {
+      type: 'select',
+      syllableId: 'al',
+    });
+    for (const target of [
+      { kind: 'syllable', syllableId: 'gone' },
+      { kind: 'note', noteId: 'gone' },
+    ] as const)
+      expect(
+        reduceEditorSession(initial, {
+          type: 'start-lyrics-at-focus',
+          target,
+          newId: 'unused',
+        }),
+      ).toBe(initial);
+  });
+});

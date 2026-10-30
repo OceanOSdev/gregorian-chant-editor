@@ -57,6 +57,11 @@ export interface EditorSession {
 }
 
 export type EditorAction =
+  | {
+      type: 'start-lyrics-at-focus';
+      target: Extract<EditorSelection, { kind: 'note' | 'syllable' }>;
+      newId: string;
+    }
   | { type: 'lyrics'; action: LyricAction; newId: string }
   | {
       type: 'resolve-history';
@@ -155,6 +160,7 @@ function reduceSessionAction(
 ): EditorSession {
   const placing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'start-lyrics-at-focus':
     case 'lyrics':
     case 'resolve-history':
       return state;
@@ -373,6 +379,26 @@ export function reduceEditorSession(
       { ...resolved, pendingHistory: null },
       { type: 'history', ...pending },
     );
+  }
+  if (action.type === 'start-lyrics-at-focus') {
+    const document = state.history.present;
+    const target = action.target;
+    const neumeId =
+      target.kind === 'note'
+        ? findNote(document, target.noteId)?.neume.id
+        : document.syllables.find((s) => s.id === target.syllableId)
+            ?.startsAtNeumeId;
+    if (!neumeId || !findNeume(document, neumeId)) return state;
+    const next = applyLyrics(
+      state,
+      { type: state.lyrics ? 'navigate' : 'start', neumeId },
+      action.newId,
+    );
+    // Mode activation uses focus as context, not as an implicit selection command.
+    return {
+      ...next,
+      selection: reconcileSelection(next.history.present, state.selection),
+    };
   }
   if (action.type === 'lyrics')
     return applyLyrics(state, action.action, action.newId);

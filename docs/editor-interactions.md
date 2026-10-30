@@ -409,3 +409,38 @@ Delete/Backspace on an engraved lyric continues to use the event target's stable
 syllable ID, even when another entity is selected. Typing replacement and
 continuation still require explicit selection; Enter/double-click still opens
 cursor editing. Native text-input keys and Space-as-word-boundary are unchanged.
+
+## Keyboard command scope
+
+Focus and selection have different roles; neither universally overrides the
+other. Tab/Shift+Tab is focus browsing only. Explicit element-local commands use
+the focused control's stable ID; commands defined on selection retain selection
+semantics. A command must not silently fall back from a focused score entity to
+a different selected entity. Selection requirements still authorize particular
+edits; focus alone does not authorize every operation.
+
+| Command/context                            | Target rule                                                                                                                      |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| L on a focused note                        | Activate Lyrics at its owning neume.                                                                                             |
+| L on a focused engraved syllable           | Activate Lyrics at its `startsAtNeumeId`, independent of selection.                                                              |
+| Lyric Enter / Delete / Backspace           | Edit/delete that focused lyric, as already defined.                                                                              |
+| Lyric replacement / continuation           | Require the focused lyric itself to be selected.                                                                                 |
+| Note pitch arrows / note or neume deletion | Require selection of the focused note or its owning whole neume; otherwise do nothing. Do not redirect to a different selection. |
+| Contextual Insert / I                      | Selection-based insertion, with the existing end-of-document fallback.                                                           |
+| T / palette activation                     | Navigate to the remembered tool / activate the focused palette button.                                                           |
+| Undo / Redo                                | Document history, resolving dirty drafts first.                                                                                  |
+
+Unmodified L is reserved for Lyrics activation on score controls, including a
+selected engraved lyric. Shift+L can still begin uppercase replacement; native
+inputs keep ordinary letter input. L on a focused lyric opens an occupied-anchor
+pause, never implicit replacement or an empty input at the first neume. It
+preserves the semantic selection and existing content/history. If a lyric draft
+is already open elsewhere, this explicit activation follows the existing
+commit-on-navigation policy: commit valid text, preserve invalid text and block
+navigation, and never discard a draft silently. Reinvoking it at the same target
+keeps the draft. A missing focused ID is a no-op, not a selection fallback.
+
+The visible Lyrics button remains selection/context-based activation or draft
+resumption. Activation from the score surface without an entity retains its
+existing selection/first-neume fallback. This change does not redesign I/T, note
+editing, native input keys, or lyric Space-as-word-boundary behavior.

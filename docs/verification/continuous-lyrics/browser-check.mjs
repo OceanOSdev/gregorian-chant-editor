@@ -370,6 +370,76 @@ for (const deletion of ['Delete', 'Backspace']) {
     6,
   );
 }
+
+// L is local to the focused score element, not a fallback to selection or the first neume.
+for (const selected of [null, 'al', 'le']) {
+  await mount(6, [
+    { id: 'al', text: 'Al', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
+    {
+      id: 'le',
+      text: 'le',
+      startsAtNeumeId: 'n4',
+      boundaryBefore: 'continuation',
+    },
+  ]);
+  if (selected) {
+    await ev(
+      `document.querySelector('[data-syllable-id=${selected}].score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))`,
+    );
+    await pause();
+  } else await tabToLyric();
+  if ((await ev('document.activeElement.dataset.syllableId')) !== 'le')
+    await key('Tab');
+  assert.equal(await ev('document.activeElement.dataset.syllableId'), 'le');
+  const selectedIds = await ev(
+    "Array.from(document.querySelectorAll('.score__lyric[aria-pressed=true]')).map(t=>t.dataset.syllableId)",
+  );
+  const beforeNeumes = await ev(
+    "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>n.dataset.neumeId)",
+  );
+  await key('l', 'l');
+  assert.equal(await lyricsActive(), 'true');
+  assert.equal(await input(), null);
+  assert.equal(
+    await ev("document.querySelector('.lyric-actions strong').textContent"),
+    'le',
+  );
+  assert.deepEqual(
+    await ev(
+      "Array.from(document.querySelectorAll('.score__lyric[aria-pressed=true]')).map(t=>t.dataset.syllableId)",
+    ),
+    selectedIds,
+  );
+  assert.deepEqual(await lyrics(), ['Al', 'le']);
+  assert.deepEqual(
+    await ev(
+      "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>n.dataset.neumeId)",
+    ),
+    beforeNeumes,
+  );
+  assert.equal(
+    await ev(
+      "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Undo').disabled",
+    ),
+    true,
+  );
+  await key('x', 'x');
+  assert.deepEqual(await lyrics(), ['Al', 'le']);
+}
+// In a native lyric input, L remains ordinary text.
+await mount(2, []);
+await note(1);
+await ev("document.querySelector('[data-note-id=note1]').focus()");
+await key('l', 'l');
+assert.equal(
+  await ev("document.querySelector('#lyric-input').dataset.targetNeumeId"),
+  'n1',
+);
+await type('la');
+assert.equal(await input(), 'la');
+console.log(
+  'PASS: L targets focused lyric with no/different/same selection, preserves selection/history/anchors, pauses occupied anchors, and leaves input letters native',
+);
 // Selected-minus activates continuation entry from Select, retaining the original anchor.
 await mount(6, [
   { id: 'keyboard', text: 'Ky', startsAtNeumeId: 'n2', boundaryBefore: 'word' },

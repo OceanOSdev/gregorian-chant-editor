@@ -46,6 +46,8 @@ export function getSyllableKeyAction(
     event.altKey
   )
     return null;
+  // Let the existing score-level L handler activate the focused lyric, even if selected.
+  if (isLyricEntryShortcut(event, true, placing)) return null;
   if (event.key === 'Enter') return event.repeat ? null : { type: 'edit' };
   if (event.key === ' ' && !selected)
     return event.repeat ? null : { type: 'select' };

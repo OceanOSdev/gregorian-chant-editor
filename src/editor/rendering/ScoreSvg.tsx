@@ -397,7 +397,7 @@ export function ScoreSvg({
                   role="button"
                   aria-describedby="lyric-focus-help"
                   tabIndex={placementActive ? -1 : 0}
-                  aria-label={`Syllable: ${lyric.text}. Click or Space selects; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
+                  aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
                   aria-pressed={
                     selection.kind === 'syllable' &&
                     selection.syllableId === lyric.syllableId

@@ -293,3 +293,10 @@ visits another lyric, assert no history or draft changes, check the panel's name
 keyboard target versus selected target, and verify focused deletion separately
 from the selection-button command. The continuous-lyrics record documents the Firefox automation limitation and
 manual foreground-window verification steps.
+
+L-targeting regressions cover no selection, another selected lyric, and the
+focused lyric already selected; activation preserves semantic selection, music,
+anchors and history, and pauses for explicit editing. Pure session tests cover
+focused notes, missing IDs and active-draft resolution. Browser checks prove L
+reaches the intended handler even from selected lyric text and stays ordinary
+letter input within the native field.

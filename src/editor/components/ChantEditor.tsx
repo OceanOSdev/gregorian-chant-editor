@@ -171,13 +171,27 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         )
       ) {
         event.preventDefault();
-        const noteId = (
-          event.target instanceof Element ? event.target : null
-        )?.closest<SVGGElement>('[data-note-id]')?.dataset.noteId;
-        const neumeId = noteId
-          ? (findNote(history.present, noteId)?.neume.id ?? null)
-          : (selectedNeume?.id ?? null);
-        lyricAction({ type: 'start', neumeId });
+        const target = event.target instanceof Element ? event.target : null;
+        const noteId =
+          target?.closest<SVGGElement>('[data-note-id]')?.dataset.noteId;
+        const syllableId = target?.closest<SVGTextElement>(
+          '.score__lyric[data-syllable-id]',
+        )?.dataset.syllableId;
+        if (noteId) {
+          dispatch({
+            type: 'start-lyrics-at-focus',
+            target: { kind: 'note', noteId },
+            newId: crypto.randomUUID(),
+          });
+        } else if (syllableId) {
+          dispatch({
+            type: 'start-lyrics-at-focus',
+            target: { kind: 'syllable', syllableId },
+            newId: crypto.randomUUID(),
+          });
+        } else {
+          lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null });
+        }
         return;
       }
       const shortcut = getNotationShortcut(event, notationFocused);

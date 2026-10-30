@@ -64,7 +64,7 @@ On deletion, the successor starts a word if either its existing boundary or the 
 
 ### Activation and lifetime
 
-Unmodified L activates Lyrics only from focused notation in Select mode. Ignore editable fields, composition, and modifier chords. Retain I/T outside lyric input. The visible Lyrics control exposes active state.
+Unmodified L activates Lyrics only from focused notation in Select mode. Ignore editable fields, composition, and modifier chords. Retain I/T outside lyric input. The visible Lyrics control exposes active state. L invoked from a focused note uses its neume; from a focused syllable it uses that syllable’s stable anchor, without implicitly selecting it. Existing anchors pause for explicit editing. Contextual Insert/I remain selection-based; this is not a universal focus-over-selection rule.
 
 Lyrics mode persists through commits, skips, and target clicks. Enter/Save commits without exiting. Done commits and exits. Escape cancels the current draft and exits, retaining previous commits. Starting Lyrics clears placement previews and selects the Select tool. Activating a music tool resolves drafts through Done's policy.
 
