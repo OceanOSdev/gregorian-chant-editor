@@ -127,7 +127,9 @@ normally and with whitespace ignored to identify any non-mechanical change.
 
 ## Continuous integration
 
-The `CI` GitHub Actions workflow runs for pull requests and pushes to `main`.
+The `CI` GitHub Actions workflow runs for pull requests and pushes to `master`,
+except changes limited to the Markdown, PlantUML and Makefile paths excluded
+by the workflow.
 Its parallel `Format`, `Lint`, `Test`, and `Build` jobs each install locked
 dependencies with `npm ci`, then run the corresponding command shown above.
 The hosted status checks are normally reported as `CI / Format`, `CI / Lint`,
@@ -306,7 +308,9 @@ manual foreground-window verification steps.
 
 L-targeting regressions cover no selection, another selected lyric, and the
 focused lyric already selected; activation preserves semantic selection, music,
-anchors and history, and pauses for explicit editing. Pure session tests cover
+anchors and history, and explicitly pressing L opens the existing syllable
+for cursor editing. Sequential navigation onto an occupied anchor still pauses.
+Pure session tests cover
 focused notes, missing IDs and active-draft resolution. Browser checks prove L
 reaches the intended handler even from selected lyric text and stays ordinary
 letter input within the native field.

@@ -3,8 +3,8 @@
 Implemented from the approved silhouette recipes and final interaction
 refinement. ADR 0007 was **Proposed** at the time of this verification; it is now **Accepted**.
 The verification recorded below was performed before opening
-[PR #33](https://github.com/OceanOSdev/gregorian-chant-editor/pull/33), where this
-implementation is now under review. No notation font, dependency, semantic
+[PR #33](https://github.com/OceanOSdev/gregorian-chant-editor/pull/33), which
+subsequently merged on 2026-10-18. No notation font, dependency, semantic
 document field, command/history behavior, clef change or additional neume was
 introduced.
 
