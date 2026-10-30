@@ -17,7 +17,7 @@ page on port 5173. It verifies native input and browser event handling:
 - Minus from selected lyrics outside Lyrics mode opens continuation insertion;
   the occupied-anchor case pauses without replacing text.
 - Unchanged lyric ink and no underline in selected state; a purple dashed
-  selection outline and separate labeled blue keyboard-focus marker. See [keyboard selection](keyboard-selection.png).
+  selection outline and separate labeled blue keyboard-focus marker.
 - L targets the focused engraved syllable with no selection, a different selection,
   or that same lyric selected. Activation preserves selection/history/anchors and
   opens existing text with a normal cursor without selecting all. Explicit L on
@@ -41,7 +41,8 @@ page on port 5173. It verifies native input and browser event handling:
 - Stable native input DOM identity across target changes.
 - No horizontal page overflow and input bounds inside a 320 px viewport.
 
-The script saves [desktop](desktop.png) and [mobile](mobile.png) screenshots.
+The script saves four diagnostic screenshots in a new system temporary directory
+and prints its location. Runs do not write screenshot artifacts into the repository.
 It uses DevTools keyboard/text input and synthetic events for focused edge cases;
 it is not a spoken screen-reader verification or exhaustive OS/IME compatibility
 check. Plain TypeScript tests cover semantic transitions and invariant preservation.
@@ -53,7 +54,7 @@ No browser testing dependency was added.
 selection and history stay unchanged, the panel identifies both targets, and
 Delete/Backspace removes le. The explicitly labeled Delete selected syllable
 button removes Al instead. The focus summary clears when focus leaves engraved
-lyrics. See [Chromium feedback](focus-vs-selection.png).
+lyrics.
 
 The Chromium checks use the configured `CHANT_EDITOR_URL` if Vite runs
 on a port other than 5173.

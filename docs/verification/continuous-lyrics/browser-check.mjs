@@ -1,8 +1,14 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
+const screenshotDirectory = await mkdtemp(join(tmpdir(), 'chant-lyrics-'));
+console.log(`Screenshots: ${screenshotDirectory}`);
 const editorUrl = process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173';
 const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
-const ws = new WebSocket(pages[0].webSocketDebuggerUrl);
+const page = pages.find((candidate) => candidate.type === 'page');
+assert(page, 'Open a Chromium tab before running browser checks');
+const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
 let serial = 0;
 const pending = new Map();
@@ -526,7 +532,7 @@ assert.equal(selectedStyle.focusLabel, 'Keyboard focus');
 assert.notEqual(selectedStyle.selectionColor, selectedStyle.focusColor);
 assert.equal(selectedStyle.focusVisible, true);
 await writeFile(
-  'docs/verification/continuous-lyrics/keyboard-selection.png',
+  join(screenshotDirectory, 'keyboard-selection.png'),
   Buffer.from(
     (await send('Page.captureScreenshot', { format: 'png' })).data,
     'base64',
@@ -611,7 +617,7 @@ for (const activeMode of [false, true]) {
     );
     if (!activeMode && deletion === 'Delete')
       await writeFile(
-        'docs/verification/continuous-lyrics/focus-vs-selection.png',
+        join(screenshotDirectory, 'focus-vs-selection.png'),
         Buffer.from(
           (await send('Page.captureScreenshot', { format: 'png' })).data,
           'base64',
@@ -817,7 +823,7 @@ await type('lu');
 await ev('window.scrollTo(0,0)');
 await pause();
 await writeFile(
-  'docs/verification/continuous-lyrics/desktop.png',
+  join(screenshotDirectory, 'desktop.png'),
   Buffer.from(
     (await send('Page.captureScreenshot', { format: 'png' })).data,
     'base64',
@@ -840,7 +846,7 @@ const laterBounds = await ev(
 );
 assert(laterBounds.left >= 0 && laterBounds.right <= laterBounds.width);
 await writeFile(
-  'docs/verification/continuous-lyrics/mobile.png',
+  join(screenshotDirectory, 'mobile.png'),
   Buffer.from(
     (await send('Page.captureScreenshot', { format: 'png' })).data,
     'base64',
