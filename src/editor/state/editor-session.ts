@@ -296,7 +296,11 @@ function applyLyrics(
       return state;
     entry = { kind: 'selected', syllableId: action.syllableId };
   }
-  if (!entry && action.type === 'delete' && state.selection.kind === 'syllable')
+  if (
+    !entry &&
+    (action.type === 'delete' || action.type === 'advance') &&
+    state.selection.kind === 'syllable'
+  )
     entry = { kind: 'selected', syllableId: state.selection.syllableId };
   if (!entry && action.type === 'edit') {
     const syllable = document.syllables.find((s) => s.id === action.syllableId);

@@ -1,3 +1,4 @@
+import { getSyllableKeyAction } from '../interaction/lyric-entry-keyboard';
 import {
   useLayoutEffect,
   useRef,
@@ -382,81 +383,71 @@ export function ScoreSvg({
           })}
 
           {system.lyrics.map((lyric) => (
-            <text
-              className="score__lyric"
-              ref={(element) => {
-                if (element)
-                  lyricElements.current.set(lyric.syllableId, element);
-                else lyricElements.current.delete(lyric.syllableId);
-              }}
-              role="button"
-              tabIndex={placementActive ? -1 : 0}
-              aria-label={`Syllable: ${lyric.text}. Click selects; double-click or Enter edits; Delete removes lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
-              aria-pressed={
-                selection.kind === 'syllable' &&
-                selection.syllableId === lyric.syllableId
-              }
-              aria-disabled={placementActive}
-              pointerEvents={placementActive ? 'none' : 'all'}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (!placementActive) onSelectSyllable(lyric.syllableId);
-              }}
-              onDoubleClick={(event) => {
-                event.stopPropagation();
-                if (!placementActive) onEditSyllable(lyric.syllableId);
-              }}
-              onKeyDown={(event) => {
-                if (
-                  placementActive ||
-                  event.nativeEvent.isComposing ||
-                  event.altKey ||
-                  event.ctrlKey ||
-                  event.metaKey
-                )
-                  return;
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (!event.repeat) onEditSyllable(lyric.syllableId);
-                  return;
-                }
-                if (
-                  selection.kind !== 'syllable' ||
-                  selection.syllableId !== lyric.syllableId
-                )
-                  return;
-                if (
-                  event.key === '-' ||
-                  event.key === ' ' ||
-                  event.key === '_'
-                ) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (!event.repeat) onAdvanceLyric(event.key);
-                  return;
-                }
-                if (event.key === 'Delete' || event.key === 'Backspace') {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (!event.repeat) onDeleteSyllable();
-                  return;
-                }
-                if (event.key.length === 1) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onEditSyllable(lyric.syllableId, event.key);
-                }
-              }}
+            <g
               key={lyric.syllableId}
-              data-syllable-id={lyric.syllableId}
-              x={lyric.x}
-              y={lyric.y}
-              fontSize={lyric.fontSize}
-              textAnchor="middle"
+              className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
             >
-              {lyric.text}
-            </text>
+              <text
+                className="score__lyric"
+                ref={(element) => {
+                  if (element)
+                    lyricElements.current.set(lyric.syllableId, element);
+                  else lyricElements.current.delete(lyric.syllableId);
+                }}
+                role="button"
+                tabIndex={placementActive ? -1 : 0}
+                aria-label={`Syllable: ${lyric.text}. Click or Space selects; double-click or Enter edits; Delete removes lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
+                aria-pressed={
+                  selection.kind === 'syllable' &&
+                  selection.syllableId === lyric.syllableId
+                }
+                aria-disabled={placementActive}
+                pointerEvents={placementActive ? 'none' : 'all'}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!placementActive) onSelectSyllable(lyric.syllableId);
+                }}
+                onDoubleClick={(event) => {
+                  event.stopPropagation();
+                  if (!placementActive) onEditSyllable(lyric.syllableId);
+                }}
+                onKeyDown={(event) => {
+                  const action = getSyllableKeyAction(
+                    event.nativeEvent,
+                    selection.kind === 'syllable' &&
+                      selection.syllableId === lyric.syllableId,
+                    placementActive,
+                  );
+                  if (!action) return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  switch (action.type) {
+                    case 'select':
+                      onSelectSyllable(lyric.syllableId);
+                      break;
+                    case 'edit':
+                      onEditSyllable(lyric.syllableId);
+                      break;
+                    case 'replace':
+                      onEditSyllable(lyric.syllableId, action.text);
+                      break;
+                    case 'delete':
+                      onDeleteSyllable();
+                      break;
+                    case 'advance':
+                      onAdvanceLyric(action.key);
+                      break;
+                  }
+                }}
+                data-syllable-id={lyric.syllableId}
+                x={lyric.x}
+                y={lyric.y}
+                fontSize={lyric.fontSize}
+                textAnchor="middle"
+              >
+                {lyric.text}
+              </text>
+            </g>
           ))}
         </g>
       ))}

@@ -482,3 +482,64 @@ describe('syllable selection and deletion refinement', () => {
     expect(replaced.history).toBe(selected.history);
   });
 });
+
+describe('delimiter entry from selection outside Lyrics mode', () => {
+  it.each([
+    ['-', 'continuation', 'n3'],
+    [' ', 'word', 'n3'],
+    ['_', 'continuation', 'n4'],
+  ] as const)(
+    'starts %s entry without editing the selected lyric',
+    (key, boundaryBefore, neumeId) => {
+      const selected = act(createEditorSession(anchored()), {
+        type: 'select',
+        syllableId: 'existing',
+      });
+      expect(selected.lyrics).toBeNull();
+      const next = act(selected, { type: 'advance', key });
+      expect(next.lyrics).toMatchObject({
+        kind: 'draft',
+        neumeId,
+        boundaryBefore,
+        text: '',
+        original: null,
+      });
+      expect(next.history).toBe(selected.history);
+      expect(next.history.present.syllables[0].text).toBe('le');
+      expect(next.history.present.neumes).toBe(selected.history.present.neumes);
+    },
+  );
+  it('pauses at the next occupied anchor without overwriting its content', () => {
+    const doc = anchored();
+    doc.syllables.push({
+      id: 'next',
+      text: 'lu',
+      startsAtNeumeId: 'n3',
+      boundaryBefore: 'word',
+    });
+    const selected = act(createEditorSession(doc), {
+      type: 'select',
+      syllableId: 'existing',
+    });
+    const next = act(selected, { type: 'advance', key: '-' });
+    expect(next.lyrics).toEqual({ kind: 'occupied', syllableId: 'next' });
+    expect(next.history).toBe(selected.history);
+    expect(act(next, { type: 'text', text: 'overwrite' }).history.present).toBe(
+      doc,
+    );
+  });
+  it('keeps Lyrics active at the end rather than changing music', () => {
+    const doc = anchored();
+    doc.syllables[0] = { ...doc.syllables[0], startsAtNeumeId: 'n5' };
+    const selected = act(createEditorSession(doc), {
+      type: 'select',
+      syllableId: 'existing',
+    });
+    const next = act(selected, { type: 'advance', key: '-' });
+    expect(next.lyrics).toMatchObject({
+      kind: 'end',
+      boundaryBefore: 'continuation',
+    });
+    expect(next.history).toBe(selected.history);
+  });
+});

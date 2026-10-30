@@ -143,13 +143,17 @@ refs, composition guards and roving focus.
 
 A free neume opens insertion. An occupied neume pauses, showing existing text
 with **Edit syllable** and **Skip neume**. Typing never replaces paused lyrics.
-Single-clicking engraved lyric text selects it without opening an input or
-activating Lyrics mode. Double-clicking, pressing Enter, or choosing Edit syllable
+Single-clicking engraved lyric text, or pressing Space on an unselected focused
+lyric, selects it without opening an input or activating Lyrics mode. Tab can
+therefore reach a lyric, Space selects it, and Delete/Backspace deletes only its
+text while preserving its music. Double-clicking, pressing Enter, or choosing Edit syllable
 opens its existing text with a normal collapsed cursor at the end. Strip buttons
 continue to offer explicit editing. Typing on a selected engraved syllable starts
 replacement, rather than appending to its old text. After Save/Enter, the committed syllable is selected;
 typing replaces it intentionally, Enter edits, minus continues its word, Space
-starts a word, and Delete removes only its lyric. Native input Delete/Backspace
+starts a word, and Delete removes only its lyric. Delimiters activate Lyrics
+from selected syllables even when it was previously inactive; occupied anchors
+still pause insertion without overwriting. Native input Delete/Backspace
 remain text editing. Keyboard Delete/Backspace on selected lyrics and the
 Delete syllable button use the same semantic deletion. They preserve every neume,
 select the former anchor neume, and focus its first note. No empty input opens;
@@ -377,3 +381,7 @@ palette navigation and scroll calculations. Actual focus, native keyboard and
 Tab order, pointer ownership, scrolling, accessible naming and status mutations
 are separately verified in the browser. Spoken output requires a screen-reader
 pass. See [testing](testing.md) and the linked verification record.
+
+Selected engraved lyrics retain their ordinary ink and use a purple dashed
+outline consistent with neume selection. Keyboard focus has a separate solid
+blue outline outside it; selection does not use a hyperlink-style underline.

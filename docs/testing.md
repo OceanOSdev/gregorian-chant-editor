@@ -276,3 +276,9 @@ Syllable selection/deletion regressions exercise active and inactive Lyrics mode
 no-input single-click selection, atomic deletion and stable anchor focus. The
 continuous-entry browser script tests actual keyboard Delete/Backspace and the
 Delete syllable button separately, plus normal cursor editing and native input deletion.
+
+PR #38 review regressions cover Space selection on focused lyrics, selected
+delimiter entry from inactive Lyrics mode (including occupied/end targets),
+and keyboard-only browser traversal through deletion. Browser checks also assert
+normal selected lyric ink, absence of underline, and distinct simultaneous
+selection/focus outlines.

@@ -69,7 +69,7 @@ An empty score explains that music is needed first; create no placeholders.
 
 Draft intent is either Insert at a free neume or Edit a specific syllable ID. An insert must never become an update because its target is occupied; revalidate against the reducer's latest document.
 
-Opening Lyrics at occupied notation pauses with existing text and an explicit Edit syllable action. Single-clicking engraved text selects without editing or activating Lyrics. Double-clicking, Enter, or Edit opens existing text with a normal cursor; typing on a selected syllable starts replacement. Clicking notation requests insertion, not replacement. Ordinary editing never selects all text automatically.
+Opening Lyrics at occupied notation pauses with existing text and an explicit Edit syllable action. Single-clicking engraved text or pressing Space on an unselected focused lyric selects without editing or activating Lyrics. Double-clicking, Enter, or Edit opens existing text with a normal cursor; typing on a selected syllable starts replacement. Clicking notation requests insertion, not replacement. Ordinary editing never selects all text automatically.
 
 ### Draft resolution
 
@@ -102,7 +102,7 @@ Ignore command interpretation during composition and repeated navigation from au
 
 Example: `Al`, `-`, `_`, `le` anchors Al at neume 1 and le at neume 3; neume 2 belongs to Al. A visible Skip neume action follows `_` semantics.
 
-After Enter/Save, typing intentionally edits the selected committed syllable; delimiters begin insertion after it. Repeated `-`/Space on an empty draft changes pending boundary without advancing or creating anything. `_` advances.
+After Enter/Save, typing intentionally edits the selected committed syllable; delimiters begin insertion after it. Delimiters also activate entry from a selected syllable when Lyrics mode is inactive; occupied anchors remain protected. Repeated `-`/Space on an empty draft changes pending boundary without advancing or creating anything. `_` advances.
 
 ASCII `-`, `_`, and whitespace are entry controls. Accents, Greek characters, and ordinary punctuation remain text. Reject pasted separators or whitespace with an explanation; do not split passages. Provide Starts word / Continues word controls, constraining the first syllable to word start.
 

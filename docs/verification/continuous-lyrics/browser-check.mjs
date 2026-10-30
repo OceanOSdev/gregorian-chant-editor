@@ -295,6 +295,133 @@ console.log(
   'PASS: L activation, sequential -/Space/_ entry, occupied protection, Greek text, click commit, native Tab, invalid navigation, Escape, intentional replacement, typed replacement caret, end resumption, history resolution, 320px overflow',
 );
 
+// Keyboard-only traversal must reach selection/deletion without mouse or programmatic focus.
+const tabToLyric = async () => {
+  for (let step = 0; step < 60; step++) {
+    await key('Tab');
+    if (await ev("document.activeElement.matches('.score__lyric')")) return;
+  }
+  assert.fail('Tab did not reach an engraved syllable');
+};
+const lyricsActive = () =>
+  ev(
+    "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith('Lyrics')).getAttribute('aria-pressed')",
+  );
+for (const deletion of ['Delete', 'Backspace']) {
+  await mount(6, [
+    {
+      id: 'keyboard',
+      text: 'Ky',
+      startsAtNeumeId: 'n2',
+      boundaryBefore: 'word',
+    },
+  ]);
+  await tabToLyric();
+  assert.equal(
+    await ev("document.activeElement.getAttribute('aria-pressed')"),
+    'false',
+  );
+  await key(deletion);
+  assert.deepEqual(await lyrics(), ['Ky']);
+  await key(' ', ' ');
+  assert.equal(
+    await ev("document.activeElement.getAttribute('aria-pressed')"),
+    'true',
+  );
+  assert.equal(await input(), null);
+  assert.equal(await lyricsActive(), 'false');
+  await key(deletion);
+  assert.deepEqual(await lyrics(), []);
+  assert.equal(
+    await ev("document.querySelectorAll('[data-neume-id]').length"),
+    6,
+  );
+  assert.equal(await ev('document.activeElement.dataset.noteId'), 'note2');
+  assert.equal(await input(), null);
+}
+// Selected-minus activates continuation entry from Select, retaining the original anchor.
+await mount(6, [
+  { id: 'keyboard', text: 'Ky', startsAtNeumeId: 'n2', boundaryBefore: 'word' },
+]);
+await tabToLyric();
+await key(' ', ' ');
+await key('-', '-');
+assert.equal(await input(), '');
+assert.equal(
+  await ev("document.querySelector('#lyric-input').dataset.targetNeumeId"),
+  'n3',
+);
+assert.equal(
+  await ev(
+    'document.querySelector(\'select[aria-label="Word boundary"]\').value',
+  ),
+  'continuation',
+);
+assert.deepEqual(await lyrics(), ['Ky']);
+await type('ri');
+await key('Enter');
+assert.deepEqual(await lyrics(), ['Ky', 'ri']);
+// The same path must pause, rather than overwrite, if the next anchor is occupied.
+await mount(6, [
+  { id: 'keyboard', text: 'Ky', startsAtNeumeId: 'n2', boundaryBefore: 'word' },
+  { id: 'next', text: 'old', startsAtNeumeId: 'n3', boundaryBefore: 'word' },
+]);
+await tabToLyric();
+await key(' ', ' ');
+await key('-', '-');
+assert.equal(await input(), null);
+assert.equal(await lyricsActive(), 'true');
+assert.deepEqual(await lyrics(), ['Ky', 'old']);
+assert.equal(
+  await ev(
+    "document.querySelector('.lyric-actions').textContent.includes('Already anchored')",
+  ),
+  true,
+);
+// Selection retains engraved ink, with separate purple selection and blue keyboard focus outlines.
+await send('Emulation.setDeviceMetricsOverride', {
+  width: 1440,
+  height: 1000,
+  deviceScaleFactor: 1,
+  mobile: false,
+});
+await mount(4, [
+  {
+    id: 'visual',
+    text: 'Kyrie',
+    startsAtNeumeId: 'n0',
+    boundaryBefore: 'word',
+  },
+]);
+await tabToLyric();
+const originalInk = await ev(
+  "getComputedStyle(document.querySelector('.score__lyric')).fill",
+);
+await key(' ', ' ');
+const selectedStyle = await ev(
+  "(()=>{const t=document.querySelector('.score__lyric'),g=t.parentElement,s=getComputedStyle(g),f=getComputedStyle(t);return {ink:f.fill,decoration:f.textDecorationLine,selection:s.outlineStyle,selectionColor:s.outlineColor,focus:f.outlineStyle,focusColor:f.outlineColor,focusVisible:t.matches(':focus-visible')}})()",
+);
+assert.equal(selectedStyle.ink, originalInk);
+assert.equal(selectedStyle.decoration, 'none');
+assert.equal(selectedStyle.selection, 'dashed');
+assert.equal(selectedStyle.focus, 'solid');
+assert.notEqual(selectedStyle.selectionColor, selectedStyle.focusColor);
+assert.equal(selectedStyle.focusVisible, true);
+await writeFile(
+  'docs/verification/continuous-lyrics/keyboard-selection.png',
+  Buffer.from(
+    (await send('Page.captureScreenshot', { format: 'png' })).data,
+    'base64',
+  ),
+);
+await key('Tab');
+assert.equal(
+  await ev("!!document.querySelector('.score__lyric-group--selected')"),
+  true,
+);
+console.log(
+  'PASS: keyboard-only Tab → Space → Delete/Backspace, inactive-mode continuation, occupied-anchor safety, non-link selection ink and distinct focus',
+);
 // Single-click selection and both lyric deletion paths share the same semantics.
 for (const active of [false, true]) {
   for (const deletion of ['Delete', 'Backspace', 'button']) {
