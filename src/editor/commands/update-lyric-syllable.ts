@@ -1,3 +1,4 @@
+import { isValidLyricText } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 
 export function updateLyricSyllableText(
@@ -10,7 +11,7 @@ export function updateLyricSyllableText(
   );
   const syllable = document.syllables[syllableIndex];
 
-  if (!syllable || syllable.text === text) {
+  if (!isValidLyricText(text) || !syllable || syllable.text === text) {
     return document;
   }
 

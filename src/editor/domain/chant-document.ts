@@ -27,6 +27,8 @@ export interface Clef {
 export interface LyricSyllable {
   id: string;
   text: string;
+  startsAtNeumeId: string;
+  boundaryBefore: 'word' | 'continuation';
 }
 
 export interface ChantNote {
@@ -38,7 +40,6 @@ export interface ChantNote {
 export interface PunctumNeume {
   id: string;
   kind: 'punctum';
-  lyricSyllableId: string;
   notes: [ChantNote];
 }
 
@@ -46,7 +47,6 @@ export interface PunctumNeume {
 export interface PodatusNeume {
   id: string;
   kind: 'podatus';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote];
 }
 
@@ -54,7 +54,6 @@ export interface PodatusNeume {
 export interface ClivisNeume {
   id: string;
   kind: 'clivis';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote];
 }
 
@@ -62,7 +61,6 @@ export interface ClivisNeume {
 export interface ScandicusNeume {
   id: string;
   kind: 'scandicus';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
@@ -70,7 +68,6 @@ export interface ScandicusNeume {
 export interface TorculusNeume {
   id: string;
   kind: 'torculus';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
@@ -78,7 +75,6 @@ export interface TorculusNeume {
 export interface ClimacusNeume {
   id: string;
   kind: 'climacus';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
@@ -86,7 +82,6 @@ export interface ClimacusNeume {
 export interface PorrectusNeume {
   id: string;
   kind: 'porrectus';
-  lyricSyllableId: string;
   notes: [ChantNote, ChantNote, ChantNote];
 }
 

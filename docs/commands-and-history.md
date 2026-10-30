@@ -23,20 +23,19 @@ and retain references to unrelated entities where practical.
 
 Current command families cover:
 
-- appending and editing lyric syllables;
+- creating anchored syllables, editing text/boundaries, deleting and reassigning syllables;
 - inserting Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus;
 - moving one note vertically;
 - moving every note of a neume vertically as one unit;
 - deleting one note with normalization;
 - deleting a complete neume.
 
-Insertion resolvers calculate complete-neume boundaries for toolbar and
-active-syllable workflows. Their output is semantic intent, not layout.
+Insertion resolvers calculate unrestricted complete-neume boundaries from musical selection or pointer intent. Their output is semantic intent, not layout.
 
 ## Validation, rejection, and no-ops
 
 Commands validate the constraints relevant to their operation. Multi-note
-insertion checks integer boundary range, referenced syllable existence, ID
+insertion checks integer boundary range, ID
 collisions or duplicate note IDs, and neume pitch/cardinality invariants.
 Movement refuses results that would violate a neume invariant. Missing IDs,
 unchanged lyric text, and duplicate syllable IDs are no-ops.
@@ -45,11 +44,16 @@ Rejected and no-op commands return the exact input document object. This
 identity convention is important: callers can distinguish “accepted new
 document” from “nothing changed” without a second result channel.
 
-`insertPunctum` is a deliberate documentation nuance. It currently performs an
-immutable splice without the independent validation used by the multi-note
-insertion commands. Current editor callers construct a valid Punctum and use a
-resolved boundary. Documentation must not imply every insert command has an
-identical defensive surface.
+All seven insertion kinds, including Punctum, validate their musical inputs
+without requiring syllables. No lyric group constrains insertion.
+
+`createLyricSyllable` inserts at a free anchor in semantic order and normalizes
+a new first syllable to word start. Text updates reject blank or delimiter-containing
+text. `reassignLyricSyllable` rejects crossing/occupied anchors.
+`updateLyricBoundary` refuses continuation on the first syllable.
+`deleteLyricSyllable` preserves crossed word boundaries without changing music.
+Deleting an anchored neume (including final-note deletion) removes its syllable
+in the same history action. Surviving anchors never move.
 
 ## Identity and normalization
 

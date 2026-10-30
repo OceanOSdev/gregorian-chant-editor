@@ -1,5 +1,4 @@
-import { resolveSyllableNeumeInsertionIndex } from '../commands/resolve-syllable-neume-insertion';
-import type { ChantDocument, StaffPosition } from '../domain/chant-document';
+import type { StaffPosition } from '../domain/chant-document';
 import {
   canGraphicalNeumeFitNormalSystem,
   getSystemNeumePlacement,
@@ -45,24 +44,15 @@ export type ResolvedGraphicalNeumePlacement =
     });
 
 /**
- * Couples system hit testing, a global whole-neume boundary, active-syllable
- * clamping, graphical fit validation, and an ID-free caret and local ghost.
+ * Couples system hit testing, a global whole-neume boundary,
+ * graphical fit validation, and an ID-free caret and local ghost.
  */
 export function resolveGraphicalNeumePlacement(
-  document: ChantDocument,
   layout: ChantLayout,
-  activeSyllableId: string | null,
   kind: GraphicalNeumeKind,
   point: { x: number; y: number },
 ): ResolvedGraphicalNeumePlacement | null {
-  if (
-    !activeSyllableId ||
-    !Number.isFinite(point.x) ||
-    !Number.isFinite(point.y) ||
-    !document.syllables.some((syllable) => syllable.id === activeSyllableId)
-  ) {
-    return null;
-  }
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
 
   const matchingSystems = layout.systems.filter(
     (system) => point.y >= system.y && point.y <= system.y + system.height,
@@ -84,14 +74,9 @@ export function resolveGraphicalNeumePlacement(
     return null;
   }
 
-  const insertionIndex = resolveSyllableNeumeInsertionIndex(
-    document,
-    activeSyllableId,
-    placement.preferredNeumeInsertionIndex,
-  );
+  const insertionIndex = placement.preferredNeumeInsertionIndex;
 
   if (
-    insertionIndex === null ||
     !canGraphicalNeumeFitNormalSystem(placement.kind, placement.staffPositions)
   ) {
     return null;

@@ -79,7 +79,7 @@ boundaries. See [commands and history](commands-and-history.md).
 ### `src/editor/state/`
 
 Contains semantic document history and transient, ID-based selection and tool
-types. The pure editor-session reducer coordinates commands, active-syllable
+types. The pure editor-session reducer coordinates commands, lyric-context
 reconciliation, placement lifecycle, ID-based focus requests, and event
 notifications. Its history field contains semantic snapshots only; tools,
 remembered neume kind, hover, selection, focus, and announcements remain outside history.
@@ -121,3 +121,5 @@ Stable identity is covered by
 by [ADR 0004](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md), and
 wrapping by
 [ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md).
+
+The lyric anchor relationship is defined in [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md). Music insertion does not require an active syllable.

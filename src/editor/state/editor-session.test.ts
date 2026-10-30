@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { staffPosition, type ChantDocument } from '../domain/chant-document';
-import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import type { InsertionIds } from '../interaction/insert-editor-neume';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
@@ -36,10 +35,7 @@ function document(): ChantDocument {
   return {
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [
-      { id: 's1', text: 'Ky' },
-      { id: 's2', text: 'ri' },
-    ],
+    syllables: [],
     neumes: [],
   };
 }
@@ -76,9 +72,7 @@ describe('placement lifecycle', () => {
       for (let i = 1; i <= 35; i++) {
         const previous = state;
         const intent = resolveGraphicalNeumePlacement(
-          state.history.present,
           layoutChant(state.history.present),
-          's1',
           kind,
           { x: 300, y: 100 },
         );
@@ -177,7 +171,6 @@ describe('placement lifecycle', () => {
       type: 'select',
       selection: selectNeume('n1'),
     });
-    state = reduceEditorSession(state, { type: 'syllable', id: 's2' });
     state = reduceEditorSession(state, {
       type: 'history',
       direction: 'undo',
@@ -186,7 +179,9 @@ describe('placement lifecycle', () => {
     expect(state.rememberedKind).toBe('podatus');
     state = reduceEditorSession(state, { type: 'insert', ids: ids(2) });
     expect(state.history.present.neumes[0]?.kind).toBe('podatus');
-    expect(state.history.present.neumes[0]?.lyricSyllableId).toBe('s2');
+    expect(state.history.present.syllables).toBe(
+      original.history.present.syllables,
+    );
   });
 
   it('clears old preview on kind changes and rejects invalid points without history/events', () => {
@@ -228,7 +223,7 @@ describe('placement lifecycle', () => {
         type: 'insert',
         ids: ids(1),
       }),
-    ).toBe(none);
+    ).not.toBe(none);
   });
 
   it('selects without an edit, remembers kind, and restores focus by stable ID', () => {
@@ -247,7 +242,7 @@ describe('placement lifecycle', () => {
       getSelectFocusRequest({ ...state, selection: selectNote('gone') }),
     ).toEqual({ kind: 'palette', tool: 'select' });
     expect(getSelectFocusRequest({ ...state, activeSyllableId: 's2' })).toEqual(
-      { kind: 'palette', tool: 'select' },
+      { kind: 'note', noteId: 'a1' },
     );
     expect(
       reduceEditorSession(next, {
@@ -264,69 +259,17 @@ describe('placement lifecycle', () => {
       ).toBeNull();
   });
 
-  it('retargets without disarming or selection-driven reversal, and uses actual target text', () => {
-    let state = place(arm('punctum'));
-    state = reduceEditorSession(state, { type: 'syllable', id: 's2' });
-    expect(state.selection.kind).toBe('none');
-    expect(state.announcement.text).toBe('Target: syllable 2, ri.');
-    state = place(state, 2);
-    expect(
-      state.history.present.neumes.find((n) => n.id === 'n2')?.lyricSyllableId,
-    ).toBe('s2');
-    const before = state.announcement;
-    state = reduceEditorSession(state, {
-      type: 'edit',
-      edit: (d) => updateLyricSyllableText(d, 's2', 'ri-'),
-    });
-    expect(state.announcement).toBe(before);
-    state = reduceEditorSession(state, {
-      type: 'add-syllable',
-      syllable: { id: 's3', text: '' },
-    });
-    expect(state.announcement.text).toBe('Target: syllable 3, empty.');
-    state = reduceEditorSession(state, {
-      type: 'history',
-      direction: 'undo',
-      focusedNoteId: null,
-    });
-    expect(state.activeSyllableId).toBe('s2');
-    expect(state.announcement.text).toBe('Undo. Target: syllable 2, ri-.');
-    expect(state.activeTool.kind).toBe('place-punctum');
-  });
-
-  it('ends placement and requests the visible control if history removes the only target', () => {
-    let state = createEditorSession({ ...document(), syllables: [] });
-    state = reduceEditorSession(state, {
-      type: 'add-syllable',
-      syllable: { id: 'only', text: '' },
-    });
-    state = reduceEditorSession(state, { type: 'arm', tool: tool('punctum') });
-    state = reduceEditorSession(state, {
-      type: 'history',
-      direction: 'undo',
-      focusedNoteId: null,
-    });
-    expect(state.activeSyllableId).toBeNull();
-    expect(state.activeTool.kind).toBe('select');
-    expect(state.focusRequest).toEqual({ kind: 'palette', tool: 'select' });
-    expect(state.announcement.text).toBe(
-      'Undo. No target syllable. Select tool.',
-    );
-  });
-
-  it('preserves note-only toolbar anchoring, reference pitches, and IDs of existing entities', () => {
+  it('uses note and whole-neume toolbar anchoring, reference pitches, and IDs of existing entities', () => {
     const initial = document();
     initial.neumes = [
       {
         id: 'existing1',
         kind: 'punctum',
-        lyricSyllableId: 's1',
         notes: [{ id: 'old1', staffPosition: staffPosition(5) }],
       },
       {
         id: 'existing2',
         kind: 'punctum',
-        lyricSyllableId: 's1',
         notes: [{ id: 'old2', staffPosition: staffPosition(1) }],
       },
     ];
@@ -359,19 +302,18 @@ describe('placement lifecycle', () => {
     });
     expect(appended.history.present.neumes.map((n) => n.id)).toEqual([
       'existing1',
-      'existing2',
       'n1',
+      'existing2',
     ]);
     expect(
-      appended.history.present.neumes[2]?.notes.map((n) => n.staffPosition),
-    ).toEqual([1, 2]);
+      appended.history.present.neumes[1]?.notes.map((n) => n.staffPosition),
+    ).toEqual([5, 6]);
   });
   it('re-resolves a same-position click after the latest document loses that system', () => {
     const initial = document();
     initial.neumes = Array.from({ length: 20 }, (_, i) => ({
       id: `old-${i}`,
       kind: 'punctum',
-      lyricSyllableId: 's1',
       notes: [{ id: `old-note-${i}`, staffPosition: staffPosition(2) }],
     }));
     let state = arm('punctum', initial);

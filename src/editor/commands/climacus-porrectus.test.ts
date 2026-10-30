@@ -31,7 +31,16 @@ function documentWith(neumes: Neume[] = []): ChantDocument {
   return {
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable', text: 'Ky' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'lyric',
+            text: 'Ky',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes,
   };
 }
@@ -67,7 +76,7 @@ for (const { kind, pitches, tight, invalid } of cases) {
     return {
       id: kind,
       kind,
-      lyricSyllableId: 'syllable',
+
       notes: [
         { id: 'first', staffPosition: staffPosition(positions[0]) },
         { id: 'second', staffPosition: staffPosition(positions[1]) },
@@ -87,7 +96,6 @@ for (const { kind, pitches, tight, invalid } of cases) {
   const unrelated: Neume = {
     id: 'other',
     kind: 'punctum',
-    lyricSyllableId: 'syllable',
     notes: [{ id: 'other-note', staffPosition: staffPosition(2) }],
   };
   describe(`${kind} commands`, () => {
@@ -128,7 +136,6 @@ for (const { kind, pitches, tight, invalid } of cases) {
       collision.notes[1] = { ...collision.notes[1], id: 'other-note' };
       const rejected = [
         { ...candidate(), id: 'other' },
-        { ...candidate(), lyricSyllableId: 'missing' },
         missingNote,
         extraNote,
         duplicate,
@@ -297,8 +304,7 @@ for (const { kind, pitches, tight, invalid } of cases) {
         expect(
           resolveToolbarNeumeInsertion(
             document,
-            'syllable',
-            note.id,
+            { kind: 'note', noteId: note.id },
             staffPosition(3),
           ),
         ).toEqual({
@@ -308,8 +314,7 @@ for (const { kind, pitches, tight, invalid } of cases) {
       expect(
         resolveToolbarNeumeInsertion(
           documentWith(),
-          'syllable',
-          null,
+          { kind: 'none' },
           staffPosition(3),
         ),
       ).toEqual({ insertionIndex: 0, referenceStaffPosition: 3 });
@@ -321,7 +326,6 @@ it('rejects equal-outer-pitch Porrectus middle deletion without changing documen
   const neume: PorrectusNeume = {
     id: 'porrectus',
     kind: 'porrectus',
-    lyricSyllableId: 'syllable',
     notes: [
       { id: 'first', staffPosition: staffPosition(3) },
       { id: 'second', staffPosition: staffPosition(0) },

@@ -12,7 +12,6 @@ import {
 import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
 import { insertClivis } from '../commands/insert-clivis';
-import { insertPunctum } from '../commands/insert-punctum';
 import { moveNeumeVertically } from '../commands/move-neume';
 import {
   applyDocumentEdit,
@@ -26,15 +25,10 @@ import {
   type NoteLayout,
 } from './layout-chant';
 
-function punctum(
-  id: string,
-  position: number,
-  syllableId = 'syllable-1',
-): PunctumNeume {
+function punctum(id: string, position: number): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: syllableId,
     notes: [{ id, staffPosition: staffPosition(position) }],
   };
 }
@@ -43,12 +37,10 @@ function podatus(
   id: string,
   lowerPosition: number,
   upperPosition: number,
-  syllableId = 'syllable-1',
 ): PodatusNeume {
   return {
     id: `neume-${id}`,
     kind: 'podatus',
-    lyricSyllableId: syllableId,
     notes: [
       {
         id: `${id}-lower`,
@@ -66,12 +58,10 @@ function clivis(
   id: string,
   upperPosition: number,
   lowerPosition: number,
-  syllableId = 'syllable-1',
 ): ClivisNeume {
   return {
     id: `neume-${id}`,
     kind: 'clivis',
-    lyricSyllableId: syllableId,
     notes: [
       {
         id: `${id}-upper`,
@@ -90,12 +80,10 @@ function scandicus(
   firstPosition: number,
   secondPosition: number,
   thirdPosition: number,
-  syllableId = 'syllable-1',
 ): ScandicusNeume {
   return {
     id: `neume-${id}`,
     kind: 'scandicus',
-    lyricSyllableId: syllableId,
     notes: [
       { id: `${id}-first`, staffPosition: staffPosition(firstPosition) },
       { id: `${id}-middle`, staffPosition: staffPosition(secondPosition) },
@@ -109,12 +97,10 @@ function torculus(
   firstPosition: number,
   secondPosition: number,
   thirdPosition: number,
-  syllableId = 'syllable-1',
 ): TorculusNeume {
   return {
     id: `neume-${id}`,
     kind: 'torculus',
-    lyricSyllableId: syllableId,
     notes: [
       { id: `${id}-first`, staffPosition: staffPosition(firstPosition) },
       { id: `${id}-second`, staffPosition: staffPosition(secondPosition) },
@@ -127,7 +113,16 @@ function createDocument(neumes: Neume[]): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'syllable-1',
+            text: 'Ky',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes,
   };
 }
@@ -184,7 +179,7 @@ describe('layoutChant', () => {
 
     expect(layout.systems.flatMap((system) => system.neumes)[0]).toMatchObject({
       neumeId: 'neume-note-1',
-      lyricSyllableId: 'syllable-1',
+
       kind: 'punctum',
     });
     expect(
@@ -288,7 +283,7 @@ describe('layoutChant', () => {
 
     expect(neumeLayout).toMatchObject({
       neumeId: 'neume-scandicus',
-      lyricSyllableId: 'syllable-1',
+
       kind: 'scandicus',
     });
     expect(neumeLayout.notes.map((note) => note.noteId)).toEqual([
@@ -545,34 +540,6 @@ describe('layoutChant', () => {
     expect(new Set(lyricXs).size).toBe(1);
   });
 
-  it('reanchors after inserting before or deleting the first neume', () => {
-    const initial = createDocument([
-      podatus('old-first', 2, 4),
-      clivis('next', 5, 3),
-    ]);
-    const inserted = insertPunctum(initial, punctum('inserted-first', 3), 0);
-    const afterFirstDeletion = deleteNeume(initial, 'neume-old-first');
-    const insertedNote = layoutChant(inserted).systems.flatMap(
-      (system) => system.neumes,
-    )[0]?.notes[0];
-    const nextNeume = layoutChant(afterFirstDeletion).systems.flatMap(
-      (system) => system.neumes,
-    )[0];
-
-    if (!insertedNote || !nextNeume) {
-      throw new Error('Missing reanchored layout');
-    }
-
-    expect(
-      layoutChant(inserted).systems.flatMap((system) => system.lyrics)[0]?.x,
-    ).toBe(noteCenterX(insertedNote));
-    expect(
-      layoutChant(afterFirstDeletion).systems.flatMap(
-        (system) => system.lyrics,
-      )[0]?.x,
-    ).toBe(nextNeume.bounds.x + nextNeume.bounds.width / 2);
-  });
-
   it('derives insertion anchors again through undo and redo', () => {
     const initial = createDocument([
       podatus('old-first', 2, 4),
@@ -650,107 +617,14 @@ describe('layoutChant', () => {
     },
   );
 
-  it('omits the lyric after removing the final neume but preserves its semantic syllable', () => {
+  it('removes the lyric and syllable after removing its anchor', () => {
     const document = createDocument([punctum('only', 2)]);
     const deleted = deleteNeume(document, 'neume-only');
 
     expect(
       layoutChant(deleted).systems.flatMap((system) => system.lyrics),
     ).toEqual([]);
-    expect(deleted.syllables).toBe(document.syllables);
-  });
-
-  it('renders associated syllables once and omits syllables without notes', () => {
-    const document: ChantDocument = {
-      ...createDocument([]),
-      syllables: [
-        { id: 'syllable-1', text: 'Ky-' },
-        { id: 'syllable-2', text: '' },
-        { id: 'syllable-3', text: 'ri-' },
-      ],
-      neumes: [
-        punctum('note-1', 2),
-        punctum('note-2', 3),
-        punctum('note-3', 4, 'syllable-3'),
-      ],
-    };
-
-    expect(
-      layoutChant(document)
-        .systems.flatMap((system) => system.lyrics)
-        .map((lyric) => lyric.syllableId),
-    ).toEqual(['syllable-1', 'syllable-3']);
-  });
-
-  it('preserves associated empty and unusual text without filtering', () => {
-    const document: ChantDocument = {
-      ...createDocument([]),
-      syllables: [
-        { id: 'syllable-empty', text: '' },
-        { id: 'syllable-punctuation', text: '—' },
-        { id: 'syllable-whitespace', text: ' ' },
-        { id: 'syllable-unassociated', text: 'hidden' },
-      ],
-      neumes: [
-        punctum('empty', 2, 'syllable-empty'),
-        punctum('punctuation', 3, 'syllable-punctuation'),
-        punctum('whitespace', 4, 'syllable-whitespace'),
-      ],
-    };
-    const lyrics = layoutChant(document).systems.flatMap(
-      (system) => system.lyrics,
-    );
-
-    expect(
-      lyrics.map(({ syllableId, text }) => ({ syllableId, text })),
-    ).toEqual([
-      { syllableId: 'syllable-empty', text: '' },
-      { syllableId: 'syllable-punctuation', text: '—' },
-      { syllableId: 'syllable-whitespace', text: ' ' },
-    ]);
-    expect(document.syllables.at(-1)?.id).toBe('syllable-unassociated');
-  });
-
-  it('uses each syllable first match and preserves semantic syllable order for interleaved neumes', () => {
-    const document: ChantDocument = {
-      ...createDocument([]),
-      syllables: [
-        { id: 'syllable-1', text: 'Ky-' },
-        { id: 'syllable-empty', text: '' },
-        { id: 'syllable-2', text: 'ri-' },
-      ],
-      neumes: [
-        punctum('syllable-2-first', 3, 'syllable-2'),
-        podatus('syllable-1-first', 2, 4, 'syllable-1'),
-        clivis('syllable-2-later', 5, 3, 'syllable-2'),
-        punctum('syllable-1-later', 4, 'syllable-1'),
-      ],
-    };
-    const layout = layoutChant(document);
-    const firstSyllableNeume = layout.systems.flatMap(
-      (system) => system.neumes,
-    )[1];
-    const secondSyllableNeume = layout.systems.flatMap(
-      (system) => system.neumes,
-    )[0];
-    const firstSyllableNote = firstSyllableNeume?.notes[0];
-    const secondSyllableNote = secondSyllableNeume?.notes[0];
-
-    if (!firstSyllableNote || !secondSyllableNote) {
-      throw new Error('Missing multiple-syllable geometry');
-    }
-
-    expect(
-      layout.systems
-        .flatMap((system) => system.lyrics)
-        .map((lyric) => lyric.syllableId),
-    ).toEqual(['syllable-1', 'syllable-2']);
-    expect(layout.systems.flatMap((system) => system.lyrics)[0]?.x).toBe(
-      noteCenterX(firstSyllableNote),
-    );
-    expect(layout.systems.flatMap((system) => system.lyrics)[1]?.x).toBe(
-      noteCenterX(secondSyllableNote),
-    );
+    expect(deleted.syllables).toEqual([]);
   });
 
   it('preserves ordinary spacing between separate puncta', () => {
@@ -774,7 +648,7 @@ describe('layoutChant', () => {
 
     expect(layout.systems.flatMap((system) => system.neumes)[0]).toMatchObject({
       neumeId: 'neume-stable',
-      lyricSyllableId: 'syllable-1',
+
       kind: 'podatus',
     });
     expect(

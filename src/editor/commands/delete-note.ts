@@ -1,3 +1,4 @@
+import { deleteNeume } from './delete-neume';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNote, normalizeNeumeAfterNoteDeletion } from '../domain/neume';
 
@@ -20,12 +21,12 @@ export function deleteNote(
     return document;
   }
 
+  if (!normalizedNeume) return deleteNeume(document, locatedNote.neume.id);
+
   return {
     ...document,
-    neumes: normalizedNeume
-      ? document.neumes.map((neume, index) =>
-          index === locatedNote.neumeIndex ? normalizedNeume : neume,
-        )
-      : document.neumes.filter((_, index) => index !== locatedNote.neumeIndex),
+    neumes: document.neumes.map((neume, index) =>
+      index === locatedNote.neumeIndex ? normalizedNeume : neume,
+    ),
   };
 }

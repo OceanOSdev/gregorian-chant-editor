@@ -4,6 +4,8 @@ This directory contains the project's Architecture Decision Record (ADR) log.
 Each ADR captures one significant architectural decision or proposal, its
 context, and its consequences.
 
+The lyric relationship decision is [ADR 0008: Anchor lyric syllables to independent neumes](0008-anchor-lyrics-to-neumes.md).
+
 The accepted engraving decision is
 [ADR 0007: Share derived neume engraving geometry](0007-share-derived-neume-engraving-geometry.md).
 

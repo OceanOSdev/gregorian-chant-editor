@@ -20,13 +20,11 @@ import { deleteNote } from './delete-note';
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
   kind: 'punctum',
-  lyricSyllableId: 'syllable-alone',
   notes: [{ id: 'note-punctum', staffPosition: staffPosition(2) }],
 };
 const podatus: PodatusNeume = {
   id: 'neume-podatus',
   kind: 'podatus',
-  lyricSyllableId: 'syllable-shared',
   notes: [
     { id: 'note-podatus-1', staffPosition: staffPosition(2) },
     { id: 'note-podatus-2', staffPosition: staffPosition(4) },
@@ -35,7 +33,6 @@ const podatus: PodatusNeume = {
 const clivis: ClivisNeume = {
   id: 'neume-clivis',
   kind: 'clivis',
-  lyricSyllableId: 'syllable-shared',
   notes: [
     { id: 'note-clivis-1', staffPosition: staffPosition(5) },
     { id: 'note-clivis-2', staffPosition: staffPosition(3) },
@@ -44,7 +41,6 @@ const clivis: ClivisNeume = {
 const scandicus: ScandicusNeume = {
   id: 'neume-scandicus',
   kind: 'scandicus',
-  lyricSyllableId: 'syllable-shared',
   notes: [
     { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
     { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
@@ -57,8 +53,18 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-alone', text: 'Ky-' },
-      { id: 'syllable-shared', text: 'ri-' },
+      {
+        id: 'syllable-alone',
+        text: 'Ky',
+        startsAtNeumeId: punctum.id,
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-shared',
+        text: 'ri',
+        startsAtNeumeId: podatus.id,
+        boundaryBefore: 'word',
+      },
     ],
     neumes: [punctum, podatus, clivis, scandicus],
   };
@@ -70,7 +76,6 @@ function torculusDocument(
   const torculus: TorculusNeume = {
     id: 'neume-torculus',
     kind: 'torculus',
-    lyricSyllableId: 'syllable-shared',
     notes: [
       { id: 'note-torculus-1', staffPosition: staffPosition(positions[0]) },
       { id: 'note-torculus-2', staffPosition: staffPosition(positions[1]) },
@@ -90,7 +95,7 @@ describe('deleteNote', () => {
       'neume-clivis',
       'neume-scandicus',
     ]);
-    expect(deleted.syllables).toHaveLength(2);
+    expect(deleted.syllables).toHaveLength(1);
   });
 
   it.each([
@@ -135,7 +140,6 @@ describe('deleteNote', () => {
       expect(normalized).toMatchObject({
         id: neumeId,
         kind: 'punctum',
-        lyricSyllableId: 'syllable-shared',
       });
       expect(normalized?.notes[0]).toBe(survivorNote);
       expect(normalized?.notes[0]).toMatchObject({
@@ -167,7 +171,6 @@ describe('deleteNote', () => {
       expect(normalized).toMatchObject({
         id: 'neume-torculus',
         kind,
-        lyricSyllableId: 'syllable-shared',
       });
       expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds);
       expect(normalized?.notes[0]).toBe(
@@ -239,7 +242,6 @@ describe('deleteNote', () => {
       expect(normalized).toMatchObject({
         id: 'neume-scandicus',
         kind: 'podatus',
-        lyricSyllableId: 'syllable-shared',
       });
       expect(normalized?.notes.map((note) => note.id)).toEqual(survivingIds);
       expect(normalized?.notes[0]).toBe(originalSurvivors[0]);
@@ -318,7 +320,6 @@ describe('deleteNote', () => {
       expect(redone.present.neumes[2]).toMatchObject({
         id: 'neume-clivis',
         kind: 'punctum',
-        lyricSyllableId: 'syllable-shared',
       });
       expect(redone.present.neumes[2]?.notes[0]?.id).toBe(survivingNoteId);
       expect(redone.present.neumes[0]).toBe(document.neumes[0]);

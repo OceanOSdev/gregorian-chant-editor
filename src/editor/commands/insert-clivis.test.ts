@@ -18,7 +18,6 @@ function punctum(id: string): PunctumNeume {
   return {
     id: `neume-${id}`,
     kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
     notes: [{ id, staffPosition: staffPosition(3) }],
   };
 }
@@ -31,7 +30,6 @@ function clivis(
   return {
     id,
     kind: 'clivis',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: upperNoteId, staffPosition: staffPosition(3) },
       { id: lowerNoteId, staffPosition: staffPosition(2) },
@@ -43,7 +41,14 @@ function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: [
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-note-1',
+        boundaryBefore: 'word',
+      },
+    ],
     neumes: [punctum('note-1'), punctum('note-2')],
   };
 }
@@ -82,11 +87,6 @@ describe('insertClivis', () => {
     { name: 'negative boundary', insertionIndex: -1, candidate: clivis() },
     { name: 'boundary past the end', insertionIndex: 3, candidate: clivis() },
     { name: 'fractional boundary', insertionIndex: 1.5, candidate: clivis() },
-    {
-      name: 'unknown syllable',
-      insertionIndex: 1,
-      candidate: { ...clivis(), lyricSyllableId: 'unknown' },
-    },
     {
       name: 'duplicate neume ID',
       insertionIndex: 1,

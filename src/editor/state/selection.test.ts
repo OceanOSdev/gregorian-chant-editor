@@ -15,14 +15,23 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-1',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: 'neume-2',
+        boundaryBefore: 'word',
+      },
     ],
     neumes: [
       {
         id: 'neume-1',
         kind: 'podatus',
-        lyricSyllableId: 'syllable-1',
         notes: [
           { id: 'note-1', staffPosition: staffPosition(2) },
           { id: 'note-2', staffPosition: staffPosition(4) },
@@ -31,13 +40,11 @@ function createDocument(): ChantDocument {
       {
         id: 'neume-2',
         kind: 'punctum',
-        lyricSyllableId: 'syllable-2',
         notes: [{ id: 'note-3', staffPosition: staffPosition(3) }],
       },
       {
         id: 'neume-3',
         kind: 'scandicus',
-        lyricSyllableId: 'syllable-2',
         notes: [
           { id: 'note-4', staffPosition: staffPosition(1) },
           { id: 'note-5', staffPosition: staffPosition(3) },
@@ -47,7 +54,6 @@ function createDocument(): ChantDocument {
       {
         id: 'neume-4',
         kind: 'torculus',
-        lyricSyllableId: 'syllable-2',
         notes: [
           { id: 'note-7', staffPosition: staffPosition(2) },
           { id: 'note-8', staffPosition: staffPosition(5) },

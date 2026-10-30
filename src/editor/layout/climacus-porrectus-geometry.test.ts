@@ -52,7 +52,7 @@ function three(
   return {
     id,
     kind,
-    lyricSyllableId: 'lyric',
+
     notes: [
       { id: `${id}-0`, staffPosition: staffPosition(first) },
       { id: `${id}-1`, staffPosition: staffPosition(first - a) },
@@ -69,7 +69,16 @@ function documentWith(neumes: Neume[]): ChantDocument {
   return {
     title: 'Engraving review',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'lyric', text: 'Al-' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'lyric',
+            text: 'Al',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes,
   };
 }
@@ -186,7 +195,7 @@ describe('approved Climacus and Porrectus engraving', () => {
             ];
             const {
               neumeId: _id,
-              lyricSyllableId: _lyric,
+
               kind: _kind,
               notes,
               ...geometry

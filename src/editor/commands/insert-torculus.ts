@@ -2,7 +2,7 @@ import type { ChantDocument, TorculusNeume } from '../domain/chant-document';
 import { isValidNeume } from '../domain/neume';
 
 /**
- * Accepts only a complete boundary, an existing syllable, three unique
+ * Accepts only a complete boundary, three unique
  * collision-free note IDs, and a runtime-valid rise-then-fall Torculus.
  */
 export function insertTorculus(
@@ -20,15 +20,11 @@ export function insertTorculus(
       neume.id === torculus.id ||
       neume.notes.some((note) => candidateNoteIds.includes(note.id)),
   );
-  const hasSyllable = document.syllables.some(
-    (syllable) => syllable.id === torculus.lyricSyllableId,
-  );
 
   if (
     !Number.isInteger(insertionIndex) ||
     insertionIndex < 0 ||
     insertionIndex > document.neumes.length ||
-    !hasSyllable ||
     !hasUniqueCandidateNoteIds ||
     hasIdCollision ||
     !isValidNeume(torculus)

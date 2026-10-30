@@ -46,7 +46,7 @@ function three(
   return {
     id,
     kind,
-    lyricSyllableId: 'lyric',
+
     notes: [
       { id: `${id}-0`, staffPosition: staffPosition(first) },
       { id: `${id}-1`, staffPosition: staffPosition(first + a) },
@@ -63,7 +63,16 @@ function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
     title: 'Three-note engraving',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'lyric', text: 'a' }],
+    syllables: neumes.length
+      ? [
+          {
+            id: 'lyric',
+            text: 'a',
+            startsAtNeumeId: neumes[0].id,
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes: [...neumes],
   };
 }
@@ -245,7 +254,7 @@ describe('ordinary Scandicus and Torculus engraving', () => {
             ];
             const {
               neumeId: _id,
-              lyricSyllableId: _lyric,
+
               kind: _kind,
               notes,
               ...geometry

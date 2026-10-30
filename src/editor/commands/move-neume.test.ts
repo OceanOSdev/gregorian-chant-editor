@@ -19,13 +19,11 @@ import { moveNeumeVertically } from './move-neume';
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
   kind: 'punctum',
-  lyricSyllableId: 'syllable-1',
   notes: [{ id: 'note-punctum', staffPosition: staffPosition(3) }],
 };
 const podatus: PodatusNeume = {
   id: 'neume-podatus',
   kind: 'podatus',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-podatus-1', staffPosition: staffPosition(2) },
     { id: 'note-podatus-2', staffPosition: staffPosition(5) },
@@ -34,7 +32,6 @@ const podatus: PodatusNeume = {
 const clivis: ClivisNeume = {
   id: 'neume-clivis',
   kind: 'clivis',
-  lyricSyllableId: 'syllable-2',
   notes: [
     { id: 'note-clivis-1', staffPosition: staffPosition(6) },
     { id: 'note-clivis-2', staffPosition: staffPosition(4) },
@@ -43,7 +40,6 @@ const clivis: ClivisNeume = {
 const scandicus: ScandicusNeume = {
   id: 'neume-scandicus',
   kind: 'scandicus',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
     { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
@@ -53,7 +49,6 @@ const scandicus: ScandicusNeume = {
 const torculus: TorculusNeume = {
   id: 'neume-torculus',
   kind: 'torculus',
-  lyricSyllableId: 'syllable-2',
   notes: [
     { id: 'note-torculus-1', staffPosition: staffPosition(2) },
     { id: 'note-torculus-2', staffPosition: staffPosition(5) },
@@ -66,8 +61,18 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: punctum.id,
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: clivis.id,
+        boundaryBefore: 'word',
+      },
     ],
     neumes: [punctum, podatus, clivis, scandicus, torculus],
   };
@@ -137,7 +142,6 @@ describe('moveNeumeVertically', () => {
       expect(movedPodatus).toMatchObject({
         id: 'neume-podatus',
         kind: 'podatus',
-        lyricSyllableId: 'syllable-1',
       });
       expect(movedPodatus?.notes.map((note) => note.id)).toEqual([
         'note-podatus-1',
@@ -168,7 +172,6 @@ describe('moveNeumeVertically', () => {
       expect(movedClivis).toMatchObject({
         id: 'neume-clivis',
         kind: 'clivis',
-        lyricSyllableId: 'syllable-2',
       });
       expect(movedClivis?.notes.map((note) => note.id)).toEqual([
         'note-clivis-1',
@@ -191,9 +194,6 @@ describe('moveNeumeVertically', () => {
     expect(moved.neumes.map((neume) => neume.id)).toEqual(
       document.neumes.map((neume) => neume.id),
     );
-    expect(moved.neumes[1]?.lyricSyllableId).toBe(
-      document.neumes[1]?.lyricSyllableId,
-    );
   });
 
   it('moves all Scandicus notes equally and preserves both intervals and IDs', () => {
@@ -205,7 +205,6 @@ describe('moveNeumeVertically', () => {
     expect(movedScandicus).toMatchObject({
       id: 'neume-scandicus',
       kind: 'scandicus',
-      lyricSyllableId: 'syllable-1',
     });
     expect(movedScandicus?.notes.map((note) => note.id)).toEqual([
       'note-scandicus-1',
@@ -322,7 +321,7 @@ describe('moveNeumeVertically', () => {
         {
           id: 'invalid-neume',
           kind,
-          lyricSyllableId: 'syllable-1',
+
           notes: [...notes],
         },
       ],

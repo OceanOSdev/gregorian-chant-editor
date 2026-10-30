@@ -1,67 +1,27 @@
-import {
-  type ChantDocument,
-  type StaffPosition,
-} from '../domain/chant-document';
-import { findNote } from '../domain/neume';
-import { resolveSyllableNeumeInsertionIndex } from './resolve-syllable-neume-insertion';
+import type { ChantDocument, StaffPosition } from '../domain/chant-document';
+import { findNeume, findNote } from '../domain/neume';
+import type { EditorSelection } from '../state/selection';
 
 export interface ToolbarNeumeInsertion {
   insertionIndex: number;
   referenceStaffPosition: StaffPosition;
 }
 
-/**
- * Resolves a complete-neume boundary and reference pitch. An active-syllable
- * selection wins, followed by its final note, then the empty-syllable fallback.
- */
 export function resolveToolbarNeumeInsertion(
   document: ChantDocument,
-  activeSyllableId: string,
-  selectedNoteId: string | null,
-  emptySyllableFallback: StaffPosition,
-): ToolbarNeumeInsertion | null {
-  const activeSyllable = document.syllables.find(
-    (syllable) => syllable.id === activeSyllableId,
-  );
-
-  if (!activeSyllable) {
-    return null;
-  }
-
-  const selectedNote = selectedNoteId
-    ? findNote(document, selectedNoteId)
-    : null;
-  const selectedActiveNote =
-    selectedNote?.neume.lyricSyllableId === activeSyllable.id
-      ? selectedNote
-      : null;
-  const activeNeumeIndexes = document.neumes.flatMap((neume, index) =>
-    neume.lyricSyllableId === activeSyllable.id ? [index] : [],
-  );
-  const finalActiveNeumeIndex = activeNeumeIndexes.at(-1);
-  const preferredIndex = selectedActiveNote
-    ? selectedActiveNote.neumeIndex + 1
-    : (finalActiveNeumeIndex ?? document.neumes.length) + 1;
-  const insertionIndex = resolveSyllableNeumeInsertionIndex(
-    document,
-    activeSyllable.id,
-    preferredIndex,
-  );
-
-  if (insertionIndex === null) {
-    return null;
-  }
-
-  const finalActiveNote =
-    finalActiveNeumeIndex === undefined
-      ? undefined
-      : document.neumes[finalActiveNeumeIndex]?.notes.at(-1);
-
+  selection: EditorSelection,
+  fallback: StaffPosition,
+): ToolbarNeumeInsertion {
+  const note =
+    selection.kind === 'note' ? findNote(document, selection.noteId) : null;
+  const located =
+    selection.kind === 'neume' ? findNeume(document, selection.neumeId) : note;
   return {
-    insertionIndex,
+    insertionIndex: located ? located.neumeIndex + 1 : document.neumes.length,
     referenceStaffPosition:
-      selectedActiveNote?.note.staffPosition ??
-      finalActiveNote?.staffPosition ??
-      emptySyllableFallback,
+      note?.note.staffPosition ??
+      located?.neume.notes.at(-1)?.staffPosition ??
+      document.neumes.at(-1)?.notes.at(-1)?.staffPosition ??
+      fallback,
   };
 }

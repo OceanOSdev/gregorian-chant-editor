@@ -33,12 +33,11 @@ Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus.
 
 ### Syllable
 
-An ordered semantic lyric entity with stable ID and complete text. Neumes refer
-to a syllable by ID.
+An ordered semantic lyric entity with stable ID, text, word boundary and a stable start-neume anchor.
 
 ### Melisma
 
-In this project, multiple neumes associated with the same lyric syllable.
+In this project, multiple neumes covered by one syllable anchor before the next anchor.
 
 ### Staff line
 

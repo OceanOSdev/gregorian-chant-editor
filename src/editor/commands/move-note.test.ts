@@ -18,13 +18,11 @@ import { moveNoteVertically, type StaffPositionDelta } from './move-note';
 const punctum: PunctumNeume = {
   id: 'neume-punctum',
   kind: 'punctum',
-  lyricSyllableId: 'syllable-1',
   notes: [{ id: 'note-punctum', staffPosition: staffPosition(3) }],
 };
 const podatus: PodatusNeume = {
   id: 'neume-podatus',
   kind: 'podatus',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-podatus-1', staffPosition: staffPosition(2) },
     { id: 'note-podatus-2', staffPosition: staffPosition(4) },
@@ -33,7 +31,6 @@ const podatus: PodatusNeume = {
 const clivis: ClivisNeume = {
   id: 'neume-clivis',
   kind: 'clivis',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-clivis-1', staffPosition: staffPosition(5) },
     { id: 'note-clivis-2', staffPosition: staffPosition(3) },
@@ -42,7 +39,6 @@ const clivis: ClivisNeume = {
 const scandicus: ScandicusNeume = {
   id: 'neume-scandicus',
   kind: 'scandicus',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-scandicus-1', staffPosition: staffPosition(2) },
     { id: 'note-scandicus-2', staffPosition: staffPosition(4) },
@@ -52,7 +48,6 @@ const scandicus: ScandicusNeume = {
 const torculus: TorculusNeume = {
   id: 'neume-torculus',
   kind: 'torculus',
-  lyricSyllableId: 'syllable-1',
   notes: [
     { id: 'note-torculus-1', staffPosition: staffPosition(2) },
     { id: 'note-torculus-2', staffPosition: staffPosition(5) },
@@ -64,7 +59,14 @@ function createDocument(): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: [
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: punctum.id,
+        boundaryBefore: 'word',
+      },
+    ],
     neumes: [punctum, podatus, clivis, scandicus, torculus],
   };
 }
@@ -296,7 +298,6 @@ describe('moveNoteVertically', () => {
       expect(movedScandicus).toMatchObject({
         id: 'neume-scandicus',
         kind: 'scandicus',
-        lyricSyllableId: 'syllable-1',
       });
       expect(movedScandicus?.notes.map((note) => note.id)).toEqual([
         'note-scandicus-1',

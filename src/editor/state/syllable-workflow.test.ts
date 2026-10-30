@@ -7,13 +7,19 @@ import { selectNote } from './selection';
 const document: ChantDocument = {
   title: 'Lyrics',
   clef: { type: 'c', staffLine: 3 },
-  syllables: [{ id: 's1', text: 'Ky' }],
+  syllables: [
+    { id: 's1', text: 'Ky', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
+  ],
   neumes: [
     {
       id: 'n1',
       kind: 'punctum',
-      lyricSyllableId: 's1',
       notes: [{ id: 'note1', staffPosition: staffPosition(2) }],
+    },
+    {
+      id: 'n2',
+      kind: 'punctum',
+      notes: [{ id: 'note2', staffPosition: staffPosition(3) }],
     },
   ],
 };
@@ -21,11 +27,21 @@ it('adds typed text in one operation without overwriting, targets it, and reconc
   const initial = createEditorSession(document);
   const added = reduceEditorSession(initial, {
     type: 'add-syllable',
-    syllable: { id: 's2', text: 'ri' },
+    syllable: {
+      id: 's2',
+      text: 'ri',
+      startsAtNeumeId: 'n2',
+      boundaryBefore: 'continuation',
+    },
   });
   expect(added.history.present.syllables).toEqual([
-    { id: 's1', text: 'Ky' },
-    { id: 's2', text: 'ri' },
+    { ...document.syllables[0], text: 'Ky' },
+    {
+      id: 's2',
+      text: 'ri',
+      startsAtNeumeId: 'n2',
+      boundaryBefore: 'continuation',
+    },
   ]);
   expect(added.activeSyllableId).toBe('s2');
   expect(added.history.past).toHaveLength(1);
@@ -58,7 +74,9 @@ it('selects and edits by stable ID, preserving notation and selection through hi
     type: 'edit',
     edit: (doc) => updateLyricSyllableText(doc, 's1', 'Kyr'),
   });
-  expect(state.history.present.syllables).toEqual([{ id: 's1', text: 'Kyr' }]);
+  expect(state.history.present.syllables).toEqual([
+    { ...document.syllables[0], text: 'Kyr' },
+  ]);
   expect(state.history.present.neumes).toBe(document.neumes);
   expect(state.selection).toBe(selection);
   expect(state.history.past).toHaveLength(1);
@@ -73,7 +91,10 @@ it('selects and edits by stable ID, preserving notation and selection through hi
     direction: 'redo',
     focusedNoteId: null,
   });
-  expect(state.history.present.syllables[0]).toEqual({ id: 's1', text: 'Kyr' });
+  expect(state.history.present.syllables[0]).toEqual({
+    ...document.syllables[0],
+    text: 'Kyr',
+  });
   expect(state.history.present.neumes).toBe(document.neumes);
   const unchanged = reduceEditorSession(state, {
     type: 'edit',

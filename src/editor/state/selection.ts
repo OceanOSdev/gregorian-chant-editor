@@ -1,3 +1,4 @@
+import { findSyllableForNeume } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
 
@@ -41,13 +42,14 @@ export function resolveSelectionSyllableId(
   selection: EditorSelection,
 ): string | null {
   if (selection.kind === 'note') {
-    return findNote(document, selection.noteId)?.neume.lyricSyllableId ?? null;
+    const neume = findNote(document, selection.noteId)?.neume;
+    return neume
+      ? (findSyllableForNeume(document, neume.id)?.id ?? null)
+      : null;
   }
 
   if (selection.kind === 'neume') {
-    return (
-      findNeume(document, selection.neumeId)?.neume.lyricSyllableId ?? null
-    );
+    return findSyllableForNeume(document, selection.neumeId)?.id ?? null;
   }
 
   return null;

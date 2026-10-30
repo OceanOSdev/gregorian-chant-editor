@@ -7,11 +7,19 @@ function documentWith(count: number): ChantDocument {
   return {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
-    syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+    syllables: count
+      ? [
+          {
+            id: 'syllable-1',
+            text: 'Ky',
+            startsAtNeumeId: 'neume-0',
+            boundaryBefore: 'word',
+          },
+        ]
+      : [],
     neumes: Array.from({ length: count }, (_, index) => ({
       id: `neume-${index}`,
       kind: 'punctum',
-      lyricSyllableId: 'syllable-1',
       notes: [
         {
           id: `note-${index}`,
@@ -44,7 +52,6 @@ describe('getScoreAccessibleDescription', () => {
         {
           id: 'neume-torculus',
           kind: 'torculus',
-          lyricSyllableId: 'syllable-1',
           notes: [
             { id: 'note-1', staffPosition: staffPosition(2) },
             { id: 'note-2', staffPosition: staffPosition(4) },

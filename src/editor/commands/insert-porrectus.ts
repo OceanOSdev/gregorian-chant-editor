@@ -2,7 +2,7 @@ import type { ChantDocument, PorrectusNeume } from '../domain/chant-document';
 import { isValidNeume } from '../domain/neume';
 
 /**
- * Accepts only a complete boundary, an existing syllable, three unique
+ * Accepts only a complete boundary, three unique
  * collision-free note IDs, and a runtime-valid fall-then-rise Porrectus.
  */
 export function insertPorrectus(
@@ -20,15 +20,11 @@ export function insertPorrectus(
       neume.id === porrectus.id ||
       neume.notes.some((note) => candidateNoteIds.includes(note.id)),
   );
-  const hasSyllable = document.syllables.some(
-    (syllable) => syllable.id === porrectus.lyricSyllableId,
-  );
 
   if (
     !Number.isInteger(insertionIndex) ||
     insertionIndex < 0 ||
     insertionIndex > document.neumes.length ||
-    !hasSyllable ||
     !hasUniqueCandidateNoteIds ||
     hasIdCollision ||
     !isValidNeume(porrectus)

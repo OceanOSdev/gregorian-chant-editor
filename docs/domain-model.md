@@ -29,13 +29,22 @@ Those concerns are derived or transient.
 
 ## Syllables, neumes, and notes
 
-A lyric syllable has a stable `id` and its complete `text`. A neume has its own
-stable `id`, a discriminating `kind`, a `lyricSyllableId`, and nested notes.
-Each note has a stable `id` and a `StaffPosition`.
+A lyric syllable has a stable `id`, nonblank single-syllable `text`, a
+`startsAtNeumeId` anchor, and `boundaryBefore` (`word` or `continuation`).
+Neumes are independent entities with stable IDs, explicit kinds, and nested
+notes. They have no lyric reference.
 
-`lyricSyllableId` associates a neume with one semantic syllable. Several
-neumes may share it, forming the editor's current representation of a
-[melisma](glossary.md#melisma). A syllable may also have no associated neume.
+Each syllable anchors an existing neume; anchors are unique and strictly
+ordered by the semantic neume array. The first syllable starts a word.
+`hasValidLyricAnchors` checks these lyric invariants. `findSyllableAtNeume`
+looks up an exact anchor; `findSyllableForNeume` derives membership from the
+nearest preceding anchor. Neither stores derived spans. Before the first
+anchor, music has no lyrics; the last syllable extends to document end.
+Explicit lyricless tails and unanchored lyrics are future extensions.
+
+Text cannot be blank or contain whitespace, ASCII hyphens, or underscores.
+Word structure is metadata, not literal entry delimiters. Generated hyphens
+and continuous lyric entry are deferred implementation stages.
 
 Semantic order is the order of `ChantDocument.neumes`. Layout preserves that
 order while partitioning it into derived systems. Array indexes are useful
@@ -100,18 +109,17 @@ Insertion indexes are boundaries in the top-level neume array, from zero
 through `document.neumes.length`, inclusive. A boundary never points between
 notes inside a compact neume.
 
-`resolveSyllableNeumeInsertionIndex` constrains a preferred global boundary to
-the active syllable's existing neume group. For a syllable with no neumes, it
-chooses the position before the next later syllable group, or the document end.
-This maintains lyric-syllable ordering and keeps each associated group
-contiguous.
-
-Toolbar and graphical insertion both use this canonical resolver. The active
-syllable is transient editor state, not a field in `ChantDocument`.
+Insertion is independent of lyrics: any valid whole-neume boundary is legal,
+and inserting music never moves existing syllable anchors. Toolbar insertion
+uses musical selection; graphical insertion uses the clicked system boundary.
 
 ## Deletion and normalization
 
-Deleting a complete neume removes that neume and all nested notes.
+Deleting a complete neume removes it, its notes, and its anchored syllable,
+if any, atomically. Other anchors remain unchanged. Deleting the final note
+uses the same policy. Syllable deletion preserves crossed word boundaries:
+the successor starts a word if either it or the deleted syllable started one;
+the first surviving syllable always starts a word.
 
 Deleting an individual note normalizes the owning neume:
 
@@ -129,18 +137,15 @@ deleting the first note produces Podatus, and deleting the third produces
 Clivis. Deleting the middle produces Podatus when the outer notes ascend,
 Clivis when they descend, or no edit when they are equal, matching Torculus.
 
-Normalization preserves the neume ID, its syllable association, and the IDs of
+Normalization preserves the neume ID, its lyric anchor, and the IDs of
 surviving notes. Stable identity therefore remains valid for surviving
 selection and history references.
 
-## Command-validation nuance
+## Validation boundaries
 
-Podatus and Clivis share a validating two-note insertion helper. Scandicus,
-Torculus, Climacus, and Porrectus insertion independently check their index,
-syllable association, IDs, cardinality, and pitch invariant. `insertPunctum`
-currently performs a simple immutable splice and is not independently as
-defensive as the multi-note insertion commands.
+Insertion commands check whole-neume boundaries, identity collisions and
+kind/cardinality/pitch invariants without requiring lyrics. Lyric commands
+validate their target and lyric invariants. Invalid or unchanged commands
+return the original document. Stable neume IDs retain anchors through normalization.
 
-Callers currently provide valid Punctum inputs and resolved boundaries. This is
-a current implementation nuance, not a recommendation to bypass validation and
-not a behavior changed by the documentation milestone.
+See [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md) for the relationship decision.

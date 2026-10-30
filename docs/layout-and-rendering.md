@@ -89,7 +89,7 @@ same center, especially for an optically lifted adjacent Pes upper head.
 `hitShape?: InkShape` supplies a polygonal pointer/focus target for Climacus;
 absence retains the rectangular target. Shared ink parts have
 no semantic IDs. Only committed `NoteLayout` and `NeumeLayout` attach existing
-note, neume, and syllable IDs.
+note and neume IDs.
 
 Complete painted `bounds` support measurement, insertion midpoints, and
 whole-neume outlines. They exclude interaction padding and selection styling.
@@ -139,7 +139,7 @@ data attributes. Coordinates remain derived and carry no authority back into
 the semantic document.
 
 Graphical previews reuse complete ID-free `NeumeGeometry` for a ghost on the
-hovered staff, alongside caret coordinates for the clamped semantic insertion
+hovered staff, alongside caret coordinates for the semantic insertion
 index. They share shape, snapped pitch and ink rendering with committed notation;
 final spacing and system assignment are derived only after insertion. `ScoreSvg`
 renders committed systems directly throughout hover, without hiding/replacing
@@ -149,14 +149,10 @@ for input and lifecycle rules.
 
 ## Lyrics
 
-Lyric syllables live in `ChantDocument`; lyric coordinates do not. Each neume
-refers to one syllable ID. Layout scans committed neumes in semantic/layout
-order and records the first associated neume for each syllable.
-
-For every associated syllable, layout emits one `LyricLayout` owned by the
-system containing that first neume. Later neumes for the same syllable do not
-create repeated text. A melisma that crosses a system break therefore keeps its
-single lyric on the first system.
+Lyric syllables carry stable `startsAtNeumeId` anchors. Layout resolves each
+anchor directly to its committed neume and emits one lyric on that system.
+Later neumes in the span never repeat the text, including across system breaks.
+Music-only geometry still determines spacing and wrapping.
 
 Current horizontal alignment rules are:
 
@@ -167,9 +163,9 @@ Current horizontal alignment rules are:
 - Scandicus: center of its first, lowest note.
 - Torculus, Climacus, and Porrectus: center of their first note.
 
-An unassociated syllable has no lyric layout entry. An associated syllable
-with empty text still has an entry and renders an empty SVG text value. Layout
-preserves semantic syllable order when collecting lyric entries.
+Valid semantic documents contain only anchored, nonblank syllables in anchor
+order. Layout preserves that order. Word boundaries are semantic metadata;
+generated hyphens are deferred to Stage 4.
 
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 alignment x coordinate. The renderer does not implement vowel-centered

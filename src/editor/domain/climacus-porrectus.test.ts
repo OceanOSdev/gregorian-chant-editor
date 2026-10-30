@@ -19,7 +19,7 @@ function neume(
   return {
     id: 'neume',
     kind,
-    lyricSyllableId: 'syllable',
+
     notes: [
       { id: 'first', staffPosition: staffPosition(pitches[0]) },
       { id: 'second', staffPosition: staffPosition(pitches[1]) },
@@ -81,7 +81,6 @@ describe('Climacus and Porrectus domain', () => {
       );
       expect(normalized?.kind).toBe(result);
       expect(normalized?.id).toBe(original.id);
-      expect(normalized?.lyricSyllableId).toBe(original.lyricSyllableId);
       const survivors = original.notes.filter((_, index) => index !== deleted);
       expect(normalized?.notes).toEqual(survivors);
       survivors.forEach((note, index) =>
@@ -107,7 +106,7 @@ describe('Climacus and Porrectus domain', () => {
       const document: ChantDocument = {
         title: '',
         clef: { type: 'c', staffLine: 3 },
-        syllables: [{ id: 'syllable', text: 'Ky' }],
+        syllables: [],
         neumes: [candidate],
       };
       expect(countNotes(document.neumes)).toBe(3);

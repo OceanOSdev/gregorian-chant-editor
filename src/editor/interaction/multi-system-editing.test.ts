@@ -5,12 +5,18 @@ import { getSurvivingFocusNoteId } from './multi-system-editing';
 const document: ChantDocument = {
   title: 'Test',
   clef: { type: 'c', staffLine: 3 },
-  syllables: [{ id: 'syllable-1', text: 'Ky-' }],
+  syllables: [
+    {
+      id: 'syllable-1',
+      text: 'Ky',
+      startsAtNeumeId: 'neume-1',
+      boundaryBefore: 'word',
+    },
+  ],
   neumes: [
     {
       id: 'neume-1',
       kind: 'punctum',
-      lyricSyllableId: 'syllable-1',
       notes: [{ id: 'note-1', staffPosition: staffPosition(2) }],
     },
   ],

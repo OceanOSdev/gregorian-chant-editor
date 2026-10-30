@@ -9,14 +9,15 @@ export const exampleDocument: ChantDocument = {
   syllables: [
     {
       id: 'syllable-alle',
-      text: 'Al-',
+      text: 'Al',
+      startsAtNeumeId: 'neume-punctum-1',
+      boundaryBefore: 'word',
     },
   ],
   neumes: [
     {
       id: 'neume-punctum-1',
       kind: 'punctum',
-      lyricSyllableId: 'syllable-alle',
       notes: [
         {
           id: 'note-punctum-1',
@@ -27,7 +28,6 @@ export const exampleDocument: ChantDocument = {
     {
       id: 'neume-torculus-1',
       kind: 'torculus',
-      lyricSyllableId: 'syllable-alle',
       notes: [
         {
           id: 'note-torculus-1',

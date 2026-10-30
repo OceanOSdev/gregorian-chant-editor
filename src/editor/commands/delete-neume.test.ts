@@ -16,13 +16,11 @@ const neumes: Neume[] = [
   {
     id: 'neume-punctum',
     kind: 'punctum',
-    lyricSyllableId: 'syllable-1',
     notes: [{ id: 'note-punctum', staffPosition: staffPosition(2) }],
   },
   {
     id: 'neume-podatus',
     kind: 'podatus',
-    lyricSyllableId: 'syllable-1',
     notes: [
       { id: 'note-podatus-lower', staffPosition: staffPosition(2) },
       { id: 'note-podatus-upper', staffPosition: staffPosition(4) },
@@ -31,7 +29,6 @@ const neumes: Neume[] = [
   {
     id: 'neume-clivis',
     kind: 'clivis',
-    lyricSyllableId: 'syllable-2',
     notes: [
       { id: 'note-clivis-upper', staffPosition: staffPosition(5) },
       { id: 'note-clivis-lower', staffPosition: staffPosition(3) },
@@ -40,7 +37,6 @@ const neumes: Neume[] = [
   {
     id: 'neume-scandicus',
     kind: 'scandicus',
-    lyricSyllableId: 'syllable-2',
     notes: [
       { id: 'note-scandicus-1', staffPosition: staffPosition(1) },
       { id: 'note-scandicus-2', staffPosition: staffPosition(3) },
@@ -50,7 +46,6 @@ const neumes: Neume[] = [
   {
     id: 'neume-torculus',
     kind: 'torculus',
-    lyricSyllableId: 'syllable-2',
     notes: [
       { id: 'note-torculus-1', staffPosition: staffPosition(2) },
       { id: 'note-torculus-2', staffPosition: staffPosition(5) },
@@ -64,8 +59,18 @@ function createDocument(): ChantDocument {
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [
-      { id: 'syllable-1', text: 'Ky-' },
-      { id: 'syllable-2', text: 'ri-' },
+      {
+        id: 'syllable-1',
+        text: 'Ky',
+        startsAtNeumeId: 'neume-punctum',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'syllable-2',
+        text: 'ri',
+        startsAtNeumeId: 'neume-clivis',
+        boundaryBefore: 'word',
+      },
     ],
     neumes: [...neumes],
   };
@@ -78,14 +83,18 @@ describe('deleteNeume', () => {
     'neume-clivis',
     'neume-scandicus',
     'neume-torculus',
-  ])('removes the complete %s and preserves its lyric syllable', (neumeId) => {
-    const document = createDocument();
-    const deleted = deleteNeume(document, neumeId);
+  ])(
+    'removes the complete %s and removes only its anchored lyric',
+    (neumeId) => {
+      const document = createDocument();
+      const deleted = deleteNeume(document, neumeId);
 
-    expect(deleted.neumes.some((neume) => neume.id === neumeId)).toBe(false);
-    expect(deleted.syllables).toBe(document.syllables);
-    expect(deleted.syllables).toEqual(document.syllables);
-  });
+      expect(deleted.neumes.some((neume) => neume.id === neumeId)).toBe(false);
+      expect(deleted.syllables).toEqual(
+        document.syllables.filter((s) => s.startsAtNeumeId !== neumeId),
+      );
+    },
+  );
 
   it('returns the exact document for an unknown ID', () => {
     const document = createDocument();
@@ -126,7 +135,6 @@ describe('deleteNeume', () => {
     expect(undone.present.neumes[1]).toEqual({
       id: 'neume-podatus',
       kind: 'podatus',
-      lyricSyllableId: 'syllable-1',
       notes: [
         { id: 'note-podatus-lower', staffPosition: 2 },
         { id: 'note-podatus-upper', staffPosition: 4 },
