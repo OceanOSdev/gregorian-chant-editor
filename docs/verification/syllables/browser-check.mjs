@@ -1,5 +1,8 @@
+// Historical driver: see README.md for superseded fixtures and UI contracts.
 import assert from 'node:assert/strict';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 const origin = process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173';
 const pages = await (
   await fetch(
@@ -38,8 +41,8 @@ const record = (name, value) => {
   results.checks.push({ name, ...value });
   console.log(name, JSON.stringify(value));
 };
-const out = 'docs/verification/syllables';
-await mkdir(out, { recursive: true });
+const out = await mkdtemp(join(tmpdir(), 'chant-syllables-'));
+console.log(`Diagnostic outputs: ${out}`);
 await send('Emulation.setDeviceMetricsOverride', {
   width: 1440,
   height: 900,

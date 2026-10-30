@@ -4,6 +4,24 @@ PR #35; 2026-10-19. The persistent palette, contextual Insert command, I/T and
 roving keyboard navigation are unchanged. Moving the pointer now communicates
 insertion intent without rearranging the score. Actual reflow happens on click.
 
+## Historical scope and driver status
+
+This is a PR #35 implementation record, not the current lyric/insertion contract.
+The [driver](browser-check.mjs) is preserved because its pointer sweeps, rapid
+placement, scrolling, ghost geometry and keyboard scenarios remain useful.
+It currently cannot pass against master: its syllables lack anchor/boundary
+fields, it queries the removed Active syllable selector and `#lyric-syllable`,
+and it asserts remote active-syllable insertion constraints removed in Stage 1.
+Adapting this broad driver requires a separate coverage-focused change; no
+assertions have been removed here. Use [editor interactions](../../editor-interactions.md)
+for current behavior and [Stage 2 checks](../continuous-lyrics/README.md) for
+working lyric verification.
+
+The shared [fixture page](browser-fixture.html) remains current and is used by
+the Stage 2 driver. Recorded JSON and screenshots below are historical evidence,
+not asserted regression baselines. They are conservatively retained pending a
+separate assessment of their placement/scrolling reference value.
+
 ## Preview decisions
 
 - One preview path: a caret for the resolved semantic boundary and a translucent
@@ -75,7 +93,7 @@ Existing [desktop](placement-1440.png), [390 px](placement-390.png) and
 remain available. Earlier prospective-scene images were removed to avoid
 presenting superseded behavior as current.
 
-## Reproduce the automated browser checks
+## Historical browser invocation (requires driver adaptation)
 
 No browser automation dependency is added. Use a recent Node with built-in
 fetch/WebSocket and a Chromium DevTools endpoint:
@@ -88,7 +106,8 @@ CHANT_EDITOR_URL=http://127.0.0.1:5173 node docs/verification/placement/browser-
 
 Use browser flags appropriate to the environment. `CHANT_CHROME_URL` overrides
 the endpoint (default `http://127.0.0.1:9250`). Run from the repo root. Results
-and screenshots are written here. The [development fixture](browser-fixture.html)
+and screenshots are written to a fresh system temporary directory whose path is
+printed by the driver; tracked historical outputs are not overwritten. The [development fixture](browser-fixture.html)
 mounts production components with explicit documents and no production debug API.
 
 ## Tests and limits

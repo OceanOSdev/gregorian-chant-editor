@@ -202,6 +202,14 @@ placement cancellation, and actual focus behavior in the browser.
 - Update [commands and history](commands-and-history.md) when the contract
   changes.
 
+## Verification artifact policy
+
+The [verification index and audit](verification/README.md) distinguishes approved
+engraving references, reusable fixtures, historical drivers and generated outputs.
+Browser diagnostics belong in system temporary directories; committed specimens
+and historical evidence must not be refreshed as a side effect of test runs.
+These scripts remain separate from Vitest and CI.
+
 ## Initial square-notation engraving verification
 
 `neume-geometry.test.ts` covers the approved adjacent contacts, interval/stem
@@ -209,7 +217,7 @@ matrix, large-interval extrapolations, shared geometry/committed-layout equivale
 anchor independence, exact-fit interval reflow, stable IDs,
 normalization, and atomic undo/redo. Existing interaction and accessibility tests
 remain in place. The [browser verification record](verification/engraving/README.md)
-contains screenshots, viewport scales, and the limits of the Chromium checks.
+preserves historical screenshots, viewport scales, and the limits of the Chromium checks.
 No browser testing dependency was added.
 
 ### Climacus and Porrectus engraving verification
@@ -247,7 +255,9 @@ scope/modifier/composition guards.
 
 The [real-browser placement record](verification/placement/README.md) includes a
 standalone development fixture and a dependency-free DevTools Protocol script.
-These exercise the actual StrictMode React editor, including rapid clicks,
+The fixture still mounts the actual StrictMode React editor. The historical
+driver requires adaptation to the anchored model and current controls before
+it can pass; its recorded scenarios include rapid clicks,
 focus timing, long/nested scroll preservation, live-region mutations, and native
 keyboard behavior. They remain separate from the plain Vitest suite. Accessibility
 tree and mutation checks do not replace a spoken screen-reader verification.
@@ -261,7 +271,7 @@ use anchor fixtures and verify lyric-independent music insertion. Stage 1 browse
 checks should cover selecting a free neume to add lyrics, occupied-anchor protection,
 text validation, insertion without lyrics, anchored deletion and undo/redo.
 
-The [Stage 1 browser record](verification/lyric-anchors/README.md) records the exercised interactions and verification limits.
+The [Stage 1 browser record](verification/lyric-anchors/README.md) records historical interactions and verification limits. Its driver targets controls replaced in Stage 2 and does not pass against the current UI; use the Stage 2 driver below for current lyric checks.
 
 ## Continuous lyric-entry verification
 

@@ -1,11 +1,15 @@
 # Scandicus and Torculus: engraving proposal
 
+The proposal and implementation checklist below are historical, including requests
+to keep ADR 0007 Proposed during review. Current status and contracts belong to
+[ADR 0007](../../adrs/0007-share-derived-neume-engraving-geometry.md)
+and [engraving metrics](../../engraving-metrics.md).
+
 Historical review draft, 2026-10-18. Implementation was subsequently authorized
 with the clarification that conventional disconnected ink must be preserved.
 The implementation supersedes this draft’s blanket connectivity assumption and
 Torculus contact patches; see [implementation verification](implementation.md)
-and the authoritative [drawing metrics](../../engraving-metrics.md). ADR 0007
-remains **Proposed**. The approved Punctum, Podatus and Clivis remain unchanged.
+and the authoritative [drawing metrics](../../engraving-metrics.md). ADR 0007 is now Accepted (Proposed at this review). The approved Punctum, Podatus and Clivis remain unchanged.
 
 ## Research findings
 

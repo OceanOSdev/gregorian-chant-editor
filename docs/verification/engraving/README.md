@@ -48,7 +48,7 @@ actual editor output, not the earlier design specimens.
 
 This is local Chromium verification, not cross-browser or hosted CI coverage.
 The temporary browser driver is not part of the maintained Vitest suite.
-ADR 0007 remains Proposed pending implementation review.
+ADR 0007 was Proposed at the time of this verification; it is now Accepted.
 
 ![Desktop editor with initial engraved forms](desktop.png)
 

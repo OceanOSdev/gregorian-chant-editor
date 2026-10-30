@@ -1,12 +1,17 @@
 # Climacus and Porrectus engraving proposal
 
+The proposal and implementation checklist below are historical, including requests
+to keep ADR 0007 Proposed during review. Current status and contracts belong to
+[ADR 0007](../../adrs/0007-share-derived-neume-engraving-geometry.md)
+and [engraving metrics](../../engraving-metrics.md).
+
 Historical design proposal, 2026-10-18. The user approved the silhouettes,
 selection mapping, optional hit shapes and final interaction refinements.
-Implementation is now complete and awaiting review; see the
+Implementation was subsequently completed; see the
 [implementation screenshots and verification](implementation.md) and
 [authoritative drawing metrics](../../engraving-metrics.md).
 This proposal is retained as the independent design/reference record.
-ADR 0007 remains **Proposed**.
+ADR 0007 was Proposed at this review; it is now Accepted.
 
 ## Review artifacts
 
