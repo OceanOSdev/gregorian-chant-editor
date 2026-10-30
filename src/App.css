@@ -322,7 +322,20 @@ kbd {
   outline: 2.5px dashed #7e49a3;
   outline-offset: 3px;
 }
-.score__lyric:focus-visible {
-  outline: 2px solid #1e64d2;
-  outline-offset: 7px;
+.score__lyric:focus {
+  outline: none;
+}
+.score__lyric-focus-cue {
+  display: none;
+  fill: #1e64d2;
+  font:
+    11px system-ui,
+    sans-serif;
+}
+.score__lyric-control:focus-within > .score__lyric-focus-cue {
+  display: block;
+}
+.lyric-keyboard-target {
+  border-left: 3px solid #1e64d2;
+  padding-left: 0.5rem;
 }

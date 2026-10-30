@@ -384,5 +384,28 @@ are separately verified in the browser. Spoken output requires a screen-reader
 pass. See [testing](testing.md) and the linked verification record.
 
 Selected engraved lyrics retain their ordinary ink and use a purple dashed
-outline consistent with neume selection. Keyboard focus has a separate solid
-blue outline outside it; selection does not use a hyperlink-style underline.
+outline consistent with neume selection. Keyboard focus uses the labeled marker
+described below; selection does not use a hyperlink-style underline.
+
+## Focus and selection feedback
+
+Browser focus and semantic selection remain independent, as they do for notes
+and palette browsing. Tab/Shift+Tab never select lyrics, commit drafts, create
+history entries, or change the active tool. A user can inspect another syllable
+and return without losing the musical selection. Automatic synchronization
+would make ordinary focus navigation change editing context or commit a draft.
+
+The purple dashed outline marks the selected entity. Engraved-lyric keyboard
+focus uses a blue caret and a separate “Keyboard focus” caption, rather than
+another enclosing active box. The lyric panel names the currently focused
+syllable and explains that Delete/Backspace deletes it and Enter edits it.
+The selection summary names the selected syllable; **Edit selected syllable**
+and **Delete selected syllable** keep acting on that selection. Their activation
+moves browser focus to the button, so the engraved-lyric keyboard marker and
+focused-target summary disappear. Focus tracking is presentation-only and is
+never used to retarget editing commands.
+
+Delete/Backspace on an engraved lyric continues to use the event target's stable
+syllable ID, even when another entity is selected. Typing replacement and
+continuation still require explicit selection; Enter/double-click still opens
+cursor editing. Native text-input keys and Space-as-word-boundary are unchanged.

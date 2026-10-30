@@ -16,8 +16,8 @@ page on port 5173. It verifies native input and browser event handling:
   when a different syllable remains selected.
 - Minus from selected lyrics outside Lyrics mode opens continuation insertion;
   the occupied-anchor case pauses without replacing text.
-- Unchanged lyric ink and no underline in selected state; separate purple dashed
-  selection and solid blue keyboard-focus outlines. See [keyboard selection](keyboard-selection.png).
+- Unchanged lyric ink and no underline in selected state; a purple dashed
+  selection outline and separate labeled blue keyboard-focus marker. See [keyboard selection](keyboard-selection.png).
 - Scoped L activation; consecutive minus, Space, and underscore entry.
 - Occupied-anchor pauses, underscore skipping, and protection against replacement.
 - Greek text and commit-on-click without leaving Lyrics mode.
@@ -41,3 +41,25 @@ It uses DevTools keyboard/text input and synthetic events for focused edge cases
 it is not a spoken screen-reader verification or exhaustive OS/IME compatibility
 check. Plain TypeScript tests cover semantic transitions and invariant preservation.
 No browser testing dependency was added.
+
+## Focus versus selection
+
+`browser-check.mjs` also checks click selection on Al → Tab/Shift+Tab to le:
+selection and history stay unchanged, the panel identifies both targets, and
+Delete/Backspace removes le. The explicitly labeled Delete selected syllable
+button removes Al instead. The focus summary clears when focus leaves engraved
+lyrics. See [Chromium feedback](focus-vs-selection.png).
+
+The Chromium checks use the configured `CHANT_EDITOR_URL` if Vite runs
+on a port other than 5173.
+
+Firefox automation was attempted with native WebDriver BiDi actions, but this
+environment reported `document.hasFocus() === false` and emitted no focus events,
+even while `activeElement` changed. That run is not counted as visual or focus
+verification. Recheck manually in a foreground Firefox window: click Al, Tab to
+le, confirm the panel names both roles, Shift+Tab back, then Tab to le and delete.
+The selected-syllable button should instead delete Al after focus moves to it.
+
+Focus/selection feedback does not synchronize selection with focus or change
+command targets. Space inside a lyric input remains a word delimiter. Browser
+checks are not a spoken screen-reader verification.

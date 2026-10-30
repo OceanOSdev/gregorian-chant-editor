@@ -87,6 +87,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const { history, selection, activeTool, rememberedKind } = session;
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
+  // Presentation-only browser focus; never dispatch a semantic selection on Tab.
+  const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const layout = layoutChant(history.present);
@@ -234,7 +236,24 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   ]);
 
   return (
-    <main className="chant-editor">
+    <main
+      className="chant-editor"
+      onFocusCapture={(event) => {
+        const target = event.target;
+        setFocusedLyricId(
+          target instanceof Element && target.matches('.score__lyric')
+            ? target.getAttribute('data-syllable-id')
+            : null,
+        );
+      }}
+      onBlurCapture={(event) => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setFocusedLyricId(null);
+      }}
+    >
       <h1>{layout.title}</h1>
       <div
         className="neume-palette"
@@ -434,6 +453,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             selection.kind === 'syllable' ? selection.syllableId : null
           }
           selectedNeumeId={selectedNeume?.id ?? null}
+          focusedSyllableId={focusedLyricId}
           focusRequest={session.focusRequest}
           pendingHistory={Boolean(session.pendingHistory)}
           onAction={lyricAction}

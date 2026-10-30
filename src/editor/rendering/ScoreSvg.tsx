@@ -383,70 +383,84 @@ export function ScoreSvg({
           })}
 
           {system.lyrics.map((lyric) => (
-            <g
-              key={lyric.syllableId}
-              className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
-            >
-              <text
-                className="score__lyric"
-                ref={(element) => {
-                  if (element)
-                    lyricElements.current.set(lyric.syllableId, element);
-                  else lyricElements.current.delete(lyric.syllableId);
-                }}
-                role="button"
-                tabIndex={placementActive ? -1 : 0}
-                aria-label={`Syllable: ${lyric.text}. Click or Space selects; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
-                aria-pressed={
-                  selection.kind === 'syllable' &&
-                  selection.syllableId === lyric.syllableId
-                }
-                aria-disabled={placementActive}
-                pointerEvents={placementActive ? 'none' : 'all'}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!placementActive) onSelectSyllable(lyric.syllableId);
-                }}
-                onDoubleClick={(event) => {
-                  event.stopPropagation();
-                  if (!placementActive) onEditSyllable(lyric.syllableId);
-                }}
-                onKeyDown={(event) => {
-                  const action = getSyllableKeyAction(
-                    event.nativeEvent,
-                    selection.kind === 'syllable' &&
-                      selection.syllableId === lyric.syllableId,
-                    placementActive,
-                  );
-                  if (!action) return;
-                  event.preventDefault();
-                  event.stopPropagation();
-                  switch (action.type) {
-                    case 'select':
-                      onSelectSyllable(lyric.syllableId);
-                      break;
-                    case 'edit':
-                      onEditSyllable(lyric.syllableId);
-                      break;
-                    case 'replace':
-                      onEditSyllable(lyric.syllableId, action.text);
-                      break;
-                    case 'delete':
-                      onDeleteSyllable(lyric.syllableId);
-                      break;
-                    case 'advance':
-                      onAdvanceLyric(action.key);
-                      break;
-                  }
-                }}
-                data-syllable-id={lyric.syllableId}
-                x={lyric.x}
-                y={lyric.y}
-                fontSize={lyric.fontSize}
-                textAnchor="middle"
+            <g key={lyric.syllableId} className="score__lyric-control">
+              <g
+                className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
               >
-                {lyric.text}
-              </text>
+                <text
+                  className="score__lyric"
+                  ref={(element) => {
+                    if (element)
+                      lyricElements.current.set(lyric.syllableId, element);
+                    else lyricElements.current.delete(lyric.syllableId);
+                  }}
+                  role="button"
+                  aria-describedby="lyric-focus-help"
+                  tabIndex={placementActive ? -1 : 0}
+                  aria-label={`Syllable: ${lyric.text}. Click or Space selects; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
+                  aria-pressed={
+                    selection.kind === 'syllable' &&
+                    selection.syllableId === lyric.syllableId
+                  }
+                  aria-disabled={placementActive}
+                  pointerEvents={placementActive ? 'none' : 'all'}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!placementActive) onSelectSyllable(lyric.syllableId);
+                  }}
+                  onDoubleClick={(event) => {
+                    event.stopPropagation();
+                    if (!placementActive) onEditSyllable(lyric.syllableId);
+                  }}
+                  onKeyDown={(event) => {
+                    const action = getSyllableKeyAction(
+                      event.nativeEvent,
+                      selection.kind === 'syllable' &&
+                        selection.syllableId === lyric.syllableId,
+                      placementActive,
+                    );
+                    if (!action) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    switch (action.type) {
+                      case 'select':
+                        onSelectSyllable(lyric.syllableId);
+                        break;
+                      case 'edit':
+                        onEditSyllable(lyric.syllableId);
+                        break;
+                      case 'replace':
+                        onEditSyllable(lyric.syllableId, action.text);
+                        break;
+                      case 'delete':
+                        onDeleteSyllable(lyric.syllableId);
+                        break;
+                      case 'advance':
+                        onAdvanceLyric(action.key);
+                        break;
+                    }
+                  }}
+                  data-syllable-id={lyric.syllableId}
+                  x={lyric.x}
+                  y={lyric.y}
+                  fontSize={lyric.fontSize}
+                  textAnchor="middle"
+                >
+                  {lyric.text}
+                </text>
+              </g>
+              <g
+                className="score__lyric-focus-cue"
+                aria-hidden="true"
+                pointerEvents="none"
+              >
+                <path
+                  d={`M${lyric.x - 5},${lyric.y - lyric.fontSize - 10} h10 l-5,6 Z`}
+                />
+                <text x={lyric.x} y={lyric.y + 22} textAnchor="middle">
+                  Keyboard focus
+                </text>
+              </g>
             </g>
           ))}
         </g>

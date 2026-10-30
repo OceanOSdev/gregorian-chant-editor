@@ -20,6 +20,7 @@ interface SyllableControlsProps {
   layout: ChantLayout;
   entry: LyricEntry | null;
   selectedSyllableId: string | null;
+  focusedSyllableId: string | null;
   selectedNeumeId: string | null;
   focusRequest: EditorFocusRequest | null;
   pendingHistory: boolean;
@@ -33,6 +34,7 @@ export function SyllableControls({
   layout,
   entry,
   selectedSyllableId,
+  focusedSyllableId,
   selectedNeumeId,
   focusRequest,
   pendingHistory,
@@ -49,6 +51,12 @@ export function SyllableControls({
   const tabStop = document.syllables.some((s) => s.id === rovingId)
     ? rovingId
     : (selectedSyllableId ?? document.syllables[0]?.id);
+  const focusedSyllable = document.syllables.find(
+    (s) => s.id === focusedSyllableId,
+  );
+  const selectedSyllable = document.syllables.find(
+    (s) => s.id === selectedSyllableId,
+  );
   const draft = entry?.kind === 'draft' ? entry : null;
   const neumeId = lyricTargetId(document, entry);
   const system = layout.systems.find((s) =>
@@ -161,6 +169,21 @@ export function SyllableControls({
           });
       }}
     >
+      <p id="lyric-focus-help">
+        Tab moves keyboard focus without changing selection. The blue marker
+        shows where engraved-lyric keys act; the purple outline marks selection.
+        Delete/Backspace deletes the focused engraved syllable. Selection
+        buttons act on the selected syllable.
+      </p>
+      {focusedSyllable ? (
+        <p className="lyric-keyboard-target" data-lyric-keyboard-target>
+          <strong>Keyboard focus: {focusedSyllable.text}.</strong>{' '}
+          Delete/Backspace deletes {focusedSyllable.text}; Enter edits it.{' '}
+          {focusedSyllable.id === selectedSyllableId
+            ? 'Typing replaces it; minus continues its word; Space starts a word.'
+            : 'Space selects it.'}
+        </p>
+      ) : null}
       <p id="lyric-entry-help">
         Lyrics: - continues a word · Space starts a word · _ skips a neume.
         Enter saves; Escape cancels and exits. Tab moves focus.
@@ -291,7 +314,7 @@ export function SyllableControls({
           {entry.kind === 'selected' ? (
             <>
               <p>
-                Selected syllable: <strong>{syllable?.text}</strong>
+                Selection (purple outline): <strong>{syllable?.text}</strong>
               </p>
               <button
                 data-lyric-primary
@@ -300,13 +323,13 @@ export function SyllableControls({
                   onAction({ type: 'edit', syllableId: entry.syllableId })
                 }
               >
-                Edit syllable
+                Edit selected syllable
               </button>
               <button
                 type="button"
                 onClick={() => onAction({ type: 'delete' })}
               >
-                Delete syllable
+                Delete selected syllable
               </button>
             </>
           ) : null}
@@ -409,17 +432,20 @@ export function SyllableControls({
         </div>
       ) : selectedSyllableId ? (
         <div className="lyric-actions">
-          <p>Syllable selected.</p>
+          <p>
+            Selection (purple outline):{' '}
+            <strong>{selectedSyllable?.text}</strong>
+          </p>
           <button
             type="button"
             onClick={() =>
               onAction({ type: 'edit', syllableId: selectedSyllableId })
             }
           >
-            Edit syllable
+            Edit selected syllable
           </button>
           <button type="button" onClick={() => onAction({ type: 'delete' })}>
-            Delete syllable
+            Delete selected syllable
           </button>
         </div>
       ) : (

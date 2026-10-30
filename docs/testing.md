@@ -281,9 +281,15 @@ PR #38 review regressions cover Space selection on focused lyrics, selected
 delimiter entry from inactive Lyrics mode (including occupied/end targets),
 and keyboard-only browser traversal through deletion. Browser checks also assert
 normal selected lyric ink, absence of underline, and distinct simultaneous
-selection/focus outlines.
+selection outline and labeled focus marker.
 
 Direct focused-lyric deletion is covered with and without an existing selection,
 including focus on a different syllable, active/inactive Lyrics mode, draft
 resolution and atomic history. Browser checks use Tab → Delete/Backspace without
 Space or a mouse, and retain the native input character-deletion regressions.
+
+Focus/selection browser regressions preserve click selection while Tab/Shift+Tab
+visits another lyric, assert no history or draft changes, check the panel's named
+keyboard target versus selected target, and verify focused deletion separately
+from the selection-button command. The continuous-lyrics record documents the Firefox automation limitation and
+manual foreground-window verification steps.

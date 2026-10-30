@@ -79,3 +79,12 @@ it('guards lyric keyboard commands during placement, composition, modifiers and 
       ).toBeNull();
   }
 });
+
+it('leaves Tab and Shift+Tab entirely browser-owned without changing selection', () => {
+  for (const selected of [false, true]) {
+    for (const shiftKey of [false, true])
+      expect(
+        getSyllableKeyAction({ ...key, key: 'Tab', shiftKey }, selected, false),
+      ).toBeNull();
+  }
+});

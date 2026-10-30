@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+const editorUrl = process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173';
 const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
 const ws = new WebSocket(pages[0].webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
@@ -36,7 +37,7 @@ await send('Emulation.setDeviceMetricsOverride', {
   mobile: false,
 });
 await send('Page.navigate', {
-  url: 'http://127.0.0.1:5173/docs/verification/placement/browser-fixture.html',
+  url: editorUrl + '/docs/verification/placement/browser-fixture.html',
 });
 for (let i = 0; i < 50; i++) {
   await pause();
@@ -429,12 +430,14 @@ const originalInk = await ev(
 );
 await key(' ', ' ');
 const selectedStyle = await ev(
-  "(()=>{const t=document.querySelector('.score__lyric'),g=t.parentElement,s=getComputedStyle(g),f=getComputedStyle(t);return {ink:f.fill,decoration:f.textDecorationLine,selection:s.outlineStyle,selectionColor:s.outlineColor,focus:f.outlineStyle,focusColor:f.outlineColor,focusVisible:t.matches(':focus-visible')}})()",
+  "(()=>{const t=document.querySelector('.score__lyric'),g=t.parentElement,s=getComputedStyle(g),f=getComputedStyle(t),cue=t.closest('.score__lyric-control').querySelector('.score__lyric-focus-cue'),c=getComputedStyle(cue);return {ink:f.fill,decoration:f.textDecorationLine,selection:s.outlineStyle,selectionColor:s.outlineColor,focus:f.outlineStyle,focusColor:c.fill,focusCue:c.display,focusLabel:cue.textContent.trim(),focusVisible:t.matches(':focus-visible')}})()",
 );
 assert.equal(selectedStyle.ink, originalInk);
 assert.equal(selectedStyle.decoration, 'none');
 assert.equal(selectedStyle.selection, 'dashed');
-assert.equal(selectedStyle.focus, 'solid');
+assert.equal(selectedStyle.focus, 'none');
+assert.equal(selectedStyle.focusCue, 'block');
+assert.equal(selectedStyle.focusLabel, 'Keyboard focus');
 assert.notEqual(selectedStyle.selectionColor, selectedStyle.focusColor);
 assert.equal(selectedStyle.focusVisible, true);
 await writeFile(
@@ -451,6 +454,133 @@ assert.equal(
 );
 console.log(
   'PASS: keyboard-only Tab → Delete/Backspace, inactive-mode continuation, occupied-anchor safety, non-link selection ink and distinct focus',
+);
+
+// Browsing focus must not change the selected lyric, history, or editing target.
+for (const activeMode of [false, true]) {
+  for (const deletion of ['Delete', 'Backspace']) {
+    await mount(6, [
+      {
+        id: 'selected',
+        text: 'Al',
+        startsAtNeumeId: 'n1',
+        boundaryBefore: 'word',
+      },
+      {
+        id: 'focused',
+        text: 'le',
+        startsAtNeumeId: 'n4',
+        boundaryBefore: 'continuation',
+      },
+    ]);
+    if (activeMode) {
+      await note(0);
+      await button('Lyrics');
+    }
+    await ev(
+      "document.querySelector('[data-syllable-id=selected].score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
+    );
+    await pause();
+    await key('Tab');
+    assert.equal(
+      await ev('document.activeElement.dataset.syllableId'),
+      'focused',
+    );
+    assert.equal(
+      await ev(
+        "document.querySelector('[data-syllable-id=selected].score__lyric').getAttribute('aria-pressed')",
+      ),
+      'true',
+    );
+    assert.equal(
+      await ev(
+        "document.querySelector('[data-syllable-id=focused].score__lyric').getAttribute('aria-pressed')",
+      ),
+      'false',
+    );
+    assert.equal(await input(), null);
+    assert.equal(await lyricsActive(), String(activeMode));
+    assert.equal(
+      await ev(
+        "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Undo').disabled",
+      ),
+      true,
+    );
+    assert.equal(
+      await ev(
+        "document.querySelector('[data-lyric-keyboard-target]').textContent.includes('Keyboard focus: le.')",
+      ),
+      true,
+    );
+    assert.equal(
+      await ev(
+        "document.querySelector('.lyric-actions').textContent.includes('Selection (purple outline): Al')",
+      ),
+      true,
+    );
+    assert.equal(
+      await ev(
+        "Array.from(document.querySelectorAll('.score__lyric-control')).filter(g=>g.matches(':focus-within')).map(g=>g.querySelector('.score__lyric').dataset.syllableId).join()",
+      ),
+      'focused',
+    );
+    if (!activeMode && deletion === 'Delete')
+      await writeFile(
+        'docs/verification/continuous-lyrics/focus-vs-selection.png',
+        Buffer.from(
+          (await send('Page.captureScreenshot', { format: 'png' })).data,
+          'base64',
+        ),
+      );
+    await key('Tab', undefined, 8);
+    assert.equal(
+      await ev('document.activeElement.dataset.syllableId'),
+      'selected',
+    );
+    await key('Tab');
+    assert.equal(
+      await ev('document.activeElement.dataset.syllableId'),
+      'focused',
+    );
+    await key(deletion);
+    assert.deepEqual(await lyrics(), ['Al']);
+    assert.equal(await ev('document.activeElement.dataset.noteId'), 'note4');
+    assert.equal(
+      await ev("!!document.querySelector('[data-lyric-keyboard-target]')"),
+      false,
+    );
+    assert.equal(
+      await ev("document.querySelectorAll('[data-neume-id]').length"),
+      6,
+    );
+    await button('Undo');
+    assert.deepEqual(await lyrics(), ['Al', 'le']);
+  }
+}
+// Moving to selection-based controls explicitly changes the keyboard action target.
+await mount(6, [
+  { id: 'selected', text: 'Al', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
+  {
+    id: 'focused',
+    text: 'le',
+    startsAtNeumeId: 'n4',
+    boundaryBefore: 'continuation',
+  },
+]);
+await ev(
+  "document.querySelector('[data-syllable-id=selected].score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
+);
+await pause();
+await key('Tab');
+await key('Tab');
+assert.equal(
+  await ev("!!document.querySelector('[data-lyric-keyboard-target]')"),
+  false,
+);
+await button('Delete selected syllable');
+assert.deepEqual(await lyrics(), ['le']);
+console.log(
+  'PASS: click selection Al → Tab/Shift+Tab focus le preserves selection/history, explicit keyboard/selection target feedback, focused deletion and selection-button deletion',
 );
 // Single-click selection and both lyric deletion paths share the same semantics.
 for (const active of [false, true]) {
@@ -485,7 +615,7 @@ for (const active of [false, true]) {
       await ev('document.activeElement.dataset.syllableId'),
       'deletable',
     );
-    if (deletion === 'button') await button('Delete syllable');
+    if (deletion === 'button') await button('Delete selected syllable');
     else await key(deletion);
     assert.deepEqual(await lyrics(), []);
     assert.equal(await input(), null);
