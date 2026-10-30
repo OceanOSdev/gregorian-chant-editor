@@ -2,8 +2,7 @@
 
 Approved design record. These refinements are now implemented; see
 [implementation verification](implementation.md). The original reasoning and
-standalone specimens below are retained for comparison. ADR 0007 remains
-**Proposed** pending implementation review.
+standalone specimens below are retained for comparison. ADR 0007 was Proposed at this review; it is now Accepted.
 
 - [Small selection/focus SVG sheet](interaction-details.svg)
 - [Standalone interactive keyboard/pointer specimen](interaction-demo.html)

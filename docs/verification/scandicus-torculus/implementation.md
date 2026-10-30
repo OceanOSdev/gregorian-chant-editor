@@ -2,8 +2,7 @@
 
 The approved ordinary constructions are implemented in the existing pure,
 ID-free `buildNeumeGeometry`. The semantic model, commands/history, renderer,
-preview pipeline, wrapping algorithm and dependencies are unchanged. ADR 0007
-remains **Proposed** pending implementation review; its wording now explicitly
+preview pipeline, wrapping algorithm and dependencies are unchanged. ADR 0007 is now Accepted (Proposed at this review); its wording explicitly
 permits conventional disconnected ink. No new ADR is needed: the existing ink
 array and independent note geometry already express this case.
 

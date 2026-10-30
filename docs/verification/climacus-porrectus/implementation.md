@@ -1,10 +1,10 @@
 # Climacus and Porrectus implementation verification
 
 Implemented from the approved silhouette recipes and final interaction
-refinement. ADR 0007 remains **Proposed** pending implementation review.
+refinement. ADR 0007 was **Proposed** at the time of this verification; it is now **Accepted**.
 The verification recorded below was performed before opening
-[PR #33](https://github.com/OceanOSdev/gregorian-chant-editor/pull/33), where this
-implementation is now under review. No notation font, dependency, semantic
+[PR #33](https://github.com/OceanOSdev/gregorian-chant-editor/pull/33), which
+subsequently merged on 2026-10-18. No notation font, dependency, semantic
 document field, command/history behavior, clef change or additional neume was
 introduced.
 
@@ -134,7 +134,7 @@ implemented recipes and target semantics. The README, glossary, testing guide
 and roadmap no longer describe these neumes as placeholders. ADR 0007 was
 reviewed for the approved optional target field and ribbon selection meaning;
 this fits its existing shared-derived-geometry decision and requires no new ADR.
-Its status stays **Proposed**.
+Its status was **Proposed** at this review and is now **Accepted**.
 
 No application dependency or scope extension was needed. Implementation review
-is the remaining step before deciding whether to accept ADR 0007 or open a PR.
+was still pending when this record was written; ADR 0007 has since been accepted.

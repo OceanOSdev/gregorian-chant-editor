@@ -3,7 +3,7 @@
 The approved Podatus and Clivis contours are implemented in the existing shared
 geometry builder, including individual-note selection overlays. Each complete
 compound remains a single filled path. Standalone Punctum and all four placeholder
-neumes are unchanged. ADR 0007 remains Proposed pending implementation review.
+neumes are unchanged. ADR 0007 was Proposed at the time of this verification; it is now Accepted.
 
 ## Actual editor screenshots
 

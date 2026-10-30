@@ -2,7 +2,7 @@
 
 Standalone Punctum now uses the approved six-cubic contour described in
 [drawing metrics](../../engraving-metrics.md#punctum). Podatus and Clivis geometry
-is unchanged; ADR 0007 remains Proposed.
+is unchanged; ADR 0007 was Proposed at this review; it is now Accepted.
 
 Actual Chromium editor captures, created using normal editor commands:
 

@@ -1,3 +1,4 @@
+// Historical Stage 1 driver: see README.md for the Stage 2 replacement.
 import assert from 'node:assert/strict';
 const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
 const ws = new WebSocket(pages[0].webSocketDebuggerUrl);
