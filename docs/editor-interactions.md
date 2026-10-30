@@ -141,7 +141,8 @@ presentation only. The session reducer owns its text, target, original semantic
 values, pending word boundary and insert/edit intent; components own only browser
 refs, composition guards and roving focus.
 
-A free neume opens insertion. An occupied neume pauses, showing existing text
+A free neume opens insertion. Contextual activation or sequential navigation to
+an occupied neume pauses, showing existing text
 with **Edit syllable** and **Skip neume**. Typing never replaces paused lyrics.
 Single-clicking engraved lyric text, or pressing Space on an unselected focused
 lyric, selects it without opening an input or activating Lyrics mode. Tab can
@@ -421,8 +422,8 @@ edits; focus alone does not authorize every operation.
 
 | Command/context                            | Target rule                                                                                                                      |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| L on a focused note                        | Activate Lyrics at its owning neume.                                                                                             |
-| L on a focused engraved syllable           | Activate Lyrics at its `startsAtNeumeId`, independent of selection.                                                              |
+| L on a focused note                        | Insert at its owning neume, or cursor-edit the syllable anchored there.                                                          |
+| L on a focused engraved syllable           | Cursor-edit that syllable, independent of selection.                                                                             |
 | Lyric Enter / Delete / Backspace           | Edit/delete that focused lyric, as already defined.                                                                              |
 | Lyric replacement / continuation           | Require the focused lyric itself to be selected.                                                                                 |
 | Note pitch arrows / note or neume deletion | Require selection of the focused note or its owning whole neume; otherwise do nothing. Do not redirect to a different selection. |
@@ -432,8 +433,10 @@ edits; focus alone does not authorize every operation.
 
 Unmodified L is reserved for Lyrics activation on score controls, including a
 selected engraved lyric. Shift+L can still begin uppercase replacement; native
-inputs keep ordinary letter input. L on a focused lyric opens an occupied-anchor
-pause, never implicit replacement or an empty input at the first neume. It
+inputs keep ordinary letter input. Explicit L on a focused lyric or a note whose
+neume anchors a syllable opens existing text with a normal cursor, just like
+Enter/double-click, without selecting all or replacing text. Sequential entry
+with minus, Space, or underscore still pauses at occupied anchors. It
 preserves the semantic selection and existing content/history. If a lyric draft
 is already open elsewhere, this explicit activation follows the existing
 commit-on-navigation policy: commit valid text, preserve invalid text and block

@@ -632,7 +632,12 @@ describe('L activation from focused score elements', () => {
         target: { kind: 'syllable', syllableId: 'le' },
         newId: 'unused',
       });
-      expect(next.lyrics).toEqual({ kind: 'occupied', syllableId: 'le' });
+      expect(next.lyrics).toMatchObject({
+        kind: 'draft',
+        neumeId: 'n4',
+        text: 'le',
+        original: { id: 'le' },
+      });
       expect(next.selection).toBe(initial.selection);
       expect(next.history).toBe(initial.history);
       expect(next.focusRequest).toEqual({ kind: 'lyrics' });
@@ -641,6 +646,22 @@ describe('L activation from focused score elements', () => {
       );
     },
   );
+  it('opens an anchored focused note for editing without selecting it', () => {
+    const initial = createEditorSession(twoLyrics());
+    const next = reduceEditorSession(initial, {
+      type: 'start-lyrics-at-focus',
+      target: { kind: 'note', noteId: 'note4' },
+      newId: 'unused',
+    });
+    expect(next.lyrics).toMatchObject({
+      kind: 'draft',
+      neumeId: 'n4',
+      text: 'le',
+      original: { id: 'le' },
+    });
+    expect(next.selection).toBe(initial.selection);
+    expect(next.history).toBe(initial.history);
+  });
   it('resolves a focused note rather than a different selection', () => {
     const initial = act(createEditorSession(twoLyrics()), {
       type: 'select',
@@ -673,7 +694,12 @@ describe('L activation from focused score elements', () => {
       'le',
     ]);
     expect(next.history.past).toHaveLength(1);
-    expect(next.lyrics).toEqual({ kind: 'occupied', syllableId: 'le' });
+    expect(next.lyrics).toMatchObject({
+      kind: 'draft',
+      neumeId: 'n4',
+      text: 'le',
+      original: { id: 'le' },
+    });
     expect(next.selection).toBe(initial.selection);
     const invalid = text(start(twoLyrics(), 'n0'), 'two words');
     const blocked = reduceEditorSession(invalid, {

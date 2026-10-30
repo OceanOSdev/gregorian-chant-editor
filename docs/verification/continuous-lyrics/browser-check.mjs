@@ -399,10 +399,12 @@ for (const selected of [null, 'al', 'le']) {
   );
   await key('l', 'l');
   assert.equal(await lyricsActive(), 'true');
-  assert.equal(await input(), null);
+  assert.equal(await input(), 'le');
   assert.equal(
-    await ev("document.querySelector('.lyric-actions strong').textContent"),
-    'le',
+    await ev(
+      "document.querySelector('#lyric-input').selectionStart === document.querySelector('#lyric-input').selectionEnd",
+    ),
+    true,
   );
   assert.deepEqual(
     await ev(
@@ -426,6 +428,19 @@ for (const selected of [null, 'al', 'le']) {
   await key('x', 'x');
   assert.deepEqual(await lyrics(), ['Al', 'le']);
 }
+// Explicit L on an anchored note also opens its existing text.
+await mount(2, [
+  { id: 'existing', text: 'Al', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
+]);
+await ev("document.querySelector('[data-note-id=note1]').focus()");
+await key('l', 'l');
+assert.equal(await input(), 'Al');
+assert.equal(
+  await ev(
+    "document.querySelector('#lyric-input').selectionStart === document.querySelector('#lyric-input').selectionEnd",
+  ),
+  true,
+);
 // In a native lyric input, L remains ordinary text.
 await mount(2, []);
 await note(1);
@@ -438,7 +453,7 @@ assert.equal(
 await type('la');
 assert.equal(await input(), 'la');
 console.log(
-  'PASS: L targets focused lyric with no/different/same selection, preserves selection/history/anchors, pauses occupied anchors, and leaves input letters native',
+  'PASS: L targets focused lyric with no/different/same selection, preserves selection/history/anchors, opens existing text with a caret, and leaves input letters native',
 );
 // Selected-minus activates continuation entry from Select, retaining the original anchor.
 await mount(6, [

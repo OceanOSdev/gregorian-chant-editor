@@ -20,7 +20,9 @@ page on port 5173. It verifies native input and browser event handling:
   selection outline and separate labeled blue keyboard-focus marker. See [keyboard selection](keyboard-selection.png).
 - L targets the focused engraved syllable with no selection, a different selection,
   or that same lyric selected. Activation preserves selection/history/anchors and
-  pauses rather than overwriting existing lyrics; native input l remains text.
+  opens existing text with a normal cursor without selecting all. Explicit L on
+  an anchored note does the same; native input l remains text. Sequential entry
+  still pauses at occupied anchors.
 - Scoped L activation; consecutive minus, Space, and underscore entry.
 - Occupied-anchor pauses, underscore skipping, and protection against replacement.
 - Greek text and commit-on-click without leaving Lyrics mode.

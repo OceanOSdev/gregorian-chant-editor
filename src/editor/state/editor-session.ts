@@ -389,11 +389,18 @@ export function reduceEditorSession(
         : document.syllables.find((s) => s.id === target.syllableId)
             ?.startsAtNeumeId;
     if (!neumeId || !findNeume(document, neumeId)) return state;
-    const next = applyLyrics(
+    let next = applyLyrics(
       state,
       { type: state.lyrics ? 'navigate' : 'start', neumeId },
       action.newId,
     );
+    // Explicit L expresses editing intent; sequential navigation still pauses.
+    if (next.lyrics?.kind === 'occupied')
+      next = applyLyrics(
+        next,
+        { type: 'edit', syllableId: next.lyrics.syllableId },
+        action.newId,
+      );
     // Mode activation uses focus as context, not as an implicit selection command.
     return {
       ...next,
