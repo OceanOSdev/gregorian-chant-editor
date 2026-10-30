@@ -16,16 +16,16 @@ graphical placement, previews, and pointer and keyboard lifecycle.
 
 ## Active syllable and selection
 
-The active syllable identifies the existing lyric editor only; it does not
-constrain music insertion. Selecting notation derives its lyric context from
-preceding anchors. Selecting a syllable in the strip selects its anchor neume
-as the contextual musical insertion reference.
+Music insertion is independent of lyric entry. Selection stores stable IDs;
+Lyrics mode owns one transient draft with explicit insert or edit intent.
+Selecting an occupied musical target never implies permission to replace text.
 
 Score selection is an ID-only union:
 
 - no selection;
 - one note ID;
-- one whole-neume ID.
+- one whole-neume ID;
+- one syllable ID.
 
 Clicking a note or pressing Enter/Space on its focused control selects the
 note. Shift+click or Shift+Enter/Space promotes through the constituent note to
@@ -90,7 +90,7 @@ Tab/Shift+Tab use browser traversal, skipping disabled notes during placement;
 there is no focus trap. Reverse Tab from the surface reaches Keyboard help;
 forward Tab may leave page content. Escape and Undo/Redo work on the surface.
 Text fields, native selects, contenteditable and composition are excluded from
-document shortcuts. Lyric Escape cancels the explicit existing-syllable edit.
+document shortcuts. Lyric Escape cancels the current draft and exits Lyrics.
 
 Browser focus and reparenting remain separate from pure unit tests. See the
 [placement verification record](verification/placement/README.md).
@@ -124,56 +124,96 @@ already handled events, modifier chords and autorepeat. Native Enter/Space and
 pitch arrows retain their existing meanings. Collapsed Keyboard help and the
 visible I hint make the shortcuts discoverable without a permanent help panel.
 
-The ordinary Tab order is palette → Insert → enabled Undo/Redo → New syllable
-→ Add (when nonblank) → one existing-syllable Tab stop → any open edit field and
-Save/Cancel → Keyboard help → enabled score notes. Native traversal is preserved.
+The ordinary Tab order follows the DOM: palette, Lyrics, Insert, enabled Undo/Redo, Keyboard help, score note/lyric controls, then lyric input/actions and one strip stop. Native traversal is preserved.
 After insertion, note focus supports pitch arrows then I directly. T → arrows →
 Enter → I switches kind and inserts.
 
-## Lyric creation and editing
+## Continuous lyric entry
 
-Stage 1 retains the explicit New syllable and existing-text forms. Select an
-unoccupied neume (or one of its notes), type one syllable, and use Add/Enter.
-Creation anchors at that selected neume in semantic order. It is disabled
-without a free selected anchor and cannot overwrite an existing anchor.
-New entries default to word start. The command layer supports continuation
-boundaries and reassignment; their new workflow UI remains deferred.
+The visible **Lyrics** action resumes or activates entry. Unmodified **L** does
+so only from focused notation in Select mode, excluding native text controls,
+modifier chords, composition and autorepeat. No browser address-bar shortcut is
+intercepted. Empty scores explain that music must be added first.
 
-Existing syllables appear in an ordered, horizontally scrollable button strip.
-Only one button participates in Tab order. Left/Right browse with wrapping;
-Home/End focus the first/last button. Browsing changes only the roving Tab stop,
-never the active target or document. Native Enter/Space activates and opens the
-editor; Tab/Shift+Tab traverse into and out of the strip normally. Modifier
-chords and composition are excluded from browsing. Focus has its own outline,
-separate from the pressed active target.
+The native input appears near the selected neume's lyric position. Its DOM
+identity persists across target navigation and system reflow. Its position is
+presentation only. The session reducer owns its text, target, original semantic
+values, pending word boundary and insert/edit intent; components own only browser
+refs, composition guards and roving focus.
 
-Adding or changing the active syllable minimally reveals its button horizontally
-within the strip after rendering, without moving focus. Focusing a strip button
-also reveals it. Only the strip scrolls; ancestor containers, the window and score
-are not scroll targets. New-syllable entry therefore retains focus while its
-new active target remains visible. The existing pure visibility calculation is
-reused without the score's ancestor/window reveal behavior.
+A free neume opens insertion. Contextual activation or sequential navigation to
+an occupied neume pauses, showing existing text
+with **Edit syllable** and **Skip neume**. Typing never replaces paused lyrics.
+Single-clicking engraved lyric text, or pressing Space on an unselected focused
+lyric, selects it without opening an input or activating Lyrics mode. Tab can
+reach a lyric and Delete/Backspace deletes it directly, without requiring Space.
+Deletion targets the focused engraved syllable even when another syllable is
+selected, preserving all music. Space remains available for explicit selection. Double-clicking, pressing Enter, or choosing Edit syllable
+opens its existing text with a normal collapsed cursor at the end. Strip buttons
+continue to offer explicit editing. Typing on a selected engraved syllable starts
+replacement, rather than appending to its old text. After Save/Enter, the committed syllable is selected;
+typing replaces it intentionally, Enter edits, minus continues its word, Space
+starts a word, and Delete removes only its lyric. Delimiters activate Lyrics
+from selected syllables even when it was previously inactive; occupied anchors
+still pause insertion without overwriting. Native input Delete/Backspace
+remain text editing. Keyboard Delete/Backspace on focused engraved lyrics and the
+Delete syllable button use the same semantic deletion. They preserve every neume,
+select the former anchor neume, and focus its first note. No empty input opens;
+Lyrics mode remains active if it was active, with explicit entry/skip controls,
+and otherwise stays inactive. Holding the deletion key does not delete music
+through autorepeat after focus moves to the note.
 
-Ordinal labels distinguish repeated text; pressed state identifies the active
-placement target. Activating a button selects that target and opens an explicitly
-labeled editor populated with its current text. Focus moves to the edit field.
-Enter or Save changes only that stable syllable's text; Escape or Cancel discards
-the draft without a command or history entry. Both return focus to its strip
-button. Unchanged saves are semantic no-ops. Blank or delimiter-containing edits are invalid; Save is disabled with explanatory feedback.
+| Input/action                                              | Result                                                                                             |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Minus after text                                          | Commit once; target next neume with continuation boundary.                                         |
+| Space after text                                          | Commit once; target next neume with word boundary.                                                 |
+| Underscore on an empty draft                              | Skip that neume, retaining the pending boundary.                                                   |
+| Underscore after text or on a selected committed syllable | Commit/preserve current text, skip the following neume, target the one after it with continuation. |
+| Underscore at an occupied target                          | Skip without editing; subsequent insertion defaults to word start.                                 |
+| Enter / Save                                              | Commit and remain in Lyrics mode.                                                                  |
+| Done                                                      | Resolve the draft, then exit.                                                                      |
+| Escape                                                    | Cancel current draft and exit; earlier commits remain.                                             |
+| Tab / Shift+Tab                                           | Native focus traversal without target navigation or commit.                                        |
 
-Reselecting the syllable already being edited focuses its existing editor and
-preserves its unsaved draft. Blur never saves. Selecting another target or changing its historical text
-discards the existing edit draft; adding a syllable closes it. The New syllable
-draft survives target changes and editing. Neither draft is part of semantic
-history. Cancel changes no selection, tool or notation state. Native input
-Undo/Redo remains browser-owned; semantic Undo/Redo uses the explicit controls
-or shortcuts outside text inputs. IME Enter does not submit during composition.
-No new document contract or architectural decision is required.
+Repeated minus/Space on an empty draft changes only its pending boundary. Skip
+is also available as a visible action. Delimiter autorepeat never advances.
+A new first syllable always starts a word. **Word boundary** controls allow
+Starts word / Continues word correction; the first syllable is constrained.
+
+Clicking another musical target commits a valid draft before navigation and
+starts a new word by default. Reopening the same target preserves the draft.
+Empty insertion creates nothing. A cleared existing edit preserves the original
+with an announcement; deletion is explicit. Nonempty invalid text blocks score
+navigation with feedback, without trapping native focus. Blur never commits or
+discards; returning through Lyrics resumes the draft. Pasted whitespace or ASCII
+entry delimiters is rejected, not split. Composition never triggers entry commands
+or submission. Greek and accented text remain ordinary syllable text.
+
+Sequential advancement pauses at existing anchors; it does not skip or overwrite
+them automatically. Occupied targets require explicit Edit or Skip. Reaching the
+end commits valid text and keeps Lyrics active with a pending boundary. Contextual
+music insertion while waiting resumes at newly available music. Underscore can
+retain an outstanding skip until enough neumes have been appended. No semantic
+placeholders or unanchored syllables are created. Choosing a musical placement
+tool resolves the draft and exits Lyrics; invalid drafts prevent that switch.
+
+Dirty drafts whose target disappears, becomes occupied, or changes externally
+enter recovery rather than disappearing. Select a free neume and **Retry at
+selected neume**, or explicitly discard. Retry creates insertion intent; it never
+silently updates unrelated lyrics. Input undo is browser-owned. Explicit semantic
+Undo/Redo with a dirty draft offers Save / Discard / Cancel; invalid saves retain
+the draft and prompt. Escape dismisses the history prompt without losing text.
+
+The ordered lyric strip remains a roving focus group. Arrows/Home/End browse
+without changing document or target; Enter/Space deliberately edits. Native Tab
+traversal is preserved. Selected/focused buttons reveal only within the strip.
+
+Anchor-reassignment UI is Stage 3; generated hyphens remain Stage 4.
 
 Contextual insertion follows the selected note's owning neume or selected
 whole neume. Without selection it appends. Pitch comes from the selected note,
 selected neume's final note, or final document note, then the kind fallback.
-Existing syllable-strip selection supplies its anchor neume as reference.
+Syllable selection supplies its anchor neume as reference.
 Insertion preserves all anchors. Accepted toolbar insertion selects/focuses the
 new first note and returns to Select. Graphical placement remains armed.
 
@@ -292,10 +332,9 @@ Insert/Place toggle.
   and requests surface focus plus minimal destination reveal.
 - Select or Escape outside text editing exits placement and clears hover while
   preserving selection and remembered kind. A second Escape can clear selection.
-- Selecting a syllable selects its anchor neume and clears hover; adding clears
-  selection and hover. Neither changes the armed tool or remembered kind.
+- Entering Lyrics switches to Select and clears hover without changing the remembered neume kind. Drafts and pending boundaries stay outside semantic history.
 - Undo/Redo retains tool and remembered kind, clears hover, and reconciles stable
-  selection and lyric context. Removing all syllables never disables placement.
+  selection and lyric entry. Removing all syllables never disables placement.
   History never focuses disabled notes while placing.
 
 ### Consecutive clicks and history
@@ -320,8 +359,8 @@ a passage-level transaction, and a new edit after Undo clears the redo branch.
 ### Persistent status and event announcements
 
 The active tool is derived from `activeTool` through the palette's pressed state.
-The syllable strip shows ordinal and lyric text with a pressed active target.
-Creation and explicit editing use separate inputs. These are not live regions.
+The syllable strip shows ordinal and lyric text with pressed selected state.
+Creation and editing share one native input with explicit intent. These are not live regions.
 
 One initially empty, unfocusable polite atomic status region emits concise event
 messages. A sequence-keyed child exposes a fresh mutation for identical messages.
@@ -344,3 +383,67 @@ palette navigation and scroll calculations. Actual focus, native keyboard and
 Tab order, pointer ownership, scrolling, accessible naming and status mutations
 are separately verified in the browser. Spoken output requires a screen-reader
 pass. See [testing](testing.md) and the linked verification record.
+
+Selected engraved lyrics retain their ordinary ink and use a purple dashed
+outline consistent with neume selection. Keyboard focus uses the labeled marker
+described below; selection does not use a hyperlink-style underline.
+
+## Focus and selection feedback
+
+Browser focus and semantic selection remain independent, as they do for notes
+and palette browsing. Tab/Shift+Tab never select lyrics, commit drafts, create
+history entries, or change the active tool. A user can inspect another syllable
+and return without losing the musical selection. Automatic synchronization
+would make ordinary focus navigation change editing context or commit a draft.
+
+The purple dashed outline marks the selected entity. Engraved-lyric keyboard
+focus uses a blue caret and a separate “Keyboard focus” caption, rather than
+another enclosing active box. The lyric panel names the currently focused
+syllable and explains that Delete/Backspace deletes it and Enter edits it.
+The selection summary names the selected syllable; **Edit selected syllable**
+and **Delete selected syllable** keep acting on that selection. Their activation
+moves browser focus to the button, so the engraved-lyric keyboard marker and
+focused-target summary disappear. Focus tracking is presentation-only and is
+never used to retarget editing commands.
+
+Delete/Backspace on an engraved lyric continues to use the event target's stable
+syllable ID, even when another entity is selected. Typing replacement and
+continuation still require explicit selection; Enter/double-click still opens
+cursor editing. Native text-input keys and Space-as-word-boundary are unchanged.
+
+## Keyboard command scope
+
+Focus and selection have different roles; neither universally overrides the
+other. Tab/Shift+Tab is focus browsing only. Explicit element-local commands use
+the focused control's stable ID; commands defined on selection retain selection
+semantics. A command must not silently fall back from a focused score entity to
+a different selected entity. Selection requirements still authorize particular
+edits; focus alone does not authorize every operation.
+
+| Command/context                            | Target rule                                                                                                                      |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| L on a focused note                        | Insert at its owning neume, or cursor-edit the syllable anchored there.                                                          |
+| L on a focused engraved syllable           | Cursor-edit that syllable, independent of selection.                                                                             |
+| Lyric Enter / Delete / Backspace           | Edit/delete that focused lyric, as already defined.                                                                              |
+| Lyric replacement / continuation           | Require the focused lyric itself to be selected.                                                                                 |
+| Note pitch arrows / note or neume deletion | Require selection of the focused note or its owning whole neume; otherwise do nothing. Do not redirect to a different selection. |
+| Contextual Insert / I                      | Selection-based insertion, with the existing end-of-document fallback.                                                           |
+| T / palette activation                     | Navigate to the remembered tool / activate the focused palette button.                                                           |
+| Undo / Redo                                | Document history, resolving dirty drafts first.                                                                                  |
+
+Unmodified L is reserved for Lyrics activation on score controls, including a
+selected engraved lyric. Shift+L can still begin uppercase replacement; native
+inputs keep ordinary letter input. Explicit L on a focused lyric or a note whose
+neume anchors a syllable opens existing text with a normal cursor, just like
+Enter/double-click, without selecting all or replacing text. Sequential entry
+with minus, Space, or underscore still pauses at occupied anchors. It
+preserves the semantic selection and existing content/history. If a lyric draft
+is already open elsewhere, this explicit activation follows the existing
+commit-on-navigation policy: commit valid text, preserve invalid text and block
+navigation, and never discard a draft silently. Reinvoking it at the same target
+keeps the draft. A missing focused ID is a no-op, not a selection fallback.
+
+The visible Lyrics button remains selection/context-based activation or draft
+resumption. Activation from the score surface without an entity retains its
+existing selection/first-neume fallback. This change does not redesign I/T, note
+editing, native input keys, or lyric Space-as-word-boundary behavior.

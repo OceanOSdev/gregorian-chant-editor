@@ -221,3 +221,10 @@ selection outlines are hidden from accessibility APIs where appropriate.
 Pure helpers test the accessible strings. Actual browser focus, event
 propagation, and visual behavior still require the manual checks described in
 the [testing guide](testing.md).
+
+Lyric selection uses a decorative group outline around the text, consistent
+with the purple dashed neume selection treatment. The text remains the sole
+focusable lyric control and retains its normal ink. A separate blue caret and “Keyboard focus” caption identify the focused
+engraved lyric without enclosing a second syllable in an active box. The cue
+sits outside the selection group so it cannot enlarge its outline. Neither cue changes
+lyric metrics, music geometry, wrapping, or semantic state.

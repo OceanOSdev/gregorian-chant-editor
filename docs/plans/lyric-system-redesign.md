@@ -1,6 +1,11 @@
 # Neume-anchored lyrics with continuous entry
 
-Status: proposed implementation plan. No application changes implemented.
+Status: Stage 1 merged; Stage 2 implemented and under review; Stages 3 and 4 pending.
+
+Keep this plan while Stages 3 and 4 are pending. After Stage 4 is implemented
+and merged, remove this file as part of the final documentation cleanup. Ensure
+the accepted decisions and implemented contracts are captured in the ADRs and
+permanent guides, which become the long-term source of truth.
 
 ## Summary and architectural assessment
 
@@ -59,7 +64,7 @@ On deletion, the successor starts a word if either its existing boundary or the 
 
 ### Activation and lifetime
 
-Unmodified L activates Lyrics only from focused notation in Select mode. Ignore editable fields, composition, and modifier chords. Retain I/T outside lyric input. The visible Lyrics control exposes active state.
+Unmodified L activates Lyrics only from focused notation in Select mode. Ignore editable fields, composition, and modifier chords. Retain I/T outside lyric input. The visible Lyrics control exposes active state. L invoked from a focused note uses its neume; from a focused syllable it uses that syllable’s stable anchor, without implicitly selecting it. Explicit L opens existing anchored text for cursor editing; sequential entry still pauses at occupied anchors. Contextual Insert/I remain selection-based; this is not a universal focus-over-selection rule.
 
 Lyrics mode persists through commits, skips, and target clicks. Enter/Save commits without exiting. Done commits and exits. Escape cancels the current draft and exits, retaining previous commits. Starting Lyrics clears placement previews and selects the Select tool. Activating a music tool resolves drafts through Done's policy.
 
@@ -69,7 +74,7 @@ An empty score explains that music is needed first; create no placeholders.
 
 Draft intent is either Insert at a free neume or Edit a specific syllable ID. An insert must never become an update because its target is occupied; revalidate against the reducer's latest document.
 
-Opening Lyrics at occupied notation pauses with existing text and an explicit Edit syllable action. Clicking engraved text, choosing Edit, or typing while a syllable itself is deliberately selected begins editing. Clicking notation requests insertion, not replacement. Select existing text for replacement only after intentional Edit entry.
+Contextual Lyrics activation or sequential entry at occupied notation pauses with existing text and an explicit Edit syllable action. Explicit L on a focused syllable or anchored neume opens cursor editing directly. Single-clicking engraved text or pressing Space on an unselected focused lyric selects without editing or activating Lyrics. Double-clicking, Enter, or Edit opens existing text with a normal cursor; typing on a selected syllable starts replacement. Clicking notation requests insertion, not replacement. Ordinary editing never selects all text automatically.
 
 ### Draft resolution
 
@@ -83,7 +88,7 @@ Deliberate navigation includes target clicks, sequential advancement, Skip, and 
 | Cleared existing text   | Preserve original, announce that clearing did not delete it, then navigate. |
 | Nonempty invalid text   | Retain draft/target, explain error, and block score navigation.             |
 
-Deletion is explicit. Reselecting the current target preserves its draft. Blur neither commits nor discards. Tab/Shift+Tab traverse normally without changing the lyric target; mode and draft survive. Returning through Lyrics resumes entry. Escape explicitly cancels. Switching semantic workflows must resolve dirty drafts rather than silently discard them.
+Deletion is explicit: Delete/Backspace on a selected syllable and the Delete syllable button preserve all neumes, select the former anchor and focus its first note. They open no input and preserve whether Lyrics mode was active. Delete/Backspace inside an input remain native character deletion. Reselecting the current target preserves its draft. Blur neither commits nor discards. Tab/Shift+Tab traverse normally without changing the lyric target; mode and draft survive. Returning through Lyrics resumes entry. Escape explicitly cancels. Switching semantic workflows must resolve dirty drafts rather than silently discard them.
 
 ### Delimiters and skipping
 
@@ -102,7 +107,7 @@ Ignore command interpretation during composition and repeated navigation from au
 
 Example: `Al`, `-`, `_`, `le` anchors Al at neume 1 and le at neume 3; neume 2 belongs to Al. A visible Skip neume action follows `_` semantics.
 
-After Enter/Save, typing intentionally edits the selected committed syllable; delimiters begin insertion after it. Repeated `-`/Space on an empty draft changes pending boundary without advancing or creating anything. `_` advances.
+After Enter/Save, typing intentionally edits the selected committed syllable; delimiters begin insertion after it. Delimiters also activate entry from a selected syllable when Lyrics mode is inactive; occupied anchors remain protected. Repeated `-`/Space on an empty draft changes pending boundary without advancing or creating anything. `_` advances.
 
 ASCII `-`, `_`, and whitespace are entry controls. Accents, Greek characters, and ordinary punctuation remain text. Reject pasted separators or whitespace with an explanation; do not split passages. Provide Starts word / Continues word controls, constraining the first syllable to word start.
 

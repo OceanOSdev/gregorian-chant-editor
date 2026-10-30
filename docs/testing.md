@@ -262,3 +262,41 @@ checks should cover selecting a free neume to add lyrics, occupied-anchor protec
 text validation, insertion without lyrics, anchored deletion and undo/redo.
 
 The [Stage 1 browser record](verification/lyric-anchors/README.md) records the exercised interactions and verification limits.
+
+## Continuous lyric-entry verification
+
+`syllable-workflow.test.ts` exercises continuous entry through the pure session
+reducer: delimiters, skips, commit-on-navigation, occupied protection, replacement,
+empty/invalid drafts, end resumption, recovery and history choices. Keyboard
+guards have plain TypeScript tests. The [Stage 2 browser record](verification/continuous-lyrics/README.md)
+checks native focus/Tab, composition guards, paste rejection, replacement caret
+behavior and responsive input positioning in the actual React editor.
+
+Syllable selection/deletion regressions exercise active and inactive Lyrics mode,
+no-input single-click selection, atomic deletion and stable anchor focus. The
+continuous-entry browser script tests actual keyboard Delete/Backspace and the
+Delete syllable button separately, plus normal cursor editing and native input deletion.
+
+PR #38 review regressions cover Space selection on focused lyrics, selected
+delimiter entry from inactive Lyrics mode (including occupied/end targets),
+and keyboard-only browser traversal through deletion. Browser checks also assert
+normal selected lyric ink, absence of underline, and distinct simultaneous
+selection outline and labeled focus marker.
+
+Direct focused-lyric deletion is covered with and without an existing selection,
+including focus on a different syllable, active/inactive Lyrics mode, draft
+resolution and atomic history. Browser checks use Tab → Delete/Backspace without
+Space or a mouse, and retain the native input character-deletion regressions.
+
+Focus/selection browser regressions preserve click selection while Tab/Shift+Tab
+visits another lyric, assert no history or draft changes, check the panel's named
+keyboard target versus selected target, and verify focused deletion separately
+from the selection-button command. The continuous-lyrics record documents the Firefox automation limitation and
+manual foreground-window verification steps.
+
+L-targeting regressions cover no selection, another selected lyric, and the
+focused lyric already selected; activation preserves semantic selection, music,
+anchors and history, and pauses for explicit editing. Pure session tests cover
+focused notes, missing IDs and active-draft resolution. Browser checks prove L
+reaches the intended handler even from selected lyric text and stays ordinary
+letter input within the native field.

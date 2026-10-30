@@ -285,3 +285,57 @@ kbd {
   padding-top: 0.75rem;
   border-top: 1px solid #d8d1c5;
 }
+
+.score-workspace {
+  position: relative;
+  container-type: inline-size;
+}
+.lyric-floating-entry {
+  position: absolute;
+  width: min(13rem, 65%);
+  z-index: 1;
+  background: #fffdf8;
+  border-radius: 0.25rem;
+}
+.lyric-floating-entry input {
+  width: 100%;
+}
+.lyric-actions,
+.lyric-history-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.lyric-actions p,
+.lyric-history-choice p {
+  flex-basis: 100%;
+}
+.lyric-actions select {
+  min-height: 2.5rem;
+  font: inherit;
+}
+.score__lyric[role='button'] {
+  cursor: pointer;
+}
+.score__lyric-group--selected {
+  outline: 2.5px dashed #7e49a3;
+  outline-offset: 3px;
+}
+.score__lyric:focus {
+  outline: none;
+}
+.score__lyric-focus-cue {
+  display: none;
+  fill: #1e64d2;
+  font:
+    11px system-ui,
+    sans-serif;
+}
+.score__lyric-control:focus-within > .score__lyric-focus-cue {
+  display: block;
+}
+.lyric-keyboard-target {
+  border-left: 3px solid #1e64d2;
+  padding-left: 0.5rem;
+}

@@ -47,7 +47,7 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 | Semantic domain        | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state   |
 | Pure commands          | Validation and immutable semantic transitions                                             | UI state, layout, browser events           |
 | Document history       | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts     |
-| Transient editor state | Active syllable, selection, tool, hover point, lyric draft, pending focus                 | Canonical notation or engraving geometry   |
+| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus             | Canonical notation or engraving geometry   |
 | Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation |
 | Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning              |
 | SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                       |
@@ -79,7 +79,7 @@ boundaries. See [commands and history](commands-and-history.md).
 ### `src/editor/state/`
 
 Contains semantic document history and transient, ID-based selection and tool
-types. The pure editor-session reducer coordinates commands, lyric-context
+types. The pure editor-session reducer coordinates commands, lyric-draft
 reconciliation, placement lifecycle, ID-based focus requests, and event
 notifications. Its history field contains semantic snapshots only; tools,
 remembered neume kind, hover, selection, focus, and announcements remain outside history.
@@ -123,3 +123,8 @@ wrapping by
 [ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md).
 
 The lyric anchor relationship is defined in [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md). Music insertion does not require an active syllable.
+
+`state/lyric-entry.ts` owns pure lyric transitions (insert/edit intent, draft
+commit/navigation, occupied/end states and stale-target recovery). The session
+reducer applies each accepted semantic result once to history and reconciles focus.
+There is no second component-owned draft or active-syllable insertion target.

@@ -1,5 +1,6 @@
+import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
+import type { LyricAction } from '../state/lyric-entry';
 import { findNeume, findNote } from '../domain/neume';
-import { findSyllableAtNeume } from '../domain/lyrics';
 import {
   useEffect,
   useLayoutEffect,
@@ -11,7 +12,6 @@ import { deleteNeume } from '../commands/delete-neume';
 import { deleteNote } from '../commands/delete-note';
 import { moveNeumeVertically } from '../commands/move-neume';
 import { moveNoteVertically } from '../commands/move-note';
-import { updateLyricSyllableText } from '../commands/update-lyric-syllable';
 import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
@@ -87,19 +87,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const { history, selection, activeTool, rememberedKind } = session;
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
+  // Presentation-only browser focus; never dispatch a semantic selection on Tab.
+  const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const layout = layoutChant(history.present);
+  const selectedSyllable =
+    selection.kind === 'syllable'
+      ? history.present.syllables.find((s) => s.id === selection.syllableId)
+      : null;
   const selectedNeume =
     selection.kind === 'note'
       ? findNote(history.present, selection.noteId)?.neume
       : selection.kind === 'neume'
         ? findNeume(history.present, selection.neumeId)?.neume
-        : null;
-  const lyricTarget =
-    selectedNeume && !findSyllableAtNeume(history.present, selectedNeume.id)
-      ? selectedNeume
-      : null;
+        : selectedSyllable
+          ? findNeume(history.present, selectedSyllable.startsAtNeumeId)?.neume
+          : null;
   const placementKind = getGraphicalNeumeKind(activeTool);
   const placementPreview =
     placementKind && session.hoveredPoint
@@ -112,6 +116,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const placementDescription = placementKind
     ? `${neumeName(placementKind)}. Escape selects the editing tool.`
     : '';
+  function lyricAction(action: LyricAction) {
+    dispatch({ type: 'lyrics', action, newId: crypto.randomUUID() });
+  }
+
   function navigateHistory(direction: 'undo' | 'redo') {
     dispatch({
       type: 'history',
@@ -136,7 +144,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }, [session.focusRequest]);
 
   function insertRememberedNeume() {
-    dispatch({ type: 'insert', ids: allocateInsertionIds() });
+    dispatch({
+      type: 'insert',
+      ids: allocateInsertionIds(),
+      lyricCommitId: crypto.randomUUID(),
+    });
   }
 
   useEffect(() => {
@@ -150,11 +162,47 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       const notationFocused =
         event.target instanceof Element &&
         !!event.target.closest('[data-notation-shortcuts], .score');
+      if (
+        isLyricEntryShortcut(
+          event,
+          event.target instanceof Element &&
+            Boolean(event.target.closest('.score')),
+          Boolean(placementKind),
+        )
+      ) {
+        event.preventDefault();
+        const target = event.target instanceof Element ? event.target : null;
+        const noteId =
+          target?.closest<SVGGElement>('[data-note-id]')?.dataset.noteId;
+        const syllableId = target?.closest<SVGTextElement>(
+          '.score__lyric[data-syllable-id]',
+        )?.dataset.syllableId;
+        if (noteId) {
+          dispatch({
+            type: 'start-lyrics-at-focus',
+            target: { kind: 'note', noteId },
+            newId: crypto.randomUUID(),
+          });
+        } else if (syllableId) {
+          dispatch({
+            type: 'start-lyrics-at-focus',
+            target: { kind: 'syllable', syllableId },
+            newId: crypto.randomUUID(),
+          });
+        } else {
+          lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null });
+        }
+        return;
+      }
       const shortcut = getNotationShortcut(event, notationFocused);
       if (shortcut) {
         event.preventDefault();
         if (shortcut === 'insert') {
-          dispatch({ type: 'insert', ids: allocateInsertionIds() });
+          dispatch({
+            type: 'insert',
+            ids: allocateInsertionIds(),
+            lyricCommitId: crypto.randomUUID(),
+          });
         } else dispatch({ type: 'focus-palette' });
         return;
       }
@@ -165,6 +213,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         !event.altKey
       ) {
         event.preventDefault();
+        if (session.lyrics) {
+          lyricAction({ type: 'cancel' });
+          return;
+        }
         dispatch(
           placementKind
             ? { type: 'select-tool' }
@@ -188,10 +240,34 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [placementKind, canUndo, canRedo]);
+  }, [
+    placementKind,
+    canUndo,
+    canRedo,
+    session.lyrics,
+    history.present,
+    selectedNeume,
+  ]);
 
   return (
-    <main className="chant-editor">
+    <main
+      className="chant-editor"
+      onFocusCapture={(event) => {
+        const target = event.target;
+        setFocusedLyricId(
+          target instanceof Element && target.matches('.score__lyric')
+            ? target.getAttribute('data-syllable-id')
+            : null,
+        );
+      }}
+      onBlurCapture={(event) => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setFocusedLyricId(null);
+      }}
+    >
       <h1>{layout.title}</h1>
       <div
         className="neume-palette"
@@ -239,7 +315,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 const choice = neumeTools.find(
                   (choice) => choice.kind === tool,
                 );
-                if (choice) dispatch({ type: 'arm', tool: choice.tool() });
+                if (choice)
+                  dispatch({
+                    type: 'arm',
+                    tool: choice.tool(),
+                    lyricCommitId: crypto.randomUUID(),
+                  });
               }
             }}
           >
@@ -252,6 +333,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         remembered neume. T focuses its palette button.
       </p>
       <div className="editor-actions">
+        <button
+          type="button"
+          aria-pressed={Boolean(session.lyrics)}
+          aria-keyshortcuts="L"
+          onClick={() =>
+            lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null })
+          }
+        >
+          Lyrics <kbd aria-hidden="true">L</kbd>
+        </button>
         <button
           className="editor-insert"
           type="button"
@@ -280,97 +371,118 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Redo
         </button>
       </div>
-      <SyllableControls
-        syllables={history.present.syllables}
-        activeId={session.activeSyllableId}
-        canAdd={Boolean(lyricTarget)}
-        onSelect={(id) => dispatch({ type: 'syllable', id })}
-        onAdd={(text) => {
-          if (!lyricTarget) return;
-          dispatch({
-            type: 'add-syllable',
-            syllable: {
-              id: crypto.randomUUID(),
-              text,
-              startsAtNeumeId: lyricTarget.id,
-              boundaryBefore: 'word',
-            },
-          });
-        }}
-        onSave={(id, text) =>
-          dispatch({
-            type: 'edit',
-            edit: (document) => updateLyricSyllableText(document, id, text),
-          })
-        }
-      />
       <details className="editor-help">
         <summary>Keyboard help</summary>
         <p>
-          <kbd>I</kbd> insert · <kbd>T</kbd> tools · <kbd>Esc</kbd> Select. In
-          the palette, arrows browse and Enter/Space activates. In Select,
-          Enter/Space selects a focused note, ↑/↓ changes pitch, and
-          Shift+Enter/Space selects its neume. I/T apply only in notation
-          controls.
+          <kbd>L</kbd> Lyrics · <kbd>I</kbd> insert · <kbd>T</kbd> tools ·{' '}
+          <kbd>Esc</kbd> Select. In the palette, arrows browse and Enter/Space
+          activates. In Select, Enter/Space selects a focused note, ↑/↓ changes
+          pitch, and Shift+Enter/Space selects its neume. I/T apply only in
+          notation controls.
         </p>
       </details>
-      <ScoreSvg
-        layout={layout}
-        placementPreview={placementPreview}
-        selection={selection}
-        activeTool={activeTool}
-        placementDescription={placementDescription}
-        focusRequest={session.focusRequest}
-        onFocusHandled={(request) =>
-          dispatch({ type: 'focus-handled', request })
-        }
-        onSelectNote={(noteId) =>
-          dispatch({ type: 'select', selection: selectNote(noteId) })
-        }
-        onSelectNeumeForNote={(noteId) => {
-          const note = findNote(history.present, noteId);
-          if (note)
+      <div className="score-workspace">
+        <ScoreSvg
+          layout={layout}
+          onSelectSyllable={(syllableId) =>
+            lyricAction({ type: 'select', syllableId })
+          }
+          onEditSyllable={(syllableId, replacement) =>
+            lyricAction({ type: 'edit', syllableId, replacement })
+          }
+          onAdvanceLyric={(key) => lyricAction({ type: 'advance', key })}
+          onDeleteSyllable={(syllableId) =>
+            lyricAction({ type: 'delete', syllableId })
+          }
+          placementPreview={placementPreview}
+          selection={selection}
+          activeTool={activeTool}
+          placementDescription={placementDescription}
+          focusRequest={session.focusRequest}
+          onFocusHandled={(request) =>
+            dispatch({ type: 'focus-handled', request })
+          }
+          onSelectNote={(noteId) => {
+            const note = findNote(history.present, noteId);
+            if (session.lyrics && session.lyrics.kind !== 'recovery' && note)
+              lyricAction({ type: 'navigate', neumeId: note.neume.id });
+            else dispatch({ type: 'select', selection: selectNote(noteId) });
+          }}
+          onSelectNeumeForNote={(noteId) => {
+            const note = findNote(history.present, noteId);
+            if (note && session.lyrics && session.lyrics.kind !== 'recovery') {
+              lyricAction({ type: 'navigate', neumeId: note.neume.id });
+              return;
+            }
+            if (note)
+              dispatch({
+                type: 'select',
+                selection: selectNeume(note.neume.id),
+                focusNoteId: noteId,
+              });
+          }}
+          onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
+          onPlacementPointerLeave={() =>
+            dispatch({ type: 'hover', point: null })
+          }
+          onPlaceNeume={handlePlaceNeume}
+          onMoveNote={(noteId, delta) =>
             dispatch({
-              type: 'select',
-              selection: selectNeume(note.neume.id),
+              type: 'edit',
+              edit: (document) => moveNoteVertically(document, noteId, delta),
               focusNoteId: noteId,
-            });
-        }}
-        onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
-        onPlacementPointerLeave={() => dispatch({ type: 'hover', point: null })}
-        onPlaceNeume={handlePlaceNeume}
-        onMoveNote={(noteId, delta) =>
-          dispatch({
-            type: 'edit',
-            edit: (document) => moveNoteVertically(document, noteId, delta),
-            focusNoteId: noteId,
-          })
-        }
-        onMoveNeume={(neumeId, delta, invokingNoteId) =>
-          dispatch({
-            type: 'edit',
-            edit: (document) => moveNeumeVertically(document, neumeId, delta),
-            focusNoteId: invokingNoteId,
-          })
-        }
-        onDeleteNote={(noteId) =>
-          dispatch({
-            type: 'edit',
-            edit: (document) => deleteNote(document, noteId),
-            clearSelection: true,
-          })
-        }
-        onDeleteNeume={(neumeId) =>
-          dispatch({
-            type: 'edit',
-            edit: (document) => deleteNeume(document, neumeId),
-            clearSelection: true,
-          })
-        }
-        onClearSelection={() =>
-          dispatch({ type: 'select', selection: clearSelection() })
-        }
-      />
+            })
+          }
+          onMoveNeume={(neumeId, delta, invokingNoteId) =>
+            dispatch({
+              type: 'edit',
+              edit: (document) => moveNeumeVertically(document, neumeId, delta),
+              focusNoteId: invokingNoteId,
+            })
+          }
+          onDeleteNote={(noteId) =>
+            dispatch({
+              type: 'edit',
+              edit: (document) => deleteNote(document, noteId),
+              clearSelection: true,
+            })
+          }
+          onDeleteNeume={(neumeId) =>
+            dispatch({
+              type: 'edit',
+              edit: (document) => deleteNeume(document, neumeId),
+              clearSelection: true,
+            })
+          }
+          onClearSelection={() =>
+            !session.lyrics &&
+            dispatch({ type: 'select', selection: clearSelection() })
+          }
+        />
+        <SyllableControls
+          document={history.present}
+          layout={layout}
+          entry={session.lyrics}
+          selectedSyllableId={
+            selection.kind === 'syllable' ? selection.syllableId : null
+          }
+          selectedNeumeId={selectedNeume?.id ?? null}
+          focusedSyllableId={focusedLyricId}
+          focusRequest={session.focusRequest}
+          pendingHistory={Boolean(session.pendingHistory)}
+          onAction={lyricAction}
+          onHistoryChoice={(choice) =>
+            dispatch({
+              type: 'resolve-history',
+              choice,
+              newId: crypto.randomUUID(),
+            })
+          }
+          onFocusHandled={(request) =>
+            dispatch({ type: 'focus-handled', request })
+          }
+        />
+      </div>
       <div
         className="editor-announcement"
         role="status"

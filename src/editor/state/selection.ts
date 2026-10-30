@@ -6,7 +6,8 @@ import { findNeume, findNote } from '../domain/neume';
 export type EditorSelection =
   | { kind: 'none' }
   | { kind: 'note'; noteId: string }
-  | { kind: 'neume'; neumeId: string };
+  | { kind: 'neume'; neumeId: string }
+  | { kind: 'syllable'; syllableId: string };
 
 export function clearSelection(): EditorSelection {
   return { kind: 'none' };
@@ -29,6 +30,11 @@ export function reconcileSelection(
     return selection;
   }
 
+  if (selection.kind === 'syllable')
+    return document.syllables.some((s) => s.id === selection.syllableId)
+      ? selection
+      : clearSelection();
+
   const selectionExists =
     selection.kind === 'note'
       ? findNote(document, selection.noteId)
@@ -41,6 +47,10 @@ export function resolveSelectionSyllableId(
   document: ChantDocument,
   selection: EditorSelection,
 ): string | null {
+  if (selection.kind === 'syllable')
+    return document.syllables.some((s) => s.id === selection.syllableId)
+      ? selection.syllableId
+      : null;
   if (selection.kind === 'note') {
     const neume = findNote(document, selection.noteId)?.neume;
     return neume
@@ -53,4 +63,8 @@ export function resolveSelectionSyllableId(
   }
 
   return null;
+}
+
+export function selectSyllable(syllableId: string): EditorSelection {
+  return { kind: 'syllable', syllableId };
 }

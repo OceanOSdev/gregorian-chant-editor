@@ -14,8 +14,16 @@ export function resolveToolbarNeumeInsertion(
 ): ToolbarNeumeInsertion {
   const note =
     selection.kind === 'note' ? findNote(document, selection.noteId) : null;
+  const syllable =
+    selection.kind === 'syllable'
+      ? document.syllables.find((s) => s.id === selection.syllableId)
+      : null;
   const located =
-    selection.kind === 'neume' ? findNeume(document, selection.neumeId) : note;
+    selection.kind === 'neume'
+      ? findNeume(document, selection.neumeId)
+      : syllable
+        ? findNeume(document, syllable.startsAtNeumeId)
+        : note;
   return {
     insertionIndex: located ? located.neumeIndex + 1 : document.neumes.length,
     referenceStaffPosition:

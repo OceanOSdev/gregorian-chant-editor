@@ -241,9 +241,6 @@ describe('placement lifecycle', () => {
     expect(
       getSelectFocusRequest({ ...state, selection: selectNote('gone') }),
     ).toEqual({ kind: 'palette', tool: 'select' });
-    expect(getSelectFocusRequest({ ...state, activeSyllableId: 's2' })).toEqual(
-      { kind: 'note', noteId: 'a1' },
-    );
     expect(
       reduceEditorSession(next, {
         type: 'focus-handled',
