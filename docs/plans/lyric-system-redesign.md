@@ -1,6 +1,11 @@
 # Neume-anchored lyrics with continuous entry
 
-Status: proposed implementation plan. No application changes implemented.
+Status: Stage 1 merged; Stage 2 implemented and under review; Stages 3 and 4 pending.
+
+Keep this plan while Stages 3 and 4 are pending. After Stage 4 is implemented
+and merged, remove this file as part of the final documentation cleanup. Ensure
+the accepted decisions and implemented contracts are captured in the ADRs and
+permanent guides, which become the long-term source of truth.
 
 ## Summary and architectural assessment
 
