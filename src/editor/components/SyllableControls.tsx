@@ -105,7 +105,11 @@ export function SyllableControls({
       const alreadyFocused =
         globalThis.document.activeElement === input.current;
       focusAndReveal(input.current);
-      if (!alreadyFocused && focusRequest.selectText) input.current.select();
+      if (!alreadyFocused)
+        input.current.setSelectionRange(
+          input.current.value.length,
+          input.current.value.length,
+        );
     } else {
       const control = controls.current?.querySelector<HTMLButtonElement>(
         '[data-lyric-primary]:not(:disabled), button:not(:disabled)',
@@ -306,6 +310,20 @@ export function SyllableControls({
               </button>
             </>
           ) : null}
+          {entry.kind === 'ready' ? (
+            <>
+              <p>Neume selected. Lyrics mode remains active.</p>
+              <button
+                data-lyric-primary
+                type="button"
+                onClick={() =>
+                  onAction({ type: 'start', neumeId: entry.neumeId })
+                }
+              >
+                Enter syllable
+              </button>
+            </>
+          ) : null}
           {entry.kind === 'end' ? (
             <p>End of music. Add a neume or select music to continue.</p>
           ) : null}
@@ -343,6 +361,7 @@ export function SyllableControls({
                   disabled={
                     Boolean(first) ||
                     entry.kind === 'occupied' ||
+                    entry.kind === 'ready' ||
                     pendingHistory
                   }
                   onChange={(event) =>
@@ -386,6 +405,21 @@ export function SyllableControls({
           )}
           <button type="button" onClick={() => onAction({ type: 'cancel' })}>
             {isDirtyLyricEntry(entry) ? 'Cancel draft and exit' : 'Exit Lyrics'}
+          </button>
+        </div>
+      ) : selectedSyllableId ? (
+        <div className="lyric-actions">
+          <p>Syllable selected.</p>
+          <button
+            type="button"
+            onClick={() =>
+              onAction({ type: 'edit', syllableId: selectedSyllableId })
+            }
+          >
+            Edit syllable
+          </button>
+          <button type="button" onClick={() => onAction({ type: 'delete' })}>
+            Delete syllable
           </button>
         </div>
       ) : (

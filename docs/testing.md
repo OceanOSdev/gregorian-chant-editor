@@ -271,3 +271,8 @@ empty/invalid drafts, end resumption, recovery and history choices. Keyboard
 guards have plain TypeScript tests. The [Stage 2 browser record](verification/continuous-lyrics/README.md)
 checks native focus/Tab, composition guards, paste rejection, replacement caret
 behavior and responsive input positioning in the actual React editor.
+
+Syllable selection/deletion regressions exercise active and inactive Lyrics mode,
+no-input single-click selection, atomic deletion and stable anchor focus. The
+continuous-entry browser script tests actual keyboard Delete/Backspace and the
+Delete syllable button separately, plus normal cursor editing and native input deletion.

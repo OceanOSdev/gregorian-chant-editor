@@ -351,6 +351,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <div className="score-workspace">
         <ScoreSvg
           layout={layout}
+          onSelectSyllable={(syllableId) =>
+            lyricAction({ type: 'select', syllableId })
+          }
           onEditSyllable={(syllableId, replacement) =>
             lyricAction({ type: 'edit', syllableId, replacement })
           }

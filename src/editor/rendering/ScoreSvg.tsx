@@ -52,6 +52,7 @@ interface ScoreSvgProps {
   onDeleteNote: (noteId: string) => void;
   onDeleteNeume: (neumeId: string) => void;
   onClearSelection: () => void;
+  onSelectSyllable: (id: string) => void;
   onEditSyllable: (id: string, replacement?: string) => void;
   onAdvanceLyric: (key: '-' | ' ' | '_') => void;
   onDeleteSyllable: () => void;
@@ -75,6 +76,7 @@ export function ScoreSvg({
   onDeleteNote,
   onDeleteNeume,
   onClearSelection,
+  onSelectSyllable,
   onEditSyllable,
   onAdvanceLyric,
   onDeleteSyllable,
@@ -193,6 +195,7 @@ export function ScoreSvg({
     if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       event.stopPropagation();
+      if (event.repeat) return;
 
       if (isNoteSelected) {
         onDeleteNote(noteId);
@@ -388,7 +391,7 @@ export function ScoreSvg({
               }}
               role="button"
               tabIndex={placementActive ? -1 : 0}
-              aria-label={`Syllable: ${lyric.text}. Enter edits; minus continues a word; Space starts a word; underscore skips.`}
+              aria-label={`Syllable: ${lyric.text}. Click selects; double-click or Enter edits; Delete removes lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
               aria-pressed={
                 selection.kind === 'syllable' &&
                 selection.syllableId === lyric.syllableId
@@ -396,6 +399,10 @@ export function ScoreSvg({
               aria-disabled={placementActive}
               pointerEvents={placementActive ? 'none' : 'all'}
               onClick={(event) => {
+                event.stopPropagation();
+                if (!placementActive) onSelectSyllable(lyric.syllableId);
+              }}
+              onDoubleClick={(event) => {
                 event.stopPropagation();
                 if (!placementActive) onEditSyllable(lyric.syllableId);
               }}

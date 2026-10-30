@@ -15,7 +15,12 @@ page on port 5173. It verifies native input and browser event handling:
 - Occupied-anchor pauses, underscore skipping, and protection against replacement.
 - Greek text and commit-on-click without leaving Lyrics mode.
 - Native Tab traversal with the draft retained; invalid navigation retains text.
-- Escape cancellation, deliberate replacement, and replacement caret behavior.
+- Escape cancellation, single-click selection without editing, deliberate replacement,
+  and normal collapsed cursors for Enter and real double-click editing.
+- Delete, Backspace and Delete syllable button with Lyrics both active and inactive:
+  music/IDs unchanged, focus and selection on the former anchor, no empty input,
+  atomic undo/redo, and protection against destructive autorepeat on the focused note.
+- Native Backspace/Delete inside the input change characters without deleting lyrics.
 - End-of-music resumption after contextual music insertion.
 - Save/Discard/Cancel history UI (Save and Cancel exercised in browser; all choices
   covered by pure reducer tests), including redo of the saved syllable.

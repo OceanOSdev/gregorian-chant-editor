@@ -15,6 +15,7 @@ export interface LyricDraft {
 }
 export type LyricEntry =
   | LyricDraft
+  | { kind: 'ready'; neumeId: string }
   | { kind: 'occupied' | 'selected'; syllableId: string }
   | {
       kind: 'end';
@@ -27,6 +28,7 @@ export type LyricEntry =
 export type LyricAction =
   | { type: 'start'; neumeId: string | null }
   | { type: 'navigate'; neumeId: string }
+  | { type: 'select'; syllableId: string }
   | { type: 'edit'; syllableId: string; replacement?: string }
   | { type: 'text'; text: string }
   | { type: 'advance'; key: '-' | ' ' | '_' }
@@ -47,7 +49,7 @@ export function lyricTargetId(
   entry: LyricEntry | null,
 ): string | null {
   if (!entry) return null;
-  if (entry.kind === 'draft') return entry.neumeId;
+  if (entry.kind === 'draft' || entry.kind === 'ready') return entry.neumeId;
   if (entry.kind === 'selected' || entry.kind === 'occupied')
     return (
       document.syllables.find((s) => s.id === entry.syllableId)
@@ -102,6 +104,11 @@ export function reconcileLyricEntry(
         ? atNeume(document, entry.neumeId, entry.boundaryBefore)
         : null;
   }
+  if (
+    entry.kind === 'ready' &&
+    !document.neumes.some((n) => n.id === entry.neumeId)
+  )
+    return null;
   if (entry.kind === 'end') {
     const after =
       entry.afterNeumeId === null
@@ -157,6 +164,7 @@ export function transitionLyrics(
     return result(entry, action.message, document, false);
   if (action.type === 'discard') return result(null, 'Draft discarded.');
   if (action.type === 'start') {
+    if (entry?.kind === 'ready') return target(document, entry.neumeId, 'word');
     if (entry) return result();
     const neumeId = action.neumeId ?? document.neumes[0]?.id;
     return neumeId && document.neumes.some((n) => n.id === neumeId)
@@ -220,6 +228,7 @@ export function transitionLyrics(
   }
   if (
     action.type === 'navigate' &&
+    entry.kind !== 'ready' &&
     lyricTargetId(document, entry) === action.neumeId
   )
     return result(entry);
@@ -290,6 +299,18 @@ export function transitionLyrics(
     const next = target(nextDocument, action.neumeId, 'word');
     return message ? { ...next, message: `${message} ${next.message}` } : next;
   }
+  if (action.type === 'select') {
+    const syllable = nextDocument.syllables.find(
+      (s) => s.id === action.syllableId,
+    );
+    return syllable
+      ? result(
+          { kind: 'selected', syllableId: syllable.id },
+          message || 'Syllable selected.',
+          nextDocument,
+        )
+      : result(entry, 'That syllable no longer exists.');
+  }
   if (action.type === 'edit') {
     const syllable = nextDocument.syllables.find(
       (s) => s.id === action.syllableId,
@@ -314,7 +335,7 @@ export function transitionLyrics(
     const deleted = deleteLyricSyllable(document, entry.syllableId);
     return neumeId
       ? result(
-          atNeume(deleted, neumeId, 'word'),
+          { kind: 'ready', neumeId },
           'Syllable deleted; music preserved.',
           deleted,
         )

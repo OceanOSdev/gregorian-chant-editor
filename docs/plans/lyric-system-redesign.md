@@ -69,7 +69,7 @@ An empty score explains that music is needed first; create no placeholders.
 
 Draft intent is either Insert at a free neume or Edit a specific syllable ID. An insert must never become an update because its target is occupied; revalidate against the reducer's latest document.
 
-Opening Lyrics at occupied notation pauses with existing text and an explicit Edit syllable action. Clicking engraved text, choosing Edit, or typing while a syllable itself is deliberately selected begins editing. Clicking notation requests insertion, not replacement. Select existing text for replacement only after intentional Edit entry.
+Opening Lyrics at occupied notation pauses with existing text and an explicit Edit syllable action. Single-clicking engraved text selects without editing or activating Lyrics. Double-clicking, Enter, or Edit opens existing text with a normal cursor; typing on a selected syllable starts replacement. Clicking notation requests insertion, not replacement. Ordinary editing never selects all text automatically.
 
 ### Draft resolution
 
@@ -83,7 +83,7 @@ Deliberate navigation includes target clicks, sequential advancement, Skip, and 
 | Cleared existing text   | Preserve original, announce that clearing did not delete it, then navigate. |
 | Nonempty invalid text   | Retain draft/target, explain error, and block score navigation.             |
 
-Deletion is explicit. Reselecting the current target preserves its draft. Blur neither commits nor discards. Tab/Shift+Tab traverse normally without changing the lyric target; mode and draft survive. Returning through Lyrics resumes entry. Escape explicitly cancels. Switching semantic workflows must resolve dirty drafts rather than silently discard them.
+Deletion is explicit: Delete/Backspace on a selected syllable and the Delete syllable button preserve all neumes, select the former anchor and focus its first note. They open no input and preserve whether Lyrics mode was active. Delete/Backspace inside an input remain native character deletion. Reselecting the current target preserves its draft. Blur neither commits nor discards. Tab/Shift+Tab traverse normally without changing the lyric target; mode and draft survive. Returning through Lyrics resumes entry. Escape explicitly cancels. Switching semantic workflows must resolve dirty drafts rather than silently discard them.
 
 ### Delimiters and skipping
 

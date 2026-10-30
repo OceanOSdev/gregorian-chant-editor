@@ -35,7 +35,7 @@ import {
 } from './selection';
 
 export type EditorFocusRequest =
-  | { kind: 'lyrics'; selectText?: boolean }
+  | { kind: 'lyrics' }
   | { kind: 'lyric'; syllableId: string }
   | { kind: 'note'; noteId: string }
   | { kind: 'placement'; noteId: string }
@@ -291,6 +291,13 @@ function applyLyrics(
 ): EditorSession {
   const document = state.history.present;
   let entry = state.lyrics;
+  if (!entry && action.type === 'select') {
+    if (!document.syllables.some((s) => s.id === action.syllableId))
+      return state;
+    entry = { kind: 'selected', syllableId: action.syllableId };
+  }
+  if (!entry && action.type === 'delete' && state.selection.kind === 'syllable')
+    entry = { kind: 'selected', syllableId: state.selection.syllableId };
   if (!entry && action.type === 'edit') {
     const syllable = document.syllables.find((s) => s.id === action.syllableId);
     if (!syllable) return state;
@@ -312,20 +319,21 @@ function applyLyrics(
   const updated: EditorSession = {
     ...state,
     history: applyDocumentEdit(state.history, () => next.document),
-    lyrics: next.entry,
+    lyrics:
+      !state.lyrics && (action.type === 'select' || action.type === 'delete')
+        ? null
+        : next.entry,
     selection,
     activeTool: selectTool(),
     hoveredPoint: null,
     focusRequest: next.focus
       ? next.entry?.kind === 'selected'
         ? { kind: 'lyric', syllableId: next.entry.syllableId }
-        : next.entry
-          ? {
-              kind: 'lyrics',
-              selectText:
-                action.type === 'edit' && action.replacement === undefined,
-            }
-          : getSelectFocusRequest({ ...state, selection })
+        : next.entry?.kind === 'ready'
+          ? getSelectFocusRequest({ ...state, selection })
+          : next.entry
+            ? { kind: 'lyrics' }
+            : getSelectFocusRequest({ ...state, selection })
       : null,
   };
   return next.message ? announce(updated, next.message) : updated;

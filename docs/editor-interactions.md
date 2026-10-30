@@ -143,11 +143,19 @@ refs, composition guards and roving focus.
 
 A free neume opens insertion. An occupied neume pauses, showing existing text
 with **Edit syllable** and **Skip neume**. Typing never replaces paused lyrics.
-Clicking engraved lyric text or a strip button deliberately opens editing and
-selects the original text. After Save/Enter, the committed syllable is selected;
+Single-clicking engraved lyric text selects it without opening an input or
+activating Lyrics mode. Double-clicking, pressing Enter, or choosing Edit syllable
+opens its existing text with a normal collapsed cursor at the end. Strip buttons
+continue to offer explicit editing. Typing on a selected engraved syllable starts
+replacement, rather than appending to its old text. After Save/Enter, the committed syllable is selected;
 typing replaces it intentionally, Enter edits, minus continues its word, Space
 starts a word, and Delete removes only its lyric. Native input Delete/Backspace
-remain text editing.
+remain text editing. Keyboard Delete/Backspace on selected lyrics and the
+Delete syllable button use the same semantic deletion. They preserve every neume,
+select the former anchor neume, and focus its first note. No empty input opens;
+Lyrics mode remains active if it was active, with explicit entry/skip controls,
+and otherwise stays inactive. Holding the deletion key does not delete music
+through autorepeat after focus moves to the note.
 
 | Input/action                                              | Result                                                                                             |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |

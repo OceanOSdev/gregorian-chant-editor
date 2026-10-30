@@ -390,20 +390,95 @@ describe('lyric draft history resolution', () => {
   });
 });
 
-it('keeps replacement typing distinct from selecting original text', () => {
+it('keeps existing-text editing distinct from replacement typing', () => {
   const doc = anchored();
   const editing = act(createEditorSession(doc), {
     type: 'edit',
     syllableId: 'existing',
   });
-  expect(editing.focusRequest).toEqual({ kind: 'lyrics', selectText: true });
+  expect(editing.focusRequest).toEqual({ kind: 'lyrics' });
   const selected = act(editing, { type: 'save' });
   const replaced = act(selected, {
     type: 'edit',
     syllableId: 'existing',
     replacement: 'l',
   });
-  expect(replaced.focusRequest).toEqual({ kind: 'lyrics', selectText: false });
+  expect(replaced.focusRequest).toEqual({ kind: 'lyrics' });
   expect(replaced.lyrics).toMatchObject({ kind: 'draft', text: 'l' });
   expect(replaced.history.present).toBe(doc);
+});
+
+describe('syllable selection and deletion refinement', () => {
+  it.each([false, true])(
+    'selects without editing and preserves Lyrics mode=%s',
+    (active) => {
+      const doc = anchored();
+      const initial = active ? start(doc, 'n0') : createEditorSession(doc);
+      const selected = act(initial, { type: 'select', syllableId: 'existing' });
+      expect(selected.selection).toEqual({
+        kind: 'syllable',
+        syllableId: 'existing',
+      });
+      expect(selected.lyrics).toEqual(
+        active ? { kind: 'selected', syllableId: 'existing' } : null,
+      );
+      expect(selected.focusRequest).toEqual({
+        kind: 'lyric',
+        syllableId: 'existing',
+      });
+      expect(selected.history).toBe(initial.history);
+      const deleted = act(selected, { type: 'delete' });
+      expect(deleted.history.present.neumes).toBe(doc.neumes);
+      expect(deleted.history.present.syllables).toEqual([]);
+      expect(deleted.selection).toEqual({ kind: 'neume', neumeId: 'n2' });
+      expect(deleted.focusRequest).toEqual({ kind: 'note', noteId: 'note2' });
+      expect(deleted.lyrics).toEqual(
+        active ? { kind: 'ready', neumeId: 'n2' } : null,
+      );
+      expect(deleted.history.past).toHaveLength(1);
+      expect(history(deleted, 'undo').history.present).toBe(doc);
+      expect(history(history(deleted, 'undo'), 'redo').history.present).toBe(
+        deleted.history.present,
+      );
+      if (active)
+        expect(
+          act(deleted, { type: 'start', neumeId: 'n2' }).lyrics,
+        ).toMatchObject({ kind: 'draft', neumeId: 'n2' });
+    },
+  );
+  it('commits a valid draft before selecting another syllable and blocks invalid selection', () => {
+    const doc = anchored();
+    const committed = act(text(start(doc), 'Al'), {
+      type: 'select',
+      syllableId: 'existing',
+    });
+    expect(committed.history.present.syllables.map((s) => s.text)).toEqual([
+      'Al',
+      'le',
+    ]);
+    expect(committed.lyrics).toEqual({
+      kind: 'selected',
+      syllableId: 'existing',
+    });
+    const invalid = text(start(doc), 'two words');
+    const blocked = act(invalid, { type: 'select', syllableId: 'existing' });
+    expect(blocked.history).toBe(invalid.history);
+    expect(blocked.lyrics).toBe(invalid.lyrics);
+  });
+  it('starts editing or replacement from an inactive selected syllable without changing music', () => {
+    const selected = act(createEditorSession(anchored()), {
+      type: 'select',
+      syllableId: 'existing',
+    });
+    expect(
+      act(selected, { type: 'edit', syllableId: 'existing' }).lyrics,
+    ).toMatchObject({ kind: 'draft', text: 'le' });
+    const replaced = act(selected, {
+      type: 'edit',
+      syllableId: 'existing',
+      replacement: 'N',
+    });
+    expect(replaced.lyrics).toMatchObject({ kind: 'draft', text: 'N' });
+    expect(replaced.history).toBe(selected.history);
+  });
 });

@@ -69,6 +69,18 @@ const key = async (key, text, modifiers = 0) => {
   await send('Input.dispatchKeyEvent', {
     type: 'keyDown',
     key,
+    windowsVirtualKeyCode:
+      key === 'Backspace'
+        ? 8
+        : key === 'Delete'
+          ? 46
+          : key === 'Enter'
+            ? 13
+            : key === 'Tab'
+              ? 9
+              : key === 'Escape'
+                ? 27
+                : 0,
     text,
     modifiers,
   });
@@ -135,6 +147,8 @@ await ev(
   "document.querySelector('[data-syllable-id=existing].score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
 );
 await pause();
+await key('Enter');
+await ev("document.querySelector('#lyric-input').select()");
 await type('ri');
 await key('Enter');
 assert.deepEqual(await lyrics(), ['Al', 'le', 'lu', 'ri', 'Κύ']);
@@ -155,7 +169,6 @@ await ev(
   "document.querySelector('.score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
 );
 await pause();
-await key('Enter');
 await key('s', 's');
 await type('an');
 assert.equal(await input(), 'san');
@@ -282,6 +295,135 @@ console.log(
   'PASS: L activation, sequential -/Space/_ entry, occupied protection, Greek text, click commit, native Tab, invalid navigation, Escape, intentional replacement, typed replacement caret, end resumption, history resolution, 320px overflow',
 );
 
+// Single-click selection and both lyric deletion paths share the same semantics.
+for (const active of [false, true]) {
+  for (const deletion of ['Delete', 'Backspace', 'button']) {
+    await mount(14, [
+      {
+        id: 'deletable',
+        text: 'Kyrie',
+        startsAtNeumeId: 'n11',
+        boundaryBefore: 'word',
+      },
+    ]);
+    if (active) {
+      await note(0);
+      await button('Lyrics');
+    }
+    const before = await ev(
+      "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>n.dataset.neumeId)",
+    );
+    await ev(
+      "document.querySelector('.score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
+    );
+    await pause();
+    assert.equal(await input(), null);
+    assert.equal(
+      await ev(
+        "document.querySelector('.score__lyric').getAttribute('aria-pressed')",
+      ),
+      'true',
+    );
+    assert.equal(
+      await ev('document.activeElement.dataset.syllableId'),
+      'deletable',
+    );
+    if (deletion === 'button') await button('Delete syllable');
+    else await key(deletion);
+    assert.deepEqual(await lyrics(), []);
+    assert.equal(await input(), null);
+    assert.deepEqual(
+      await ev(
+        "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>n.dataset.neumeId)",
+      ),
+      before,
+    );
+    assert.equal(await ev('document.activeElement.dataset.noteId'), 'note11');
+    assert.equal(
+      await ev(
+        "document.querySelector('[data-selected-neume-id]').dataset.selectedNeumeId",
+      ),
+      'n11',
+    );
+    assert.equal(
+      await ev(
+        "Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith('Lyrics')).getAttribute('aria-pressed')",
+      ),
+      String(active),
+    );
+    await ev(
+      "document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Delete',repeat:true,bubbles:true,cancelable:true}))",
+    );
+    await pause();
+    assert.equal(
+      await ev("document.querySelectorAll('[data-neume-id]').length"),
+      14,
+    );
+    await button('Undo');
+    assert.deepEqual(await lyrics(), ['Kyrie']);
+    await button('Redo');
+    assert.deepEqual(await lyrics(), []);
+  }
+}
+// Editing opens a collapsed normal cursor; typing from selection replaces instead.
+await mount(2, [
+  {
+    id: 'normal',
+    text: 'Kyrie',
+    startsAtNeumeId: 'n0',
+    boundaryBefore: 'word',
+  },
+]);
+await ev(
+  "document.querySelector('.score__lyric').dispatchEvent(new MouseEvent('click',{bubbles:true}))",
+);
+await pause();
+await key('Enter');
+assert.equal(await input(), 'Kyrie');
+assert.equal(
+  await ev(
+    "document.querySelector('#lyric-input').selectionStart === document.querySelector('#lyric-input').selectionEnd",
+  ),
+  true,
+);
+await key('Backspace');
+assert.equal(await input(), 'Kyri');
+assert.deepEqual(await lyrics(), ['Kyrie']);
+await ev("document.querySelector('#lyric-input').setSelectionRange(0,1)");
+await key('Delete');
+assert.equal(await input(), 'yri');
+assert.deepEqual(await lyrics(), ['Kyrie']);
+await key('Escape');
+assert.deepEqual(await lyrics(), ['Kyrie']);
+// A real double-click (including its preceding clicks) opens normal editing.
+const lyricPoint = await ev(
+  "(()=>{const b=document.querySelector('.score__lyric').getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height/2}})()",
+);
+for (const clickCount of [1, 2]) {
+  await send('Input.dispatchMouseEvent', {
+    type: 'mousePressed',
+    ...lyricPoint,
+    button: 'left',
+    clickCount,
+  });
+  await send('Input.dispatchMouseEvent', {
+    type: 'mouseReleased',
+    ...lyricPoint,
+    button: 'left',
+    clickCount,
+  });
+}
+await pause();
+assert.equal(await input(), 'Kyrie');
+assert.equal(
+  await ev(
+    "document.querySelector('#lyric-input').selectionStart === document.querySelector('#lyric-input').selectionEnd",
+  ),
+  true,
+);
+console.log(
+  'PASS: single-click selection, Delete/Backspace/button deletion with and without Lyrics mode, preserved neumes, anchor focus, no empty input, atomic undo/redo, repeat protection, normal Enter/double-click cursors, native character deletion',
+);
 await send('Emulation.setDeviceMetricsOverride', {
   width: 1440,
   height: 1000,
