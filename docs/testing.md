@@ -282,3 +282,8 @@ delimiter entry from inactive Lyrics mode (including occupied/end targets),
 and keyboard-only browser traversal through deletion. Browser checks also assert
 normal selected lyric ink, absence of underline, and distinct simultaneous
 selection/focus outlines.
+
+Direct focused-lyric deletion is covered with and without an existing selection,
+including focus on a different syllable, active/inactive Lyrics mode, draft
+resolution and atomic history. Browser checks use Tab → Delete/Backspace without
+Space or a mouse, and retain the native input character-deletion regressions.

@@ -296,6 +296,11 @@ function applyLyrics(
       return state;
     entry = { kind: 'selected', syllableId: action.syllableId };
   }
+  if (!entry && action.type === 'delete' && action.syllableId) {
+    if (!document.syllables.some((s) => s.id === action.syllableId))
+      return state;
+    entry = { kind: 'selected', syllableId: action.syllableId };
+  }
   if (
     !entry &&
     (action.type === 'delete' || action.type === 'advance') &&

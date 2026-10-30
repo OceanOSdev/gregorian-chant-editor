@@ -295,7 +295,7 @@ console.log(
   'PASS: L activation, sequential -/Space/_ entry, occupied protection, Greek text, click commit, native Tab, invalid navigation, Escape, intentional replacement, typed replacement caret, end resumption, history resolution, 320px overflow',
 );
 
-// Keyboard-only traversal must reach selection/deletion without mouse or programmatic focus.
+// Keyboard-only traversal must reach direct deletion without mouse or programmatic focus.
 const tabToLyric = async () => {
   for (let step = 0; step < 60; step++) {
     await key('Tab');
@@ -321,13 +321,6 @@ for (const deletion of ['Delete', 'Backspace']) {
     await ev("document.activeElement.getAttribute('aria-pressed')"),
     'false',
   );
-  await key(deletion);
-  assert.deepEqual(await lyrics(), ['Ky']);
-  await key(' ', ' ');
-  assert.equal(
-    await ev("document.activeElement.getAttribute('aria-pressed')"),
-    'true',
-  );
   assert.equal(await input(), null);
   assert.equal(await lyricsActive(), 'false');
   await key(deletion);
@@ -338,6 +331,43 @@ for (const deletion of ['Delete', 'Backspace']) {
   );
   assert.equal(await ev('document.activeElement.dataset.noteId'), 'note2');
   assert.equal(await input(), null);
+}
+
+// Focus may move away from selection: deletion must use the focused lyric ID.
+for (const deletion of ['Delete', 'Backspace']) {
+  await mount(6, [
+    {
+      id: 'selected',
+      text: 'Ky',
+      startsAtNeumeId: 'n1',
+      boundaryBefore: 'word',
+    },
+    {
+      id: 'focused',
+      text: 'ri',
+      startsAtNeumeId: 'n4',
+      boundaryBefore: 'continuation',
+    },
+  ]);
+  await tabToLyric();
+  await key(' ', ' ');
+  await key('Tab');
+  assert.equal(
+    await ev('document.activeElement.dataset.syllableId'),
+    'focused',
+  );
+  assert.equal(
+    await ev("document.activeElement.getAttribute('aria-pressed')"),
+    'false',
+  );
+  await key(deletion);
+  assert.deepEqual(await lyrics(), ['Ky']);
+  assert.equal(await ev('document.activeElement.dataset.noteId'), 'note4');
+  assert.equal(await input(), null);
+  assert.equal(
+    await ev("document.querySelectorAll('[data-neume-id]').length"),
+    6,
+  );
 }
 // Selected-minus activates continuation entry from Select, retaining the original anchor.
 await mount(6, [
@@ -420,7 +450,7 @@ assert.equal(
   true,
 );
 console.log(
-  'PASS: keyboard-only Tab → Space → Delete/Backspace, inactive-mode continuation, occupied-anchor safety, non-link selection ink and distinct focus',
+  'PASS: keyboard-only Tab → Delete/Backspace, inactive-mode continuation, occupied-anchor safety, non-link selection ink and distinct focus',
 );
 // Single-click selection and both lyric deletion paths share the same semantics.
 for (const active of [false, true]) {

@@ -145,8 +145,9 @@ A free neume opens insertion. An occupied neume pauses, showing existing text
 with **Edit syllable** and **Skip neume**. Typing never replaces paused lyrics.
 Single-clicking engraved lyric text, or pressing Space on an unselected focused
 lyric, selects it without opening an input or activating Lyrics mode. Tab can
-therefore reach a lyric, Space selects it, and Delete/Backspace deletes only its
-text while preserving its music. Double-clicking, pressing Enter, or choosing Edit syllable
+reach a lyric and Delete/Backspace deletes it directly, without requiring Space.
+Deletion targets the focused engraved syllable even when another syllable is
+selected, preserving all music. Space remains available for explicit selection. Double-clicking, pressing Enter, or choosing Edit syllable
 opens its existing text with a normal collapsed cursor at the end. Strip buttons
 continue to offer explicit editing. Typing on a selected engraved syllable starts
 replacement, rather than appending to its old text. After Save/Enter, the committed syllable is selected;
@@ -154,7 +155,7 @@ typing replaces it intentionally, Enter edits, minus continues its word, Space
 starts a word, and Delete removes only its lyric. Delimiters activate Lyrics
 from selected syllables even when it was previously inactive; occupied anchors
 still pause insertion without overwriting. Native input Delete/Backspace
-remain text editing. Keyboard Delete/Backspace on selected lyrics and the
+remain text editing. Keyboard Delete/Backspace on focused engraved lyrics and the
 Delete syllable button use the same semantic deletion. They preserve every neume,
 select the former anchor neume, and focus its first note. No empty input opens;
 Lyrics mode remains active if it was active, with explicit entry/skip controls,

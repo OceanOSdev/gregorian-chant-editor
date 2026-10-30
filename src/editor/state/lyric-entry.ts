@@ -32,7 +32,8 @@ export type LyricAction =
   | { type: 'edit'; syllableId: string; replacement?: string }
   | { type: 'text'; text: string }
   | { type: 'advance'; key: '-' | ' ' | '_' }
-  | { type: 'save' | 'done' | 'cancel' | 'delete' | 'discard' }
+  | { type: 'save' | 'done' | 'cancel' | 'discard' }
+  | { type: 'delete'; syllableId?: string }
   | { type: 'boundary'; boundaryBefore: Boundary }
   | { type: 'retry'; neumeId: string }
   | { type: 'error'; message: string };
@@ -329,17 +330,19 @@ export function transitionLyrics(
     );
   }
   if (action.type === 'delete') {
-    if (entry.kind !== 'selected' && entry.kind !== 'occupied')
-      return result(entry, 'Select a syllable to delete it.');
-    const neumeId = lyricTargetId(document, entry);
-    const deleted = deleteLyricSyllable(document, entry.syllableId);
-    return neumeId
-      ? result(
-          { kind: 'ready', neumeId },
-          'Syllable deleted; music preserved.',
-          deleted,
-        )
-      : result(null);
+    const syllableId =
+      action.syllableId ??
+      (entry.kind === 'selected' || entry.kind === 'occupied'
+        ? entry.syllableId
+        : null);
+    const syllable = nextDocument.syllables.find((s) => s.id === syllableId);
+    if (!syllable)
+      return result(entry, 'Select or focus a syllable to delete it.');
+    return result(
+      { kind: 'ready', neumeId: syllable.startsAtNeumeId },
+      'Syllable deleted; music preserved.',
+      deleteLyricSyllable(nextDocument, syllable.id),
+    );
   }
   if (action.type === 'advance') {
     if (entry.kind === 'end')

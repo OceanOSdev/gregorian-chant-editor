@@ -49,10 +49,10 @@ export function getSyllableKeyAction(
   if (event.key === 'Enter') return event.repeat ? null : { type: 'edit' };
   if (event.key === ' ' && !selected)
     return event.repeat ? null : { type: 'select' };
+  if (event.key === 'Delete' || event.key === 'Backspace')
+    return event.repeat ? null : { type: 'delete' };
   if (!selected) return null;
   if (event.key === '-' || event.key === ' ' || event.key === '_')
     return event.repeat ? null : { type: 'advance', key: event.key };
-  if (event.key === 'Delete' || event.key === 'Backspace')
-    return event.repeat ? null : { type: 'delete' };
   return event.key.length === 1 ? { type: 'replace', text: event.key } : null;
 }

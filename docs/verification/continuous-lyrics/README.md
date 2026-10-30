@@ -11,8 +11,9 @@ node docs/verification/continuous-lyrics/browser-check.mjs
 The script mounts semantic fixtures through the existing development-only fixture
 page on port 5173. It verifies native input and browser event handling:
 
-- Keyboard-only Tab → Space → Delete/Backspace on engraved lyrics, without mouse
-  selection or programmatic focus; focused-only lyrics are not deleted.
+- Keyboard-only Tab → Delete/Backspace on engraved lyrics, without mouse
+  selection, Space, or programmatic focus. Deletion uses the focused lyric even
+  when a different syllable remains selected.
 - Minus from selected lyrics outside Lyrics mode opens continuation insertion;
   the occupied-anchor case pauses without replacing text.
 - Unchanged lyric ink and no underline in selected state; separate purple dashed

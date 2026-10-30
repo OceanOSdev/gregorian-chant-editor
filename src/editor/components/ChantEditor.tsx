@@ -358,7 +358,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             lyricAction({ type: 'edit', syllableId, replacement })
           }
           onAdvanceLyric={(key) => lyricAction({ type: 'advance', key })}
-          onDeleteSyllable={() => lyricAction({ type: 'delete' })}
+          onDeleteSyllable={(syllableId) =>
+            lyricAction({ type: 'delete', syllableId })
+          }
           placementPreview={placementPreview}
           selection={selection}
           activeTool={activeTool}

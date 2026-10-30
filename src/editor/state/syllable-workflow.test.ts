@@ -543,3 +543,62 @@ describe('delimiter entry from selection outside Lyrics mode', () => {
     expect(next.history).toBe(selected.history);
   });
 });
+
+describe('deletion of a focused engraved syllable', () => {
+  it.each([false, true])(
+    'deletes without selecting and preserves Lyrics mode=%s',
+    (active) => {
+      const doc = anchored();
+      const initial = active ? start(doc, 'n0') : createEditorSession(doc);
+      const deleted = act(initial, { type: 'delete', syllableId: 'existing' });
+      expect(deleted.history.present.neumes).toBe(doc.neumes);
+      expect(deleted.history.present.syllables).toEqual([]);
+      expect(deleted.selection).toEqual({ kind: 'neume', neumeId: 'n2' });
+      expect(deleted.focusRequest).toEqual({ kind: 'note', noteId: 'note2' });
+      expect(deleted.lyrics).toEqual(
+        active ? { kind: 'ready', neumeId: 'n2' } : null,
+      );
+      expect(history(deleted, 'undo').history.present).toBe(doc);
+      expect(history(history(deleted, 'undo'), 'redo').history.present).toBe(
+        deleted.history.present,
+      );
+    },
+  );
+  it('deletes the focused target rather than a different selected syllable', () => {
+    const doc = anchored();
+    doc.syllables.push({
+      id: 'focused',
+      text: 'lu',
+      startsAtNeumeId: 'n4',
+      boundaryBefore: 'word',
+    });
+    const selected = act(createEditorSession(doc), {
+      type: 'select',
+      syllableId: 'existing',
+    });
+    const deleted = act(selected, { type: 'delete', syllableId: 'focused' });
+    expect(deleted.history.present.syllables).toEqual([doc.syllables[0]]);
+    expect(deleted.history.present.neumes).toBe(doc.neumes);
+    expect(deleted.focusRequest).toEqual({ kind: 'note', noteId: 'note4' });
+  });
+  it('resolves valid drafts before focused deletion and retains invalid drafts', () => {
+    const doc = anchored();
+    const committed = act(text(start(doc), 'Al'), {
+      type: 'delete',
+      syllableId: 'existing',
+    });
+    expect(committed.history.present.syllables.map((s) => s.text)).toEqual([
+      'Al',
+    ]);
+    expect(committed.history.past).toHaveLength(1);
+    expect(history(committed, 'undo').history.present).toBe(doc);
+    const invalid = text(start(doc), 'two words');
+    const blocked = act(invalid, { type: 'delete', syllableId: 'existing' });
+    expect(blocked.history).toBe(invalid.history);
+    expect(blocked.lyrics).toBe(invalid.lyrics);
+  });
+  it('ignores a stale focused ID', () => {
+    const state = createEditorSession(anchored());
+    expect(act(state, { type: 'delete', syllableId: 'missing' })).toBe(state);
+  });
+});

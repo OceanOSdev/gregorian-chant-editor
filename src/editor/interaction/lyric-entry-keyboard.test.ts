@@ -31,14 +31,14 @@ it('scopes L to notation in Select', () => {
   expect(isLyricEntryShortcut({ ...key, key: 'i' }, true, false)).toBe(false);
 });
 
-it('uses Space to select focused lyrics before selected-only deletion or entry', () => {
+it('allows deletion directly from focus while retaining Space selection for entry', () => {
   expect(getSyllableKeyAction({ ...key, key: ' ' }, false, false)).toEqual({
     type: 'select',
   });
   for (const deletion of ['Delete', 'Backspace']) {
     expect(
       getSyllableKeyAction({ ...key, key: deletion }, false, false),
-    ).toBeNull();
+    ).toEqual({ type: 'delete' });
     expect(
       getSyllableKeyAction({ ...key, key: deletion }, true, false),
     ).toEqual({ type: 'delete' });
