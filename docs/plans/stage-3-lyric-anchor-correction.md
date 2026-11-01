@@ -17,7 +17,7 @@ After entering music and lyrics, the user must be able to move an existing sylla
 ## Agreed interaction
 
 1. Select an existing engraved syllable, then choose a clearly named **Move syllable** action in its controls. Do not steal Enter, `L`, or double-click from existing text editing.
-2. Enter a *temporary reassignment mode*. Clearly identify the moving syllable, its current anchor and legal destination neumes in the score. Show an understandable instruction and an accessible announcement.
+2. Enter a _temporary reassignment mode_. Clearly identify the moving syllable, its current anchor and legal destination neumes in the score. Show an understandable instruction and an accessible announcement.
 3. **Pointer decision: clicking a valid destination neume immediately commits the reassignment. There is no additional Confirm step for pointer input.** This is an explicit project-owner decision.
 4. **Keyboard:** Previous/Next controls and Left/Right arrow navigation browse candidate neumes; Enter confirms the currently previewed destination. Escape cancels reassignment without a semantic edit. Preserve normal Tab/Shift+Tab traversal where appropriate.
 5. Make current candidate and eligibility understandable with visible focus/preview and accessible labels. Invalid/occupied/crossing destinations must never silently swap, reorder, overwrite or change unrelated syllables. Explain rejection through existing announcement patterns; keep the mode recoverable.

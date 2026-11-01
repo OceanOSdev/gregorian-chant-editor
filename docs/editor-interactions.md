@@ -447,3 +447,36 @@ The visible Lyrics button remains selection/context-based activation or draft
 resumption. Activation from the score surface without an entity retains its
 existing selection/first-neume fallback. This change does not redesign I/T, note
 editing, native input keys, or lyric Space-as-word-boundary behavior.
+
+## Lyric anchor correction
+
+Select an engraved syllable and choose **Move syllable**. The action is also
+available while editing an existing syllable. Activation resolves the current
+draft through the continuous-entry navigation policy: valid text commits first,
+empty/unchanged text creates no edit, cleared existing text preserves its original,
+and invalid or stale/recovery drafts block activation without losing text.
+
+The session reducer owns a temporary reassignment with the moving syllable ID,
+previewed neume ID and preceding resolved Lyrics context. It selects the moving
+syllable and initially focuses its current anchor's first note. The panel names
+the syllable, current anchor and preview. Green dashed score outlines identify
+legal destinations; a solid blue outline identifies the preview. Captions and
+accessible note labels distinguish legal destinations, the current anchor and
+unavailable targets. Eligibility is derived through the pure reassignment command.
+
+Clicking a legal destination's note immediately commits, with no confirmation
+step. Previous/Next destination and Left/Right browse legal neumes in semantic
+order without wrapping or changing selection. Browsing requests focus/reveal on
+the candidate's first note across systems. Enter on the score or **Move here**
+commits the preview. Tab/Shift+Tab remain native focus traversal and do not change
+the preview or selection. Escape or **Cancel move** restores the preceding
+resolved Lyrics context without changing the anchor or history. Successful moves
+retain syllable identity and selection, resume that context, and focus/reveal the
+moved engraved syllable. An already-resolved draft remains resolved on cancellation;
+its preceding text commit, if any, remains independently undoable.
+
+Current-anchor, occupied, crossing and missing targets create no semantic edit
+and announce the reason while leaving the move recoverable. Unrelated music,
+lyric and history actions are suspended until commit/cancel; toolbar controls
+are disabled. Enter, L and double-click retain their normal text-editing roles
+outside reassignment. Moving lyrics changes no engraving/wrapping policy.

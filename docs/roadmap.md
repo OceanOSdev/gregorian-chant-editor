@@ -59,5 +59,5 @@ commitments merely because they are technically possible.
 Stage 1 introduced independent music and unique ordered syllable anchors. Stage 2
 provides continuous Lyrics mode, scoped L activation, underscore skipping,
 commit-on-navigation, explicit replacement, occupied-anchor pauses, end-of-music
-resumption and draft/history recovery. Anchor-correction UI remains Stage 3;
-generated hyphens remain Stage 4. No persistence migration is required.
+resumption and draft/history recovery. Stage 3 provides explicit constrained anchor
+correction with pointer and keyboard targeting; generated hyphens remain Stage 4. No persistence migration is required.

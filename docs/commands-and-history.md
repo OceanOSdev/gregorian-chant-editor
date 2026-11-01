@@ -126,3 +126,10 @@ convert insertion intent into update intent. Stale dirty targets retain their
 draft in recovery. Native input undo stays browser-owned; explicit semantic
 history resolves a dirty draft through Save / Discard / Cancel. Save then Undo
 undoes that newly saved syllable first, making it available to Redo.
+
+Anchor correction calls `reassignLyricSyllable` once for the accepted destination
+and records one semantic snapshot. Candidate browsing, rejected/current-anchor
+clicks and cancellation add no history. Activation resolves a valid dirty draft
+first as its own existing text transaction; Undo after moving restores the anchor
+before undoing that earlier text edit. Reassignment preview and the saved Lyrics
+context live only in the session reducer, outside `DocumentHistory`.

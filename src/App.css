@@ -339,3 +339,20 @@ kbd {
   border-left: 3px solid #1e64d2;
   padding-left: 0.5rem;
 }
+
+.score__move-target {
+  fill: #10805218;
+  stroke: #108052;
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+.score__move-target--preview {
+  fill: #1268ce22;
+  stroke: #1268ce;
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+.score__move-caption {
+  fill: #185744;
+  font-size: 10px;
+}

@@ -29,6 +29,7 @@ import { focusAndReveal } from '../rendering/focus-visibility';
 import {
   createEditorSession,
   neumeName,
+  lyricMoveTargets,
   reduceEditorSession,
 } from '../state/editor-session';
 import {
@@ -252,6 +253,42 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   return (
     <main
       className="chant-editor"
+      onKeyDownCapture={(event) => {
+        if (
+          !session.lyricMove ||
+          event.nativeEvent.isComposing ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.altKey
+        )
+          return;
+        const key = event.key;
+        const button =
+          event.target instanceof Element &&
+          Boolean(event.target.closest('button'));
+        if (
+          key === 'Escape' ||
+          key === 'ArrowLeft' ||
+          key === 'ArrowRight' ||
+          (key === 'Enter' && !button)
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!event.repeat)
+            dispatch({
+              type: 'lyric-move',
+              action:
+                key === 'Escape'
+                  ? { type: 'cancel' }
+                  : key === 'Enter'
+                    ? { type: 'commit' }
+                    : {
+                        type: 'browse',
+                        direction: key === 'ArrowLeft' ? -1 : 1,
+                      },
+            });
+        }
+      }}
       onFocusCapture={(event) => {
         const target = event.target;
         setFocusedLyricId(
@@ -300,6 +337,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             key={tool}
             type="button"
             data-tool={tool}
+            disabled={Boolean(session.lyricMove)}
             ref={(button) => {
               if (button) paletteButtons.current.set(tool, button);
               else paletteButtons.current.delete(tool);
@@ -336,6 +374,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <button
           type="button"
           aria-pressed={Boolean(session.lyrics)}
+          disabled={Boolean(session.lyricMove)}
           aria-keyshortcuts="L"
           onClick={() =>
             lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null })
@@ -344,6 +383,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Lyrics <kbd aria-hidden="true">L</kbd>
         </button>
         <button
+          disabled={Boolean(session.lyricMove)}
           className="editor-insert"
           type="button"
           data-notation-shortcuts
@@ -356,7 +396,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Undo last edit"
           aria-keyshortcuts="Control+Z Meta+Z"
-          disabled={!canUndo}
+          disabled={!canUndo || Boolean(session.lyricMove)}
           onClick={() => navigateHistory('undo')}
         >
           Undo
@@ -365,7 +405,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           aria-label="Redo last undone edit"
           aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y"
-          disabled={!canRedo}
+          disabled={!canRedo || Boolean(session.lyricMove)}
           onClick={() => navigateHistory('redo')}
         >
           Redo
@@ -384,6 +424,27 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <div className="score-workspace">
         <ScoreSvg
           layout={layout}
+          lyricMove={
+            session.lyricMove
+              ? {
+                  ...session.lyricMove,
+                  anchorId:
+                    history.present.syllables.find(
+                      (s) => s.id === session.lyricMove?.syllableId,
+                    )?.startsAtNeumeId ?? '',
+                  legalIds: lyricMoveTargets(
+                    history.present,
+                    session.lyricMove.syllableId,
+                  ),
+                }
+              : null
+          }
+          onMoveDestination={(neumeId) =>
+            dispatch({
+              type: 'lyric-move',
+              action: { type: 'commit', neumeId },
+            })
+          }
           onSelectSyllable={(syllableId) =>
             lyricAction({ type: 'select', syllableId })
           }
@@ -463,6 +524,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           document={history.present}
           layout={layout}
           entry={session.lyrics}
+          lyricMove={session.lyricMove}
+          onMove={(action) => dispatch({ type: 'lyric-move', action })}
           selectedSyllableId={
             selection.kind === 'syllable' ? selection.syllableId : null
           }
