@@ -85,8 +85,9 @@ ADRs, and actual code before making changes.
 For well-scoped work, implement directly. If substantial architectural ambiguity,
 conflicting requirements, or a materially different approach emerges, stop the
 affected work and report the evidence and options to the owner. The owner can
-return to ChatGPT for a design discussion, then record the revised intent in
-the plan or PR before Codex implements divergent behavior. Ordinary coding
+return to ChatGPT for a design discussion, then update the committed handoff
+plan with the agreed material design or scope changes before Codex implements
+divergent behavior. Link the PR discussion when useful. Ordinary coding
 choices do not require approval. Keep to the requested milestone and its
 explicit exclusions.
 
@@ -104,8 +105,8 @@ and deferred work. Do not infer passing checks from a plan or code inspection.
 Markdown-only changes skip hosted CI; skipped CI is not passed CI.
 
 Commit implementation on the same handoff branch and open a PR against the
-agreed base. Keep the committed plan available during review unless the owner
-requests its removal. The PR description and return summary should explain:
+agreed base. Keep the committed plan available during review until the owner
+chooses its closeout below. The PR description and return summary should explain:
 
 - what changed and why;
 - checks actually run and their results, including manual validation;
@@ -117,8 +118,17 @@ Return the PR URL so the owner and ChatGPT can review the same artifact.
 
 ChatGPT reads the actual GitHub PR diff and available verification evidence,
 then can post review comments. Codex addresses feedback on the same branch,
-repeats affected checks, and reports the results. If feedback changes agreed
-requirements, record the decision in the plan or PR before implementing it.
+repeats affected checks, and reports the results. Routine review fixes can be
+tracked in PR comments. Material changes to agreed design or scope must also
+update the committed handoff plan before implementation, so a later Codex
+session can recover current intent from the branch.
+
+Before merge, the owner chooses how to close out the task plan: remove a
+one-off plan (the PR and Git history preserve it), or retain a plan needed for
+ongoing multi-stage work with an accurate status and clear remaining stages.
+Mark completed retained plans as completed or archive them with an explicit
+historical status; do not leave them looking active. Durable accepted decisions
+belong in ADRs and owning guides regardless of this choice.
 
 The owner resolves outstanding choices and decides when to accept and merge.
 Codex does not merge as part of the handoff.

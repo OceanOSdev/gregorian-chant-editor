@@ -1,6 +1,7 @@
 # Plan: Git-backed ChatGPT ↔ Codex workflow
 
-Status: Ready for Codex implementation
+Status: Implemented; PR review and owner closeout decision pending
+PR: https://github.com/OceanOSdev/gregorian-chant-editor/pull/41
 Branch: `docs/chatgpt-codex-handoff`
 Target: `master`
 
@@ -34,7 +35,8 @@ This is a Git-backed handoff **between ChatGPT and Codex**, not a handoff betwee
 - A plan is not evidence of implementation or passing tests. Codex should distinguish implemented, verified, manually tested, and deferred work in its PR or return summary.
 - No extra persistent session logs, automatically generated status files, duplicate documentation, or unnecessary GitHub issues are required.
 - Don't have ChatGPT and Codex make concurrent edits on the same branch. The usual ownership handoff is: ChatGPT commits the plan; Codex owns implementation commits; ChatGPT reviews through the PR.
-- If agreed requirements change after handoff, record the revised intent in the plan or PR before implementing the divergent behavior. Keep discussions and change decisions traceable.
+- If material design or scope requirements change after handoff, update the committed plan before implementing the divergent behavior; optionally link the PR discussion. Routine review fixes may be tracked in PR comments. Keep discussions and change decisions traceable.
+- Before merge, the owner chooses whether to remove this one-off plan or retain/archive it with an accurate completion status. Durable accepted decisions belong in ADRs and owning guides.
 
 ## Implementation scope
 
