@@ -60,8 +60,10 @@ Read the guide that owns a subsystem before changing its documented contract:
   [stable identities](docs/adrs/0003-use-stable-semantic-identities.md),
   [explicit neume types](docs/adrs/0004-use-explicit-neume-types-and-ordered-tuples.md),
   [geometry-derived wrapping](docs/adrs/0005-derive-wrapping-from-rendered-geometry.md),
-  and the proposed
-  [playback boundary](docs/adrs/0006-separate-notation-from-playback.md)
+  the **Proposed**
+  [playback boundary](docs/adrs/0006-separate-notation-from-playback.md), and the accepted
+  [engraving geometry](docs/adrs/0007-share-derived-neume-engraving-geometry.md)
+  and [lyric anchors](docs/adrs/0008-anchor-lyrics-to-neumes.md) decisions
 
 When a documented contract changes, update its owning guide in the same
 change. When a durable architectural decision changes, update the relevant ADR
@@ -69,6 +71,16 @@ or explicitly review whether a new decision record is warranted. Keep the
 guides linked and avoid copying one authoritative explanation into several
 files. Use the [testing guide](docs/testing.md) for test seams and manual
 verification responsibilities.
+
+## Task handoffs
+
+Follow the [AI collaboration workflow](docs/ai-workflow.md) when working from a
+Git-backed handoff, and read the task’s committed plan before implementing it.
+Uphold its agreed design intent and the established architectural boundaries.
+Stop and report options for material ambiguity, conflicting requirements, or
+unexpected conflicts with accepted ADRs; ordinary coding choices need no
+additional approval. Stay within the requested milestone and accurately report
+what was implemented, verified, manually tested, or deferred.
 
 ## Architectural Boundaries
 
@@ -104,11 +116,8 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 - `npm test` runs the Vitest suite once.
 - `npm run test:watch` runs Vitest in watch mode.
 
-Run `npm run format:check`, `npm run lint`, `npm test`, and `npm run build`
-before completing a coding task. See the [testing guide](docs/testing.md) for
-the authoritative setup and verification workflow.
-
-When automated tests exist, run the relevant tests as well.
+Follow the [testing guide](docs/testing.md) for authoritative setup, required
+verification commands, relevant tests, and manual browser responsibilities.
 
 ## Coding Style and Naming Conventions
 
@@ -116,7 +125,7 @@ Follow the existing TypeScript and TSX style:
 
 - Two-space indentation
 - Single quotes
-- No semicolons
+- Semicolons (as configured in `.prettierrc.json`)
 - PascalCase for React components and their files
 - camelCase for functions and variables
 - Descriptive kebab-case names for static assets
@@ -183,14 +192,6 @@ Prefer completing one small vertical slice over scaffolding many unfinished syst
 Vitest is configured for plain TypeScript unit tests. No browser environment,
 component testing library, or coverage requirement is currently configured.
 
-For current changes:
-
-1. Run `npm run format:check`.
-2. Run `npm run lint`.
-3. Run `npm test`.
-4. Run `npm run build`.
-5. Verify the relevant behavior manually with `npm run dev`.
-
 - Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
 - Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
 - Use browser-level tests for important editor interactions.
@@ -209,7 +210,7 @@ Use concise Conventional Commit-style subjects:
 
 Keep unrelated changes in separate commits.
 
-When pull requests become available, they should:
+Pull requests should:
 
 - Explain the user-visible or architectural change.
 - List the verification performed.
@@ -221,12 +222,8 @@ When pull requests become available, they should:
 Before completing a coding task:
 
 1. Review the changed files for unnecessary scope expansion.
-2. Run the formatting check.
-3. Run the linter.
-4. Run relevant automated tests.
-5. Run the production build.
-6. Verify significant UI behavior manually when practical.
-7. Summarize the changed files.
-8. Explain any architectural decisions or remaining limitations.
+2. Complete the verification workflow in the [testing guide](docs/testing.md),
+   including relevant automated tests and manual checks when practical.
+3. Summarize the changed files, architectural decisions, and remaining limitations.
 
 Do not claim that verification passed unless the corresponding command was actually run successfully.

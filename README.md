@@ -134,7 +134,8 @@ the underlying developer commands and can always be run directly.
 ## Contributing
 
 Read [AGENTS.md](AGENTS.md) and the guide that owns the subsystem before making
-architectural changes. Run:
+architectural changes. For a branch-and-plan handoff between ChatGPT and local
+Codex, follow the [AI collaboration workflow](docs/ai-workflow.md). Run:
 
 ```bash
 npm run format:check
@@ -143,6 +144,7 @@ npm test
 npm run build
 ```
 
-Pull requests run the same verification sequence. See the
+Eligible pull requests run the same verification sequence in CI; Markdown-only
+changes skip it. See the
 [testing guide](docs/testing.md) for authoritative setup, verification, CI,
 test-seam, and manual-browser guidance.

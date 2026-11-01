@@ -27,7 +27,7 @@ This is a Git-backed handoff **between ChatGPT and Codex**, not a handoff betwee
   - acceptance criteria and necessary verification;
   - unresolved questions and when to stop or escalate;
   - branch/PR expectations and what to report back.
-  Omit inapplicable sections rather than adding boilerplate.
+    Omit inapplicable sections rather than adding boilerplate.
 - The normal Codex invocation should be short: check out the specified branch, read its plan, and implement it. Codex must inspect its working tree and avoid overwriting unrelated local changes before switching branches.
 - For well-scoped tasks Codex may implement directly. For substantial architectural ambiguity, conflicting requirements, or a materially different approach, Codex should report options and seek a decision before proceeding. Ordinary coding choices do not require approval.
 - An accepted ADR is not silently overridden by a task plan. If a new feature intentionally changes an accepted contract, update the owning documentation and follow the ADR replacement/amendment process; escalate unexpected conflicts.
@@ -47,7 +47,7 @@ Preserve the existing valuable project, architecture, scope, and coding guidance
 - Fix **"No semicolons"**: the current `.prettierrc.json` explicitly sets `"semi": true`.
 - Remove obsolete language suggesting PRs are not yet available.
 - Update ADR pointers to include the **accepted** engraving-geometry ADR 0007 and lyric-anchor ADR 0008; keep the playback ADR 0006 clearly **Proposed**.
-- Add a short link to `docs/ai-workflow.md` and instructions to read the *task's committed handoff plan* when working on one.
+- Add a short link to `docs/ai-workflow.md` and instructions to read the _task's committed handoff plan_ when working on one.
 - State clearly that agents should uphold agreed design intent, preserve established boundaries, ask about material conflicts, keep to the requested milestone, and accurately report verification.
 - Avoid duplicating the entire new workflow or the authoritative verification procedures from `docs/testing.md`.
 
@@ -56,6 +56,7 @@ Preserve the existing valuable project, architecture, scope, and coding guidance
 Document the concrete **ChatGPT → Git branch/plan → local Codex → PR → ChatGPT review** cycle.
 
 Cover:
+
 - responsibilities and limits of ChatGPT, Codex, and the project owner;
 - creation of a task branch and committed plan by ChatGPT;
 - a concise template/required information for a task handoff (adapted to task size);
