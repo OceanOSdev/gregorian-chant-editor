@@ -14,7 +14,8 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 - [Glossary](glossary.md)
 - [Project drawing metrics](engraving-metrics.md)
 - [Shared geometry decision](adrs/0007-share-derived-neume-engraving-geometry.md)
-- [Wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
+- [Accepted combined wrapping decision](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+- [Superseded music-only wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
 - [Roadmap and limitations](roadmap.md)
 
 ## Staff, system, and score
@@ -47,9 +48,9 @@ This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
 Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
-Height grows with system count. The Stage 4B implementation follows
-[Proposed ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-on this isolated branch; ADR 0005 remains Accepted pending owner review.
+Height grows with system count. Stage 4B's combined music-and-lyric layout
+follows [accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
+which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
 system placement always retains its normal bounds, independently of canvas size.
 
