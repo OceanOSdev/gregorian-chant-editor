@@ -300,7 +300,7 @@ await click('[aria-label="Redo last undone edit"]');
 assert.notDeepEqual(await geometry(), original);
 await click('[aria-label="Undo last edit"]');
 // Native boundary edits enlarge only the necessary incoming advance.
-await click('.score__lyric[data-syllable-id="s9"]');
+await click('.score__lyric[data-syllable-id="s10"]');
 await focus('[aria-label="Word boundary"]');
 await key('End');
 await key('Tab');

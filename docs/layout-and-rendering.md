@@ -171,6 +171,78 @@ origins. Focus reveal visits local scroll containers before the page. Reparented
 note/lyric controls restore browser focus by ID after measurement reflow without
 changing semantic selection or stealing focus from editor controls.
 
+### Stage 4C word composition
+
+[Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md) specifies the
+contextual same-word compaction and derived hyphenation implemented on
+[PR #45](https://github.com/OceanOSdev/gregorian-chant-editor/pull/45).
+The owner approved the current visual policy on 2026-11-02; PR #45 remains
+subject to normal merge checks. [ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+remains Accepted and its Stage 4B rules are the conservative baseline.
+
+With a complete valid font snapshot (including the hyphen), consecutive neumes
+starting consecutive syllables of the same semantic word may use a **2-unit ink
+gap**. Actual occupied lyric edges then increase the incoming position as needed.
+There is a 0.05-em (1-unit) same-word clearance for responsive SVG hinting, in
+addition to the measurer's guarded ink bounds. Different-word boundaries retain
+the ordinary music minimum and quarter-em lyric gap. Unanchored melismas,
+lyricless music, neume contours, pitches and musical/vowel anchors are unchanged.
+
+Compact neighbors receive derived horizontal `hitClip` ownership intervals split
+at their ink-gap midpoint. SVG clips padded note targets, lyric-move
+destination targets, and whole-neume selection/placement/move rectangle
+decorations (including their strokes) to these intervals. Captions are not clipped. Every ink edge remains inside its owner's
+interval; existing internal rectangular/polygonal note partitions are preserved.
+At the exact shared split line, SVG paint order gives a hit to the following
+target when both contain that point. Selection and focus are independent
+controls as before; decoration does not own pointer events. No target is transferred to the neighboring neume.
+
+A same-word occupied-edge gap of at most **0.1 em** (2 units at the current font)
+is treated as joined. This is tighter than the quarter-em minimum real-word
+space: an unmarked continuing syllable must not look separated by a word space.
+Occupied edges include the measured advance/ink union and its precision guard.
+Larger unavoidable gaps receive one measured hyphen, centered between the lyrics
+with at least 0.1 em on each side. A mark only reserves missing clearance after
+safe musical placement; no word-specific coordinate or syllable-count rule is
+used. Font substitution may change the join decision.
+
+The initial PR #45 iteration used 0.4 em, which exceeded the minimum word gap;
+corpus measurements exposed unmarked word-space-sized continuations. The revised
+policy intentionally hyphenates those cases, including short adjacent vowels
+whose anchors cannot safely come closer. A wide neume may prevent joining; text
+never moves independently of its musical anchor. There is no kerning across
+separate lyric controls and no promise that every word will join. The
+[corpus review](verification/word-composition/corpus-review.md) records both the
+relative invariant checks and visual evidence; images are not test goldens.
+
+Placement is a bounded forward walk: build at the contextual musical minimum,
+decide separation once from measured edges, then add only missing clearance for
+a required mark. There is no iterative reclassification or renderer translation.
+While a syllable on the current system has a semantic next syllable continuing
+its word, each candidate reserves the measured hyphen width plus two 0.1-em
+margins after the maximum occupied music/lyric edge. The reservation is replaced
+when the next syllable is accepted. This conservative reservation can wrap a
+neume earlier than a lookahead optimizer would. Each candidate has a bounded current/fresh-system fit, with at most one
+additional translation of a first source unit into available left room to fit
+its outgoing reservation. Music and lyric move together; the musical/vowel
+anchor relationship does not change. If the combined unit cannot fit, it is
+isolated under the oversized progress policy, with its complete mark visible.
+Oversized items still advance once.
+
+After system assignment, consecutive same-word syllables on different systems
+produce one outgoing mark on the **source lyric's system**, after its music and
+lyric right edges. A melisma can cross intermediate systems without repeated
+marks; only the genuine later syllable creates continuation. No incoming mark or
+true-word-end mark is generated. The original unbreakable oversized policy also
+exposes any outgoing mark through canvas expansion; normal wrapping stays at
+656 on the 720-unit logical canvas. Hyphens have measured occupied extents,
+`text-anchor="middle"`, and their own pointer-inert, aria-hidden layer. They
+never enter lyric text, accessible labels, document identity or history.
+
+Missing/invalid/partial syllable or punctuation measurements disable composition,
+reservations and marks together, retaining music-only placement until remeasurement.
+Committed rendering and interaction still consume the same measured layout.
+
 ## Committed layout and previews
 
 Committed layout copies semantic neume and note IDs into `NeumeLayout` and
@@ -205,14 +277,14 @@ Current horizontal alignment rules are:
 
 Valid semantic documents contain only anchored, nonblank syllables in anchor
 order. Layout preserves that order. Word boundaries are semantic metadata;
-generated hyphens are deferred to Stage 4C.
+generated hyphens are derived decorations under the Stage 4C branch policy.
 
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
 contract below. Each lyric also exposes measured `left`/`right` occupied edges
 (or null when unavailable), `boundaryBefore`, and `anchorX`; the enclosing system
-provides its boundary. Conditional hyphens and continuation marks remain deferred.
+provides its boundary; hyphens follow the Stage 4C branch policy.
 
 ## Rendering and accessibility
 
@@ -308,7 +380,11 @@ Missing/nonfinite/inconsistent metrics deterministically retain whole-string
 centering. Alignment uses typographic advances, not optical ink centroids.
 
 The browser adapter measures hidden SVG text in an effect with the same
-20-unit Georgia / Times New Roman / serif stack as visible lyrics. It waits
+20-unit Georgia / Times New Roman / serif stack as visible lyrics. Measured text,
+visible syllables and hyphens all use SVG `text-rendering="geometricPrecision"`.
+This avoids Firefox's scale-dependent hinted ink boxes diverging from the hidden
+measurements at narrow responsive sizes; no viewport-dependent spacing or
+resize-driven layout cycle is introduced. It waits
 for `document.fonts.ready` and refreshes after font loading, caching repeated
 texts per measurement pass. Unicode grapheme indexes are converted to UTF-16
 SVG substring lengths only in that adapter. Platform font substitution can
@@ -324,5 +400,5 @@ Rendering keeps one interactive text control per
 syllable, with unchanged baseline, accessible name and ID-based interaction.
 
 Stage 4B extends the Stage 4A measurements into combined placement as described
-above. Stage 4C hyphens and system continuation marks remain deferred; same-word
-syllables can still appear widely separated when music requires it.
+above. The Stage 4C branch experiment derives conditional and outgoing hyphens
+when safe musical geometry leaves continuing syllables visibly separated.

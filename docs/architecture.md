@@ -94,8 +94,11 @@ document changes. See [editor interactions](editor-interactions.md).
 
 Converts a semantic document into `ChantLayout`. It owns engraving geometry,
 whole-neume wrapping, repeated systems, lyric alignment, graphical snapping,
-and local caret/ghost preview layout. See
-[layout and rendering](layout-and-rendering.md).
+and local caret/ghost preview layout. It also derives word-aware compact
+spacing and conditional/system-break hyphens under
+[Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md), which narrowly
+qualifies but does not replace [ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md).
+See [layout and rendering](layout-and-rendering.md).
 
 ### `src/editor/rendering/`
 

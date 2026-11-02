@@ -43,6 +43,8 @@ export interface NoteLayout extends NoteGeometry {
 
 export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
   neumeId: string;
+  /** Horizontal ownership interval for contextual pointer padding and decorations. */
+  hitClip?: { left: number; right: number };
 
   kind: Neume['kind'];
   notes: readonly NoteLayout[];
@@ -62,6 +64,12 @@ export interface LyricLayout {
   right: number | null;
 }
 
+export interface HyphenLayout {
+  x: number;
+  y: number;
+  outgoing: boolean;
+}
+
 /**
  * One derived system. All child geometry is currently score-absolute, and
  * startNeumeIndex is the global semantic index of its first neume.
@@ -75,6 +83,7 @@ export interface ChantSystemLayout {
   staffLines: readonly StaffLineLayout[];
   clef: ClefLayout;
   neumes: readonly NeumeLayout[];
+  hyphens: readonly HyphenLayout[];
   lyrics: readonly LyricLayout[];
   startNeumeIndex: number;
 }
@@ -244,34 +253,53 @@ function geometryInput(neume: Neume): GeometryInput {
 interface LyricRequirement {
   alignment: ReturnType<typeof alignLyricText>;
   boundaryBefore: LyricSyllable['boundaryBefore'];
+  continues: boolean;
 }
+
+export const compactNeumeInkGap = 2;
+// A join must remain substantially tighter than the quarter-em word gap.
+// Occupied edges include guarded glyph ink, so this permits near-contiguous
+// text without leaving an unmarked word-space-sized continuation.
+export const lyricJoinThreshold = lyricFontSize / 10;
+export const lyricJoinClearance = lyricFontSize / 20;
+const hyphenClearance = lyricFontSize / 10;
 
 /** One walker owns music minima, lyric clearance, wrapping and oversized progress. */
 function placeNeumeSequence(
   inputs: readonly GeometryInput[],
   usableRightBoundary = staffEndX,
   lyrics: ReadonlyMap<number, LyricRequirement> = new Map(),
+  hyphenWidth = 0,
 ): readonly PositionedSystem[] {
   const systems: PositionedSystem[] = [];
   let geometries: NeumeGeometry[] = [];
   let startNeumeIndex = 0;
   let nextLeftX = 0;
   let previousLyricRight: number | null = null;
+  let activeLyric: LyricRequirement | undefined;
   function finishSystem() {
     systems.push({ startNeumeIndex, geometries });
     startNeumeIndex += geometries.length;
     geometries = [];
     previousLyricRight = null;
+    activeLyric = undefined;
   }
   for (const [inputIndex, input] of inputs.entries()) {
     const lyric = lyrics.get(inputIndex);
     const extents = lyric ? lyricTextExtents(lyric.alignment) : null;
     const build = () => {
+      const previous = geometries.at(-1);
+      const compact =
+        previous &&
+        lyric?.boundaryBefore === 'continuation' &&
+        lyrics.has(inputIndex - 1);
       const initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         geometries.length
-          ? nextLeftX
+          ? compact
+            ? previous.bounds.x + previous.bounds.width + compactNeumeInkGap
+            : nextLeftX
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
       );
@@ -282,8 +310,21 @@ function placeNeumeSequence(
         previousLyricRight === null
           ? staffStartX
           : previousLyricRight +
-            (lyric.boundaryBefore === 'word' ? lyricFontSize / 4 : 0);
-      const shift = Math.max(0, minimum - left);
+            (lyric.boundaryBefore === 'word'
+              ? lyricFontSize / 4
+              : lyricJoinClearance);
+      // Decide from the safe placement once; adding mark clearance never
+      // changes the decision back to joined (no iterative threshold loop).
+      const separated =
+        lyric.boundaryBefore === 'continuation' &&
+        previousLyricRight !== null &&
+        left - previousLyricRight > lyricJoinThreshold;
+      const shift = Math.max(
+        0,
+        (separated && previousLyricRight !== null
+          ? previousLyricRight + hyphenWidth + 2 * hyphenClearance
+          : minimum) - left,
+      );
       const shifted = () =>
         buildNeumeGeometry(
           input.kind,
@@ -308,17 +349,48 @@ function placeNeumeSequence(
         g.bounds.x + g.bounds.width,
         extents ? g.lyricAnchorX + extents.right : -Infinity,
       );
+    // Reserve a possible outgoing mark while its source lyric is on this
+    // system. On acceptance of the next syllable this reservation is released.
+    const reservedRight = (g: NeumeGeometry) =>
+      Math.max(
+        rightEdge(g),
+        (lyric ?? activeLyric)?.continues && hyphenWidth
+          ? Math.max(rightEdge(g), previousLyricRight ?? -Infinity) +
+              hyphenWidth +
+              2 * hyphenClearance
+          : -Infinity,
+      );
     const oversized = (g: NeumeGeometry) =>
-      rightEdge(g) > usableRightBoundary ||
+      reservedRight(g) > usableRightBoundary ||
       (extents ? g.lyricAnchorX + extents.left < staffStartX : false);
     let geometry = build();
-    if (geometries.length && rightEdge(geometry) > usableRightBoundary) {
+    if (geometries.length && reservedRight(geometry) > usableRightBoundary) {
       finishSystem();
       geometry = build();
+    }
+    if (!geometries.length && lyric?.continues && extents) {
+      const missing = Math.max(
+        0,
+        reservedRight(geometry) - usableRightBoundary,
+      );
+      const left = Math.min(
+        geometry.bounds.x,
+        geometry.lyricAnchorX + extents.left,
+      );
+      // Preserve internal music and vowel alignment. A combined unit which
+      // cannot fit even using this room follows isolated oversized progress.
+      if (missing && left - missing >= staffStartX)
+        geometry = buildNeumeGeometry(
+          input.kind,
+          input.staffPositions,
+          geometry.bounds.x - missing,
+          firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+        );
     }
     geometries.push(geometry);
     nextLeftX = geometry.bounds.x + geometry.advanceX;
     if (extents) previousLyricRight = geometry.lyricAnchorX + extents.right;
+    if (lyric) activeLyric = lyric;
     if (oversized(geometry)) finishSystem();
   }
   if (geometries.length || systems.length === 0) finishSystem();
@@ -642,23 +714,43 @@ export function layoutChant(
     ]),
   );
   // A partial/stale font snapshot cannot establish safe adjacent clearances.
-  const ready = [...alignments.values()].every((a) => a.measured);
+  const hyphenAlignment = alignLyricText(
+    {
+      id: 'decoration',
+      text: '-',
+      startsAtNeumeId: '',
+      boundaryBefore: 'word',
+    },
+    'und',
+    measure,
+  );
+  const hyphenExtents = lyricTextExtents(hyphenAlignment);
+  const hyphenWidth = hyphenExtents
+    ? hyphenExtents.right - hyphenExtents.left
+    : 0;
+  const ready =
+    [...alignments.values()].every((a) => a.measured) &&
+    hyphenAlignment.measured;
   const requirements = new Map<number, LyricRequirement>();
   const indexes = new Map(document.neumes.map((n, i) => [n.id, i]));
   if (ready)
-    for (const syllable of document.syllables) {
+    for (const [syllableIndex, syllable] of document.syllables.entries()) {
       const index = indexes.get(syllable.startsAtNeumeId);
       const alignment = alignments.get(syllable.id);
       if (index !== undefined && alignment)
         requirements.set(index, {
           alignment,
           boundaryBefore: syllable.boundaryBefore,
+          continues:
+            document.syllables[syllableIndex + 1]?.boundaryBefore ===
+            'continuation',
         });
     }
   const wrappedSystems = placeNeumeSequence(
     document.neumes.map(geometryInput),
     staffEndX,
     requirements,
+    hyphenWidth,
   );
   const systemsWithoutLyrics = wrappedSystems.map(
     ({ startNeumeIndex, geometries }, index): ChantSystemLayout => {
@@ -690,6 +782,7 @@ export function layoutChant(
           ),
         ),
         lyrics: [],
+        hyphens: [],
         startNeumeIndex,
       };
     },
@@ -740,7 +833,50 @@ export function layoutChant(
   const systems = systemsWithoutLyrics.map((system) => ({
     ...system,
     lyrics: lyricsBySystem[system.index] ?? [],
+    hyphens: [] as HyphenLayout[],
   }));
+  if (ready && hyphenExtents) {
+    const orderedLyrics = systems.flatMap((system) =>
+      system.lyrics.map((lyric) => ({ lyric, system })),
+    );
+    for (let i = 1; i < orderedLyrics.length; i++) {
+      const before = orderedLyrics[i - 1];
+      const after = orderedLyrics[i];
+      if (
+        after.lyric.boundaryBefore !== 'continuation' ||
+        before.lyric.right === null ||
+        after.lyric.left === null
+      )
+        continue;
+      const outgoing = before.system.index !== after.system.index;
+      const gap = after.lyric.left - before.lyric.right;
+      if (!outgoing && gap <= lyricJoinThreshold) continue;
+      const left = outgoing
+        ? Math.max(
+            before.lyric.right,
+            ...before.system.neumes.map((n) => n.bounds.x + n.bounds.width),
+          ) + hyphenClearance
+        : before.lyric.right + (gap - hyphenWidth) / 2;
+      before.system.hyphens.push({
+        x: left - hyphenExtents.left,
+        y: before.lyric.y,
+        outgoing,
+      });
+    }
+    // Clip only external pointer padding. Ink, anchors and internal note
+    // ownership remain untouched; midpoint intervals are disjoint.
+    for (const system of systems) {
+      for (let i = 1; i < system.neumes.length; i++) {
+        const a = system.neumes[i - 1],
+          b = system.neumes[i];
+        const right = a.bounds.x + a.bounds.width;
+        if (b.bounds.x - right >= interNeumeInkGap) continue;
+        const split = (right + b.bounds.x) / 2;
+        a.hitClip = { left: a.hitClip?.left ?? a.bounds.x - 7, right: split };
+        b.hitClip = { left: split, right: b.bounds.x + b.bounds.width + 7 };
+      }
+    }
+  }
 
   // Normal systems still wrap at staffEndX, irrespective of this canvas.
   const edges = ready ? systems.flatMap((system) => system.lyrics) : [];
@@ -750,6 +886,12 @@ export function layoutChant(
     canvasLeft = Math.min(canvasLeft, (lyric.left ?? 12) - 12);
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
+  for (const system of systems)
+    for (const hyphen of system.hyphens)
+      canvasRight = Math.max(
+        canvasRight,
+        hyphen.x + (hyphenExtents?.right ?? 0) + 12,
+      );
   return {
     title: document.title,
     x: canvasLeft,

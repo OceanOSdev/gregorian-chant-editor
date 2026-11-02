@@ -9,8 +9,16 @@ Accepted (2026-11-01). Supersedes [ADR 0005](0005-derive-wrapping-from-rendered-
 The owner accepted this decision after reviewing Stage 4B implementation in
 [PR #44](https://github.com/OceanOSdev/gregorian-chant-editor/pull/44),
 including hands-on Firefox testing of the revised lyric-selection appearance.
-The PR remains subject to normal merge checks; acceptance of this ADR does
-not itself merge the implementation.
+PR #44 was subsequently merged. Acceptance of this ADR was separate from
+the implementation merge.
+
+**Accepted Stage 4C qualification (2026-11-02):**
+[ADR 0011](0011-word-aware-chant-engraving.md) adds a narrow contextual
+exception to the fixed 33-unit musical minimum **only** for eligible
+successive same-word syllable anchors. It also governs derived conditional
+and outgoing hyphens. ADR 0010's combined-geometry layout, wrapping, lyric
+clearance, oversized progress and interaction contracts remain Accepted;
+ADR 0011 **does not supersede** this ADR.
 
 ## Context
 
