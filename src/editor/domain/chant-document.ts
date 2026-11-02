@@ -103,7 +103,22 @@ export type Neume =
   | ClimacusNeume
   | PorrectusNeume;
 
+export type DivisionKind = 'minima' | 'minor' | 'maior' | 'finalis';
+
+export interface ChantDivision {
+  id: string;
+  kind: DivisionKind;
+  beforeNeumeId: string | null;
+}
+
+/** A slot before one division, or after all divisions at a neume boundary. */
+export interface ScoreInsertionBoundary {
+  beforeNeumeId: string | null;
+  beforeDivisionId: string | null;
+}
+
 export interface ChantDocument {
+  divisions: ChantDivision[];
   lyricLanguage: LyricLanguage;
   title: string;
   clef: Clef;

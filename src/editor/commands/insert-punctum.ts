@@ -1,31 +1,14 @@
-import type { ChantDocument, PunctumNeume } from '../domain/chant-document';
-import { isValidNeume } from '../domain/neume';
+import type {
+  ChantDocument,
+  PunctumNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
 export function insertPunctum(
   document: ChantDocument,
   punctum: PunctumNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  const note = punctum.notes[0];
-  if (
-    !Number.isInteger(insertionIndex) ||
-    insertionIndex < 0 ||
-    insertionIndex > document.neumes.length ||
-    !isValidNeume(punctum) ||
-    !note ||
-    document.neumes.some(
-      (n) =>
-        n.id === punctum.id ||
-        n.notes.some((existing) => existing.id === note.id),
-    )
-  )
-    return document;
-  return {
-    ...document,
-    neumes: [
-      ...document.neumes.slice(0, insertionIndex),
-      punctum,
-      ...document.neumes.slice(insertionIndex),
-    ],
-  };
+  return insertNeume(document, punctum, boundary);
 }

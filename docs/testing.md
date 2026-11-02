@@ -460,3 +460,15 @@ The existing corpus driver now also checks semantic lyric DOM order, names,
 roles, initial pressed/tab state, instruction references and inert punctuation.
 The Stage 3 move driver uses the current purple-cue caption and explicit Latin
 fixture. Historical placement/Stage 1 drivers still need adaptation.
+
+## Stage 5A semantic divisions
+
+`divisions.test.ts` asserts derived score order for explicit insertion on either
+side, adjacent slots, leading/trailing/empty scores, finalis before later music,
+converging deletion anchors, normalization, pitch movement, runtime rejection,
+structural sharing and atomic exact-reference history restoration. Existing
+insertion, lyric and geometry suites remain regression gates. Fixtures explicitly
+include the required empty division collection.
+
+This stage adds no graphical behavior. Browser acceptance of divisions belongs
+to Stage 5B/5C; pure tests do not claim division rendering or accessible UI.

@@ -30,6 +30,7 @@ import {
 
 function documentWith(neumes: Neume[] = []): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },

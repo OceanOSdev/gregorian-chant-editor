@@ -13,6 +13,7 @@ import { hasValidLyricAnchors } from '../domain/lyrics';
 
 function fixture(count = 6): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Lyrics',
     clef: { type: 'c', staffLine: 3 },

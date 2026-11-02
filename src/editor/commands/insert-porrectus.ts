@@ -1,43 +1,14 @@
-import type { ChantDocument, PorrectusNeume } from '../domain/chant-document';
-import { isValidNeume } from '../domain/neume';
+import type {
+  ChantDocument,
+  PorrectusNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
-/**
- * Accepts only a complete boundary, three unique
- * collision-free note IDs, and a runtime-valid fall-then-rise Porrectus.
- */
 export function insertPorrectus(
   document: ChantDocument,
   porrectus: PorrectusNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  const [firstNote, secondNote, thirdNote] = porrectus.notes;
-  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id];
-  const hasUniqueCandidateNoteIds =
-    candidateNoteIds.every((id) => id !== undefined) &&
-    new Set(candidateNoteIds).size === 3;
-  const hasIdCollision = document.neumes.some(
-    (neume) =>
-      neume.id === porrectus.id ||
-      neume.notes.some((note) => candidateNoteIds.includes(note.id)),
-  );
-
-  if (
-    !Number.isInteger(insertionIndex) ||
-    insertionIndex < 0 ||
-    insertionIndex > document.neumes.length ||
-    !hasUniqueCandidateNoteIds ||
-    hasIdCollision ||
-    !isValidNeume(porrectus)
-  ) {
-    return document;
-  }
-
-  return {
-    ...document,
-    neumes: [
-      ...document.neumes.slice(0, insertionIndex),
-      porrectus,
-      ...document.neumes.slice(insertionIndex),
-    ],
-  };
+  return insertNeume(document, porrectus, boundary);
 }

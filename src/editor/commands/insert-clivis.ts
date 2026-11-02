@@ -1,10 +1,14 @@
-import type { ChantDocument, ClivisNeume } from '../domain/chant-document';
-import { insertTwoNoteNeume } from './insert-two-note-neume';
+import type {
+  ChantDocument,
+  ClivisNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
 export function insertClivis(
   document: ChantDocument,
   clivis: ClivisNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  return insertTwoNoteNeume(document, clivis, insertionIndex);
+  return insertNeume(document, clivis, boundary);
 }

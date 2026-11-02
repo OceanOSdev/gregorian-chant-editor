@@ -61,6 +61,7 @@ function three(
 }
 function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Three-note engraving',
     clef: { type: 'c', staffLine: 3 },

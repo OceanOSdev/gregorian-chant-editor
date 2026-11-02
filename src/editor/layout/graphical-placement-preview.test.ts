@@ -11,6 +11,7 @@ import {
 
 function documentWith(count = 0): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Intent',
     clef: { type: 'c', staffLine: 3 },
