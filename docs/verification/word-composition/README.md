@@ -1,5 +1,7 @@
 # Stage 4C implementation review
 
+For the repeated-puncta et/lux case, see the [et investigation](et-lux-review.md).
+
 For the latest auditione comparison and review repairs, see the
 [auditione investigation](auditione-review.md).
 

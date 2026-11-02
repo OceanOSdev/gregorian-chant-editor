@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { etLuxCorpus } from '../../../docs/verification/word-composition/et-lux';
 import { auditioneCorpus } from '../../../docs/verification/word-composition/auditione';
 import { compositionCorpus } from '../../../docs/verification/word-composition/corpus';
 import { inspectCorpusCase } from '../../../docs/verification/word-composition/inspect-corpus';
 import { layoutChant } from './layout-chant';
 import type { MeasureLyricText } from './lyric-text-metrics';
 
-describe.each([...compositionCorpus, ...auditioneCorpus])(
+describe.each([...compositionCorpus, ...auditioneCorpus, ...etLuxCorpus])(
   '$name / $arrangement',
   (sample) => {
     it.each([6, 10, 16])(

@@ -439,3 +439,12 @@ requires room for its outgoing mark. The native browser driver Shift-selects
 compact whole neumes and inspects selection/placement/move ownership clips for
 all seven kinds at desktop and 320px, and checks a real near-edge outgoing mark.
 Firefox resource cleanup uses one encompassing finally, including setup errors.
+
+### Et lux repeated-puncta regression
+
+The [et investigation](verification/word-composition/et-lux-review.md) records
+source grouping and the first-note alignment comparison. `et-lux.test.ts` and
+three shared corpus specimens cover one syllable owning two equal-pitch puncta,
+no internal hyphen, full-phrase pitch/boundary metadata, and a split syllable span.
+The corpus driver also measures the actual e center and both note centers
+relative to their staffs. No image matching or production policy change is used.

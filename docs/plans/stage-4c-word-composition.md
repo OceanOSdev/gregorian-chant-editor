@@ -291,3 +291,12 @@ the general engraving design; no auditione-specific rule or threshold tuning is
 authorized. Continue repairing the giga-review findings on the same PR. See the
 [investigation](../verification/word-composition/auditione-review.md). ADR 0011
 remains Proposed and the branch stays unmerged.
+
+## Et lux acceptance investigation
+
+Owner-requested follow-up: inspect the reference GABC for et's equal-pitch pair,
+reconstruct the passage with supported types, verify single-syllable ownership
+and no internal hyphen, and compare first-note versus group alignment. Add
+focused regression evidence without changing types, anchors or Stage 4C policy.
+Report separate engraving decisions before implementing them. See the
+[investigation](../verification/word-composition/et-lux-review.md).

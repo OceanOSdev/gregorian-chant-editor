@@ -20,7 +20,7 @@ export async function runCorpusReview({
     );
   const diagnostic = process.env.CHANT_CORPUS === 'diagnostic';
   const corpus = await ev(
-    `(async()=>{const c=await import('/docs/verification/word-composition/corpus.ts');const v=await import('/docs/verification/word-composition/inspect-corpus.ts');const l=await import('/src/editor/layout/layout-chant.ts');const m=await import('/src/editor/rendering/use-lyric-measurement.ts');window.corpusInspect=sample=>v.inspectCorpusCase(sample,l.layoutChant(sample.document,m.createSvgLyricMeasurer()),m.createSvgLyricMeasurer());window.corpusFontSize=(await import('/src/editor/layout/lyric-text-metrics.ts')).lyricFontSize;const a=await import('/docs/verification/word-composition/auditione.ts');return [...c.compositionCorpus,...a.auditioneCorpus]})()`,
+    `(async()=>{const c=await import('/docs/verification/word-composition/corpus.ts');const v=await import('/docs/verification/word-composition/inspect-corpus.ts');const l=await import('/src/editor/layout/layout-chant.ts');const m=await import('/src/editor/rendering/use-lyric-measurement.ts');window.corpusInspect=sample=>v.inspectCorpusCase(sample,l.layoutChant(sample.document,m.createSvgLyricMeasurer()),m.createSvgLyricMeasurer());window.corpusFontSize=(await import('/src/editor/layout/lyric-text-metrics.ts')).lyricFontSize;const a=await import('/docs/verification/word-composition/auditione.ts');const e=await import('/docs/verification/word-composition/et-lux.ts');return [...c.compositionCorpus,...a.auditioneCorpus,...e.etLuxCorpus]})()`,
   );
   const results = [],
     specimens = [];
@@ -64,6 +64,37 @@ export async function runCorpusReview({
           `${sample.id}: unmarked painted word-space gap`,
         );
     }
+    let etDiagnostic;
+    if (sample.name === 'Et lux perpetua') {
+      etDiagnostic = await ev(`(()=>{
+        const doc=${JSON.stringify(sample.document)},et=doc.syllables[0],at=doc.neumes.findIndex(n=>n.id===et.startsAtNeumeId);
+        const text=Array.from(document.querySelectorAll('.score__lyric')).filter(t=>t.textContent==='et');
+        const pair=doc.neumes.slice(at,at+2).map(n=>{const g=document.querySelector('[data-neume-id="'+n.id+'"]'),b=g.querySelector('.score__ink').getBBox();return {x:b.x+b.width/2,y:b.y+b.height/2-Number(g.closest('[data-system-index]').querySelector('.score__staff-line').getAttribute('y1')),system:Number(g.closest('[data-system-index]').dataset.systemIndex)}});
+        const t=text[0],vowel=t.getStartPositionOfChar(0).x+t.getSubStringLength(0,1)/2;
+        return {etCount:text.length,pair,vowelCenter:vowel,textCenter:Number(t.getAttribute('x')),pairMidpoint:pair[0].system===pair[1].system?(pair[0].x+pair[1].x)/2:null};
+      })()`);
+      assert.equal(etDiagnostic.etCount, 1, 'et must render exactly once');
+      assert(
+        Math.abs(etDiagnostic.vowelCenter - etDiagnostic.pair[0].x) < 0.05,
+        'et vowel must align with its first punctum',
+      );
+      assert(
+        Math.abs(etDiagnostic.pair[0].y - etDiagnostic.pair[1].y) < 0.05,
+        'same pitch must survive wrapping',
+      );
+      const etOwner = rendered.find(
+          (s) => s.index === etDiagnostic.pair[0].system,
+        ),
+        lux = paintedById.get(sample.document.syllables[1].id);
+      const limit = etOwner.lyrics.some((t) => t.id === lux.id)
+        ? lux.left
+        : Infinity;
+      assert.equal(
+        etOwner.marks.filter((mark) => mark.left < limit).length,
+        0,
+        'et must not acquire an internal or outgoing syllable hyphen',
+      );
+    }
     results.push({
       measurementWidth,
       alternateFont,
@@ -72,6 +103,7 @@ export async function runCorpusReview({
       arrangement: sample.arrangement,
       ...result,
       rendered,
+      etDiagnostic,
     });
     if (!diagnostic)
       assert.deepEqual(
@@ -107,11 +139,8 @@ export async function runCorpusReview({
   );
   // Screenshots are review evidence only: no image comparisons or coordinate goldens.
   for (const [name, items, columns] of [
-    [
-      'auditione',
-      specimens.filter((s) => s.sample.arrangement === 'reference'),
-      2,
-    ],
+    ['et-lux', specimens.filter((s) => s.sample.name === 'Et lux perpetua'), 3],
+    ['auditione', specimens.filter((s) => s.sample.name === 'Auditione'), 2],
     [
       'corpus-words',
       specimens.filter((s) => s.sample.arrangement === 'puncta'),
@@ -127,7 +156,7 @@ export async function runCorpusReview({
       4,
     ],
   ]) {
-    const html = `<!doctype html><meta charset="UTF-8"><style>body{margin:20px;background:#f4f0e8;color:#211c16;font:15px Georgia,serif}h1{font-size:24px;margin:0 0 8px}p{margin:4px 0 16px}.grid{display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px}article{background:#fffdf7;border:1px solid #cfc4b3;padding:10px;overflow:hidden}h2{font:18px Georgia;margin:0 0 4px}small{display:block;font:12px system-ui;color:#5c5449;margin-bottom:8px}svg{display:block;max-width:100%;height:auto;max-height:310px;overflow:hidden;margin:8px auto}.score__staff-line{stroke:#342e26;stroke-width:1}.score__ink{fill:currentColor}text{fill:currentColor}.score__lyric-group{outline:none}.score__lyric-focus-cue{display:none}.summary{font:12px system-ui;line-height:1.5;border-top:1px solid #ddd;padding-top:5px}</style><h1>${name === 'auditione' ? 'Auditione — reference assignment and controls' : name === 'corpus-words' ? 'Word composition — all eight corpus entries' : 'Musical constraints — representative arrangements'}</h1><p>Actual editor SVG; occupied advance/ink gaps in score units. Join / hyphen / outgoing follow measured geometry; screenshots are review evidence.</p><div class="grid">${items.map((s) => `<article><h2>${s.sample.name}</h2><small>${s.sample.arrangement === 'reference' ? s.sample.id : s.sample.arrangement} · ${s.sample.words.map((w) => w.join('/')).join(' + ')}</small>${s.svg}<div class="summary">${s.summary}</div></article>`).join('')}</div>`;
+    const html = `<!doctype html><meta charset="UTF-8"><style>body{margin:20px;background:#f4f0e8;color:#211c16;font:15px Georgia,serif}h1{font-size:24px;margin:0 0 8px}p{margin:4px 0 16px}.grid{display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px}article{background:#fffdf7;border:1px solid #cfc4b3;padding:10px;overflow:hidden}h2{font:18px Georgia;margin:0 0 4px}small{display:block;font:12px system-ui;color:#5c5449;margin-bottom:8px}svg{display:block;max-width:100%;height:auto;max-height:310px;overflow:hidden;margin:8px auto}.score__staff-line{stroke:#342e26;stroke-width:1}.score__ink{fill:currentColor}text{fill:currentColor}.score__lyric-group{outline:none}.score__lyric-focus-cue{display:none}.summary{font:12px system-ui;line-height:1.5;border-top:1px solid #ddd;padding-top:5px}</style><h1>${name === 'et-lux' ? 'Et lux perpetua — repeated puncta under one syllable' : name === 'auditione' ? 'Auditione — reference assignment and controls' : name === 'corpus-words' ? 'Word composition — all eight corpus entries' : 'Musical constraints — representative arrangements'}</h1><p>Actual editor SVG; occupied advance/ink gaps in score units. Join / hyphen / outgoing follow measured geometry; screenshots are review evidence.</p><div class="grid">${items.map((s) => `<article><h2>${s.sample.name}</h2><small>${s.sample.arrangement === 'reference' ? s.sample.id : s.sample.arrangement} · ${s.sample.words.map((w) => w.join('/')).join(' + ')}</small>${s.svg}<div class="summary">${s.summary}</div></article>`).join('')}</div>`;
     await writeFile(join(screenshotDirectory, `${name}.html`), html);
     await viewport(name === 'corpus-words' ? 1200 : 1800);
     await send('Page.navigate', {
