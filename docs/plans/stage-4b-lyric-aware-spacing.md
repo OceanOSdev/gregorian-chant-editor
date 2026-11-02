@@ -3,21 +3,22 @@
 Branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
-Status: **implemented and owner-accepted; PR #44 awaiting merge**. Stage 4A
-merged in PR #43; Stage 4C hyphenation and 4D acceptance remain deferred.
+Status: **completed and merged in PR #44**. Stage 4A merged in PR #43.
+Stage 4C is active under [its own handoff](stage-4c-word-composition.md);
+Stage 4D is deferred.
 
 This plan records the original Codex implementation handoff and stop conditions;
 implementation and its visual review are complete. The architecture was
 accepted as [ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-and supersedes ADR 0005. Do not restart 4B or treat historical review gates
-below as pending. Remaining task: merge PR #44 after normal checks.
+and supersedes ADR 0005. PR #44 has merged. Do not restart 4B or treat
+historical review gates below as pending.
 
 **Overflow design decision (implemented and accepted):**
 Use **horizontal scrolling for an unbreakably oversized lyric** rather than
 clipping, truncating, shrinking, rejecting or splitting the syllable.
 This 4B presentation policy is documented in accepted ADR 0010. The owner
 reviewed the implementation and agreed to the resulting scrollable overflow
-behavior; PR #44 remains unmerged until normal merge checks complete.
+behavior. PR #44 was subsequently merged.
 
 ## Problem and desired user result
 

@@ -1,18 +1,20 @@
-# Plan: Stage 4 lyric-aware engraving (4A merged; 4B accepted pending merge)
+# Plan: Stage 4 lyric-aware engraving (4A–4B merged; 4C underway)
 
-Status: **4A merged in PR #43; 4B implemented and ADR accepted in PR #44,
-pending merge; 4C–4D deferred**.
+Status: **4A merged in PR #43; 4B merged in PR #44; Stage 4C underway,
+Stage 4D deferred**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
-Current 4B branch: `feat/stage-4b-lyric-aware-spacing`
+Completed 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
-Current 4B baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
+4B original baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 
-The 4A and 4B instructions below are historical: **do not restart those stages
-or implement 4C–4D as part of PR #44**. The Stage 4B implementation record is
-[here](stage-4b-lyric-aware-spacing.md). The owner accepted
-[ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
-which supersedes ADR 0005. PR #44 awaits merge; the next implementation handoff
-will address 4C separately.
+The 4A and 4B instructions below are historical; both stages are merged.
+Stage 4C is active on `feat/stage-4c-word-composition`, using the
+[dedicated 4C handoff](stage-4c-word-composition.md) and
+[Proposed ADR 0011](../adrs/0011-word-aware-chant-engraving.md).
+[Accepted ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+continues to govern Stage 4B layout. Stage 4C includes the explicitly
+reviewable contextual same-word compaction proposal and hyphen marks;
+Stage 4D is still deferred.
 
 **Language-design gate resolved (2026-11-01):** The owner approved a required,
 document-level lyric engraving language preference. New chants use Latin by
@@ -229,7 +231,7 @@ reflow or semantic anchor changes from alignment alone; selection vs focus
 and edit-target regression; atomic history and exact undo/redo. Verify in
 both multi-system and narrow browser cases.
 
-### 4B — Lyric-aware spacing and wrapping (implemented; ADR accepted, PR #44 awaiting merge)
+### 4B — Lyric-aware spacing and wrapping (merged in PR #44)
 
 See the [Stage 4B handoff](stage-4b-lyric-aware-spacing.md) and accepted ADR 0010,
 which supersedes ADR 0005. The following original outline remains historical context.
@@ -243,14 +245,15 @@ parity, short/long words, multiple neumes per syllable, large neume kinds,
 narrow systems, a single unbreakably long syllable, and stable undo/redo.
 Present a visual before/after and inspect music geometry.
 
-### 4C — Conditional hyphens and system continuations (future branch / PR)
+### 4C — Word composition, conditional hyphens and system continuations (active)
 
-Derive displayed marks from `boundaryBefore`, actual rendered text edges and
-system partitions. Test contiguous same-word syllables without hyphens,
-spaced syllables with hyphens, different-word gaps, one or multiple intervening
-neumes, and outgoing end-of-system continuation. Avoid a hard-coded
-"one hyphen per continuation" rule, clipping, or persisted punctuation.
-Verify interaction overlays do not include decorative marks in lyric hit areas.
+Follow the [Stage 4C plan](stage-4c-word-composition.md), including optional
+compact spacing for consecutive same-word syllables, while safeguarding neume
+ink and interaction bounds. The contextual compaction exception to ADR 0010
+is recorded in Proposed ADR 0011; no accepted ADR is silently changed.
+The original hyphen principles remain: derive from semantic word boundaries,
+measured gaps and system partitions; no decorative focus/hit targets and no
+persisted punctuation. Stage 4D stays separate.
 
 ### 4D — Cross-browser visual/accessibility acceptance (future branch / PR)
 
