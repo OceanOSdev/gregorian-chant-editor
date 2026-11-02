@@ -16,7 +16,8 @@ export function updateLyricSyllableText(
   }
 
   const syllables = [...document.syllables];
-  syllables[syllableIndex] = { ...syllable, text };
+  const { alignment: _alignment, ...rest } = syllable;
+  syllables[syllableIndex] = { ...rest, text };
 
   return { ...document, syllables };
 }

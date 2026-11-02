@@ -165,12 +165,13 @@ Current horizontal alignment rules are:
 
 Valid semantic documents contain only anchored, nonblank syllables in anchor
 order. Layout preserves that order. Word boundaries are semantic metadata;
-generated hyphens are deferred to Stage 4.
+generated hyphens are deferred to Stage 4C.
 
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
-alignment x coordinate. The renderer does not implement vowel-centered
-typography, automatic hyphenation, lyric collision avoidance, word-spacing
-logic, or continuation marks.
+measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
+align the chosen vowel/segment to the musical anchor; see the measurement
+contract below. Automatic hyphenation, lyric collision avoidance, word-spacing
+logic and continuation marks remain deferred.
 
 ## Rendering and accessibility
 
@@ -237,3 +238,37 @@ The 33-unit inter-neume ink gap leaves these padded regions disjoint, including
 stroke extents. Invalid/occupied regions use the same pointer routing but never
 commit. Decorative captions remain pointer-inert. This changes neither normal
 note hit geometry nor musical bounds, spacing or wrapping.
+
+## Stage 4A measured vowel alignment
+
+The document's explicit language selects conservative automatic rules in
+`domain/lyric-alignment.ts`. Latin accepts one vowel (including y/æ/œ), or a
+single ae/au/oe group, and excludes u after q. Greek accepts a single Greek
+vowel or recognized pair after decomposing accents. English supports only a
+single a/e/i/o/u enclosed by consonants; ambiguous spellings such as `read` or
+`fire` center the whole syllable. Unspecified, incompatible scripts, punctuation,
+and unrecognized/multiple nuclei also center the whole syllable. These are
+spelling heuristics, not pronunciation inference or general syllabification.
+Manual grapheme ranges always take precedence.
+
+`layoutChant` optionally consumes a pure text-measurement callback with total
+advance width and advance positions at grapheme boundaries. It returns the
+chosen segment, measurement status, width, offset and original musical anchor
+with each lyric. The positioned x remains the whole text's midpoint, shifted
+so the segment's advance center coincides with the existing `lyricAnchorX`.
+Missing/nonfinite/inconsistent metrics deterministically retain whole-string
+centering. Alignment uses typographic advances, not optical ink centroids.
+
+The browser adapter measures hidden SVG text in an effect with the same
+20-unit Georgia / Times New Roman / serif stack as visible lyrics. It waits
+for `document.fonts.ready` and refreshes after font loading, caching repeated
+texts per measurement pass. Unicode grapheme indexes are converted to UTF-16
+SVG substring lengths only in that adapter. Platform font substitution can
+change measured geometry. Rendering keeps one interactive text control per
+syllable, with unchanged baseline, accessible name and ID-based interaction.
+
+Stage 4A leaves **music-only spacing and wrapping** intact (ADR 0005).
+Long/shifted lyrics may collide or extend outside a system; clearance, hyphens
+and lyric-driven wrapping await 4B/4C. The older minimal-engraving proposal in
+`plans/lyric-system-redesign.md` describes the prior direction; the Stage 4 plan
+supersedes its future engraving scope, without implementing those later stages.

@@ -24,7 +24,16 @@ export interface Clef {
   staffLine: StaffLine;
 }
 
+export type LyricLanguage = 'la' | 'en' | 'el' | 'und';
+
+/** Half-open grapheme indexes into the exact syllable text. */
+export interface LyricAlignmentSegment {
+  start: number;
+  end: number;
+}
+
 export interface LyricSyllable {
+  alignment?: LyricAlignmentSegment;
   id: string;
   text: string;
   startsAtNeumeId: string;
@@ -95,6 +104,7 @@ export type Neume =
   | PorrectusNeume;
 
 export interface ChantDocument {
+  lyricLanguage: LyricLanguage;
   title: string;
   clef: Clef;
   syllables: LyricSyllable[];

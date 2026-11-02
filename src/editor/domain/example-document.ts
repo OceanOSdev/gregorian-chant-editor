@@ -1,6 +1,7 @@
 import { staffPosition, type ChantDocument } from './chant-document';
 
 export const exampleDocument: ChantDocument = {
+  lyricLanguage: 'la',
   title: 'Gregorian Chant Editor',
   clef: {
     type: 'c',

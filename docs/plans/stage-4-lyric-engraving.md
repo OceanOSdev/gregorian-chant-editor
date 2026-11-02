@@ -19,8 +19,8 @@ The current editor places each whole lyric syllable centered on its neume
 anchor, then wraps the already-spaced music without considering lyrics.
 This can collide, spread words apart, and cannot reproduce traditional chant
 engraving where nearby syllables of the same word visually join while distant
-ones use hyphens. The owner wants naturally readable words such as *Kyrie
-eleison*, including mixed joined and hyphenated syllables such as *auditione*
+ones use hyphens. The owner wants naturally readable words such as _Kyrie
+eleison_, including mixed joined and hyphenated syllables such as _auditione_
 in the referenced Requiem gradual (https://gregobase.selapa.net/chant.php?id=1261).
 
 **Guiding principle:** Music determines alignment; lyrics influence minimum
@@ -43,6 +43,7 @@ Read `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`,
 `docs/adrs/0008-anchor-lyrics-to-neumes.md`.
 
 Current seams of interest:
+
 - `LyricSyllable`: stable `id`, `text`, `startsAtNeumeId`,
   `boundaryBefore`; no independent word entities.
 - `ChantDocument` currently has no language setting. Stage 4A is authorized
@@ -162,6 +163,7 @@ interface ChantDocument {
 ## Milestones and review gates
 
 ### 4A — Text measurement, vowel alignment, and manual overrides
+
 **Implement this milestone on this branch and stop.**
 
 - Investigate the current SVG font, text baselines, `lyricAnchorX`, and
@@ -222,6 +224,7 @@ and edit-target regression; atomic history and exact undo/redo. Verify in
 both multi-system and narrow browser cases.
 
 ### 4B — Lyric-aware spacing and wrapping (future branch / PR)
+
 After 4A review, agree ADR impact. Design a single pure placement walk that
 consumes neume ink geometry plus measured lyric/word requirements and yields
 final advances, system partition and anchor positions. Preserve ID-based
@@ -232,6 +235,7 @@ narrow systems, a single unbreakably long syllable, and stable undo/redo.
 Present a visual before/after and inspect music geometry.
 
 ### 4C — Conditional hyphens and system continuations (future branch / PR)
+
 Derive displayed marks from `boundaryBefore`, actual rendered text edges and
 system partitions. Test contiguous same-word syllables without hyphens,
 spaced syllables with hyphens, different-word gaps, one or multiple intervening
@@ -240,7 +244,8 @@ neumes, and outgoing end-of-system continuation. Avoid a hard-coded
 Verify interaction overlays do not include decorative marks in lyric hit areas.
 
 ### 4D — Cross-browser visual/accessibility acceptance (future branch / PR)
-Inspect *Kyrie eleison*, the mixed-join-and-hyphen *auditione* example from
+
+Inspect _Kyrie eleison_, the mixed-join-and-hyphen _auditione_ example from
 the GregoBase Requiem gradual, same-word and separate-word cases, 320px
 viewport, multi-system breaks, editing/focus and real pointer behavior.
 Use actual Chromium browser checks and foreground Firefox/manual assistive

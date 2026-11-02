@@ -1,3 +1,9 @@
+import { useLyricMeasurement } from '../rendering/use-lyric-measurement';
+import {
+  updateLyricLanguage,
+  updateLyricAlignment,
+} from '../commands/update-lyric-alignment';
+import { lyricLanguage } from '../domain/lyric-alignment';
 import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
 import type { LyricAction } from '../state/lyric-entry';
 import { findNeume, findNote } from '../domain/neume';
@@ -92,7 +98,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
-  const layout = layoutChant(history.present);
+  const measureLyrics = useLyricMeasurement(
+    history.present.syllables.map((s) => s.text),
+  );
+  const layout = layoutChant(history.present, measureLyrics);
   const selectedSyllable =
     selection.kind === 'syllable'
       ? history.present.syllables.find((s) => s.id === selection.syllableId)
@@ -306,6 +315,32 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       }}
     >
       <h1>{layout.title}</h1>
+      <label>
+        Lyric language{' '}
+        <select
+          aria-label="Lyric language"
+          value={lyricLanguage(history.present.lyricLanguage)}
+          disabled={
+            Boolean(session.lyricMove) || Boolean(session.pendingHistory)
+          }
+          onChange={(event) => {
+            const language = lyricLanguage(event.currentTarget.value);
+            dispatch({
+              type: 'engraving-edit',
+              edit: (doc) => updateLyricLanguage(doc, language),
+            });
+          }}
+        >
+          <option value="la">Latin</option>
+          <option value="en">English</option>
+          <option value="el">Greek</option>
+          <option value="und">Unspecified</option>
+        </select>
+      </label>
+      <p>
+        Alignment follows the lyric language. Manual segments take precedence.
+        Lyric spacing and collision avoidance are planned for a later stage.
+      </p>
       <div
         className="neume-palette"
         role="toolbar"
@@ -521,6 +556,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         />
         <SyllableControls
+          onAlignment={(syllableId, range) =>
+            dispatch({
+              type: 'engraving-edit',
+              edit: (doc) => updateLyricAlignment(doc, syllableId, range),
+            })
+          }
           document={history.present}
           layout={layout}
           entry={session.lyrics}

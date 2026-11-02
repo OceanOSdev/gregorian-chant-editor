@@ -13,6 +13,7 @@ import type { LyricAction } from './lyric-entry';
 
 function fixture(): ChantDocument {
   return {
+    lyricLanguage: 'la',
     title: 'Move',
     clef: { type: 'c', staffLine: 3 },
     neumes: Array.from({ length: 9 }, (_, i) => ({

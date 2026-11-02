@@ -1,3 +1,4 @@
+import { validAlignment } from './lyric-alignment';
 import type { ChantDocument, LyricSyllable } from './chant-document';
 
 export function isValidLyricText(text: string): boolean {
@@ -37,6 +38,7 @@ export function hasValidLyricAnchors(document: ChantDocument): boolean {
       ids.has(s.id) ||
       at <= previous ||
       !isValidLyricText(s.text) ||
+      (s.alignment !== undefined && !validAlignment(s.text, s.alignment)) ||
       (s.boundaryBefore !== 'word' && s.boundaryBefore !== 'continuation') ||
       (i === 0 && s.boundaryBefore !== 'word')
     )

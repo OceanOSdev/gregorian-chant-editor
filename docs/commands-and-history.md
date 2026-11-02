@@ -133,3 +133,18 @@ clicks and cancellation add no history. Activation resolves a valid dirty draft
 first as its own existing text transaction; Undo after moving restores the anchor
 before undoing that earlier text edit. Reassignment preview and the saved Lyrics
 context live only in the session reducer, outside `DocumentHistory`.
+
+## Lyric engraving edits
+
+`updateLyricLanguage` changes only the required document language;
+`updateLyricAlignment` sets a validated grapheme range or removes it to reset.
+Both return the exact original document for unchanged/rejected requests and
+preserve music, stable IDs, anchors and unrelated syllables. Text updates reset
+manual alignment in the same transaction as the changed text.
+
+The session's `engraving-edit` action records one semantic edit without changing
+selection, browser focus requests, tools or lyric drafts. A language change can
+therefore coexist with a dirty draft without saving or discarding it. Subsequent
+history navigation still uses the existing Save/Discard/Cancel safeguard.
+Manual controls are disabled while a text draft/recovery is active; save or
+cancel it first. Pending history and anchor-move modes block engraving edits.

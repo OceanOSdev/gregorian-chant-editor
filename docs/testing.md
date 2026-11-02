@@ -324,3 +324,19 @@ stale/recovery targets). The [Stage 3 browser record](verification/lyric-move/RE
 covers actual pointer targeting, keyboard browsing/confirmation, native Tab,
 rejection announcements, text drafts, stable selection/focus and multi-system
 reveal at narrow widths. Stage 2 browser regressions remain applicable.
+
+## Stage 4A vowel alignment
+
+`lyric-alignment.test.ts` covers explicit-language nuclei, accents/graphemes,
+English/unspecified/incompatible-script fallbacks, invalid/missing measurements,
+manual precedence, and unchanged multi-system music geometry.
+`update-lyric-alignment.test.ts` covers range validation, text-change reset,
+immutable language edits, semantic history and dirty-draft/focus preservation.
+All typed document fixtures supply `lyricLanguage` explicitly.
+
+Run `node docs/verification/vowel-alignment/browser-check.mjs` with Vite and
+Chromium's debugging port 9230 for actual native keyboard/pointer, SVG metrics,
+undo/redo, focus-selection independence, and 320px/multi-system verification.
+The [verification record](verification/vowel-alignment/README.md) describes
+actual results and limitations. Generated screenshots stay in system temporary
+storage; no browser dependency or DOM test environment was added.
