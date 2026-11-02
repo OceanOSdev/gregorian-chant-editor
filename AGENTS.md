@@ -59,7 +59,8 @@ Read the guide that owns a subsystem before changing its documented contract:
   [state separation](docs/adrs/0002-separate-semantic-and-derived-state.md),
   [stable identities](docs/adrs/0003-use-stable-semantic-identities.md),
   [explicit neume types](docs/adrs/0004-use-explicit-neume-types-and-ordered-tuples.md),
-  [geometry-derived wrapping](docs/adrs/0005-derive-wrapping-from-rendered-geometry.md),
+  [combined music/lyric wrapping](docs/adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+  (superseding [ADR 0005](docs/adrs/0005-derive-wrapping-from-rendered-geometry.md)),
   the **Proposed**
   [playback boundary](docs/adrs/0006-separate-notation-from-playback.md), and the accepted
   [engraving geometry](docs/adrs/0007-share-derived-neume-engraving-geometry.md)
