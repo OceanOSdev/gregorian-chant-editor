@@ -26,7 +26,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 - Graphical entry uses fixed contours for those seven whitelisted kinds.
 - Lyrics support measured vowel/manual alignment and minimum clearances.
   Stage 4C introduces contextual same-word composition, conditional hyphens
-  and outgoing continuation marks under Accepted ADR 0011 (PR #45, pending merge).
+  and outgoing continuation marks under Accepted ADR 0011 (PR #45 merged).
   Safe musical geometry can still prevent joining. Exceptionally oversized
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
@@ -74,7 +74,7 @@ Stage 4A provides explicit document language, measured vowel alignment and manua
 grapheme segment overrides. Stage 4B is merged: measured lyric clearance and whole-neume wrapping share one derived
 layout, with local scrollable overflow only for unbreakable oversized text.
 ADR 0010 is Accepted and supersedes ADR 0005 following owner review.
-Stage 4C composition is implemented in PR #45 and its baseline visuals are
+Stage 4C composition was merged in PR #45 and its baseline visuals were
 owner-accepted; ADR 0011 is Accepted as a narrow qualification of ADR 0010.
-PR #45 awaits normal merge. Stage 4D broader Firefox/assistive-technology
-acceptance remains deferred.
+Stage 4D cross-browser/foreground Firefox keyboard and assistive-technology
+acceptance is underway under [its dedicated plan](plans/stage-4d-acceptance.md).
