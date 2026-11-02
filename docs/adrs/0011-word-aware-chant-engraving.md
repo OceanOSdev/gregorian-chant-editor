@@ -130,3 +130,9 @@ are recorded in the [owning layout guide](../layout-and-rendering.md#stage-4c-br
 The [verification record](../verification/word-composition/README.md) records
 actual checks and visual evidence. Owner review must decide whether the compact
 music and remaining font-dependent gaps are acceptable before merging.
+
+The [PR #45 corpus review](../verification/word-composition/corpus-review.md)
+expands evidence to eight lyric entries and five musical arrangements. It refines
+the font-relative join threshold to remain tighter than real word spacing and
+uses matched geometric text rendering for responsive ink measurement. This is
+still implementation under review; the proposal is not accepted.

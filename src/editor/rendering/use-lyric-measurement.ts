@@ -20,6 +20,7 @@ export function createSvgLyricMeasurer(): MeasureLyricText {
       'position:absolute;visibility:hidden;pointer-events:none';
     text.setAttribute('font-family', lyricFontFamily);
     text.setAttribute('font-size', String(lyricFontSize));
+    text.setAttribute('text-rendering', 'geometricPrecision');
     text.textContent = value;
     svg.append(text);
     document.body.append(svg);

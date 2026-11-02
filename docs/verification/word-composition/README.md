@@ -1,5 +1,10 @@
 # Stage 4C implementation review
 
+For the current PR #45 corpus iteration and refined joining policy, see the
+[corpus review](corpus-review.md). The four-case screenshots and numeric results
+below record the **initial** iteration (0.4-em threshold, before geometric text
+rendering); they are retained as historical evidence, not current expectations.
+
 Implemented on `feat/stage-4c-word-composition`, based on `22058f5` (handoff)
 and `8672a1e` (merged Stage 4B). This is evidence for owner review, not Stage 4D
 acceptance. ADR 0011 remains **Proposed** and ADR 0010 remains **Accepted**.

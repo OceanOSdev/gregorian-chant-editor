@@ -251,7 +251,10 @@ interface LyricRequirement {
 }
 
 export const compactNeumeInkGap = 2;
-export const lyricJoinThreshold = lyricFontSize * 0.4;
+// A join must remain substantially tighter than the quarter-em word gap.
+// Occupied edges include guarded glyph ink, so this permits near-contiguous
+// text without leaving an unmarked word-space-sized continuation.
+export const lyricJoinThreshold = lyricFontSize / 10;
 export const lyricJoinClearance = lyricFontSize / 20;
 const hyphenClearance = lyricFontSize / 10;
 
@@ -312,7 +315,9 @@ function placeNeumeSequence(
         left - previousLyricRight > lyricJoinThreshold;
       const shift = Math.max(
         0,
-        minimum + (separated ? hyphenWidth + 2 * hyphenClearance : 0) - left,
+        (separated && previousLyricRight !== null
+          ? previousLyricRight + hyphenWidth + 2 * hyphenClearance
+          : minimum) - left,
       );
       const shifted = () =>
         buildNeumeGeometry(

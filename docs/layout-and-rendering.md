@@ -193,14 +193,23 @@ At the exact shared split line, SVG paint order gives a hit to the following
 target when both contain that point. Selection and focus are independent
 controls as before; decoration does not own pointer events. No target is transferred to the neighboring neume.
 
-A same-word occupied-edge gap of at most **0.4 em** (8 units at the current font)
-is treated as joined. Larger gaps receive one measured hyphen, centered between
-the lyrics with at least 0.1 em on each side. This threshold avoids adding a
-hyphen to the small residual gap forced by adjacent short syllables (notably
-`ri / e`), while marking substantial musical separation. Font substitution may
-change the join decision. A wide neume may prevent joining; text never moves
-independently of its musical anchor. There is no kerning across separate lyric
-controls and no promise that every word will join.
+A same-word occupied-edge gap of at most **0.1 em** (2 units at the current font)
+is treated as joined. This is tighter than the quarter-em minimum real-word
+space: an unmarked continuing syllable must not look separated by a word space.
+Occupied edges include the measured advance/ink union and its precision guard.
+Larger unavoidable gaps receive one measured hyphen, centered between the lyrics
+with at least 0.1 em on each side. A mark only reserves missing clearance after
+safe musical placement; no word-specific coordinate or syllable-count rule is
+used. Font substitution may change the join decision.
+
+The initial PR #45 iteration used 0.4 em, which exceeded the minimum word gap;
+corpus measurements exposed unmarked word-space-sized continuations. The revised
+policy intentionally hyphenates those cases, including short adjacent vowels
+whose anchors cannot safely come closer. A wide neume may prevent joining; text
+never moves independently of its musical anchor. There is no kerning across
+separate lyric controls and no promise that every word will join. The
+[corpus review](verification/word-composition/corpus-review.md) records both the
+relative invariant checks and visual evidence; images are not test goldens.
 
 Placement is a bounded forward walk: build at the contextual musical minimum,
 decide separation once from measured edges, then add only missing clearance for
@@ -260,7 +269,7 @@ Current horizontal alignment rules are:
 
 Valid semantic documents contain only anchored, nonblank syllables in anchor
 order. Layout preserves that order. Word boundaries are semantic metadata;
-generated hyphens are deferred to Stage 4C.
+generated hyphens are derived decorations under the Stage 4C branch policy.
 
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
@@ -363,7 +372,11 @@ Missing/nonfinite/inconsistent metrics deterministically retain whole-string
 centering. Alignment uses typographic advances, not optical ink centroids.
 
 The browser adapter measures hidden SVG text in an effect with the same
-20-unit Georgia / Times New Roman / serif stack as visible lyrics. It waits
+20-unit Georgia / Times New Roman / serif stack as visible lyrics. Measured text,
+visible syllables and hyphens all use SVG `text-rendering="geometricPrecision"`.
+This avoids Firefox's scale-dependent hinted ink boxes diverging from the hidden
+measurements at narrow responsive sizes; no viewport-dependent spacing or
+resize-driven layout cycle is introduced. It waits
 for `document.fonts.ready` and refreshes after font loading, caching repeated
 texts per measurement pass. Unicode grapheme indexes are converted to UTF-16
 SVG substring lengths only in that adapter. Platform font substitution can
@@ -379,5 +392,5 @@ Rendering keeps one interactive text control per
 syllable, with unchanged baseline, accessible name and ID-based interaction.
 
 Stage 4B extends the Stage 4A measurements into combined placement as described
-above. Stage 4C hyphens and system continuation marks remain deferred; same-word
-syllables can still appear widely separated when music requires it.
+above. The Stage 4C branch experiment derives conditional and outgoing hyphens
+when safe musical geometry leaves continuing syllables visibly separated.

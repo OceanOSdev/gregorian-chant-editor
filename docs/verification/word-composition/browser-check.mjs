@@ -145,6 +145,24 @@ const shot = async (name) => {
   );
 };
 
+if (process.env.CHANT_CORPUS) {
+  const { runCorpusReview } = await import('./corpus-browser.mjs');
+  try {
+    await runCorpusReview({
+      ev,
+      send,
+      viewport,
+      mount,
+      shot,
+      screenshotDirectory,
+    });
+  } finally {
+    if (firefox) await rawSend('session.end');
+    ws.close();
+  }
+  process.exit(0);
+}
+
 const fixture = {
   title: 'Stage 4C — Al ... leluia ah',
   lyricLanguage: 'la',
@@ -220,7 +238,7 @@ for (const [name, doc] of [
       `Array.from(document.querySelectorAll('.score__hyphens text')).map(t=>{const b=t.getBBox();return {outgoing:t.dataset.outgoing==='true',left:b.x,right:b.x+b.width}})`,
     );
     if (name === 'alleluia') assert.equal(marks.length, 1);
-    if (name === 'kyrie') assert.equal(marks.length, 0);
+    if (name === 'kyrie') assert(marks.every((mark) => !mark.outgoing));
     if (name === 'conditional') assert.equal(marks.length, 2);
     if (name === 'outgoing') {
       assert.equal(marks.length, 1);

@@ -402,3 +402,27 @@ The Stage 4A driver now checks vowel centers against displayed musical anchors,
 and music restoration on undo, since measured composition can reflow music on a
 language edit. Stage 4B's boundary-edit browser case uses the second lyric on its
 system; changing a first lyric's boundary need not move geometry.
+
+### PR #45 corpus verification
+
+`word-corpus.test.ts` consumes the same explicit eight-entry, five-arrangement
+corpus as the browser driver. Three synthetic glyph-advance profiles exercise
+relative geometry rather than fixed x coordinates. Checks validate editorial
+`boundaryBefore` metadata (including Kyrie / eleison), complete-neume order and
+wrapping determinism, unchanged musical ink/anchors/internal targets, disjoint
+external target ownership, lyric and hyphen clearance, word-space minima,
+geometrically feasible joins and necessary continuation marks. A negative
+metadata case proves the checker detects an accidentally joined word boundary.
+
+Run `CHANT_CORPUS=1 node docs/verification/word-composition/browser-check.mjs`
+with the existing Vite/CDP setup; `CHANT_FIREFOX_URL` selects Firefox BiDi.
+`CHANT_CORPUS_WIDTH=320` measures the real narrow editor; `CHANT_CORPUS_FONT=sans`
+loads a real alternate local font for both visible and hidden SVG text. The
+shared inspector checks derived invariants, and separate DOM checks inspect
+actual `getBBox()` ink and text advances. A small numeric precision tolerance is
+not an image-difference threshold. All metrics, complete contact sheets and HTML
+review boards are generated in temporary storage. Selected sheets are explicitly
+retained as [review evidence](verification/word-composition/corpus-review.md),
+never automatically compared to golden images or refreshed by test runs.
+`CHANT_CORPUS=diagnostic` records invariant failures for investigation; it is not
+a passing correctness run. Run each browser's drivers sequentially.

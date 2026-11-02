@@ -540,6 +540,7 @@ export function ScoreSvg({
                 fontFamily={lyricFontFamily}
                 fontSize={lyricFontSize}
                 textAnchor="middle"
+                textRendering="geometricPrecision"
                 data-outgoing={hyphen.outgoing}
               >
                 -
@@ -628,6 +629,7 @@ export function ScoreSvg({
                   fontSize={lyric.fontSize}
                   fontFamily={lyricFontFamily}
                   textAnchor="middle"
+                  textRendering="geometricPrecision"
                 >
                   {lyric.text}
                 </text>

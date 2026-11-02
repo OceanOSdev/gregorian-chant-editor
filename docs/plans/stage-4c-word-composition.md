@@ -268,3 +268,16 @@ from Proposed ADR 0011. Do not stop merely because the contextual
 compaction is a _proposed_ change to ADR 0010: the isolated Stage 4C
 experiment is explicitly authorized by this handoff, subject to owner
 acceptance before merge.
+
+## PR #45 corpus review iteration
+
+Owner-requested follow-up: exercise Alleluia, Gregario, Miserere, Gloria,
+Kyrie eleison, Dominus, Sanctus and Deo with explicit editorial syllables and
+word boundaries. Use consecutive puncta, multiple unanchored neumes, wider
+multi-note neumes, outgoing system continuations and consecutive words.
+Correctness is checked through relative geometry/metadata/interaction invariants;
+compact visual comparisons provide engraving review evidence, never pixel goldens.
+The join policy must not leave unmarked continuation gaps as large as real word
+spaces. Keep shared musical constructions unchanged and ADR 0011 Proposed.
+See the [corpus record](../verification/word-composition/corpus-review.md) for
+actual measurements, the general policy refinement and remaining review limits.
