@@ -4,27 +4,30 @@ Date: 2026-11-01
 
 ## Status
 
-Proposed. Intended to supersede [ADR 0005](0005-derive-wrapping-from-rendered-geometry.md)
-**only if accepted by the owner** after implementation review. ADR 0005 remains
-Accepted until then. This proposal is part of the approved Stage 4B design
-direction, not an accepted change to the main branch yet.
+Accepted (2026-11-01). Supersedes [ADR 0005](0005-derive-wrapping-from-rendered-geometry.md).
+
+The owner accepted this decision after reviewing Stage 4B implementation in
+[PR #44](https://github.com/OceanOSdev/gregorian-chant-editor/pull/44),
+including hands-on Firefox testing of the revised lyric-selection appearance.
+The PR remains subject to normal merge checks; acceptance of this ADR does
+not itself merge the implementation.
 
 ## Context
 
-ADR 0005 established whole-neume, measured-geometry wrapping. The current
-implementation uses the shared derived neume ink bounds and advances
-([ADR 0007](0007-share-derived-neume-engraving-geometry.md)); only afterward
-does it attach separately measured, vowel-aligned lyric syllables. Consequently,
-even valid text can collide, look disconnected, or extend beyond a system.
-Stage 4A provided explicit lyric language, grapheme alignment overrides, and
-measured SVG advances without moving music.
+ADR 0005 established whole-neume, measured-geometry wrapping. Before Stage 4B,
+the implementation used shared derived neume ink bounds and advances
+([ADR 0007](0007-share-derived-neume-engraving-geometry.md)), then attached
+separately measured, vowel-aligned lyric syllables. Consequently, even valid
+text could collide, look disconnected, or extend beyond a system. Stage 4A
+provided explicit lyric language, grapheme alignment overrides, and measured
+SVG advances without moving music.
 
 The owner approved lyric-aware spacing/wrapping in Stage 4B, followed by
 conditional hyphenation and system-break marks in Stage 4C. The guiding
 engraving principle is: _music determines alignment, lyrics influence minimum
 spacing, and hyphens appear when needed to keep words readable_.
 
-## Proposed decision
+## Decision
 
 Use **one derived horizontal placement and wrapping process** that considers
 (1) complete-neume shared ink geometry and existing musical minimum advances
@@ -132,13 +135,12 @@ syllables changes the text/engraving contract. Expanding every system
 unconditionally would defeat normal wrapping and responsive scores;
 the scrollable canvas is restricted to true unbreakable oversize cases.
 
-## Acceptance procedure
+## Acceptance and supersession
 
-Stage 4B may be implemented **on its isolated feature branch** against this
-clearly Proposed ADR, because the owner approved the Stage 4B direction. That
-does not accept or supersede ADR 0005. During PR review the owner must confirm
-the resulting engraving and architectural choice. Only **after** explicit
-acceptance should this ADR be changed to Accepted, ADR 0005 be marked
-Superseded with reciprocal links, and affected guides/ADR 0007 references be
-reconciled, before merging. If the intended model changes materially during
-implementation, stop and report the alternatives for approval.
+This decision was implemented for review on the isolated Stage 4B branch
+in [PR #44](https://github.com/OceanOSdev/gregorian-chant-editor/pull/44).
+After reviewing the combined layout and revised lyric-selection behavior,
+the owner explicitly accepted ADR 0010 as the replacement for ADR 0005.
+ADR 0005 is retained as **Superseded** with a reciprocal link; ADR 0007
+continues to own the shared neume-geometry contract. No semantic document
+fields or Stage 4C hyphenation behavior are implied by this acceptance.
