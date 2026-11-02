@@ -47,8 +47,31 @@ musical alignment anchor or changing a neume's internal engraving contour.
 - Reflow with the resulting combined occupied extents. Keep exact-fit,
   nonempty-system wrapping and oversized-single-item progress rules explicit;
   do not loop indefinitely, split a neume, or create a trailing empty system.
-  Establish deterministic behavior for overlong/unbreakable syllables and
-  staff-edge text overhangs, with no unannounced clipping.
+  For an unusually long **unbreakable syllable** that cannot fit on an
+  otherwise empty normal system, use the explicit scrollable overflow policy
+  below. Never truncate, silently clip, shrink, split, or reject lyric text
+  merely to preserve the old fixed-width SVG content canvas.
+- **Exceptional oversized-score policy:** Normal score dimensions remain
+  720 layout units, with ordinary responsive behavior. First attempt
+  normal lyric-aware spacing and whole-neume wrapping within the
+  existing usable system width. Only when a genuinely unbreakable measured
+  syllable will not fit on an empty normal system, place its anchored item
+  once (progress guaranteed) and expand the **derived canvas/viewBox** as
+  required to display its full text and musical ink, including left or right
+  overhang and modest padding. Its vowel or manual alignment stays centered
+  on the same musical anchor. The *logical normal music-placement and
+  wrapping width* does **not** expand with that visual canvas; the exception
+  does not let other neumes fill an arbitrarily long line. An exceptional
+  canvas may have a negative viewBox x origin. Expose it in a **local
+  horizontally scrollable score viewport**, using enough intrinsic rendered
+  width that the wide content isn't simply scaled back into 720 CSS pixels.
+  Ordinary 720-unit scores remain responsive as before; on narrow screens,
+  the exceptional score scrolls locally rather than overflowing the page.
+  Keep controls outside the scroller and preserve pointer-to-SVG coordinates,
+  focus reveal, and interactive neume boundaries under scrolling. No
+  alternate full-text panel, lyric length limit, line breaking within a
+  syllable, font shrinking, global score scaling, or saved width/offset
+  metadata is introduced.
 - Use one shared pure layout decision for committed rendering, score-based
   hit testing, and semantic insertion-boundary resolution. Render previews
   as local caret/ghost feedback on the *actual displayed* committed layout;
@@ -85,8 +108,11 @@ musical alignment anchor or changing a neume's internal engraving contour.
   displayed systems.
 - Async font measurement and conservative fallback create an intentional
   transition from provisional to measured layout.
-- Long syllables may exceed a normal system even after wrapping. Their
-  deterministic overflow and visibility behavior must be documented and tested.
+- Unbreakable long syllables can require exceptionally wide SVG content
+  canvases and local horizontal scrolling. This is less convenient than
+  normal pagelike notation but keeps the text visible and accurately
+  aligned without arbitrary editing limits. Coordinates, focus and pointer
+  mapping need regression testing at negative x origins and narrow widths.
 - Combined geometry adds engraving complexity and requires visual browser
   verification beyond pure layout tests.
 
@@ -99,7 +125,12 @@ pixel offsets or system membership: would make typography-dependent reflow
 a semantic edit. Shrink the approved inter-neume gap to join syllable text:
 alters accepted musical spacing to solve a lyric problem. Wrap whole words
 as indivisible units: breaks ordinary chant melisma and the current
-whole-neume interaction contract.
+whole-neume interaction contract. Other overlong-syllable policies were
+considered: clipping or displaying a separate full-text label hides
+part of the notation; character limits, font shrinking or splitting
+syllables changes the text/engraving contract. Expanding every system
+unconditionally would defeat normal wrapping and responsive scores;
+the scrollable canvas is restricted to true unbreakable oversize cases.
 
 ## Acceptance procedure
 
