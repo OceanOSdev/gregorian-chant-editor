@@ -8,7 +8,7 @@ The lyric relationship decision is [ADR 0008: Anchor lyric syllables to independ
 
 The **Accepted** [ADR 0010: Derive wrapping from combined music and lyric geometry](0010-derive-wrapping-from-music-and-lyric-geometry.md) governs Stage 4B layout and supersedes [ADR 0005](0005-derive-wrapping-from-rendered-geometry.md), which remains in the log as historical context.
 
-The **Proposed** [ADR 0011: Word-aware compact spacing and derived continuation marks](0011-word-aware-chant-engraving.md) describes a narrow Stage 4C exception to ADR 0010's fixed minimum spacing for eligible same-word syllables, alongside conditional hyphenation. ADR 0010 remains Accepted while this proposal is evaluated.
+The **Accepted** [ADR 0011: Word-aware compact spacing and derived continuation marks](0011-word-aware-chant-engraving.md) introduces a narrow contextual Stage 4C exception to ADR 0010's fixed musical minimum for eligible same-word syllables and governs derived hyphenation. **Both ADR 0010 and ADR 0011 are Accepted**; ADR 0011 qualifies rather than supersedes ADR 0010. Additional editorial hyphen preferences and within-syllable note grouping remain possible future work.
 
 The accepted engraving decision is
 [ADR 0007: Share derived neume engraving geometry](0007-share-derived-neume-engraving-geometry.md).

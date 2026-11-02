@@ -171,11 +171,14 @@ origins. Focus reveal visits local scroll containers before the page. Reparented
 note/lyric controls restore browser focus by ID after measurement reflow without
 changing semantic selection or stealing focus from editor controls.
 
-### Stage 4C branch experiment: word composition
+### Stage 4C word composition
 
-This branch implements [Proposed ADR 0011](adrs/0011-word-aware-chant-engraving.md).
-ADR 0010 remains Accepted; the contextual exception requires owner visual review
-before merge. The Stage 4B rules above remain the conservative baseline.
+[Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md) specifies the
+contextual same-word compaction and derived hyphenation implemented on
+[PR #45](https://github.com/OceanOSdev/gregorian-chant-editor/pull/45).
+The owner approved the current visual policy on 2026-11-02; PR #45 remains
+subject to normal merge checks. [ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+remains Accepted and its Stage 4B rules are the conservative baseline.
 
 With a complete valid font snapshot (including the hyphen), consecutive neumes
 starting consecutive syllables of the same semantic word may use a **2-unit ink

@@ -3,9 +3,18 @@
 Branch: `feat/stage-4c-word-composition`
 Target: `master`
 Baseline: `8672a1ee8dc7a505cb7761f675aa33a0febf3d61` (PR #44 merged)
-Status: **implemented for owner review** for Stage 4C only; see the
-[verification record](../verification/word-composition/README.md). ADR 0011
-remains Proposed, ADR 0010 remains Accepted, and Stage 4D is deferred.
+Status: **implemented and owner-accepted; PR #45 awaiting merge**.
+[ADR 0011](../adrs/0011-word-aware-chant-engraving.md) and
+[ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+are both Accepted. Stage 4D is deferred.
+
+This handoff preserves **historical instructions and original review gates**
+below; those gates have been satisfied. The owner accepted the current
+geometry-derived word and hyphen appearance as a good-enough baseline.
+Additional editorial hyphen preference and intra-syllable/repeated-note
+spacing exploration are explicitly deferred to the
+[roadmap](../roadmap.md), not authorized on PR #45. No code changes are needed
+solely for those stylistic differences.
 
 ## User-visible goal
 

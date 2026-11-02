@@ -4,17 +4,18 @@ Date: 2026-11-01
 
 ## Status
 
-Proposed. Requires owner acceptance after the Stage 4C visual review.
-[ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md)
-remains Accepted during development.
+Accepted (2026-11-02), after the owner's visual review of
+[Stage 4C PR #45](https://github.com/OceanOSdev/gregorian-chant-editor/pull/45).
 
-This proposal **qualifies only ADR 0010's fixed musical minimum between
-eligible consecutive same-word syllables**. All other ADR 0010 contracts,
+This decision **qualifies only ADR 0010's fixed musical minimum between
+eligible consecutive same-word syllables**. [ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md)
+remains Accepted; it is **not superseded**. All other ADR 0010 contracts,
 including derived whole-neume wrapping, measured lyric clearance, exact fit,
 oversized progression and scrollable exceptional overhang, remain in force.
-If accepted, record this contextual qualification reciprocally in ADR
-0010 and the owning guides; do not indiscriminately supersede the entire
-combined-geometry decision.
+The owner accepted the current geometry-derived word composition as a
+good-enough baseline, not a promise of publication-quality hyphenation or
+a requirement to reproduce every GregoBase editorial choice. PR #45 remains
+open until normal merge checks and owner merge.
 
 ## Context
 
@@ -30,7 +31,7 @@ In addition, music can force syllables of one word far apart, and the
 editor currently has no conditional hyphens or outgoing continuation
 marks when a word crosses a system break.
 
-## Proposed decision
+## Decision
 
 - **Conditional compaction:** For consecutive neumes starting consecutive
   syllables of the _same semantic word_ (no intervening unanchored
@@ -72,10 +73,10 @@ marks when a word crosses a system break.
   behavior. Visual selection cues remain behind, not between,
   glyphs and must not block an adjacent syllable.
 
-The owner has authorized _implementation and visual exploration of this
-proposal on a separate Stage 4C branch_, **not its acceptance**. A change
-to the universal gap, loss of hit-target distinction or material
-different layout policy must be escalated before implementation.
+The owner authorized implementation and visual exploration on the Stage 4C
+branch, then accepted the resulting policy after reviewing the tested
+rendering. A future change to the universal gap, hit-target distinction,
+semantic model or materially different layout policy requires a new review.
 
 ## Consequences
 
@@ -112,27 +113,30 @@ and melismas and risks overlapping interactive contours. Store
 hyphens or manual pixel offsets in the semantic document:
 mistakes a layout choice for a chant fact.
 
-## Acceptance gate
+## Acceptance and implementation evidence
 
-After Codex submits Stage 4C with real browser screenshots and
-interaction regression evidence, the owner evaluates the `Al ...
-leluia ah` and `auditione` appearances, conditional hyphens and
-system continuations. Only upon explicit acceptance change this ADR
-to Accepted and add reciprocal qualification notes to ADR 0010
-and the owning architecture guides. Keep this proposal's status
-Proposed and ADR 0010 Accepted until then.
+After reviewing the Stage 4C PR #45 implementation, browser screenshots,
+regression corpus and reference examples, the owner explicitly accepted this
+geometry-derived baseline on 2026-11-02. The owner considers the visuals
+**good enough for now**, while leaving further engraving polish open.
 
-## Stage 4C implementation under review
+The [layout guide](../layout-and-rendering.md#stage-4c-word-composition)
+documents exact spacing, pointer ownership, threshold, bounded reservation,
+and overflow behavior. The [verification record](../verification/word-composition/README.md)
+and [corpus review](../verification/word-composition/corpus-review.md)
+document test coverage and measured rendering, including eight word examples
+under five musical arrangements. This decision does not implicitly authorize
+Stage 4D or change the semantic representation of syllables.
 
-The isolated branch implements this proposal; this is not acceptance. Exact
-spacing, pointer ownership, threshold, bounded reservation and overflow policies
-are recorded in the [owning layout guide](../layout-and-rendering.md#stage-4c-branch-experiment-word-composition).
-The [verification record](../verification/word-composition/README.md) records
-actual checks and visual evidence. Owner review must decide whether the compact
-music and remaining font-dependent gaps are acceptable before merging.
+Two improvements are deliberately **deferred, not approved changes**:
+1. A general editorial continuation/hyphen preference, or improved
+   proportion-based punctuation, if future review warrants distinctions such
+   as GregoBase `audi-ti-óne` versus our `auditi-óne`.
+2. Tighter spacing/grouping between successive notes **within one syllable**,
+   exemplified by `et(hh)` in the Requiem gradual; first-note vowel
+   alignment remains the current rule.
 
-The [PR #45 corpus review](../verification/word-composition/corpus-review.md)
-expands evidence to eight lyric entries and five musical arrangements. It refines
-the font-relative join threshold to remain tighter than real word spacing and
-uses matched geometric text rendering for responsive ink measurement. This is
-still implementation under review; the proposal is not accepted.
+See [auditione analysis](../verification/word-composition/auditione-review.md)
+and [et/lux analysis](../verification/word-composition/et-lux-review.md).
+Neither refinement is implemented or promised for this PR. Its remaining
+step is the normal merge process; acceptance does not itself merge it.
