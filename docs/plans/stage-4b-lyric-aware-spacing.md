@@ -4,8 +4,10 @@ Branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 Status: **completed and merged in PR #44**. Stage 4A merged in PR #43.
-Stage 4C is active under [its own handoff](stage-4c-word-composition.md);
-Stage 4D is deferred.
+Stage 4C merged in PR #45; Stage 4D verification is complete with disclosed
+gaps and PR #46 review/merge pending. See the
+[Stage 4D report](../verification/stage-4d/README.md) for the qualified owner
+manual result and remaining accessibility/narrow-screen verification limits.
 
 This plan records the original Codex implementation handoff and stop conditions;
 implementation and its visual review are complete. The architecture was
@@ -100,7 +102,7 @@ lyric-driven wrapping or increased between-neume spacing.
   hyphens as workarounds.
 
 This presentation policy is part of accepted ADR 0010, which supersedes
-ADR 0005. Its implementation remains on the PR branch until merged.
+ADR 0005. Its implementation subsequently merged in PR #44.
 
 ## Architecture decision / acceptance
 
@@ -119,8 +121,8 @@ Read `AGENTS.md`, `docs/ai-workflow.md`,
 `docs/editor-interactions.md`, `docs/domain-model.md`,
 `docs/testing.md`, relevant existing ADRs (especially 0002, 0005,
 0007, 0008, 0009) and the retained
-[overall Stage 4 plan](stage-4-lyric-engraving.md). The prior
-`lyric-system-redesign.md` minimal-engraving notes are superseded.
+[overall Stage 4 plan](stage-4-lyric-engraving.md). The minimal-engraving notes in the retired `lyric-system-redesign.md` are
+superseded; that plan remains available through Git history.
 
 ## Agreed boundaries and design intent
 

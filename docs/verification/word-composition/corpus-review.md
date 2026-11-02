@@ -60,7 +60,7 @@ keeping measured and rendered extents consistent across responsive sizes. This
 avoids viewport-dependent spacing or a new resize/reflow cycle. Musical ink,
 anchors, target partitions, semantic identity and history are unchanged.
 
-The [layout guide](../../layout-and-rendering.md#stage-4c-branch-experiment-word-composition)
+The [layout guide](../../layout-and-rendering.md#stage-4c-word-composition)
 owns the precise policy; these results do not amend acceptance of ADR 0011.
 
 ## Compact visual comparison

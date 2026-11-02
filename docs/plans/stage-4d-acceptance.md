@@ -178,7 +178,8 @@ actual result; never claim it passed by inference.
   PR-specific verification records historically accurate; if their
   old claims could mislead, add a short "historical" note or link
   from the current index rather than rewriting old observations.
-- `docs/plans/lyric-system-redesign.md` explicitly calls for removal
+- The now-retired `docs/plans/lyric-system-redesign.md` (available through Git
+  history) explicitly called for removal
   when the complete Stage 4 has been accepted. Include its
   retirement in the final 4D closeout **after** verifying its
   durable decisions are in ADRs/owning guides. Update the

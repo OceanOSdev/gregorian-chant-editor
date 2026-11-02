@@ -40,8 +40,9 @@ in the referenced Requiem gradual (https://gregobase.selapa.net/chant.php?id=126
 spacing; hyphens appear as needed to preserve a word's readability.
 
 Stage 4 intentionally expands the older "minimal engraving / music-only
-wrapping" proposal in `docs/plans/lyric-system-redesign.md`. That earlier
-section describes the prior plan, not the newly agreed Stage 4 outcome.
+wrapping" proposal in the retired `docs/plans/lyric-system-redesign.md`
+(available through Git history). That earlier section describes the prior plan,
+not the implemented Stage 4 outcome.
 The implementation must reconcile this change explicitly in the owning docs.
 
 ## Source contracts and accepted decisions
@@ -253,7 +254,8 @@ Present a visual before/after and inspect music geometry.
 Follow the [Stage 4C plan](stage-4c-word-composition.md), including optional
 compact spacing for consecutive same-word syllables, while safeguarding neume
 ink and interaction bounds. The contextual compaction exception to ADR 0010
-is recorded in Proposed ADR 0011; no accepted ADR is silently changed.
+was originally recorded in Proposed ADR 0011, now Accepted; no other accepted
+ADR was silently changed.
 The original hyphen principles remain: derive from semantic word boundaries,
 measured gaps and system partitions; no decorative focus/hit targets and no
 persisted punctuation. Stage 4D stays separate.

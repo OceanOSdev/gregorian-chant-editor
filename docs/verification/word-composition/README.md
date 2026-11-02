@@ -16,7 +16,7 @@ acceptance. ADR 0011 remains **Proposed** and ADR 0010 remains **Accepted**.
 
 ## Policy and visual findings
 
-The [layout guide](../../layout-and-rendering.md#stage-4c-branch-experiment-word-composition)
+The [layout guide](../../layout-and-rendering.md#stage-4c-word-composition)
 owns the exact contextual minimum, pointer ownership, measured threshold,
 reservation, fallback and oversized behavior. No semantic document or history
 format changed. All seven shared musical constructions remain unchanged.

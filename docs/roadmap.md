@@ -35,9 +35,15 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   there is no document schema version yet.
 - There is no GABC import/export or other interchange adapter.
 - There is no backend.
-- The test suite has no DOM, React component, or browser automation
-  environment. Actual focus, pointer, tab-order, event, clipping, and responsive
-  behavior require manual checks.
+- Vitest runs pure TypeScript tests without a DOM or React component-test
+  environment. Separate standalone drivers exercise the real editor in Chromium
+  (CDP) and Firefox (BiDi), including native input, DOM/ARIA, geometry and
+  responsive checks; these drivers are outside Vitest and hosted CI. See the
+  [testing guide](testing.md) and [Stage 4D evidence](verification/stage-4d/README.md).
+  Headless automation is distinct from foreground manual keyboard/zoom/IME
+  testing and spoken screen-reader verification. The owner reported successful
+  non-screen-reader manual workflows without itemized scenarios/environment;
+  speech remains Not run and detailed 320px usability signoff is uncaptured.
 
 ## Possible future work
 
