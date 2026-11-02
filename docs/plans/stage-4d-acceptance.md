@@ -3,7 +3,9 @@
 Branch: `test/stage-4d-acceptance`
 Target: `master`
 Baseline: `46b1d597277d428b20231301c3b3306d13bd3a01` (PR #45 merged)
-Status: **active verification-and-fix handoff**; no new engraving feature or ADR is authorized.
+Status: **verification delivered; owner acceptance pending**. See the
+[Stage 4D verification report](../verification/stage-4d/README.md) for actual
+results and outstanding foreground checks. No new engraving feature or ADR is authorized.
 
 ## Problem and definition of done
 

@@ -1,7 +1,7 @@
 # Plan: Stage 4 lyric-aware engraving (4A–4C merged; 4D underway)
 
 Status: **4A merged in PR #43; 4B merged in PR #44; 4C merged in PR #45;
-Stage 4D active on `test/stage-4d-acceptance`**.
+Stage 4D verification delivered on `test/stage-4d-acceptance`; owner acceptance pending**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Completed 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
@@ -256,9 +256,11 @@ The original hyphen principles remain: derive from semantic word boundaries,
 measured gaps and system partitions; no decorative focus/hit targets and no
 persisted punctuation. Stage 4D stays separate.
 
-### 4D — Cross-browser visual, interaction and accessibility acceptance (active)
+### 4D — Cross-browser visual, interaction and accessibility acceptance (owner review pending)
 
-Follow the [dedicated Stage 4D acceptance plan](stage-4d-acceptance.md),
+See the [Stage 4D verification report](../verification/stage-4d/README.md) for
+actual results and remaining owner checks. Follow the
+[dedicated Stage 4D acceptance plan](stage-4d-acceptance.md),
 which audits existing tests, verifies real Chromium and Firefox behavior,
 and adds a foreground Firefox keyboard/accessibility signoff. Fix verified
 regressions; do not reopen accepted editorial typography decisions merely
