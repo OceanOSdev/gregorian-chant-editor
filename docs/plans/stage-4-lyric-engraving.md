@@ -6,6 +6,13 @@ Baseline: `4c511a88e12296baefe29d79ff55ad65b4a91a71` (Stage 3 merged)
 Initial implementation scope: **4A only**. 4B–4D below document the direction,
 not authorization to implement them in this PR.
 
+**Language-design gate resolved (2026-11-01):** The owner approved a required,
+document-level lyric engraving language preference. New chants use Latin by
+default, with an explicit unspecified option and conservative fallbacks. This
+authorizes a narrowly scoped semantic-model extension in 4A; do not stop again
+to seek approval merely to introduce this field. The details below supersede
+the earlier instruction to stop and ask whether a language field is needed.
+
 ## Problem and user-visible goal
 
 The current editor places each whole lyric syllable centered on its neume
@@ -38,6 +45,9 @@ Read `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`,
 Current seams of interest:
 - `LyricSyllable`: stable `id`, `text`, `startsAtNeumeId`,
   `boundaryBefore`; no independent word entities.
+- `ChantDocument` currently has no language setting. Stage 4A is authorized
+  to add one required document-wide `lyricLanguage` field, as specified
+  below, and update fixtures and command/history boundaries accordingly.
 - `layoutChant` derives whole-neume systems using music-only
   `placeNeumeSequence`, then places whole-string SVG lyric text at
   kind-specific `lyricAnchorX` values.
@@ -54,15 +64,77 @@ important remaining invariants: whole-neume breaks, exact-fit semantics,
 guaranteed progress for oversized items, stable IDs, derived system ownership,
 and preview/commit agreement.
 
+## Approved document language design for 4A
+
+Use a required semantic field on `ChantDocument`, not session-only state:
+
+```ts
+type LyricLanguage = 'la' | 'en' | 'el' | 'und';
+
+interface ChantDocument {
+  // Existing title, clef, syllables and neumes...
+  lyricLanguage: LyricLanguage;
+}
+```
+
+- `la` = Latin, `en` = English, `el` = Greek, `und` = explicitly
+  unspecified/undetermined. These are **engraving rules**, not restrictions
+  on which text a user may enter. Do not infer a language from Latin-script
+  text, the score title, current locale, or unrelated app settings.
+- Newly initialized Gregorian chant documents (including the built-in example
+  and any explicit new-document factory) default visibly to `la`.
+  Allow the user to select `und` deliberately. If a legacy or untyped
+  document lacks a valid value at a runtime boundary, normalize/handle it
+  conservatively as `und` rather than silently claiming Latin. TypeScript
+  sources and tests should populate the required field explicitly. The app
+  has no persisted format or schema migration requirement today.
+- Provide a small, clearly labeled **Lyric language** document-level control
+  with options Latin, English, Greek, and Unspecified. It is independent of
+  choosing, selecting, editing or reassigning a syllable. Changing the
+  language is an immutable semantic document edit, recorded as **one**
+  history action; unchanged choice returns the exact original document.
+  Undo/redo restores the language and derived alignment; preserve stable
+  IDs, drafts/selection/focus and existing safety policies. The setting
+  never edits text, syllable boundaries, or anchors.
+- Automatic segment alignment uses only the selected language's rules.
+  Latin supports the agreed Latin acceptance examples, including `y` in
+  `Ky`, `au`, `æ`, and consonantal `u` in `qui`. Greek supports a
+  conservative Greek-script vowel/accent case, including combining marks.
+  English may use conservative, unambiguous cases but **must** fall back
+  to whole-syllable centering where spelling/pronunciation makes a nucleus
+  uncertain. `und` always centers the whole syllable automatically.
+  Unsupported or incompatible scripts and unrecognized cases also fall
+  back to whole-syllable centering. Do not add language detection,
+  pronunciation dictionaries or full grapheme-to-phoneme inference.
+- The user-authored **per-syllable alignment segment override** always takes
+  precedence over the language default, including `und`. Resetting the
+  override uses the document's current automatic language rule. A mixed
+  language chant can use explicit overrides where necessary; do not add
+  per-syllable language fields, extra word entities or session-specific
+  language settings in Stage 4A.
+- Keep the choice stable and visible; the language control and manual segment
+  controls must be keyboard-operable and accessible. If a dirty lyric draft
+  is active when the language changes, respect existing draft/history safety
+  policy rather than discarding the draft, changing its target, or silently
+  committing it. Preserve the difference between semantic selection and
+  browser keyboard focus.
+- This is an approved domain addition, **not** permission to revise lyric
+  ownership, music insertion, or ADR 0008's anchoring contract. Update the
+  owning domain/commands/rendering/testing guides and explicitly evaluate
+  whether a focused new ADR is warranted; do not rewrite an accepted ADR
+  by implication.
+
 ## Agreed engraving direction (all of Stage 4)
 
 1. **Vowel-nucleus alignment.** Align the center of the appropriate vowel or
    vowel group of a syllable to the existing kind-specific musical lyric anchor,
    not the entire syllable's midpoint. Handle Latin examples (`Ky`, `ri`,
    `e`, `lé`, `son`, diphthong `au`, consonantal `u` in `qui`,
-   ligature `æ`), Unicode accents, Greek script, and English without assuming
-   a universal first-vowel algorithm. When uncertain, fall back predictably
-   to whole-syllable centering. Never guess an unsupported language silently.
+   ligature `æ`), Unicode accents, Greek script, and English using the
+   **explicit document `lyricLanguage`** rules above, not a universal
+   first-vowel or script-based language guess. When uncertain, or when
+   `lyricLanguage === 'und'`, fall back predictably to whole-syllable
+   centering.
 2. **Optional manual alignment.** Allow a user to choose a contiguous
    grapheme-safe part of the syllable whose center aligns to the neume, or
    reset to automatic. This is an authored editorial preference, not an x/y
@@ -103,9 +175,15 @@ and preview/commit agreement.
   musical anchor. Prefer conservative, testable language-specific rules with
   a safe whole-string fallback to brittle pretending to understand every
   Latin-script language. Do not add broad automatic language guessing or
-  syllabification. Review whether an explicit language preference is needed;
-  if this materially changes the proposed document format or scope, stop
-  with options instead of inventing a second language model.
+  syllabification. **The explicit document-level language preference is
+  approved and required**, per the language design above; do not treat that
+  decision as an unresolved stop condition. Stop only if implementation
+  uncovers a genuinely new material conflict outside that agreement.
+- Implement the required `lyricLanguage` semantic field, document control,
+  immutable update command, history/undo behavior, `und` fallback, and
+  language-specific/fallback cases from the approved design above. Update
+  the built-in example, all TypeScript fixtures and construction paths to
+  specify their language rather than depending on silent inference.
 - Support an optional explicit segment override using stable, Unicode-safe
   indexing (grapheme boundaries, not naïve UTF-16 offsets). Ensure ranges are
   validated; deleting/editing text must never leave an invalid or accidentally
@@ -127,9 +205,16 @@ and preview/commit agreement.
   Do not implement gap policies, hyphens, lyric-driven wrapping or Stage 4B
   until 4A has been reviewed and merged.
 
-**4A acceptance tests:** automatic centers for `Ky`, `ri`, `e`, `lé`,
-`son`, `au`, `qui`, and `æ`; at least one polytonic Greek / combining
-mark example; one ambiguous English example that uses a safe fallback;
+**4A acceptance tests:** explicitly Latin document gives automatic centers
+for `Ky`, `ri`, `e`, `lé`, `son`, `au`, `qui`, and `æ`; explicit Greek
+document handles at least one polytonic Greek / combining-mark case; explicit
+English document handles a conservative case and one ambiguous example with
+whole-syllable fallback; explicit `und` always whole-syllable-centers, and
+missing/malformed legacy language data also safely falls back instead of being
+assumed Latin; choosing the language via keyboard/accessibility UI works;
+new document default is visibly Latin; language changes are one semantic
+history transaction with no-op identity, exact undo/redo and no change to
+neumes, lyrics, anchor IDs, drafts or keyboard focus;
 manual single/multi-grapheme override and reset; invalid/changed-text override
 safety; Unicode-safe measurement and alignment; no music/neume movement,
 reflow or semantic anchor changes from alignment alone; selection vs focus
@@ -185,4 +270,5 @@ redesign unrelated to the requested lyric behavior.
   `master`, and report actual verification and caveats. Do not merge.
   Keep this Stage 4 plan available through 4B–4D, updating its milestone
   statuses as the owner accepts each phase. If a material ADR/domain/language
-  conflict emerges, stop and report concrete alternatives before diverging.
+  conflict **beyond the approved document language field** emerges, stop and
+  report concrete alternatives before diverging.
