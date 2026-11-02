@@ -229,6 +229,80 @@ describe('combined music and lyric placement', () => {
     );
     expect(layoutChant(d, measure)).toEqual(measured);
   });
+  it('clears the painted overhang of a long same-word syllable without adding word space', () => {
+    const long = 'lealsdkfjaasdfhasdf';
+    const d = fixture(['Al', long, 'lu', 'ia', 'bla']);
+    d.syllables = d.syllables.map((s, i) => ({
+      ...s,
+      boundaryBefore: i ? 'continuation' : 'word',
+    }));
+    const withInk: MeasureLyricText = (text) => {
+      const m = measure(text);
+      return m && text === long
+        ? { ...m, inkBounds: { left: -3, right: m.width + 20 } }
+        : m;
+    };
+    const plain = layoutChant(d, measure).systems[0];
+    const actual = layoutChant(d, withInk).systems[0];
+    expect(actual.lyrics[1].left).toBe(actual.lyrics[0].right);
+    expect(actual.lyrics[2].left).toBe(actual.lyrics[1].right);
+    expect(actual.neumes[2].bounds.x).toBeGreaterThan(plain.neumes[2].bounds.x);
+    expect(actual.lyrics[1].alignment.offset).toBe(
+      plain.lyrics[1].alignment.offset,
+    );
+    expect(actual.lyrics[1].anchorX).toBe(actual.neumes[1].lyricAnchorX);
+  });
+  it('wraps when advance fits exactly but the same-word glyph overhang does not', () => {
+    const d = fixture(['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla']);
+    d.syllables = d.syllables.map((s, i) => ({
+      ...s,
+      boundaryBefore: i ? 'continuation' : 'word',
+    }));
+    const advances: MeasureLyricText = (text) => {
+      const count = lyricGraphemes(text).length;
+      const width = text.length > 5 ? 416 : count * 10;
+      return {
+        width,
+        boundaries: Array.from(
+          { length: count + 1 },
+          (_, i) => (i * width) / count,
+        ),
+      };
+    };
+    const withInk: MeasureLyricText = (text) => {
+      const m = advances(text);
+      return m && text.length > 5
+        ? { ...m, inkBounds: { left: 0, right: m.width + 1 } }
+        : m;
+    };
+    const plain = layoutChant(d, advances);
+    expect(plain.systems[0].neumes).toHaveLength(2);
+    expect(plain.systems[0].lyrics[1].right).toBe(staffEndX);
+    const actual = layoutChant(d, withInk);
+    expect(actual.systems[0].neumes).toHaveLength(1);
+    expect(actual.systems[1].startNeumeIndex).toBe(1);
+    expect(actual.systems[1].lyrics[0].right).toBeLessThanOrEqual(staffEndX);
+    expect(actual.systems[1].lyrics[1].left).toBeGreaterThanOrEqual(
+      Number(actual.systems[1].lyrics[0].right),
+    );
+  });
+  it('uses isolated scrollable overflow when painted bounds alone make a unit oversized', () => {
+    const d = fixture(['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla']);
+    const m: MeasureLyricText = (text) => {
+      const measured = measure(text);
+      return measured && text.length > 5
+        ? { ...measured, inkBounds: { left: -500, right: 1000 } }
+        : measured;
+    };
+    const l = layoutChant(d, m);
+    expect(l.systems[1].neumes).toHaveLength(1);
+    expect(l.systems[2].startNeumeIndex).toBe(2);
+    expect(l.x).toBeLessThan(0);
+    expect(l.width).toBeGreaterThan(720);
+    const lyric = l.systems[1].lyrics[0];
+    expect(l.x).toBeLessThanOrEqual(Number(lyric.left) - 12);
+    expect(l.x + l.width).toBeGreaterThanOrEqual(Number(lyric.right) + 12);
+  });
   it('reflows alignment/language edits with semantic identities and atomic undo/redo', () => {
     const d = fixture(
       ['b'.repeat(20) + 'a', 'c'.repeat(20) + 'a', 'd'.repeat(20) + 'a'],

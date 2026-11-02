@@ -52,3 +52,27 @@ Firefox, spoken screen-reader output and final auditione editorial appearance
 were not verified. Local automated/browser runs used Node 24.12.0; `.nvmrc`
 requests 24.18.0, which is not installed in this environment. Hosted CI is a
 separate verification and must not be inferred from these local results.
+
+## Same-word overhang regression
+
+Manual review reported `Al / lealsdkfjaasdfhasdf / lu / ia / bla`. Chromium
+reproduced a roughly 0.57-unit painted overlap between the final `f` and `lu`,
+even though their typographic advances did not overlap. The placement and wrap
+walk used advance-only extents: a font-metric omission, not a missing
+same-word branch in the wrap algorithm. The adapter now measures glyph bounds;
+layout uses their union with advances for clearance, fit and canvas overflow,
+while retaining the advance-based vowel anchor. A half-unit measurement guard
+covers responsive SVG hinting differences without introducing a word gap.
+
+The native browser regression observes about 0.77 units of painted clearance
+at that boundary after the fix. The original pattern fits on one system;
+repeating the long syllable three times requires normal wrapping, and eight
+times triggers isolated scrollable overflow. Native replacement and undo/redo
+preserve IDs and derived geometry. Checks also inspect painted bounds at 320px
+and throughout the existing alternate-font and pointer suite. Three new pure
+regression tests were run against the old implementation and all failed, then
+passed with the fix. Invalid ink measurements retain the deterministic fallback.
+
+Before/after screenshots and the wrapped/narrow variants are generated in
+system temporary storage, with paths recorded in PR #44 review evidence.
+No hyphens or new same-word joining policy are introduced.

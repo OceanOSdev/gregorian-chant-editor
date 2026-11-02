@@ -140,7 +140,8 @@ including exact-fit and oversized progress rules. Hover does not run a wrapping 
 
 One placement walk preserves each neume's musical minimum advance, then increases
 only the incoming anchored neume's position as required by the previous lyric's
-right advance edge. Same-word syllables may abut; distinct words receive a
+right occupied edge (the union of text advance and painted glyph bounds).
+Same-word syllables may abut; distinct words receive a
 5-unit (quarter-em at the matching 20-unit font) deterministic minimum gap.
 Unanchored melismatic neumes keep their musical advances. Each candidate tests
 both musical ink and lyric right bounds; a new system resets lyric clearance
@@ -190,7 +191,7 @@ for input and lifecycle rules.
 Lyric syllables carry stable `startsAtNeumeId` anchors. Layout resolves each
 anchor directly to its committed neume and emits one lyric on that system.
 Later neumes in the span never repeat the text, including across system breaks.
-Measured lyric advances participate in the same placement and wrapping walk as music.
+Measured lyric advances and glyph bounds participate in the same placement and wrapping walk as music.
 
 Current horizontal alignment rules are:
 
@@ -208,7 +209,7 @@ generated hyphens are deferred to Stage 4C.
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
-contract below. Each lyric also exposes measured `left`/`right` advance edges
+contract below. Each lyric also exposes measured `left`/`right` occupied edges
 (or null when unavailable), `boundaryBefore`, and `anchorX`; the enclosing system
 provides its boundary. Conditional hyphens and continuation marks remain deferred.
 
@@ -291,7 +292,8 @@ spelling heuristics, not pronunciation inference or general syllabification.
 Manual grapheme ranges always take precedence.
 
 `layoutChant` optionally consumes a pure text-measurement callback with total
-advance width and advance positions at grapheme boundaries. It returns the
+advance width, advance positions at grapheme boundaries, and optional painted
+`inkBounds` relative to the advance start. It returns the
 chosen segment, measurement status, width, offset and original musical anchor
 with each lyric. The positioned x remains the whole text's midpoint, shifted
 so the segment's advance center coincides with the existing `lyricAnchorX`.
@@ -303,7 +305,15 @@ The browser adapter measures hidden SVG text in an effect with the same
 for `document.fonts.ready` and refreshes after font loading, caching repeated
 texts per measurement pass. Unicode grapheme indexes are converted to UTF-16
 SVG substring lengths only in that adapter. Platform font substitution can
-change measured geometry. Rendering keeps one interactive text control per
+change measured geometry. `getBBox()` supplies glyph bounds, including serif
+and italic overhangs outside typographic advances. The browser adapter encloses
+these bounds with a half-layout-unit guard for scale-dependent SVG font hinting;
+this precision allowance is much smaller than the word gap. The same union of
+advance and guarded ink bounds drives adjacent clearance, system fit, first
+left bearings and exceptional canvas expansion. Vowel/segment alignment still
+uses only advances; it does not move toward an optical ink centroid. Pure
+measurement providers omitting `inkBounds` retain advance-only extents.
+Rendering keeps one interactive text control per
 syllable, with unchanged baseline, accessible name and ID-based interaction.
 
 Stage 4B extends the Stage 4A measurements into combined placement as described

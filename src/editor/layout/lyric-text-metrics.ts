@@ -11,6 +11,8 @@ export interface LyricTextMetrics {
   width: number;
   /** Advance positions at each grapheme boundary, including zero and text end. */
   boundaries: readonly number[];
+  /** Optional painted bounds relative to the start of the text advance. */
+  inkBounds?: { left: number; right: number };
 }
 export type MeasureLyricText = (text: string) => LyricTextMetrics | null;
 
@@ -35,7 +37,11 @@ export function alignLyricText(
       (x, i, xs) => !Number.isFinite(x) || x < 0 || (i > 0 && x < xs[i - 1]),
     ) ||
     metrics.boundaries[0] !== 0 ||
-    metrics.boundaries[count] !== metrics.width
+    metrics.boundaries[count] !== metrics.width ||
+    (metrics.inkBounds !== undefined &&
+      (!Number.isFinite(metrics.inkBounds.left) ||
+        !Number.isFinite(metrics.inkBounds.right) ||
+        metrics.inkBounds.right < metrics.inkBounds.left))
   ) {
     return { offset: 0, width: null, segment, measured: false };
   }
@@ -46,5 +52,18 @@ export function alignLyricText(
     width: metrics.width,
     segment,
     measured: true,
+    ...(metrics.inkBounds ? { inkBounds: metrics.inkBounds } : {}),
+  };
+}
+
+/** Occupied edges relative to the musical anchor; alignment still uses advances. */
+export function lyricTextExtents(alignment: ReturnType<typeof alignLyricText>) {
+  if (alignment.width === null) return null;
+  const start = alignment.offset - alignment.width / 2;
+  return {
+    left: start + Math.min(0, alignment.inkBounds?.left ?? 0),
+    right:
+      start +
+      Math.max(alignment.width, alignment.inkBounds?.right ?? alignment.width),
   };
 }

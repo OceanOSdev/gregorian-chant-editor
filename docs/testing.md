@@ -358,3 +358,10 @@ pointer/caret agreement, word-boundary/text/alignment/language history, 320px
 containment, native horizontal scrolling to both edges and scrolled insertion
 with a negative viewBox origin. Generated before/after screenshots remain in
 temporary storage. ADR 0010 stays Proposed pending owner review.
+
+The same-word regression uses `Al / lealsdkfjaasdfhasdf / lu / ia / bla`.
+Assert painted SVG `getBBox()` clearance as well as advance clearance, including
+responsive scaling, ordinary wrapping, oversized isolation and text undo/redo.
+Pure regressions cover negative/positive ink overhangs, an advance-exact fit
+whose ink requires wrapping, and ink-only oversized canvas expansion. These
+three regressions fail against the pre-fix implementation.

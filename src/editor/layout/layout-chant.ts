@@ -2,6 +2,7 @@ import { lyricLanguage } from '../domain/lyric-alignment';
 import {
   alignLyricText,
   lyricFontSize,
+  lyricTextExtents,
   type MeasureLyricText,
 } from './lyric-text-metrics';
 import {
@@ -56,7 +57,7 @@ export interface LyricLayout {
   y: number;
   fontSize: number;
   boundaryBefore: LyricSyllable['boundaryBefore'];
-  /** Measured advance edges; null during provisional music-only layout. */
+  /** Occupied advance/ink edges; null when measurements are unavailable. */
   left: number | null;
   right: number | null;
 }
@@ -264,8 +265,7 @@ function placeNeumeSequence(
   }
   for (const [inputIndex, input] of inputs.entries()) {
     const lyric = lyrics.get(inputIndex);
-    const width = lyric?.alignment.width;
-    const measured = width !== null && width !== undefined;
+    const extents = lyric ? lyricTextExtents(lyric.alignment) : null;
     const build = () => {
       const initial = buildNeumeGeometry(
         input.kind,
@@ -275,8 +275,8 @@ function placeNeumeSequence(
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
       );
-      if (!measured || !lyric) return initial;
-      const left = initial.lyricAnchorX + lyric.alignment.offset - width / 2;
+      if (!extents || !lyric) return initial;
+      const left = initial.lyricAnchorX + extents.left;
       // Word clearance is a deterministic quarter-em minimum (5 score units).
       const minimum =
         previousLyricRight === null
@@ -297,7 +297,7 @@ function placeNeumeSequence(
         !geometries.length &&
         Math.max(
           initial.bounds.x + initial.bounds.width + shift,
-          left + width + shift,
+          initial.lyricAnchorX + extents.right + shift,
         ) > usableRightBoundary
       )
         return initial;
@@ -306,15 +306,11 @@ function placeNeumeSequence(
     const rightEdge = (g: NeumeGeometry) =>
       Math.max(
         g.bounds.x + g.bounds.width,
-        measured && lyric
-          ? g.lyricAnchorX + lyric.alignment.offset + width / 2
-          : -Infinity,
+        extents ? g.lyricAnchorX + extents.right : -Infinity,
       );
     const oversized = (g: NeumeGeometry) =>
       rightEdge(g) > usableRightBoundary ||
-      (measured && lyric
-        ? g.lyricAnchorX + lyric.alignment.offset - width / 2 < staffStartX
-        : false);
+      (extents ? g.lyricAnchorX + extents.left < staffStartX : false);
     let geometry = build();
     if (geometries.length && rightEdge(geometry) > usableRightBoundary) {
       finishSystem();
@@ -322,9 +318,7 @@ function placeNeumeSequence(
     }
     geometries.push(geometry);
     nextLeftX = geometry.bounds.x + geometry.advanceX;
-    if (measured && lyric)
-      previousLyricRight =
-        geometry.lyricAnchorX + lyric.alignment.offset + width / 2;
+    if (extents) previousLyricRight = geometry.lyricAnchorX + extents.right;
     if (oversized(geometry)) finishSystem();
   }
   if (geometries.length || systems.length === 0) finishSystem();
@@ -728,6 +722,7 @@ export function layoutChant(
       alignments.get(syllable.id) ??
       alignLyricText(syllable, lyricLanguage(document.lyricLanguage));
     const x = alignmentX + alignment.offset;
+    const extents = lyricTextExtents(alignment);
     lyricsBySystem[first.systemIndex]?.push({
       alignment,
       anchorX: alignmentX,
@@ -735,8 +730,8 @@ export function layoutChant(
       text: syllable.text,
       x,
       boundaryBefore: syllable.boundaryBefore,
-      left: alignment.width === null ? null : x - alignment.width / 2,
-      right: alignment.width === null ? null : x + alignment.width / 2,
+      left: extents ? alignmentX + extents.left : null,
+      right: extents ? alignmentX + extents.right : null,
       y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
       fontSize: lyricFontSize,
     });

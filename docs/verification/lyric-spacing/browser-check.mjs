@@ -65,6 +65,7 @@ const key = async (key, modifiers = 0) => {
     modifiers,
     windowsVirtualKeyCode:
       {
+        a: 65,
         Enter: 13,
         Tab: 9,
         Escape: 27,
@@ -162,7 +163,74 @@ const assertClear = async () => {
         `overlap: ${a.id}, ${b.id}`,
       );
     }
+  await assertInkClear();
 };
+// Regression: advance boxes can abut while the final f still paints over lu.
+const sameWord = {
+  ...fixture,
+  title: 'Same-word painted-overhang regression',
+  syllables: ['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla'].map(
+    (text, i) => ({
+      id: `s${i}`,
+      text,
+      startsAtNeumeId: `n${i}`,
+      boundaryBefore: i ? 'continuation' : 'word',
+    }),
+  ),
+};
+const assertInkClear = async () => {
+  const gaps =
+    await ev(`Array.from(document.querySelectorAll('[data-system-index]')).flatMap(s=>{
+    const texts=Array.from(s.querySelectorAll('.score__lyric'));
+    return texts.slice(1).map((t,i)=>{const a=texts[i].getBBox(),b=t.getBBox();return b.x-a.x-a.width});
+  })`);
+  assert(
+    gaps.every((g) => g >= -0.05),
+    `painted glyph overlap: ${gaps}`,
+  );
+  return gaps;
+};
+await mount(sameWord);
+const sameWordGeometry = await geometry();
+const sameWordGaps = await assertInkClear();
+await ev('window.scrollTo(0,0)');
+await shot('same-word-overhang-after');
+await viewport(320);
+await pause();
+await assertInkClear();
+await shot('same-word-overhang-320');
+await viewport(1440);
+await pause();
+// A longer version must wrap normally, then an unbreakable version must isolate.
+await focus('.score__lyric[data-syllable-id="s1"]');
+await key('Enter');
+await key('a', 2);
+await send('Input.insertText', { text: 'lealsdkfjaasdfhasdf'.repeat(3) });
+await key('Enter');
+const wrapped = await geometry();
+assert(wrapped[1].lyrics.some((l) => l.id === 's1'));
+assert.equal(
+  await ev(`document.querySelector('.score').viewBox.baseVal.width`),
+  720,
+);
+await assertInkClear();
+await ev('window.scrollTo(0,0)');
+await shot('same-word-overhang-wrapped');
+await click('[aria-label="Undo last edit"]');
+assert.deepEqual(await geometry(), sameWordGeometry);
+await click('[aria-label="Redo last undone edit"]');
+assert.deepEqual(await geometry(), wrapped);
+await focus('.score__lyric[data-syllable-id="s1"]');
+await key('Enter');
+await key('a', 2);
+await send('Input.insertText', { text: 'lealsdkfjaasdfhasdf'.repeat(8) });
+await key('Enter');
+assert.equal((await geometry())[1].notes.length, 1);
+assert.equal((await geometry())[2].lyrics[0].id, 's2');
+assert(await ev(`document.querySelector('.score').viewBox.baseVal.width>720`));
+await assertInkClear();
+console.log('Same-word painted gaps:', sameWordGaps);
+await mount();
 await assertClear();
 const original = await geometry();
 assert.equal(
