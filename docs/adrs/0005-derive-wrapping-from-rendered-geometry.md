@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted
+Superseded (2026-11-01) by [ADR 0010: Derive wrapping from combined music and lyric geometry](0010-derive-wrapping-from-music-and-lyric-geometry.md).
 
 ## Context
 
@@ -14,7 +14,9 @@ width. System membership must also change when insertion or deletion changes
 the available horizontal space.
 
 This ADR was written retrospectively to record a decision already reflected in
-the implementation.
+the original implementation. Its whole-neume, exact-fit and stable-identity
+invariants continue under ADR 0010; its music-only basis for system spacing
+and wrapping has been replaced by combined music and measured-lyric geometry.
 
 See [layout and rendering](../layout-and-rendering.md#automatic-whole-neume-wrapping)
 for the current algorithm.
