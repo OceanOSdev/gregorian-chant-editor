@@ -27,7 +27,8 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 - Lyrics support measured vowel/manual alignment and minimum clearances.
   Conditional hyphens and continuation marks remain deferred; music can leave
   same-word syllables visibly separated. Exceptionally oversized lyrics require
-  local horizontal scrolling. Stage 4B and Proposed ADR 0010 await owner review.
+  local horizontal scrolling. Stage 4B's architecture is accepted in ADR 0010;
+  PR #44 remains subject to merging.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
 - There is no persistence layer or persisted document format. Consequently
@@ -67,6 +68,6 @@ Stage 4A provides explicit document language, measured vowel alignment and manua
 grapheme segment overrides. Stage 4B is implemented on its isolated branch for
 review: measured lyric clearance and whole-neume wrapping share one derived
 layout, with local scrollable overflow only for unbreakable oversized text.
-ADR 0010 remains Proposed and ADR 0005 Accepted pending owner acceptance.
+ADR 0010 is Accepted and supersedes ADR 0005 following owner review.
 Stage 4C hyphens and Stage 4D broader Firefox/assistive-technology acceptance
 remain outstanding.
