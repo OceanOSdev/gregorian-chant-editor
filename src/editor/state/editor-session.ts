@@ -48,6 +48,7 @@ export interface EditorSession {
     syllableId: string;
     candidateId: string;
     previousLyrics: LyricEntry | null;
+    previousSelection: EditorSelection;
   } | null;
   lyrics: LyricEntry | null;
   pendingHistory: {
@@ -68,14 +69,31 @@ export type LyricMoveAction =
   | { type: 'commit'; neumeId?: string }
   | { type: 'cancel' };
 
-/** Eligibility is derived from the same pure command used to commit. */
+/** Derive the open interval between neighboring anchors without trial edits. */
 export function lyricMoveTargets(
   document: ChantDocument,
   syllableId: string,
 ): string[] {
+  const index = document.syllables.findIndex((s) => s.id === syllableId);
+  if (index < 0) return [];
+  const syllable = document.syllables[index];
+  const previous = document.syllables[index - 1];
+  const following = document.syllables[index + 1];
+  const lower = previous
+    ? document.neumes.findIndex((n) => n.id === previous.startsAtNeumeId)
+    : -1;
+  const upper = following
+    ? document.neumes.findIndex((n) => n.id === following.startsAtNeumeId)
+    : document.neumes.length;
+  if ((previous && lower < 0) || upper < 0) return [];
+  const occupied = new Set(document.syllables.map((s) => s.startsAtNeumeId));
   return document.neumes
     .filter(
-      (n) => reassignLyricSyllable(document, syllableId, n.id) !== document,
+      (n, i) =>
+        i > lower &&
+        i < upper &&
+        n.id !== syllable.startsAtNeumeId &&
+        !occupied.has(n.id),
     )
     .map((n) => n.id);
 }
@@ -430,6 +448,7 @@ export function reduceEditorSession(
             syllableId: syllable.id,
             candidateId: syllable.startsAtNeumeId,
             previousLyrics,
+            previousSelection: state.selection,
           },
           selection: selectSyllable(syllable.id),
           activeTool: selectTool(),
@@ -449,8 +468,12 @@ export function reduceEditorSession(
         {
           ...state,
           lyricMove: null,
-          lyrics: move.previousLyrics,
-          focusRequest: { kind: 'lyric', syllableId: move.syllableId },
+          lyrics: reconcileLyricEntry(document, move.previousLyrics),
+          selection: reconcileSelection(document, move.previousSelection),
+          focusRequest: getSelectFocusRequest({
+            ...state,
+            selection: reconcileSelection(document, move.previousSelection),
+          }),
         },
         'Move canceled. Anchor unchanged.',
       );

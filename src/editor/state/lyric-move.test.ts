@@ -190,4 +190,89 @@ describe('temporary lyric anchor correction', () => {
     expect(lyric(moving, { type: 'delete', syllableId: 's0' })).toBe(moving);
     expect(history(moving, 'undo')).toBe(moving);
   });
+  it.each(['commit', 'cancel'] as const)(
+    'keeps selection actions distinct from the resolved Lyrics target after %s',
+    (type) => {
+      let state = lyric(createEditorSession(fixture()), {
+        type: 'select',
+        syllableId: 's1',
+      });
+      state = reduceEditorSession(state, {
+        type: 'start-lyrics-at-focus',
+        target: { kind: 'syllable', syllableId: 's0' },
+        newId: 'new',
+      });
+      expect(state.selection).toEqual({ kind: 'syllable', syllableId: 's1' });
+      expect(state.lyrics).toMatchObject({
+        kind: 'draft',
+        original: { id: 's0' },
+      });
+      const precedingSelection = state.selection;
+      const moving = start(state);
+      const done = move(
+        moving,
+        type === 'commit' ? { type, neumeId: 'n3' } : { type },
+      );
+      expect(done.lyrics).toEqual({ kind: 'selected', syllableId: 's0' });
+      expect(done.selection).toEqual(precedingSelection);
+      expect(done.history.past).toHaveLength(type === 'commit' ? 1 : 0);
+      const deleted = lyric(done, { type: 'delete', syllableId: 's1' });
+      expect(deleted.history.present.syllables.map((s) => s.id)).toEqual([
+        's0',
+        's2',
+      ]);
+      expect(deleted.history.present.syllables[0].text).toBe('Ky');
+      expect(deleted.history.present.neumes).toBe(state.history.present.neumes);
+      // Focus-based deletion still uses its explicit focused ID, independently.
+      expect(
+        lyric(done, {
+          type: 'delete',
+          syllableId: 's2',
+        }).history.present.syllables.map((s) => s.id),
+      ).toEqual(['s0', 's1']);
+      expect(
+        lyric(done, { type: 'edit', syllableId: 's1' }).lyrics,
+      ).toMatchObject({ kind: 'draft', original: { id: 's1' } });
+    },
+  );
+  it.each([
+    { kind: 'none' } as const,
+    { kind: 'note', noteId: 'note6' } as const,
+    { kind: 'neume', neumeId: 'n6' } as const,
+    { kind: 'syllable', syllableId: 's2' } as const,
+  ])('restores preceding semantic selection $kind on cancel', (selection) => {
+    let state = lyric(createEditorSession(fixture()), {
+      type: 'edit',
+      syllableId: 's0',
+    });
+    state = reduceEditorSession(state, { type: 'select', selection });
+    const canceled = move(start(state, 's0'), { type: 'cancel' });
+    expect(canceled.selection).toBe(selection);
+    expect(canceled.lyrics).toEqual({ kind: 'selected', syllableId: 's0' });
+    expect(canceled.history).toBe(state.history);
+    expect(
+      move(start(state, 's0'), { type: 'commit', neumeId: 'n0' }).selection,
+    ).toEqual({ kind: 'syllable', syllableId: 's0' });
+  });
+  it.each([[], [0], [4], [8], [0, 1], [1, 2, 3], [0, 4, 8], [1, 4, 7]])(
+    'derived targets agree with authoritative command for anchors %j',
+    (...anchors) => {
+      const doc = fixture();
+      doc.syllables = anchors.map((n, i) => ({
+        id: `s${i}`,
+        text: 'test',
+        startsAtNeumeId: `n${n}`,
+        boundaryBefore: i === 0 ? 'word' : 'continuation',
+      }));
+      for (const id of [...doc.syllables.map((s) => s.id), 'missing']) {
+        const before = doc.syllables;
+        expect(lyricMoveTargets(doc, id)).toEqual(
+          doc.neumes
+            .filter((n) => reassignLyricSyllable(doc, id, n.id) !== doc)
+            .map((n) => n.id),
+        );
+        expect(doc.syllables).toBe(before);
+      }
+    },
+  );
 });

@@ -34,3 +34,32 @@ that moved-lyric focus is visible after commit. Screen-reader review should chec
 activation/rejection announcements and destination labels.
 
 Stage 4 hyphen generation and its broader engraving verification are deferred.
+
+## PR #42 review regressions
+
+The updated Stage 3 driver uses actual DevTools pointer input for buttons as well
+as notation. It sends the native Enter character payload when activating HTML
+controls, and resets scroll between independent fixtures. It additionally checks:
+
+- ri selected, Ky targeted through L, and e independently focused before moving ri:
+  commit and cancel preserve the separate Lyrics target, selected Edit/Delete act
+  on ri, and focused Delete still acts on e.
+- Cancellation from an existing edit restores the preceding neume selection and
+  note focus; pure tests also cover no selection, note and another lyric selection.
+- Enter opens Keyboard help while a legal destination is previewed, leaving the
+  anchor, preview and history unchanged.
+- Occupied-anchor Lyrics activation focuses Edit syllable, ahead of Move.
+- Native Tab/Enter can activate Move and Previous destination.
+- Real pointer clicks on all four highlighted padding edges commit exactly once;
+  all seven neume kinds have matching cue/target bounds and disjoint neighboring
+  targets. Music and one-step undo remain unchanged.
+
+`lyric-move.test.ts` compares derived targets with actual command acceptance for
+first/last/middle syllables, occupied/current anchors, adjacent anchors and missing
+IDs. Discovery uses linear passes, with no trial document edits or cache.
+Foreground Firefox and spoken screen-reader checks remain outstanding under the
+limitations above; no such checks are claimed by the Chromium scripts.
+
+Moving focus off an engraved lyric retains the caption's hidden layout space.
+The real button clicks exercise the resulting stable pointer-down/up targets;
+visible keyboard-target feedback still clears as soon as engraved focus leaves.

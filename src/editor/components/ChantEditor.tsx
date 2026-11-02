@@ -263,14 +263,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         )
           return;
         const key = event.key;
-        const button =
+        const scoreFocused =
           event.target instanceof Element &&
-          Boolean(event.target.closest('button'));
+          Boolean(event.target.closest('.score'));
         if (
           key === 'Escape' ||
           key === 'ArrowLeft' ||
           key === 'ArrowRight' ||
-          (key === 'Enter' && !button)
+          (key === 'Enter' && scoreFocused)
         ) {
           event.preventDefault();
           event.stopPropagation();

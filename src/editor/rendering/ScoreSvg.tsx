@@ -285,6 +285,14 @@ export function ScoreSvg({
             );
             const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
             const selectionGap = 5;
+            // Music has a 33-unit inter-neume ink gap; seven units of padding
+            // on each side leaves disjoint destination targets within a system.
+            const moveBounds = {
+              x: neume.bounds.x - 7,
+              y: neume.bounds.y - 7,
+              width: neume.bounds.width + 14,
+              height: neume.bounds.height + 14,
+            };
 
             return (
               <g
@@ -331,10 +339,7 @@ export function ScoreSvg({
                   <g pointerEvents="none" aria-hidden="true">
                     <rect
                       className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
-                      x={neume.bounds.x - 7}
-                      y={neume.bounds.y - 7}
-                      width={neume.bounds.width + 14}
-                      height={neume.bounds.height + 14}
+                      {...moveBounds}
                       rx="3"
                     />
                     <text
@@ -374,7 +379,9 @@ export function ScoreSvg({
                       data-note-id={note.noteId}
                       role="button"
                       tabIndex={placementActive ? -1 : 0}
-                      pointerEvents={placementActive ? 'none' : 'all'}
+                      pointerEvents={
+                        placementActive || lyricMove ? 'none' : 'all'
+                      }
                       aria-label={
                         lyricMove
                           ? `${accessibleLabel}. Neume ${system.startNeumeIndex + system.neumes.indexOf(neume) + 1}. ${lyricMove.anchorId === neume.neumeId ? 'Current anchor' : lyricMove.legalIds.includes(neume.neumeId) ? 'Legal destination' : 'Unavailable: occupied or crosses another anchor'}.${lyricMove.candidateId === neume.neumeId ? ' Previewed destination.' : ''}`
@@ -401,7 +408,7 @@ export function ScoreSvg({
                       <g
                         aria-hidden="true"
                         pointerEvents={
-                          placementActive
+                          placementActive || lyricMove
                             ? 'none'
                             : neume.kind === 'climacus' ||
                                 neume.kind === 'porrectus'
@@ -431,6 +438,24 @@ export function ScoreSvg({
                     </g>
                   );
                 })}
+                {lyricMove ? (
+                  <rect
+                    className="score__move-hit-target"
+                    {...moveBounds}
+                    rx="3"
+                    fill="transparent"
+                    stroke="transparent"
+                    strokeWidth={
+                      lyricMove.candidateId === neume.neumeId ? 3 : 2
+                    }
+                    pointerEvents="all"
+                    aria-hidden="true"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onMoveDestination(neume.neumeId);
+                    }}
+                  />
+                ) : null}
               </g>
             );
           })}
