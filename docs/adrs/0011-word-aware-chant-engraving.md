@@ -129,6 +129,7 @@ under five musical arrangements. This decision does not implicitly authorize
 Stage 4D or change the semantic representation of syllables.
 
 Two improvements are deliberately **deferred, not approved changes**:
+
 1. A general editorial continuation/hyphen preference, or improved
    proportion-based punctuation, if future review warrants distinctions such
    as GregoBase `audi-ti-óne` versus our `auditi-óne`.
