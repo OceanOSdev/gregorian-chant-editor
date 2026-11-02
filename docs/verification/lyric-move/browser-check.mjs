@@ -61,7 +61,7 @@ const mount = async (
   ],
 ) => {
   await ev(
-    `mountChantFixture(${JSON.stringify({ title: 'Stage 3', lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
+    `mountChantFixture(${JSON.stringify({ title: 'Stage 3', divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
   );
   await pause();
   // Each fixture starts at the top rather than inheriting the previous case's
@@ -458,7 +458,7 @@ const { neumes: mixed } = await ev(
 );
 for (let target = 0; target < mixed.length; target++) {
   await ev(
-    `mountChantFixture(${JSON.stringify({ title: 'Mixed targets', clef: { type: 'c', staffLine: 3 }, neumes: mixed, syllables: [{ id: 'source', text: 'Al', startsAtNeumeId: target === 0 ? 'mix1' : 'mix0', boundaryBefore: 'word' }] })})`,
+    `mountChantFixture(${JSON.stringify({ title: 'Mixed targets', divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, neumes: mixed, syllables: [{ id: 'source', text: 'Al', startsAtNeumeId: target === 0 ? 'mix1' : 'mix0', boundaryBefore: 'word' }] })})`,
   );
   await pause();
   await lyric('source');

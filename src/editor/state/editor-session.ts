@@ -1,3 +1,13 @@
+import {
+  insertDivision,
+  updateDivisionKind,
+  deleteDivision,
+} from '../commands/edit-division';
+import { resolveScoreSlot } from '../interaction/resolve-score-slot';
+import type {
+  DivisionKind,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
 import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
 import {
   transitionLyrics,
@@ -13,6 +23,7 @@ import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   insertEditorNeume,
   resolveEditorToolbarInsertion,
+  resolveDivisionSideBoundary,
   type InsertionIds,
 } from '../interaction/insert-editor-neume';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
@@ -26,7 +37,7 @@ import {
   type DocumentEdit,
   type DocumentHistory,
 } from './document-history';
-import { selectTool, type EditorTool } from './editor-tool';
+import { isPlacementTool, selectTool, type EditorTool } from './editor-tool';
 import {
   clearSelection,
   reconcileSelection,
@@ -37,6 +48,7 @@ import {
 } from './selection';
 
 export type EditorFocusRequest =
+  | { kind: 'division'; divisionId: string }
   | { kind: 'lyrics' }
   | { kind: 'lyric'; syllableId: string }
   | { kind: 'note'; noteId: string }
@@ -55,6 +67,7 @@ export interface EditorSession {
   pendingHistory: {
     direction: 'undo' | 'redo';
     focusedNoteId: string | null;
+    focusedDivisionId?: string | null;
   } | null;
   selection: EditorSelection;
   activeTool: EditorTool;
@@ -100,6 +113,15 @@ export function lyricMoveTargets(
 }
 
 export type EditorAction =
+  | {
+      type: 'place-division';
+      point: { x: number; y: number };
+      kind: DivisionKind;
+      id: string;
+      measureLyrics?: MeasureLyricText;
+    }
+  | { type: 'change-division'; id: string; kind: DivisionKind }
+  | { type: 'delete-division'; id: string }
   | { type: 'engraving-edit'; edit: DocumentEdit }
   | { type: 'lyric-move'; action: LyricMoveAction }
   | {
@@ -124,7 +146,13 @@ export type EditorAction =
       point: { x: number; y: number };
       ids: InsertionIds;
     }
-  | { type: 'insert'; ids: InsertionIds; lyricCommitId?: string }
+  | {
+      type: 'insert';
+      ids: InsertionIds;
+      lyricCommitId?: string;
+      boundary?: ScoreInsertionBoundary;
+      divisionSide?: { divisionId: string; side: 'before' | 'after' };
+    }
   | { type: 'select-tool' }
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | {
@@ -137,6 +165,7 @@ export type EditorAction =
       type: 'history';
       direction: 'undo' | 'redo';
       focusedNoteId: string | null;
+      focusedDivisionId?: string | null;
     }
   | { type: 'focus-handled'; request: EditorFocusRequest };
 
@@ -155,7 +184,7 @@ export function createEditorSession(document: ChantDocument): EditorSession {
   };
 }
 
-export function neumeName(kind: GraphicalNeumeKind): string {
+export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
   return kind[0].toUpperCase() + kind.slice(1);
 }
 
@@ -187,6 +216,11 @@ export function getSelectFocusRequest(
     document.syllables.some((s) => s.id === selection.syllableId)
   )
     return { kind: 'lyric', syllableId: selection.syllableId };
+  if (
+    selection.kind === 'division' &&
+    document.divisions.some((d) => d.id === selection.divisionId)
+  )
+    return { kind: 'division', divisionId: selection.divisionId };
   const note =
     state.selection.kind === 'note'
       ? findNote(document, state.selection.noteId)
@@ -206,7 +240,8 @@ function reduceSessionAction(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
-  const placing = getGraphicalNeumeKind(state.activeTool);
+  const placing = isPlacementTool(state.activeTool);
+  const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
     case 'lyric-move':
     case 'start-lyrics-at-focus':
@@ -215,16 +250,23 @@ function reduceSessionAction(
       return state;
     case 'arm': {
       const kind = getGraphicalNeumeKind(action.tool);
-      if (!kind || action.tool.kind === state.activeTool.kind) return state;
+      if (
+        action.tool.kind === 'select' ||
+        (action.tool.kind === state.activeTool.kind &&
+          (action.tool.kind !== 'place-division' ||
+            (state.activeTool.kind === 'place-division' &&
+              action.tool.divisionKind === state.activeTool.divisionKind)))
+      )
+        return state;
       return announce(
         {
           ...state,
           activeTool: action.tool,
-          rememberedKind: kind,
+          rememberedKind: kind ?? state.rememberedKind,
           hoveredPoint: null,
           focusRequest: null,
         },
-        `Placing ${neumeName(kind)}.`,
+        `Placing ${kind ? neumeName(kind) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : ''}.`,
       );
     }
     case 'focus-palette':
@@ -258,9 +300,19 @@ function reduceSessionAction(
     }
     case 'insert':
     case 'place': {
-      if (action.type === 'place' && placing !== action.kind) return state;
+      if (action.type === 'place' && neumePlacing !== action.kind) return state;
       const kind = action.type === 'place' ? action.kind : state.rememberedKind;
       const document = state.history.present;
+      const sideBoundary =
+        action.type === 'insert' && action.divisionSide
+          ? resolveDivisionSideBoundary(
+              document,
+              action.divisionSide.divisionId,
+              action.divisionSide.side,
+            )
+          : null;
+      if (action.type === 'insert' && action.divisionSide && !sideBoundary)
+        return state;
       // Latest semantic state plus the displayed font snapshot serializes rapid clicks.
       const insertion =
         action.type === 'place'
@@ -269,7 +321,21 @@ function reduceSessionAction(
               kind,
               action.point,
             )
-          : resolveEditorToolbarInsertion(document, state.selection, kind);
+          : resolveEditorToolbarInsertion(
+              document,
+              state.selection,
+              kind,
+              sideBoundary ?? action.boundary,
+            );
+      if (
+        !insertion &&
+        action.type === 'insert' &&
+        state.selection.kind === 'division'
+      )
+        return announce(
+          state,
+          'Choose Insert before division or Insert after division.',
+        );
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
       const nextDocument = insertEditorNeume(document, insertion, action.ids);
@@ -295,6 +361,62 @@ function reduceSessionAction(
         },
         `${neumeName(kind)} added.`,
       );
+    }
+    case 'place-division': {
+      if (
+        state.activeTool.kind !== 'place-division' ||
+        state.activeTool.divisionKind !== action.kind
+      )
+        return state;
+      const document = state.history.present;
+      const resolved = resolveScoreSlot(
+        layoutChant(document, action.measureLyrics),
+        action.point,
+      );
+      if (!resolved) return state;
+      const boundary = resolved.slot.boundary;
+      const next = insertDivision(
+        document,
+        {
+          id: action.id,
+          kind: action.kind,
+          beforeNeumeId: boundary.beforeNeumeId,
+        },
+        boundary,
+      );
+      if (next === document) return state;
+      return announce(
+        {
+          ...state,
+          history: applyDocumentEdit(state.history, () => next),
+          selection: { kind: 'division', divisionId: action.id },
+          hoveredPoint: null,
+          focusRequest: {
+            kind: 'division',
+            divisionId: action.id,
+          },
+        },
+        `${neumeName(action.kind)} division added.`,
+      );
+    }
+    case 'change-division':
+    case 'delete-division': {
+      if (placing) return state;
+      const history = applyDocumentEdit(state.history, (doc) =>
+        action.type === 'change-division'
+          ? updateDivisionKind(doc, action.id, action.kind)
+          : deleteDivision(doc, action.id),
+      );
+      if (history === state.history) return state;
+      return reconcile({
+        ...state,
+        history,
+        hoveredPoint: null,
+        focusRequest:
+          action.type === 'change-division'
+            ? { kind: 'division', divisionId: action.id }
+            : { kind: 'palette', tool: 'select' },
+      });
     }
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;
@@ -334,6 +456,18 @@ function reduceSessionAction(
             ? { kind: 'note', noteId: action.focusedNoteId }
             : null,
       });
+      if (
+        !placing &&
+        action.focusedDivisionId &&
+        history.present.divisions.some((d) => d.id === action.focusedDivisionId)
+      )
+        return {
+          ...next,
+          focusRequest: {
+            kind: 'division',
+            divisionId: action.focusedDivisionId,
+          },
+        };
       if (!placing) return next;
       return announce(next, action.direction === 'undo' ? 'Undo.' : 'Redo.');
     }
@@ -599,6 +733,7 @@ export function reduceEditorSession(
       pendingHistory: {
         direction: action.direction,
         focusedNoteId: action.focusedNoteId,
+        focusedDivisionId: action.focusedDivisionId,
       },
       focusRequest: null,
     };

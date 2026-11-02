@@ -89,3 +89,7 @@ existing anchor or wrapping decisions.
 records the owner-approved Stage 5A semantic boundary model. Graphical division
 engraving and interaction, including spacing, wrapping and lyric hyphenation
 integration, remain deferred to a separate Stage 5B handoff.
+
+[Accepted ADR 0013: Divisions interrupt contextual word compaction](0013-divisions-interrupt-word-compaction.md)
+records the owner-approved division exception to contextual compaction. ADR 0011
+remains Accepted, narrowly qualified by ADR 0013.

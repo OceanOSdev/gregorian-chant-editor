@@ -7,7 +7,11 @@ import { insertPunctum } from '../commands/insert-punctum';
 import { insertScandicus } from '../commands/insert-scandicus';
 import { insertTorculus } from '../commands/insert-torculus';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
-import { staffPosition, type ChantDocument } from '../domain/chant-document';
+import {
+  staffPosition,
+  type ScoreInsertionBoundary,
+  type ChantDocument,
+} from '../domain/chant-document';
 import type { GraphicalNeumeKind } from '../layout/layout-chant';
 import type { ResolvedGraphicalNeumePlacement } from './resolve-graphical-neume-placement';
 
@@ -19,7 +23,7 @@ export interface InsertionIds {
 type Insertion = {
   [K in GraphicalNeumeKind]: Pick<
     Extract<ResolvedGraphicalNeumePlacement, { kind: K }>,
-    'kind' | 'staffPositions' | 'insertionIndex'
+    'kind' | 'staffPositions' | 'insertionIndex' | 'boundary'
   >;
 }[GraphicalNeumeKind];
 
@@ -34,7 +38,7 @@ export function insertEditorNeume(
     id: ids.noteIds[index],
     staffPosition: staffPosition(position),
   });
-  const at = insertion.insertionIndex;
+  const at = insertion.boundary;
   switch (insertion.kind) {
     case 'punctum':
       return insertPunctum(
@@ -136,6 +140,7 @@ export function resolveEditorToolbarInsertion(
   document: ChantDocument,
   selection: EditorSelection,
   kind: GraphicalNeumeKind,
+  explicitBoundary?: ScoreInsertionBoundary,
 ): Insertion | null {
   const fallback =
     kind === 'clivis' || kind === 'climacus' || kind === 'porrectus' ? 3 : 2;
@@ -147,44 +152,86 @@ export function resolveEditorToolbarInsertion(
   if (!boundary) return null;
   const p = boundary.referenceStaffPosition;
   const insertionIndex = boundary.insertionIndex;
+  const beforeNeumeId = document.neumes[insertionIndex]?.id ?? null;
+  // Contextual I inserts immediately after its neume, before punctuation there.
+  // A selected division requires the visible before/after control.
+  if (selection.kind === 'division' && !explicitBoundary) return null;
+  const scoreBoundary = explicitBoundary ?? {
+    beforeNeumeId,
+    beforeDivisionId:
+      document.divisions.find((d) => d.beforeNeumeId === beforeNeumeId)?.id ??
+      null,
+  };
   switch (kind) {
     case 'punctum':
-      return { kind, insertionIndex, staffPositions: [p] };
+      return {
+        kind,
+        boundary: scoreBoundary,
+        insertionIndex,
+        staffPositions: [p],
+      };
     case 'podatus':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p + 1)],
       };
     case 'clivis':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p - 1)],
       };
     case 'scandicus':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p + 1), staffPosition(p + 2)],
       };
     case 'torculus':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p + 2), staffPosition(p + 1)],
       };
     case 'climacus':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p - 1), staffPosition(p - 2)],
       };
     case 'porrectus':
       return {
         kind,
+        boundary: scoreBoundary,
         insertionIndex,
         staffPositions: [p, staffPosition(p - 2), staffPosition(p - 1)],
       };
   }
+}
+
+/** Resolve a division-relative control intent against the current document. */
+export function resolveDivisionSideBoundary(
+  document: ChantDocument,
+  id: string,
+  side: 'before' | 'after',
+): ScoreInsertionBoundary | null {
+  const division = document.divisions.find((d) => d.id === id);
+  if (!division) return null;
+  const siblings = document.divisions.filter(
+    (d) => d.beforeNeumeId === division.beforeNeumeId,
+  );
+  const next =
+    side === 'before'
+      ? division
+      : siblings[siblings.findIndex((d) => d.id === id) + 1];
+  return {
+    beforeNeumeId: division.beforeNeumeId,
+    beforeDivisionId: next?.id ?? null,
+  };
 }

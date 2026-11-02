@@ -370,3 +370,36 @@ kbd {
   outline: 2px solid #2879b8;
   outline-offset: 2px;
 }
+
+.division-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.division-controls > div {
+  flex-basis: 100%;
+}
+
+.score__division-selection {
+  fill: transparent;
+  stroke: transparent;
+}
+
+.score__division--selected .score__division-selection {
+  fill: #dbeafe;
+  stroke: #2563eb;
+  stroke-width: 1.5;
+}
+
+.score__division:focus {
+  outline: none;
+}
+
+.score__division:focus .score__division-target {
+  stroke: #a855f7;
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}

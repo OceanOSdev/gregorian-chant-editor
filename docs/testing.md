@@ -472,3 +472,40 @@ include the required empty division collection.
 
 This stage adds no graphical behavior. Browser acceptance of divisions belongs
 to Stage 5B/5C; pure tests do not claim division rendering or accessible UI.
+
+## Stage 5B graphical divisions
+
+`division-layout.test.ts` covers all staff-relative glyphs and padded targets,
+explicit pointer/command slots on both sides, adjacent/leading/trailing and empty
+music, bounded long-run wrapping, finalis phrase endings, isolated oversized
+syllables, unchanged lyric identities, blocked contextual compaction, measured
+conditional/outgoing marks, contextual insertion, persistent tools, atomic edits,
+history reconciliation and dirty draft guards. Existing division-free suites
+remain regression gates.
+
+Run `node docs/verification/divisions/browser-check.mjs` with Vite on port 5173
+and Chromium debugging port 9230. Set
+`CHANT_FIREFOX_URL=ws://127.0.0.1:9234/session` for Firefox BiDi. The same real
+StrictMode editor fixture checks native pointer caret/commit sides, explicit
+insertion buttons, four persistent tools, focus/selection/kind/deletion/history,
+native Tab, adjacent/leading/trailing/empty music, zoom, 320px containment and
+exceptional local scrolling. Kind choice dispatches a DOM change on the native
+select; this is not an operating-system dropdown interaction check. Run drivers
+sequentially on each browser's shared tab. Generated screenshots stay in temporary
+storage; selected review evidence is retained explicitly in the
+[Stage 5B record](verification/divisions/README.md).
+
+The current lyric-entry and lyric-move drivers now supply required Stage 5A
+collections; the vowel-alignment driver scopes its fieldset queries to lyric
+alignment controls rather than the new Divisions fieldset. Continue running
+these and measured-spacing/word-composition regressions. Foreground keyboard,
+OS/browser zoom, IME, spoken output and detailed owner graphical acceptance
+remain distinct Stage 5C responsibilities.
+
+PR #48 review regressions additionally cover measured lyric/bar clearance on
+both sides for long word/continuation syllables, active melismas, normal wrapping
+and isolated oversized source units. The division driver checks rendered SVG
+boxes and native pointer sides after horizontal scrolling to extended visual
+staff ink; logical wrapping remains normal. Caret positions and midpoint pointer
+intervals are tested separately so unequal lyric-driven gaps cannot reverse a
+bar's insertion side.

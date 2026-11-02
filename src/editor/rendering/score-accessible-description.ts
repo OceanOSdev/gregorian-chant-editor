@@ -15,6 +15,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
     0,
   );
 
+  const divisions = layout.systems.flatMap((system) => system.divisions);
   return (
     `A Gregorian chant score with ${countLabel(
       layout.systems.length,
@@ -25,6 +26,6 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.`
+    )}.${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
   );
 }

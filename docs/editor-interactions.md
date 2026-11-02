@@ -544,3 +544,37 @@ insertion and caret/ghost feedback continue using the committed measured layout;
 there is no second word-spacing authority in event handlers. See the
 [layout guide](layout-and-rendering.md#stage-4c-word-composition)
 for geometry, reservation and fallback policy.
+
+## Stage 5B division controls
+
+The Divisions group chooses Minima, Minor, Maior or Finalis and arms persistent
+Place division. Changing its placement kind while armed changes the ghost.
+Hover shows a semantic-slot caret and shared division ink; click inserts one
+atomic edit and leaves placement armed. Escape returns to Select. Division tools
+do not change the remembered neume kind or add an unmodified shortcut. I/T and
+neume palette roving remain available under their existing scope and guards.
+
+In Select, click or Enter/Space selects a division by stable ID. Native Tab moves
+focus independently of selection; the division has a blue selected cue and a
+purple dashed focus cue. Delete/Backspace intentionally removes the focused
+bar even if another entity is selected, with repeat/composition/modifier guards.
+The Divisions group names the most recently focused division (while controls are
+used), otherwise the selected division. It offers kind replacement, deletion,
+and explicit Insert remembered neume before/after division buttons. These name
+real semantic slots, including between adjacent bars and at score edges. I on a
+selected/focused division announces the explicit side choices instead of choosing
+an implicit side. Contextual I after a selected neume inserts immediately after
+that neume, before any following punctuation. No numeric occupied boundary is
+silently rejected or converted to an arbitrary side.
+
+Divisions preserve identity through kind changes and layout reparenting. Surviving
+focus targets are restored on reflow/history; deletion clears a removed selection
+and returns focus to Select. Undo restores semantic content without rewinding
+transient selection. Division edits preserve dirty lyric drafts; arming placement
+uses the established commit-on-mode-change policy and refuses unresolved invalid
+or recovery drafts. Pending history and lyric-move modes keep their existing
+exclusive ownership. Division tools have no implicit lyric delimiter meaning.
+
+All four kinds can occur at any legal musical boundary, including within a
+single syllable's melisma. There is no word-splitting, placement warning or
+linguistic validation attached to a division kind.
