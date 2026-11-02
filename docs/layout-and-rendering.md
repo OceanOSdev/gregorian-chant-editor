@@ -171,6 +171,61 @@ origins. Focus reveal visits local scroll containers before the page. Reparented
 note/lyric controls restore browser focus by ID after measurement reflow without
 changing semantic selection or stealing focus from editor controls.
 
+### Stage 4C branch experiment: word composition
+
+This branch implements [Proposed ADR 0011](adrs/0011-word-aware-chant-engraving.md).
+ADR 0010 remains Accepted; the contextual exception requires owner visual review
+before merge. The Stage 4B rules above remain the conservative baseline.
+
+With a complete valid font snapshot (including the hyphen), consecutive neumes
+starting consecutive syllables of the same semantic word may use a **2-unit ink
+gap**. Actual occupied lyric edges then increase the incoming position as needed.
+There is a 0.05-em (1-unit) same-word clearance for responsive SVG hinting, in
+addition to the measurer's guarded ink bounds. Different-word boundaries retain
+the ordinary music minimum and quarter-em lyric gap. Unanchored melismas,
+lyricless music, neume contours, pitches and musical/vowel anchors are unchanged.
+
+Compact neighbors receive derived horizontal `hitClip` ownership intervals split
+at their ink-gap midpoint. SVG clips only the padded note targets and lyric-move
+destination targets to these intervals. Every ink edge remains inside its owner's
+interval; existing internal rectangular/polygonal note partitions are preserved.
+At the exact shared split line, SVG paint order gives a hit to the following
+target when both contain that point. Selection and focus are independent
+controls as before; decoration does not own pointer events. No target is transferred to the neighboring neume.
+
+A same-word occupied-edge gap of at most **0.4 em** (8 units at the current font)
+is treated as joined. Larger gaps receive one measured hyphen, centered between
+the lyrics with at least 0.1 em on each side. This threshold avoids adding a
+hyphen to the small residual gap forced by adjacent short syllables (notably
+`ri / e`), while marking substantial musical separation. Font substitution may
+change the join decision. A wide neume may prevent joining; text never moves
+independently of its musical anchor. There is no kerning across separate lyric
+controls and no promise that every word will join.
+
+Placement is a bounded forward walk: build at the contextual musical minimum,
+decide separation once from measured edges, then add only missing clearance for
+a required mark. There is no iterative reclassification or renderer translation.
+While a syllable on the current system has a semantic next syllable continuing
+its word, each candidate reserves the measured hyphen width plus two 0.1-em
+margins after the maximum occupied music/lyric edge. The reservation is replaced
+when the next syllable is accepted. This conservative reservation can wrap a
+neume earlier than a lookahead optimizer would. Each candidate is built at most
+twice (current system, then a fresh system); oversized items still advance once.
+
+After system assignment, consecutive same-word syllables on different systems
+produce one outgoing mark on the **source lyric's system**, after its music and
+lyric right edges. A melisma can cross intermediate systems without repeated
+marks; only the genuine later syllable creates continuation. No incoming mark or
+true-word-end mark is generated. The original unbreakable oversized policy also
+exposes any outgoing mark through canvas expansion; normal wrapping stays at
+656 on the 720-unit logical canvas. Hyphens have measured occupied extents,
+`text-anchor="middle"`, and their own pointer-inert, aria-hidden layer. They
+never enter lyric text, accessible labels, document identity or history.
+
+Missing/invalid/partial syllable or punctuation measurements disable composition,
+reservations and marks together, retaining music-only placement until remeasurement.
+Committed rendering and interaction still consume the same measured layout.
+
 ## Committed layout and previews
 
 Committed layout copies semantic neume and note IDs into `NeumeLayout` and

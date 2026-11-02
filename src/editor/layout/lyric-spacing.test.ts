@@ -126,7 +126,9 @@ describe('combined music and lyric placement', () => {
       },
       measure,
     ).systems[0];
-    expect(continuation.lyrics[1].left).toBe(continuation.lyrics[0].right);
+    expect(continuation.lyrics[1].left).toBe(
+      Number(continuation.lyrics[0].right) + 1,
+    );
     expect(
       words.neumes[1].bounds.x -
         words.neumes[0].bounds.x -
@@ -244,23 +246,23 @@ describe('combined music and lyric placement', () => {
     };
     const plain = layoutChant(d, measure).systems[0];
     const actual = layoutChant(d, withInk).systems[0];
-    expect(actual.lyrics[1].left).toBe(actual.lyrics[0].right);
-    expect(actual.lyrics[2].left).toBe(actual.lyrics[1].right);
+    expect(actual.lyrics[1].left).toBe(Number(actual.lyrics[0].right) + 1);
+    expect(actual.lyrics[2].left).toBe(Number(actual.lyrics[1].right) + 1);
     expect(actual.neumes[2].bounds.x).toBeGreaterThan(plain.neumes[2].bounds.x);
     expect(actual.lyrics[1].alignment.offset).toBe(
       plain.lyrics[1].alignment.offset,
     );
     expect(actual.lyrics[1].anchorX).toBe(actual.neumes[1].lyricAnchorX);
   });
-  it('wraps when advance fits exactly but the same-word glyph overhang does not', () => {
-    const d = fixture(['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla']);
+  it('wraps when advance fits exactly but the final same-word glyph overhang does not', () => {
+    const d = fixture(['Al', 'lealsdkfjaasdfhasdf']);
     d.syllables = d.syllables.map((s, i) => ({
       ...s,
       boundaryBefore: i ? 'continuation' : 'word',
     }));
     const advances: MeasureLyricText = (text) => {
       const count = lyricGraphemes(text).length;
-      const width = text.length > 5 ? 416 : count * 10;
+      const width = text.length > 5 ? 415 : count * 10;
       return {
         width,
         boundaries: Array.from(
@@ -282,9 +284,7 @@ describe('combined music and lyric placement', () => {
     expect(actual.systems[0].neumes).toHaveLength(1);
     expect(actual.systems[1].startNeumeIndex).toBe(1);
     expect(actual.systems[1].lyrics[0].right).toBeLessThanOrEqual(staffEndX);
-    expect(actual.systems[1].lyrics[1].left).toBeGreaterThanOrEqual(
-      Number(actual.systems[1].lyrics[0].right),
-    );
+    expect(actual.systems[1].hyphens).toHaveLength(0);
   });
   it('uses isolated scrollable overflow when painted bounds alone make a unit oversized', () => {
     const d = fixture(['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla']);

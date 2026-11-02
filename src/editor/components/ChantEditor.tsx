@@ -98,9 +98,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
-  const measureLyrics = useLyricMeasurement(
-    history.present.syllables.map((s) => s.text),
-  );
+  const measureLyrics = useLyricMeasurement([
+    '-',
+    ...history.present.syllables.map((s) => s.text),
+  ]);
   const layout = layoutChant(history.present, measureLyrics);
   const selectedSyllable =
     selection.kind === 'syllable'

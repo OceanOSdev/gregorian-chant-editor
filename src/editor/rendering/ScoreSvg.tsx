@@ -1,4 +1,4 @@
-import { lyricFontFamily } from '../layout/lyric-text-metrics';
+import { lyricFontFamily, lyricFontSize } from '../layout/lyric-text-metrics';
 import { getSyllableKeyAction } from '../interaction/lyric-entry-keyboard';
 import {
   useLayoutEffect,
@@ -334,8 +334,8 @@ export function ScoreSvg({
             );
             const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
             const selectionGap = 5;
-            // Music has a 33-unit inter-neume ink gap; seven units of padding
-            // on each side leaves disjoint destination targets within a system.
+            // Ordinary padding is clipped to layout's ownership interval at
+            // compact boundaries, including lyric reassignment destinations.
             const moveBounds = {
               x: neume.bounds.x - 7,
               y: neume.bounds.y - 7,
@@ -349,6 +349,18 @@ export function ScoreSvg({
                 data-neume-id={neume.neumeId}
                 data-neume-kind={neume.kind}
               >
+                {neume.hitClip ? (
+                  <defs>
+                    <clipPath id={`hit-clip-${neume.neumeId}`}>
+                      <rect
+                        x={neume.hitClip.left}
+                        y={neume.bounds.y - 20}
+                        width={neume.hitClip.right - neume.hitClip.left}
+                        height={neume.bounds.height + 40}
+                      />
+                    </clipPath>
+                  </defs>
+                ) : null}
                 {selectedDescription ? (
                   <desc id={selectedDescriptionId}>{selectedDescription}</desc>
                 ) : null}
@@ -456,6 +468,11 @@ export function ScoreSvg({
                     >
                       <g
                         aria-hidden="true"
+                        clipPath={
+                          neume.hitClip
+                            ? `url(#hit-clip-${neume.neumeId})`
+                            : undefined
+                        }
                         pointerEvents={
                           placementActive || lyricMove
                             ? 'none'
@@ -498,6 +515,11 @@ export function ScoreSvg({
                       lyricMove.candidateId === neume.neumeId ? 3 : 2
                     }
                     pointerEvents="all"
+                    clipPath={
+                      neume.hitClip
+                        ? `url(#hit-clip-${neume.neumeId})`
+                        : undefined
+                    }
                     aria-hidden="true"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -509,6 +531,21 @@ export function ScoreSvg({
             );
           })}
 
+          <g aria-hidden="true" pointerEvents="none" className="score__hyphens">
+            {system.hyphens?.map((hyphen, index) => (
+              <text
+                key={index}
+                x={hyphen.x}
+                y={hyphen.y}
+                fontFamily={lyricFontFamily}
+                fontSize={lyricFontSize}
+                textAnchor="middle"
+                data-outgoing={hyphen.outgoing}
+              >
+                -
+              </text>
+            ))}
+          </g>
           {system.lyrics.map((lyric) => (
             <g key={lyric.syllableId} className="score__lyric-control">
               <g

@@ -33,7 +33,7 @@ marks when a word crosses a system break.
 ## Proposed decision
 
 - **Conditional compaction:** For consecutive neumes starting consecutive
-  syllables of the *same semantic word* (no intervening unanchored
+  syllables of the _same semantic word_ (no intervening unanchored
   melismatic neumes), allow a contextual minimum horizontal separation
   smaller than the ordinary 33-unit ink gap. Derive that minimum from
   valid musical ink bounds, vowel-anchored lyric text extents, and a
@@ -72,8 +72,8 @@ marks when a word crosses a system break.
   behavior. Visual selection cues remain behind, not between,
   glyphs and must not block an adjacent syllable.
 
-The owner has authorized *implementation and visual exploration of this
-proposal on a separate Stage 4C branch*, **not its acceptance**. A change
+The owner has authorized _implementation and visual exploration of this
+proposal on a separate Stage 4C branch_, **not its acceptance**. A change
 to the universal gap, loss of hit-target distinction or material
 different layout policy must be escalated before implementation.
 
@@ -121,3 +121,12 @@ system continuations. Only upon explicit acceptance change this ADR
 to Accepted and add reciprocal qualification notes to ADR 0010
 and the owning architecture guides. Keep this proposal's status
 Proposed and ADR 0010 Accepted until then.
+
+## Stage 4C implementation under review
+
+The isolated branch implements this proposal; this is not acceptance. Exact
+spacing, pointer ownership, threshold, bounded reservation and overflow policies
+are recorded in the [owning layout guide](../layout-and-rendering.md#stage-4c-branch-experiment-word-composition).
+The [verification record](../verification/word-composition/README.md) records
+actual checks and visual evidence. Owner review must decide whether the compact
+music and remaining font-dependent gaps are acceptable before merging.
