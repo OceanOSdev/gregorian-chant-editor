@@ -25,10 +25,10 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   Torculus, Climacus, and Porrectus.
 - Graphical entry uses fixed contours for those seven whitelisted kinds.
 - Lyrics support measured vowel/manual alignment and minimum clearances.
-  Conditional hyphens and continuation marks remain deferred; music can leave
-  same-word syllables visibly separated. Exceptionally oversized lyrics require
-  local horizontal scrolling. Stage 4B's architecture is accepted in ADR 0010;
-  PR #44 remains subject to merging.
+  Stage 4C adds contextual same-word composition, conditional hyphens and outgoing
+  continuation marks on its review branch under Proposed ADR 0011. Safe musical
+  geometry can still prevent joining. Exceptionally oversized lyrics require
+  local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
 - There is no persistence layer or persisted document format. Consequently
@@ -43,7 +43,6 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 
 - Expand the modern square-notation neume vocabulary.
 - Improve notehead, connector, clef, ledger-line, and spacing engraving.
-- Add conditional lyric hyphens and system continuation marks.
 - Add explicit manual system breaks.
 - Define versioned local persistence.
 - Add GABC import and export adapters around the internal semantic document.
@@ -65,9 +64,8 @@ resumption and draft/history recovery. Stage 3 provides explicit constrained anc
 correction with pointer and keyboard targeting; generated hyphens remain Stage 4. No persistence migration is required.
 
 Stage 4A provides explicit document language, measured vowel alignment and manual
-grapheme segment overrides. Stage 4B is implemented on its isolated branch for
-review: measured lyric clearance and whole-neume wrapping share one derived
+grapheme segment overrides. Stage 4B is merged: measured lyric clearance and whole-neume wrapping share one derived
 layout, with local scrollable overflow only for unbreakable oversized text.
 ADR 0010 is Accepted and supersedes ADR 0005 following owner review.
-Stage 4C hyphens and Stage 4D broader Firefox/assistive-technology acceptance
-remain outstanding.
+Stage 4C composition is implemented for owner review; ADR 0011 remains Proposed.
+Stage 4D broader Firefox/assistive-technology acceptance remains deferred.

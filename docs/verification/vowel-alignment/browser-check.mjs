@@ -127,6 +127,10 @@ const music = () =>
   ev(
     `Array.from(document.querySelectorAll('[data-note-id]')).map(n=>[n.dataset.noteId,n.innerHTML])`,
   );
+const musicalContours = () =>
+  ev(
+    `Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>{const b=n.querySelector('.score__ink').getBBox(),system=n.closest('[data-system-index]'),line=system.querySelector('line');return [n.dataset.neumeId,n.dataset.neumeKind,b.width,b.height,b.y-Number(line.getAttribute('y1'))]})`,
+  );
 const positions = () =>
   ev(
     `Array.from(document.querySelectorAll('.score__lyric')).map(n=>({text:n.textContent,x:Number(n.getAttribute('x'))}))`,
@@ -143,6 +147,7 @@ assert.equal(
   'la',
 );
 const originalMusic = await music();
+const originalContours = await musicalContours();
 const automatic = await positions();
 const nucleusCenters =
   await ev(`Array.from(document.querySelectorAll('.score__lyric')).map((n,i)=>{
@@ -151,7 +156,14 @@ const nucleusCenters =
   return n.getStartPositionOfChar(start).x+n.getSubStringLength(start,count)/2;
 })`);
 for (const [i, center] of nucleusCenters.entries())
-  assert(Math.abs(center - (230 + 45 * i)) < 0.05);
+  assert(
+    Math.abs(
+      center -
+        (await ev(
+          `(()=>{const b=document.querySelectorAll('[data-neume-id]')[${i}].querySelector('.score__ink').getBBox();return b.x+6})()`,
+        )),
+    ) < 0.05,
+  );
 
 assert.equal(
   await ev(`document.querySelectorAll('[data-system-index]').length > 1`),
@@ -163,11 +175,13 @@ await chooseLanguage('und');
 const centered = await positions();
 assert.notEqual(automatic[0].x, centered[0].x);
 assert.notEqual(automatic[6].x, centered[6].x);
-assert.deepEqual(await music(), originalMusic);
+// Reflow may move complete neumes; their contours and pitches stay fixed.
+assert.deepEqual(await musicalContours(), originalContours);
 await ev('window.scrollTo(0,0)');
 await shot('whole-string-baseline');
 await click('[aria-label="Undo last edit"]');
 assert.deepEqual(await positions(), automatic);
+assert.deepEqual(await music(), originalMusic);
 await click('[aria-label="Redo last undone edit"]');
 assert.deepEqual(await positions(), centered);
 await chooseLanguage('la');
@@ -298,7 +312,8 @@ await key('Tab');
 await focus('[aria-label="Alignment segment start"]');
 await key('End');
 await key('Tab');
-assert.deepEqual(await music(), originalMusic);
+// Reflow may move complete neumes; their contours and pitches stay fixed.
+assert.deepEqual(await musicalContours(), originalContours);
 await ev('window.scrollTo(0,0)');
 await shot('narrow-latin-manual');
 console.log(
