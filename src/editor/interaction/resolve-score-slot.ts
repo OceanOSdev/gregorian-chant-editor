@@ -14,25 +14,22 @@ export function resolveScoreSlot(
   if (
     !Number.isFinite(point.x) ||
     !Number.isFinite(point.y) ||
-    point.x < staffStartX ||
-    point.x > staffEndX
+    point.x < staffStartX
   )
     return null;
   const system = layout.systems.find(
     (s) => point.y >= s.y && point.y <= s.y + s.height,
   );
-  if (!system?.staffLines.length) return null;
+  if (
+    !system?.staffLines.length ||
+    point.x > (system.staffLines[0]?.x2 ?? staffEndX)
+  )
+    return null;
   const bottom = Math.max(...system.staffLines.map((l) => l.y));
   const top = Math.min(...system.staffLines.map((l) => l.y));
   if (point.y < bottom - 7 * staffStep || point.y > bottom + staffStep)
     return null;
-  const slot = system.slots.reduce<ScoreSlotLayout | null>(
-    (nearest, current) =>
-      !nearest || Math.abs(current.x - point.x) < Math.abs(nearest.x - point.x)
-        ? current
-        : nearest,
-    null,
-  );
+  const slot = system.slots.find((slot) => point.x <= slot.hitRight);
   return slot
     ? { slot, systemIndex: system.index, top: top - 12, bottom: bottom + 12 }
     : null;

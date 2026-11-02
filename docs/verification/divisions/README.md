@@ -10,7 +10,7 @@ On 2026-11-02:
 
 - `npm run format:check`: passed, including the repaired committed Stage 5B plan.
 - `npm run lint`: passed without warnings.
-- `npm test`: 48 files, 878 tests passed.
+- `npm test`: 48 files, 881 tests passed (including review regressions).
 - `npm run build`: passed.
 - `git diff --check`: passed.
 
@@ -19,9 +19,9 @@ identities/anchors, four staff-relative glyphs, disjoint padded targets,
 phrase-ending reservation, leading/trailing/division-only/empty music, bounded
 long punctuation runs, oversized-syllable isolation, draft/history safety and
 repeated toolbar intent after reanchoring. It verifies that punctuation blocks
-contextual compaction without forcing hyphens: measured adjoining continuing
-syllables still have no mark, and melismas never invent syllables. Existing
-division-free layout and semantic tests remain regression gates.
+contextual compaction without forcing hyphens: marks still require measured
+continuing syllables, and melismas never invent syllables. Existing division-free
+layout and semantic tests remain regression gates.
 
 ## Browser checks
 
@@ -86,3 +86,32 @@ screen-reader output, publication-quality proportion review and detailed
 cross-browser owner graphical acceptance remain **Not run / Stage 5C**. CSS zoom
 and headless accessibility assertions are not substitutes for those checks.
 No division kind adds linguistic validation, automatic word splitting or warnings.
+
+## PR #48 review: lyric/bar clearance
+
+The review found horizontal overlap on both sides of a division. The measured
+walker now positions/reserves bars after the active lyric's right extent, even
+within a melisma, and constrains incoming word/continuation left extents against
+the preceding bar. Neume and vowel anchors move together during placement;
+semantic lyric data is unchanged. An oversized source's visual staff/canvas
+includes its following bars, while subsequent music still wraps at the normal
+logical width. Slots beside those bars remain usable after local scrolling.
+
+The new pure word/continuation and melisma regression cases fail against the
+previous PR head (8eff9fa) with negative horizontal clearance, and pass with the
+fix. The browser driver measures actual SVG glyph/bar boxes at desktop/320px
+for long preceding/following syllables, distinct words and continuations, and
+checks native before/after insertion beside oversized lyrics. Existing ordinary
+same-word gaps remain unchanged in the measured spacing driver. A previously
+joined test pair had put text under the bar; it now receives a hyphen because its
+corrected measured gap exceeds the existing threshold, without a semantic rule
+forcing punctuation.
+
+Review verification: format, lint, 881 unit tests, build and diff checks passed.
+The expanded division driver passed in Chromium and Firefox at desktop/320px;
+the existing measured lyric-spacing Chromium driver also passed. Foreground and
+spoken-screen-reader limits above remain unchanged.
+
+Selected review captures: [long preceding syllable](review-preceding.png) and
+[long following syllable](review-following.png). Other new desktop/320px captures
+remain in temporary storage.

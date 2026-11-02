@@ -402,7 +402,7 @@ it('resolves repeated toolbar after-division intent from its stable ID after rea
   expect(state.history.past).toHaveLength(2);
 });
 
-it('does not force a hyphen merely because a division intervenes when measured lyric edges adjoin', () => {
+it('uses measured separation after a division for continuing syllables, without changing semantics', () => {
   const d = divided();
   d.syllables = [
     { id: 's0', text: 'a', startsAtNeumeId: 'n0', boundaryBefore: 'word' },
@@ -413,12 +413,120 @@ it('does not force a hyphen merely because a division intervenes when measured l
       boundaryBefore: 'continuation',
     },
   ];
+  const snapshot = JSON.stringify(d);
   const s = layoutChant(d, measure).systems[0];
+  expect(s.hyphens).toHaveLength(1);
+  expect(Number(s.lyrics[1].left)).toBeGreaterThan(
+    s.divisions[0].bounds.x + s.divisions[0].bounds.width,
+  );
+  expect(JSON.stringify(d)).toBe(snapshot);
+  // Without valid measurements there is no guessed or division-forced mark.
+  expect(layoutChant(d).systems.flatMap((s) => s.hyphens)).toHaveLength(0);
+});
+
+it.each(['word', 'continuation'] as const)(
+  'clears long preceding and following %s syllables and wraps their combined phrase units',
+  (boundaryBefore) => {
+    for (const [before, after] of [
+      [18, 2],
+      [2, 18],
+      [25, 25],
+      [45, 45],
+      [150, 180],
+    ]) {
+      const d = divided(3);
+      d.syllables = [
+        {
+          id: 's0',
+          text: 'a'.repeat(before),
+          startsAtNeumeId: 'n0',
+          boundaryBefore: 'word',
+        },
+        {
+          id: 's1',
+          text: 'a'.repeat(after),
+          startsAtNeumeId: 'n1',
+          boundaryBefore,
+        },
+      ];
+      const snapshot = JSON.stringify(d),
+        l = layoutChant(d, measure);
+      const source = l.systems.find((s) =>
+        s.lyrics.some((l) => l.syllableId === 's0'),
+      );
+      const barSystem = l.systems.find((s) => s.divisions.length);
+      expect(source).toBe(barSystem);
+      for (const system of l.systems) {
+        for (const bar of system.divisions) {
+          const left = system.lyrics.find((l) => l.syllableId === 's0');
+          const right = system.lyrics.find((l) => l.syllableId === 's1');
+          if (left)
+            expect(bar.bounds.x - Number(left.right)).toBeGreaterThanOrEqual(
+              16,
+            );
+          if (right)
+            expect(
+              Number(right.left) - bar.bounds.x - bar.bounds.width,
+            ).toBeGreaterThanOrEqual(16);
+          expect(system.staffLines[0].x2).toBeGreaterThan(
+            bar.bounds.x + bar.bounds.width,
+          );
+          expect(
+            resolveScoreSlot(l, {
+              x: bar.bounds.x - 1,
+              y: system.staffLines[1].y,
+            })?.slot.boundary,
+          ).toEqual({ beforeNeumeId: 'n1', beforeDivisionId: 'D' });
+          expect(
+            resolveScoreSlot(l, {
+              x: bar.bounds.x + bar.bounds.width + 1,
+              y: system.staffLines[1].y,
+            })?.slot.boundary,
+          ).toEqual({ beforeNeumeId: 'n1', beforeDivisionId: null });
+          for (const slot of system.slots) {
+            const intent = resolveGraphicalNeumePlacement(l, 'punctum', {
+              x: slot.x,
+              y: system.staffLines[1].y,
+            });
+            expect(intent?.boundary).toEqual(slot.boundary);
+            expect(intent?.preview.caret.x).toBe(slot.x);
+          }
+        }
+      }
+      expect(l.systems.flatMap((s) => s.neumes).map((n) => n.neumeId)).toEqual([
+        'n0',
+        'n1',
+        'n2',
+      ]);
+      expect(
+        l.systems.every((s) => s.neumes.length + s.divisions.length > 0),
+      ).toBe(true);
+      expect(JSON.stringify(d)).toBe(snapshot);
+      if (before === 150) {
+        expect(l.systems[0].divisions[0].bounds.x).toBeGreaterThan(staffEndX);
+        expect(l.x + l.width).toBeGreaterThan(l.systems[0].staffLines[0].x2);
+        expect(l.systems[1].neumes[0].neumeId).toBe('n1');
+        expect(l.systems[1].staffLines[0].x2).toBe(staffEndX);
+      }
+    }
+  },
+);
+
+it('clears a still-active syllable at a division within its melisma', () => {
+  const d = fixture(4);
+  d.divisions = [{ id: 'D', kind: 'maior', beforeNeumeId: 'n2' }];
+  d.syllables = [
+    {
+      id: 's',
+      text: 'a'.repeat(25),
+      startsAtNeumeId: 'n0',
+      boundaryBefore: 'word',
+    },
+  ];
+  const s = layoutChant(d, measure).systems[0];
+  expect(s.neumes.some((n) => n.neumeId === 'n1')).toBe(true);
+  expect(
+    s.divisions[0].bounds.x - Number(s.lyrics[0].right),
+  ).toBeGreaterThanOrEqual(16);
   expect(s.hyphens).toHaveLength(0);
-  expect(
-    s.neumes[1].bounds.x - s.neumes[0].bounds.x - s.neumes[0].bounds.width,
-  ).toBeGreaterThan(33);
-  expect(
-    Number(s.lyrics[1].left) - Number(s.lyrics[0].right),
-  ).toBeLessThanOrEqual(2);
 });

@@ -501,3 +501,11 @@ alignment controls rather than the new Divisions fieldset. Continue running
 these and measured-spacing/word-composition regressions. Foreground keyboard,
 OS/browser zoom, IME, spoken output and detailed owner graphical acceptance
 remain distinct Stage 5C responsibilities.
+
+PR #48 review regressions additionally cover measured lyric/bar clearance on
+both sides for long word/continuation syllables, active melismas, normal wrapping
+and isolated oversized source units. The division driver checks rendered SVG
+boxes and native pointer sides after horizontal scrolling to extended visual
+staff ink; logical wrapping remains normal. Caret positions and midpoint pointer
+intervals are tested separately so unequal lyric-driven gaps cannot reverse a
+bar's insertion side.

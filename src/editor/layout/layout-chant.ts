@@ -102,6 +102,8 @@ export interface ChantSystemLayout {
 }
 
 export interface ScoreSlotLayout {
+  /** Inclusive pointer split at the following item midpoint, independent of caret. */
+  hitRight: number;
   boundary: ScoreInsertionBoundary;
   insertionIndex: number;
   x: number;
@@ -311,6 +313,10 @@ function placeNeumeSequence(
     activeLyric = undefined;
   }
   function appendDivisions(items: readonly ChantDivision[], left: number) {
+    // Only a genuinely oversized measured syllable can extend visual staff ink.
+    // Logical wrapping still uses usableRightBoundary for every later neume.
+    const oversizedLyric =
+      (previousLyricRight ?? -Infinity) > usableRightBoundary;
     for (const item of items) {
       let geometry = buildDivisionGeometry(
         item,
@@ -321,6 +327,7 @@ function placeNeumeSequence(
       // An arbitrarily long punctuation run makes bounded progress by splitting
       // only when the run cannot share an otherwise empty system with its neume.
       if (
+        !oversizedLyric &&
         (geometries.length || divisions.length) &&
         geometry.bounds.x + geometry.bounds.width >
           usableRightBoundary - divisionGap
@@ -364,19 +371,25 @@ function placeNeumeSequence(
       if (!extents || !lyric) return initial;
       const left = initial.lyricAnchorX + extents.left;
       // Word clearance is a deterministic quarter-em minimum (5 score units).
-      const minimum =
+      const lyricMinimum =
         previousLyricRight === null
           ? staffStartX
           : previousLyricRight +
             (lyric.boundaryBefore === 'word'
               ? lyricFontSize / 4
               : lyricJoinClearance);
+      const minimum = Math.max(
+        lyricMinimum,
+        lastDivisionRight === null
+          ? -Infinity
+          : lastDivisionRight + divisionGap,
+      );
       // Decide from the safe placement once; adding mark clearance never
       // changes the decision back to joined (no iterative threshold loop).
       const separated =
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
-        left - previousLyricRight > lyricJoinThreshold;
+        Math.max(left, minimum) - previousLyricRight > lyricJoinThreshold;
       const shift = Math.max(
         0,
         (separated && previousLyricRight !== null
@@ -384,6 +397,7 @@ function placeNeumeSequence(
             hyphenWidth +
             2 * hyphenClearance
           : minimum) - left,
+        minimum - left,
       );
       const shifted = () =>
         buildNeumeGeometry(
@@ -415,11 +429,12 @@ function placeNeumeSequence(
       (width, bar) => width + divisionGap + measureDivisionWidth(bar.kind),
       0,
     );
+    const phraseRight = (g: NeumeGeometry) =>
+      Math.max(rightEdge(g), previousLyricRight ?? -Infinity);
     const groupRight = (g: NeumeGeometry) =>
       Math.max(
         rightEdge(g),
-        g.bounds.x +
-          g.bounds.width +
+        phraseRight(g) +
           (bars.length ? divisionGap : 0) +
           Math.min(
             barWidth,
@@ -457,7 +472,7 @@ function placeNeumeSequence(
     if (
       !geometries.length &&
       !divisions.length &&
-      lyric?.continues &&
+      (lyric?.continues || bars.length > 0) &&
       extents
     ) {
       const missing = Math.max(
@@ -482,11 +497,9 @@ function placeNeumeSequence(
     nextLeftX = geometry.bounds.x + geometry.advanceX;
     if (extents) previousLyricRight = geometry.lyricAnchorX + extents.right;
     if (lyric) activeLyric = lyric;
-    appendDivisions(
-      bars,
-      geometry.bounds.x + geometry.bounds.width + divisionGap,
-    );
-    if (oversized(geometry) && (geometries.length || divisions.length))
+    const isolatedOversize = oversized(geometry);
+    appendDivisions(bars, phraseRight(geometry) + divisionGap);
+    if (isolatedOversize && (geometries.length || divisions.length))
       finishSystem();
   }
   if (geometries.length || divisions.length || systems.length === 0)
@@ -757,7 +770,7 @@ export function getSystemNeumePlacement(
     !Number.isFinite(point.x) ||
     !Number.isFinite(point.y) ||
     point.x < staffStartX ||
-    point.x > staffEndX ||
+    point.x > (system.staffLines[0]?.x2 ?? staffEndX) ||
     point.y < minimumPlacementY ||
     point.y > maximumPlacementY
   ) {
@@ -875,7 +888,14 @@ export function layoutChant(
         height: systemHeight,
         staffLines: ([1, 2, 3, 4] as const).map((line) => ({
           x1: staffStartX,
-          x2: staffEndX,
+          x2: Math.max(
+            staffEndX,
+            ...divisions.map((d) =>
+              d.bounds.x + d.bounds.width > staffEndX
+                ? d.bounds.x + d.bounds.width + divisionGap + 3
+                : staffEndX,
+            ),
+          ),
           y: staffLineY(line, bottomStaffY),
         })),
         clef: {
@@ -1021,7 +1041,9 @@ export function layoutChant(
         item.type === 'division'
           ? system.divisions.find((d) => d.divisionId === item.entity.id)
           : system.neumes.find((n) => n.neumeId === item.entity.id);
-      return geometry ? [{ index, bounds: geometry.bounds }] : [];
+      return geometry
+        ? [{ index, bounds: geometry.bounds, type: item.type }]
+        : [];
     });
     const slots: ScoreSlotLayout[] = [];
     for (let i = 0; i <= visible.length; i++) {
@@ -1033,17 +1055,28 @@ export function layoutChant(
         boundary.beforeNeumeId === null
           ? document.neumes.length
           : document.neumes.findIndex((n) => n.id === boundary.beforeNeumeId);
-      const x = next
-        ? previous
-          ? (previous.bounds.x + previous.bounds.width + next.bounds.x) / 2
-          : next.bounds.x - interNeumeInkGap / 2
-        : previous
-          ? previous.bounds.x + previous.bounds.width + interNeumeInkGap / 2
-          : firstNeumeCenterX;
+      const x =
+        next?.type === 'division'
+          ? next.bounds.x - divisionGap / 2
+          : previous?.type === 'division'
+            ? previous.bounds.x + previous.bounds.width + divisionGap / 2
+            : next
+              ? previous
+                ? (previous.bounds.x + previous.bounds.width + next.bounds.x) /
+                  2
+                : next.bounds.x - interNeumeInkGap / 2
+              : previous
+                ? previous.bounds.x +
+                  previous.bounds.width +
+                  interNeumeInkGap / 2
+                : firstNeumeCenterX;
       slots.push({
         boundary,
         insertionIndex,
-        x: Math.max(staffStartX + 3, Math.min(staffEndX - 3, x)),
+        hitRight: next
+          ? next.bounds.x + next.bounds.width / 2
+          : system.staffLines[0].x2,
+        x: Math.max(staffStartX + 3, Math.min(system.staffLines[0].x2 - 3, x)),
       });
     }
     system.slots = slots;
@@ -1058,6 +1091,8 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
+    if (system.divisions.length)
+      canvasRight = Math.max(canvasRight, system.staffLines[0].x2 + 12);
     for (const hyphen of system.hyphens)
       canvasRight = Math.max(
         canvasRight,

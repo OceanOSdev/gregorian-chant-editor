@@ -458,6 +458,73 @@ try {
   await nativeClick('[data-division-id="D"]');
   assert.equal(await focused(), 'D');
   await shot('oversized-scrolled');
+  // PR #48: measured glyph extents must clear both sides of each bar.
+  for (const width of [1440, 320]) {
+    await viewport(width);
+    for (const boundaryBefore of ['word', 'continuation']) {
+      for (const [before, after] of [
+        [35, 2],
+        [2, 35],
+        [50, 50],
+        [180, 180],
+      ]) {
+        const doc = fixture(3);
+        doc.syllables[0].text = 'a'.repeat(before);
+        doc.syllables[1].text = 'a'.repeat(after);
+        doc.syllables[1].boundaryBefore = boundaryBefore;
+        await mount(doc);
+        const clearance = await ev(`(()=>{
+          const bar = document.querySelector('[data-division-id="D"]');
+          const system = bar.closest('[data-system-index]');
+          const ink = bar.querySelector('.score__division-ink').getBBox();
+          const source = system.querySelector('[data-syllable-id="s0"]');
+          const target = system.querySelector('[data-syllable-id="s1"]');
+          const a=source?.getBBox(), b=target?.getBBox();
+          return { before: a ? ink.x-.75-a.x-a.width : null, after: b ? b.x-ink.x-ink.width-.75 : null, contained: document.documentElement.scrollWidth<=innerWidth };
+        })()`);
+        if (clearance.before !== null)
+          assert(clearance.before >= 15.9, JSON.stringify(clearance));
+        if (clearance.after !== null)
+          assert(clearance.after >= 15.9, JSON.stringify(clearance));
+        assert(clearance.contained);
+        assert.deepEqual(await order(), ['n0', 'D', 'n1', 'n2']);
+        if (
+          boundaryBefore === 'word' &&
+          ((before === 35 && after === 2) || (before === 2 && after === 35))
+        )
+          await shot(
+            `review-${before > after ? 'preceding' : 'following'}-${width}`,
+          );
+      }
+    }
+    // Explicit sides still work beside an oversized lyric's extended staff.
+    for (const side of ['before', 'after']) {
+      const doc = fixture();
+      doc.syllables[0].text = 'a'.repeat(180);
+      await mount(doc);
+      await clickText('Punctum');
+      const target = await ev(
+        `(()=>{const l=divisionLayout(${JSON.stringify(doc)});const s=l.systems[0];const b=s.divisions[0];return {x:${side === 'before' ? 'b.bounds.x-1' : 'b.bounds.x+b.bounds.width+1'},y:s.staffLines[1].y,caret:s.slots[${side === 'before' ? 1 : 2}].x}})()`,
+      );
+      const p = await ev(
+        `(()=>{const svg=document.querySelector('.score'),v=document.querySelector('.score-viewport');let p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());const r=v.getBoundingClientRect();v.scrollLeft+=p.x-r.x-r.width/2;p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());window.scrollBy(0,p.y-innerHeight/2);p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());return {x:p.x,y:p.y}})()`,
+      );
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p });
+      await pause();
+      assert.equal(
+        await ev(
+          `Number(document.querySelector('.score__placement-caret line').getAttribute('x1'))`,
+        ),
+        target.caret,
+      );
+      await clickPoint(p);
+      assert.equal((await order()).indexOf('D'), side === 'before' ? 2 : 1);
+      await shot(`review-clearance-${width}-${side}`);
+    }
+  }
+  console.log(
+    'PASS: PR #48 measured glyph/bar clearance on both sides, continuing/distinct words, oversized wrapping and native scrolled insertion sides.',
+  );
   console.log(
     'PASS: division pointer caret/commit sides, explicit insertion buttons, persistent four-kind tools, selection/focus/kind/deletion/history, native Tab, leading/adjacent/trailing/empty and multi-system scores, 320px containment, zoom and exceptional scrolling.',
   );

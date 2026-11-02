@@ -423,16 +423,27 @@ maior/finalis never force a break. Authored leading bars and division-only score
 are legal. An unusually long division run that cannot fit with a neume on an
 empty normal system splits with bounded progress; its remaining bars can begin
 subsequent systems. This exceptional punctuation arrangement has no manual-break
-or semantic significance. Division advances follow musical ink; their occupied extents are combined with
-measured lyric extents, rather than shifting bars past overhanging syllable text.
-For a genuinely oversized measured syllable, following bars remain with its
-isolated anchored unit within the normal staff; the exceptional canvas exposes
-the text. No ordinary
-bar is dropped or drawn after wrapping at an unrelated offset. Empty music still has a deterministic system and slot.
+or semantic significance. Division positions and reservations clear both the
+preceding neume's ink and its active syllable's measured right edge, including
+within a melisma. Incoming anchored lyrics clear the preceding division's right
+edge as well as earlier lyric edges, for both word and continuation boundaries.
+These constraints participate in the same candidate build and wrapping decision.
+A source unit may use available left room to fit its complete lyric/bar reservation.
+
+For a genuinely oversized measured syllable, the isolated source unit retains its
+following bars after the text. Its derived visual staff and exceptional canvas
+extend far enough to expose those bars and their insertion slots. The logical
+normal wrapping width remains 656: later neumes still start fresh normal systems
+rather than filling the exceptionally long visual staff. No semantic anchor or
+post-render translation changes. Empty music still has a deterministic system
+and slot.
 
 Each system exposes stable-ID divisions and explicit slots in semantic score
 order, including before/between/after adjacent bars. Slot x coordinates come from
 occupied neighboring bounds and remain within the staff placement region.
+Carets beside divisions sit eight units from the bar ink. Pointer intervals
+split at item midpoints, independently of caret distance; a long lyric-induced
+gap cannot make a point immediately left of a bar choose its after slot.
 Pointer intent chooses a displayed slot; the caret and commit carry that exact
 `ScoreInsertionBoundary`. Existing numeric indexes remain compatibility data for
 neume-only helpers, not the runtime choice of a division side. Previews are local
