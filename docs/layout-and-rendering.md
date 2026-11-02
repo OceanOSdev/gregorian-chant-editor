@@ -186,8 +186,9 @@ the ordinary music minimum and quarter-em lyric gap. Unanchored melismas,
 lyricless music, neume contours, pitches and musical/vowel anchors are unchanged.
 
 Compact neighbors receive derived horizontal `hitClip` ownership intervals split
-at their ink-gap midpoint. SVG clips only the padded note targets and lyric-move
-destination targets to these intervals. Every ink edge remains inside its owner's
+at their ink-gap midpoint. SVG clips padded note targets, lyric-move
+destination targets, and whole-neume selection/placement/move rectangle
+decorations (including their strokes) to these intervals. Captions are not clipped. Every ink edge remains inside its owner's
 interval; existing internal rectangular/polygonal note partitions are preserved.
 At the exact shared split line, SVG paint order gives a hit to the following
 target when both contain that point. Selection and focus are independent
@@ -218,8 +219,12 @@ While a syllable on the current system has a semantic next syllable continuing
 its word, each candidate reserves the measured hyphen width plus two 0.1-em
 margins after the maximum occupied music/lyric edge. The reservation is replaced
 when the next syllable is accepted. This conservative reservation can wrap a
-neume earlier than a lookahead optimizer would. Each candidate is built at most
-twice (current system, then a fresh system); oversized items still advance once.
+neume earlier than a lookahead optimizer would. Each candidate has a bounded current/fresh-system fit, with at most one
+additional translation of a first source unit into available left room to fit
+its outgoing reservation. Music and lyric move together; the musical/vowel
+anchor relationship does not change. If the combined unit cannot fit, it is
+isolated under the oversized progress policy, with its complete mark visible.
+Oversized items still advance once.
 
 After system assignment, consecutive same-word syllables on different systems
 produce one outgoing mark on the **source lyric's system**, after its music and
@@ -276,7 +281,7 @@ measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
 contract below. Each lyric also exposes measured `left`/`right` occupied edges
 (or null when unavailable), `boundaryBefore`, and `anchorX`; the enclosing system
-provides its boundary. Conditional hyphens and continuation marks remain deferred.
+provides its boundary; hyphens follow the Stage 4C branch policy.
 
 ## Rendering and accessibility
 

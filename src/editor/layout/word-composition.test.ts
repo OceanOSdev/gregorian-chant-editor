@@ -71,7 +71,7 @@ describe('word-aware composition', () => {
       expect(l.systems.flatMap((s) => s.neumes)).toEqual(
         layoutChant(d).systems.flatMap((s) => s.neumes),
       );
-      expect(l.systems.flatMap((s) => s.hyphens ?? [])).toHaveLength(0);
+      expect(l.systems.flatMap((s) => s.hyphens)).toHaveLength(0);
     }
   });
   it('reserves outgoing marks, never incoming marks or melisma-only breaks', () => {
@@ -82,7 +82,7 @@ describe('word-aware composition', () => {
     expect(Number(l.systems[0].hyphens?.[0].x) + 5).toBeLessThanOrEqual(
       staffEndX,
     );
-    expect(l.systems.slice(1).flatMap((s) => s.hyphens ?? [])).toHaveLength(0);
+    expect(l.systems.slice(1).flatMap((s) => s.hyphens)).toHaveLength(0);
     for (const doc of [
       { ...d, syllables: d.syllables.slice(0, 1) },
       {
@@ -94,7 +94,7 @@ describe('word-aware composition', () => {
       },
     ])
       expect(
-        layoutChant(doc, measure).systems.flatMap((s) => s.hyphens ?? []),
+        layoutChant(doc, measure).systems.flatMap((s) => s.hyphens),
       ).toHaveLength(0);
     expect(layoutChant(d, measure)).toEqual(l);
   });
@@ -122,7 +122,7 @@ describe('word-aware composition', () => {
         const l = layoutChant(d, font);
         expect(l).toEqual(layoutChant(d, font));
         for (const system of l.systems)
-          for (const mark of system.hyphens ?? []) {
+          for (const mark of system.hyphens) {
             if (mark.outgoing)
               expect(mark.x + unit / 2).toBeLessThanOrEqual(staffEndX);
           }
@@ -204,4 +204,27 @@ describe('word-aware composition', () => {
       }
     },
   );
+});
+
+it('fits a first source lyric together with its outgoing reservation', () => {
+  const d = fixture([0, 1], 2);
+  d.syllables[0] = { ...d.syllables[0], text: 'a' + 'b'.repeat(42) };
+  const l = layoutChant(d, measure),
+    s = l.systems[0],
+    mark = s.hyphens[0];
+  expect(l.systems).toHaveLength(2);
+  expect(s.lyrics[0].left).toBeGreaterThanOrEqual(64);
+  expect(mark.outgoing).toBe(true);
+  expect(mark.x + 5).toBeLessThanOrEqual(staffEndX);
+  expect(l.width).toBe(720);
+  const note = s.neumes[0];
+  const original = buildNeumeGeometry(
+    'punctum',
+    [staffPosition(2)],
+    note.bounds.x,
+    124,
+  );
+  expect(note.ink).toEqual(original.ink);
+  expect(s.lyrics[0].anchorX).toBe(original.lyricAnchorX);
+  expect(layoutChant(d, measure)).toEqual(l);
 });

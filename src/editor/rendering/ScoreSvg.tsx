@@ -334,6 +334,9 @@ export function ScoreSvg({
             );
             const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
             const selectionGap = 5;
+            const ownershipClip = neume.hitClip
+              ? `url(#hit-clip-${neume.neumeId})`
+              : undefined;
             // Ordinary padding is clipped to layout's ownership interval at
             // compact boundaries, including lyric reassignment destinations.
             const moveBounds = {
@@ -367,6 +370,7 @@ export function ScoreSvg({
                 {isNeumeSelected ? (
                   <rect
                     className="score__neume-selection"
+                    clipPath={ownershipClip}
                     data-selected-neume-id={neume.neumeId}
                     x={neume.bounds.x - selectionGap}
                     y={neume.bounds.y - selectionGap}
@@ -385,6 +389,7 @@ export function ScoreSvg({
                     ))) ? (
                   <rect
                     className="score__placement-context"
+                    clipPath={ownershipClip}
                     x={neume.bounds.x - 7}
                     y={neume.bounds.y - 7}
                     width={neume.bounds.width + 14}
@@ -399,6 +404,7 @@ export function ScoreSvg({
                   lyricMove.anchorId === neume.neumeId) ? (
                   <g pointerEvents="none" aria-hidden="true">
                     <rect
+                      clipPath={ownershipClip}
                       className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
                       {...moveBounds}
                       rx="3"
@@ -532,7 +538,7 @@ export function ScoreSvg({
           })}
 
           <g aria-hidden="true" pointerEvents="none" className="score__hyphens">
-            {system.hyphens?.map((hyphen, index) => (
+            {system.hyphens.map((hyphen, index) => (
               <text
                 key={index}
                 x={hyphen.x}

@@ -43,7 +43,7 @@ export interface NoteLayout extends NoteGeometry {
 
 export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
   neumeId: string;
-  /** Horizontal ownership interval for contextual pointer padding. */
+  /** Horizontal ownership interval for contextual pointer padding and decorations. */
   hitClip?: { left: number; right: number };
 
   kind: Neume['kind'];
@@ -64,6 +64,12 @@ export interface LyricLayout {
   right: number | null;
 }
 
+export interface HyphenLayout {
+  x: number;
+  y: number;
+  outgoing: boolean;
+}
+
 /**
  * One derived system. All child geometry is currently score-absolute, and
  * startNeumeIndex is the global semantic index of its first neume.
@@ -77,7 +83,7 @@ export interface ChantSystemLayout {
   staffLines: readonly StaffLineLayout[];
   clef: ClefLayout;
   neumes: readonly NeumeLayout[];
-  hyphens?: readonly { x: number; y: number; outgoing: boolean }[];
+  hyphens: readonly HyphenLayout[];
   lyrics: readonly LyricLayout[];
   startNeumeIndex: number;
 }
@@ -355,12 +361,31 @@ function placeNeumeSequence(
           : -Infinity,
       );
     const oversized = (g: NeumeGeometry) =>
-      rightEdge(g) > usableRightBoundary ||
+      reservedRight(g) > usableRightBoundary ||
       (extents ? g.lyricAnchorX + extents.left < staffStartX : false);
     let geometry = build();
     if (geometries.length && reservedRight(geometry) > usableRightBoundary) {
       finishSystem();
       geometry = build();
+    }
+    if (!geometries.length && lyric?.continues && extents) {
+      const missing = Math.max(
+        0,
+        reservedRight(geometry) - usableRightBoundary,
+      );
+      const left = Math.min(
+        geometry.bounds.x,
+        geometry.lyricAnchorX + extents.left,
+      );
+      // Preserve internal music and vowel alignment. A combined unit which
+      // cannot fit even using this room follows isolated oversized progress.
+      if (missing && left - missing >= staffStartX)
+        geometry = buildNeumeGeometry(
+          input.kind,
+          input.staffPositions,
+          geometry.bounds.x - missing,
+          firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+        );
     }
     geometries.push(geometry);
     nextLeftX = geometry.bounds.x + geometry.advanceX;
@@ -757,6 +782,7 @@ export function layoutChant(
           ),
         ),
         lyrics: [],
+        hyphens: [],
         startNeumeIndex,
       };
     },
@@ -807,7 +833,7 @@ export function layoutChant(
   const systems = systemsWithoutLyrics.map((system) => ({
     ...system,
     lyrics: lyricsBySystem[system.index] ?? [],
-    hyphens: [] as { x: number; y: number; outgoing: boolean }[],
+    hyphens: [] as HyphenLayout[],
   }));
   if (ready && hyphenExtents) {
     const orderedLyrics = systems.flatMap((system) =>

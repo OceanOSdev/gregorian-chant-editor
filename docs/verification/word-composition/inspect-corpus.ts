@@ -206,7 +206,7 @@ export function inspectCorpusCase(
     }
     const marked = !word && (outgoing || gap > lyricJoinThreshold);
     if (!word && !outgoing && dash) {
-      const marks = (before.system.hyphens ?? []).filter(
+      const marks = before.system.hyphens.filter(
         (h) =>
           !h.outgoing &&
           h.x + dash.left >= Number(before.lyric.right) &&
@@ -257,15 +257,15 @@ export function inspectCorpusCase(
   }
   for (const system of layout.systems) {
     check(
-      (system.hyphens ?? []).length === expectedMarks.get(system.index),
+      system.hyphens.length === expectedMarks.get(system.index),
       'missing or redundant hyphen',
     );
     check(
-      (system.hyphens ?? []).filter((h) => h.outgoing).length ===
+      system.hyphens.filter((h) => h.outgoing).length ===
         expectedOutgoing.get(system.index),
       'incorrect outgoing mark ownership',
     );
-    for (const h of system.hyphens ?? [])
+    for (const h of system.hyphens)
       if (dash) {
         const left = h.x + dash.left,
           right = h.x + dash.right;
