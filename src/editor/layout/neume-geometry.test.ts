@@ -47,6 +47,7 @@ function twoNote(
 }
 function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
+    lyricLanguage: 'la',
     title: 'Engraving',
     clef: { type: 'c', staffLine: 3 },
     syllables: neumes.length

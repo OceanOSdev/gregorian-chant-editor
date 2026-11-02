@@ -76,3 +76,7 @@ Do not use `adr new -s` to draft a proposed replacement because upstream
 This manual acceptance step avoids superseding an accepted decision while its
 replacement remains only Proposed. Superseded decisions remain in the log
 rather than being rewritten.
+
+[ADR 0009: Keep lyric engraving language in the semantic document](0009-document-lyric-language.md)
+records the owner-approved Stage 4A language preference without superseding the
+existing anchor or wrapping decisions.

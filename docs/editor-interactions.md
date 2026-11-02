@@ -496,3 +496,18 @@ move from a draft does not turn the resolved workflow target into selection on
 cancel. Enter confirms only with score focus; Keyboard help retains native Enter
 activation. Lyrics activation focuses its primary action before considering
 fallback controls such as Move syllable.
+
+## Stage 4A language and alignment controls
+
+The always-visible **Lyric language** select edits the document, independently
+of selection or the Lyrics target. Latin is explicit for new chants. Changing
+language preserves any dirty text draft and its target; history navigation
+continues to require draft resolution.
+
+**Alignment for selected syllable** identifies the exact selected target and
+never retargets on Tab/focus. Choose Automatic or Manual; native Segment start
+and Segment end selects choose contiguous graphemes by keyboard or pointer.
+Manual initially selects the whole syllable, then each range choice is one
+history action. Reset to automatic uses the current document language. Save
+or cancel a text draft before changing its alignment. The control explains
+that any text change resets an override, recoverable with text undo.

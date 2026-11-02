@@ -1,8 +1,12 @@
 # Neume-anchored lyrics with continuous entry
 
-Status: Stages 1 and 2 merged; Stage 3 implemented for review; Stage 4 pending.
+Status: Stages 1–3 merged; Stage 4 underway, beginning with 4A.
 
-Keep this plan while Stages 3 and 4 are pending. After Stage 4 is implemented
+The updated Stage 4 scope and phased handoff live in
+[Stage 4 lyric-aware engraving](stage-4-lyric-engraving.md). That plan supersedes
+the earlier minimal hyphen-only engraving proposal below.
+
+Keep this plan while Stage 4 is pending. After Stage 4 is implemented
 and merged, remove this file as part of the final documentation cleanup. Ensure
 the accepted decisions and implemented contracts are captured in the ADRs and
 permanent guides, which become the long-term source of truth.
@@ -135,7 +139,12 @@ Use native input with stable focus across reflow. Engraved lyrics are named keyb
 
 If a dirty draft's target disappears or changes externally, preserve it in paused recovery with explicit retry-at-target or discard actions. Never apply stale edits to a different entity.
 
-### Minimal engraving
+### Original minimal engraving proposal (superseded for Stage 4)
+
+The following paragraphs record the original plan, not the agreed Stage 4
+implementation. The owner subsequently approved vowel-centered alignment,
+manual alignment overrides, lyric-aware spacing and wrapping, and conditional
+hyphenation, as detailed in [the Stage 4 handoff](stage-4-lyric-engraving.md).
 
 Retain music-only advances/wrapping and existing whole-string, kind-specific alignment. Render each lyric once at its anchor's system.
 
@@ -154,7 +163,7 @@ Native input undo remains browser-owned. Explicit score Undo/Redo resolves dirty
 1. **Anchor model and independent music:** types, invariants, helpers, commands, deletion, direct-anchor layout, fixtures, validation, ADR; remove insertion clamping/gating. Keep the app functional.
 2. **Continuous entry:** scoped L, explicit insert/edit intent, delimiters, `_`, commit-on-navigation, occupied pause, end-of-music resumption, native traversal, recovery, history integration.
 3. **Anchor correction:** constrained reassignment, candidate feedback, keyboard controls, draft integration.
-4. **Hyphens and verification:** measurements, derived marks, responsive browser/accessibility verification, limitations.
+4. **Lyric-aware engraving:** phased 4A vowel alignment and overrides, 4B lyric-aware spacing/wrapping, 4C conditional hyphens, and 4D visual/accessibility verification. See [Stage 4 plan](stage-4-lyric-engraving.md).
 
 Each stage includes tests and owning-guide updates. Avoid dual semantic models. Remove obsolete group insertion resolution, active-syllable fallbacks/existence checks, normalization association copying, first-associated-neume discovery, and no-syllable placement cancellation.
 

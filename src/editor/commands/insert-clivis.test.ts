@@ -39,6 +39,7 @@ function clivis(
 
 function createDocument(): ChantDocument {
   return {
+    lyricLanguage: 'la',
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
     syllables: [

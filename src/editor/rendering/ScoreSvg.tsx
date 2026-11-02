@@ -1,3 +1,4 @@
+import { lyricFontFamily } from '../layout/lyric-text-metrics';
 import { getSyllableKeyAction } from '../interaction/lyric-entry-keyboard';
 import {
   useLayoutEffect,
@@ -525,6 +526,7 @@ export function ScoreSvg({
                   x={lyric.x}
                   y={lyric.y}
                   fontSize={lyric.fontSize}
+                  fontFamily={lyricFontFamily}
                   textAnchor="middle"
                 >
                   {lyric.text}

@@ -1,3 +1,9 @@
+import { lyricLanguage } from '../domain/lyric-alignment';
+import {
+  alignLyricText,
+  lyricFontSize,
+  type MeasureLyricText,
+} from './lyric-text-metrics';
 import {
   staffPosition,
   type ChantDocument,
@@ -41,6 +47,8 @@ export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
 }
 
 export interface LyricLayout {
+  alignment: ReturnType<typeof alignLyricText>;
+  anchorX: number;
   syllableId: string;
   text: string;
   x: number;
@@ -571,7 +579,10 @@ function layoutCommittedNeume(
   };
 }
 
-export function layoutChant(document: ChantDocument): ChantLayout {
+export function layoutChant(
+  document: ChantDocument,
+  measure?: MeasureLyricText,
+): ChantLayout {
   const wrappedSystems = placeNeumeSequence(document.neumes.map(geometryInput));
   const systemsWithoutLyrics = wrappedSystems.map(
     ({ startNeumeIndex, geometries }, index): ChantSystemLayout => {
@@ -631,12 +642,19 @@ export function layoutChant(document: ChantDocument): ChantLayout {
       continue;
     }
 
+    const alignment = alignLyricText(
+      syllable,
+      lyricLanguage(document.lyricLanguage),
+      measure,
+    );
     lyricsBySystem[first.systemIndex]?.push({
+      alignment,
+      anchorX: alignmentX,
       syllableId: syllable.id,
       text: syllable.text,
-      x: alignmentX,
+      x: alignmentX + alignment.offset,
       y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
-      fontSize: 20,
+      fontSize: lyricFontSize,
     });
   }
 

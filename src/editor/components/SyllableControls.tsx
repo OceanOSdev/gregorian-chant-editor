@@ -1,3 +1,5 @@
+import { LyricAlignmentControls } from './LyricAlignmentControls';
+import type { LyricAlignmentSegment } from '../domain/chant-document';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
 import { isValidLyricText } from '../domain/lyrics';
@@ -20,6 +22,10 @@ import {
 } from '../state/lyric-entry';
 
 interface SyllableControlsProps {
+  onAlignment: (
+    syllableId: string,
+    range: LyricAlignmentSegment | undefined,
+  ) => void;
   document: ChantDocument;
   lyricMove: EditorSession['lyricMove'];
   onMove: (action: LyricMoveAction) => void;
@@ -36,6 +42,7 @@ interface SyllableControlsProps {
 }
 
 export function SyllableControls({
+  onAlignment,
   document,
   lyricMove,
   onMove,
@@ -272,7 +279,8 @@ export function SyllableControls({
       ) : null}
       <p id="lyric-entry-help">
         Lyrics: - continues a word · Space starts a word · _ skips a neume.
-        Enter saves; Escape cancels and exits. Tab moves focus.
+        Enter saves; Escape cancels and exits. Tab moves focus. Changing text
+        resets manual alignment to automatic; undo restores it.
       </p>
       {pendingHistory ? (
         <div
@@ -571,6 +579,15 @@ export function SyllableControls({
           edit.
         </p>
       )}
+      {selectedSyllable ? (
+        <LyricAlignmentControls
+          syllable={selectedSyllable}
+          disabled={
+            Boolean(draft) || entry?.kind === 'recovery' || pendingHistory
+          }
+          onChange={(range) => onAlignment(selectedSyllable.id, range)}
+        />
+      ) : null}
       <div
         className="syllable-strip"
         ref={strip}

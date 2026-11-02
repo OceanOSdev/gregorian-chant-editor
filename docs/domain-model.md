@@ -149,3 +149,20 @@ validate their target and lyric invariants. Invalid or unchanged commands
 return the original document. Stable neume IDs retain anchors through normalization.
 
 See [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md) for the relationship decision.
+
+## Lyric engraving preferences (Stage 4A)
+
+`ChantDocument.lyricLanguage` is required: `la` (Latin), `en` (English),
+`el` (Greek), or `und` (Unspecified). New chants, including the example, explicitly
+use Latin. This is a document-wide engraving preference, never a text restriction
+or inferred language. Missing/invalid runtime values are handled as `und` at
+layout and control boundaries. There is no persisted format or migration today.
+
+A syllable may have `alignment: { start, end }`, a half-open range of Unicode
+extended grapheme indexes into its exact text. It overrides automatic alignment,
+including in `und`; it stores no pixels and never changes `startsAtNeumeId`.
+Ranges must be nonempty, integer, and within the current grapheme count.
+Every accepted text change removes the override, even if the old indexes would
+still fit. Exact unchanged text preserves it; undo restores the original text
+and range together. This prevents silently shifting editorial intent.
+See [ADR 0009](adrs/0009-document-lyric-language.md).

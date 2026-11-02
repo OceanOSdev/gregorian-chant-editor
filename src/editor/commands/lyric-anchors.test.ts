@@ -41,6 +41,7 @@ function punctum(id: string): Neume & { kind: 'punctum' } {
 }
 function fixture(): ChantDocument {
   return {
+    lyricLanguage: 'la',
     title: 'Anchors',
     clef: { type: 'c', staffLine: 3 },
     neumes: Array.from({ length: 25 }, (_, i) => punctum(`n${i}`)),

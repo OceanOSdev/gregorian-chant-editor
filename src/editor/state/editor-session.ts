@@ -99,6 +99,7 @@ export function lyricMoveTargets(
 }
 
 export type EditorAction =
+  | { type: 'engraving-edit'; edit: DocumentEdit }
   | { type: 'lyric-move'; action: LyricMoveAction }
   | {
       type: 'start-lyrics-at-focus';
@@ -291,6 +292,11 @@ function reduceSessionAction(
         },
         `${neumeName(kind)} added.`,
       );
+    }
+    case 'engraving-edit': {
+      if (state.pendingHistory || state.lyricMove) return state;
+      const history = applyDocumentEdit(state.history, action.edit);
+      return history === state.history ? state : { ...state, history };
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);

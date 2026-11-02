@@ -61,3 +61,9 @@ provides continuous Lyrics mode, scoped L activation, underscore skipping,
 commit-on-navigation, explicit replacement, occupied-anchor pauses, end-of-music
 resumption and draft/history recovery. Stage 3 provides explicit constrained anchor
 correction with pointer and keyboard targeting; generated hyphens remain Stage 4. No persistence migration is required.
+
+Stage 4A adds explicit document language, measured vowel alignment and manual
+grapheme segment overrides. It does not add lyric clearance: shifted or long
+syllables can still collide under music-only spacing. Conditional hyphens,
+word gaps and lyric-driven wrapping remain Stage 4B/4C work; broader Firefox
+and assistive-technology acceptance remains outstanding.

@@ -1,0 +1,6 @@
+.lyric-alignment-controls label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0.25rem 0.75rem 0.25rem 0;
+}

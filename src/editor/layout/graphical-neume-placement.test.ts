@@ -20,6 +20,7 @@ function punctum(id: string): Neume {
 
 function documentWith(neumes: Neume[]): ChantDocument {
   return {
+    lyricLanguage: 'la',
     title: 'Test',
     clef: { type: 'c', staffLine: 3 },
     syllables: neumes.length
