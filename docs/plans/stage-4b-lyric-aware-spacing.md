@@ -6,6 +6,14 @@ Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 Status: **implementation handoff** for 4B only; Stage 4A merged in PR #43,
 4C hyphenation and 4D acceptance are **not** authorized on this branch.
 
+**Overflow design gate resolved for this implementation handoff:**
+Use **horizontal scrolling for an unbreakably oversized lyric** rather than
+clipping, truncating, shrinking, rejecting or splitting the syllable.
+This is an explicit 4B presentation policy, documented below and in Proposed
+ADR 0010. Codex may implement it without a further stop solely over the
+previously identified fixed-width/viewBox conflict. The owner will review
+this behavior and the Proposed ADR before merging.
+
 ## Problem and desired user result
 
 Stage 4A (PR #43, now on master) gives each lyric an explicit document
@@ -27,6 +35,66 @@ https://gregobase.selapa.net/chant.php?id=1261.
 cross-system continuation marks. A musical gap can therefore leave a
 same-word syllable visually detached until Stage 4C. Do not “fix” that
 by distorting neume gaps or slipping in partial hyphenation.
+
+## Resolved overflow policy: scrollable oversized score
+
+Most chants continue using the existing 720-layout-unit score and responsive
+SVG scaling. Horizontal scrolling is an **exceptional fallback** when a single,
+unbreakable syllable (or the necessary first anchored unit) cannot fit in an
+otherwise empty normal system while preserving font size, text advance,
+the Stage 4A vowel/segment-to-neume alignment, musical minimum clearances and
+the normal usable staff width. Do not use scrolling as a substitute for normal
+lyric-driven wrapping or increased between-neume spacing.
+
+- **Try normal spacing and wrapping first.** Never widen the ordinary
+  720-unit score merely to keep more neumes or syllables on a system.
+  Preserve current whole-neume break semantics and the standard musical
+  placement bounds for all normal items.
+- **Oversize cannot be split.** For a truly unplaceable item, place it once
+  on its own system (at least the oversized item; do not force other neumes
+  into the extra horizontal space), ensuring forward progress.
+  **Expand the derived horizontal SVG content canvas** only as far as
+  necessary to contain the complete measured lyric and any related ink, with
+  modest padding. Account for **both left and right overhangs** of a
+  nucleus-aligned string; an expanded viewBox may require an x origin less
+  than zero rather than assuming all text starts at x=0. Preserve the real
+  neume's original lyric anchor relationship and its established contours.
+- **Scroll rather than scale-to-fit.** Render the exceptional expanded SVG
+  at a sufficient intrinsic CSS width to preserve the normal-size lyric and
+  music instead of squeezing an arbitrarily wide viewBox back into the
+  normal score container. Use a local, keyboard-usable, horizontally scrollable
+  **score viewport**, not document/page-level horizontal overflow. Keep
+  editor controls outside the horizontal scroller and usable at narrow
+  viewport widths. Existing ordinary scores should retain their
+  responsive scaling. The full text must be reachable by scrolling, not
+  merely present outside a clipped element.
+- **Keep logical wrapping bounds separate from content-canvas bounds.**
+  The exceptional wider canvas is for displaying a single oversized item,
+  **not** a new infinite-width line for placing all subsequent neumes.
+  Subsequent items still use the normal system width and wrapping decisions,
+  including the existing oversized-item progress rule. Multiple systems
+  can share an expanded overall viewBox; ordinary systems must not
+  expand their musical spacing as a side effect.
+- **Keep pointer and focus coordinates consistent.** Any derived
+  negative viewBox x origin, horizontal scrolling, dynamic CSS dimensions
+  or viewport width changes must be accounted for by the existing
+  SVG-coordinate conversion, graphical placement bounds, scroll-to-focus,
+  selection/hit testing and caret positioning. Verify a usable insertion
+  and focus path on subsequent systems while an oversized score is scrolled.
+- **When font metrics are unavailable**, retain the provisional 720-unit
+  music-only layout and recompute when valid measurement arrives. Never
+  invent character widths to force overflow. Extremely long finite measured
+  text may cause a very wide local scroll surface but must not cause
+  unbounded reflow iterations. No new semantic field or persisted width.
+- **Graceful visual distinction.** The fixed 720-unit **normal system
+  placement policy** remains; the exceptional SVG viewBox/content canvas
+  is derived and may be wider. Preserve current engraving typography.
+  Do not introduce global scaling, line breaks inside syllables,
+  ellipses, text-length validation, a parallel full-text panel, or
+  hyphens as workarounds.
+
+This is a reviewable Stage 4B presentation decision, **not** acceptance of
+Proposed ADR 0010 or a revision to ADR 0005 on master.
 
 ## Architecture decision / review gate
 
@@ -100,12 +168,12 @@ Read `AGENTS.md`, `docs/ai-workflow.md`,
    stable global `startNeumeIndex`. Handle a new system's first
    syllable's **left bearing** as well as the last syllable's **right
    bearing**; no silent clipping of otherwise placeable lyrics.
-   Describe an explicit deterministic overflow policy for
-   unbreakably long syllables that cannot fit even on an empty system,
-   including how users can see the full text. If an unavoidable
-   constraint conflicts with the fixed 720-unit score/viewBox
-   contract, escalate the material options instead of introducing an
-   undocumented dynamic scale or clipping hack.
+   Apply the **resolved scrollable oversized-score policy above** for
+   unbreakable syllables that cannot fit an otherwise empty normal
+   system. This explicitly permits a *derived exceptional viewBox/canvas
+   width and x origin* while retaining normal 720-unit wrapping bounds.
+   Do not re-escalate that previously identified fixed-width conflict.
+   Escalate only genuinely new material constraints not resolved here.
 
 5. **Maintain the real pointer/preview contract.** Currently
    `ChantEditor` passes measured metrics to `layoutChant`, but
@@ -192,6 +260,15 @@ duplicating layout and wrap logic.
   viewport and missing/invalid/pending metrics all have
   deterministic safe outcomes. Neither 0/NaN nor a repeated
   unplaceable candidate causes an infinite loop.
+- An exceptional oversized syllable extending **left of x=0**, **right
+  of x=720**, and both directions is fully reachable in the locally
+  scrollable score at its original lyric size. The canvas and
+  viewBox origin are derived and measured. Normal-score width,
+  ordinary score scaling and music-only wrapping are unchanged.
+  The page itself has no unintended horizontal overflow at 320px.
+  Verify actual native horizontal scroll (including keyboard use),
+  focus/reveal, pointer-to-SVG coordinates and placement on another
+  system after horizontal scrolling.
 - Editing a lyric, changing a word boundary, editing vowel
   alignment, or changing the document language can reflow
   systems *without changing the semantic document beyond that
@@ -254,9 +331,11 @@ Codex should implement the **agreed** 4B approach without
 requesting a second approval for the already recorded lyric-aware
 layout experiment. Stop and explain evidence/options if the
 architecture requires semantic metric/word state, changing
-accepted neume engraving, unresolved unbreakable-text overflow
-that forces a new viewport policy, or a genuinely different
-wrapping model than the Proposed ADR.
+accepted neume engraving, an **additional** unresolved overflow
+constraint beyond the explicit scrollable-canvas policy, or a
+genuinely different wrapping model than the Proposed ADR. The
+fixed-720-unit canvas overflow question itself is **resolved**
+for implementation; do not stop on it again.
 
 On this branch, run verification, commit implementation,
 and open a PR targeting `master`, **do not merge**. Report
