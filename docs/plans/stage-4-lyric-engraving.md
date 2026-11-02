@@ -1,17 +1,18 @@
-# Plan: Stage 4 lyric-aware engraving (4A completed; 4B implemented pending review)
+# Plan: Stage 4 lyric-aware engraving (4A merged; 4B accepted pending merge)
 
-Status: **4A merged in PR #43; 4B implemented pending review; 4C–4D deferred**.
+Status: **4A merged in PR #43; 4B implemented and ADR accepted in PR #44,
+pending merge; 4C–4D deferred**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Current 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 Current 4B baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 
-The historical 4A instructions below describe the completed milestone; **do not
-restart 4A or implement 4C–4D**. The active implementation handoff is
-[Stage 4B lyric-aware spacing](stage-4b-lyric-aware-spacing.md).
-Its [Proposed ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-documents the anticipated replacement for accepted ADR 0005. Implement 4B
-only on the new branch; owner acceptance of ADR 0010 is required before merge.
+The 4A and 4B instructions below are historical: **do not restart those stages
+or implement 4C–4D as part of PR #44**. The Stage 4B implementation record is
+[here](stage-4b-lyric-aware-spacing.md). The owner accepted
+[ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
+which supersedes ADR 0005. PR #44 awaits merge; the next implementation handoff
+will address 4C separately.
 
 **Language-design gate resolved (2026-11-01):** The owner approved a required,
 document-level lyric engraving language preference. New chants use Latin by
@@ -63,14 +64,12 @@ Current seams of interest:
 - The session reducer owns Lyrics mode, semantic selection, keyboard focus
   requests, draft recovery and history; Stage 3 reassigns lyric anchors by ID.
 
-**Do not silently override an accepted ADR.** In particular, 4B changes the
-premise of ADR 0005 by allowing measured lyric requirements to influence neume
-advance and system wrapping. Before 4B implementation, propose a deliberate
-ADR amendment or replacement following `docs/adrs/README.md`; retain the
-existing accepted decision until the owner accepts the change. Preserve the
-important remaining invariants: whole-neume breaks, exact-fit semantics,
-guaranteed progress for oversized items, stable IDs, derived system ownership,
-and preview/commit agreement.
+**ADR history (resolved in Stage 4B):** Stage 4B changed the original
+music-only wrapping premise of ADR 0005. The owner accepted its replacement,
+ADR 0010, following PR #44 implementation review. Preserve the remaining
+invariants: whole-neume breaks, exact-fit semantics, guaranteed progress for
+oversized items, stable IDs, derived system ownership, and preview/commit
+agreement.
 
 ## Approved document language design for 4A
 
@@ -230,9 +229,10 @@ reflow or semantic anchor changes from alignment alone; selection vs focus
 and edit-target regression; atomic history and exact undo/redo. Verify in
 both multi-system and narrow browser cases.
 
-### 4B — Lyric-aware spacing and wrapping (implemented; owner review pending)
+### 4B — Lyric-aware spacing and wrapping (implemented; ADR accepted, PR #44 awaiting merge)
 
-Follow [the dedicated Stage 4B handoff](stage-4b-lyric-aware-spacing.md) and Proposed ADR 0010. Do not silently supersede accepted ADR 0005. The following original outline remains background context.
+See the [Stage 4B handoff](stage-4b-lyric-aware-spacing.md) and accepted ADR 0010,
+which supersedes ADR 0005. The following original outline remains historical context.
 
 After 4A review, agree ADR impact. Design a single pure placement walk that
 consumes neume ink geometry plus measured lyric/word requirements and yields
