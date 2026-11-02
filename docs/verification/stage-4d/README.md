@@ -133,67 +133,162 @@ unverified. Automated focus checks in Chromium do not close those gaps.
 
 ## Foreground Firefox owner checklist
 
-Run `npm run dev`, open `http://127.0.0.1:5173/` in an ordinary **foreground**
-Firefox window, and keep that window active. Use the default example first.
-Record each row as Pass / Fail / Not run, with reproduction for failures.
-Do not use DevTools `.focus()` as evidence of natural keyboard traversal.
+Run `npm run dev` and keep an ordinary **foreground** Firefox window active.
+Record each numbered scenario as Pass / Fail / Not run, with reproduction for
+failures. All foreground results remain **Not run** until the tester records them.
 
 Tester/date: **pending**. OS / Firefox version: **pending**.
 Viewport / browser zoom / fonts / screen reader and version: **pending**.
 
-1. At about 1440px and 100% zoom, Tab from the address bar through the editor;
-   Shift+Tab back. Palette arrows move within the toolbar. Every visited control
-   has a visible focus cue; no trap or unexpected document edit occurs. Open
-   Keyboard help with Enter and traverse its next controls normally.
-2. Click/select Al, then use Tab to focus le without Space. Confirm purple
-   selection remains Al, the blue keyboard cue/panel names le, and history is
-   unchanged. Shift+Tab reverses traversal. Space selects the focused lyric;
-   Enter edits. Repeat Delete and Backspace with Al selected and le focused:
-   only le disappears, music survives, undo restores it. Separately activate
-   Delete selected syllable and confirm it acts on Al.
-3. Focus a lyric, press L, and edit with normal caret arrows. Type l and use
-   native character Delete/Backspace; score shortcuts must not steal input.
-   Try accented/combining text and the owner's actual IME if used. Escape exits
-   Lyrics to Select without trapping focus. Test Save/Discard/Cancel when undo
-   encounters a dirty draft; cancel retains it and each chosen edit is atomic.
-4. From a free note activate Lyrics; enter `Al-le-lu-ia ah`, using `_` to skip
-   one free neume. Verify Starts word/Continues word, occupied-anchor pause,
-   deliberate edit, and cancellation. No accidental replacement of an occupied
-   anchor. Undo/redo restores text, boundary and stable selected/focused entity.
-5. Select a middle syllable, Move syllable, browse destinations with arrows,
-   Tab/Shift+Tab through controls, Escape to cancel, then repeat and Enter or
-   click a legal destination. Selection stays on the moving lyric; rejected
-   occupied/crossing destinations explain why. Focus returns visibly after
-   cancel/commit, including a destination on a later system.
-6. Place each of the seven kinds; inspect preview, commit, Escape, Shift whole
-   selection, note/neume movement and deletion. At compact boundaries click
-   individual constituents; decorations must not steal clicks. Undo each edit.
-   Repeat after text/language changes cause wrapping and after a font reload.
-7. Change Latin/English/Greek/Unspecified; choose/reset a manual grapheme range,
-   including combining accents. Confirm text edit resets the override and undo
-   restores it. Font-dependent reflow must not change selection or add history.
-8. At 320px and real browser zoom 150–200%, repeat navigation/editing and scroll
-   to later systems. No page-wide horizontal overflow; controls remain usable.
-   Enter a very long unbreakable syllable, scroll the score both ways, inspect
-   both text edges, then click/place while locally scrolled. Check focus reveal
-   and cues are visible without obscuring neighboring text.
-9. Inspect mixed joined/hyphenated words, real spaces and outgoing marks after
-   wrapping. Review the linked 47-case screenshots; use the existing corpus
-   driver to regenerate full review boards if needed. Approve good-enough
-   composition separately from keyboard results.
-10. With Orca or the owner's screen reader running in that foreground window,
-    repeat a representative select/edit/move/error/undo flow. Record actual
-    spoken names, roles, selected state, instructions, score totals, reading
-    order and live edit/rejection announcements. Hyphens/ghosts/cues must not
-    become extra spoken syllables or tab stops. If unavailable, mark Not run
-    and explicitly accept or defer that remaining risk; DOM checks are not a
-    substitute.
+### Setup and resets
+
+The default app at `http://127.0.0.1:5173/` has **only Al, one punctum and one
+torculus**. Use it for scenario 1 only. The other scenarios use existing corpus
+fixtures in the same real editor; they do not change the default document.
+
+Open `http://127.0.0.1:5173/docs/verification/placement/browser-fixture.html`
+(initially blank). Open Firefox's Web Console (Ctrl+Shift+K on Linux/Windows),
+paste this setup once, and press Enter:
+
+```js
+window.load4d = async (arrangement = 'two-words', variant = '') => {
+  const { compositionCorpus } =
+    await import('/docs/verification/word-composition/corpus.ts');
+  const sample = compositionCorpus.find(
+    (s) => s.name === 'Alleluia' && s.arrangement === arrangement,
+  );
+  const document = {
+    ...sample.document,
+    syllables: sample.document.syllables.map((s) => ({ ...s })),
+  };
+  if (variant === 'empty') document.syllables = [];
+  if (variant === 'accent') document.syllables[0].text = 'a\u0301e';
+  if (variant === 'overflow') document.syllables[0].text = 'b'.repeat(160);
+  mountChantFixture(document);
+};
+await load4d();
+```
+
+Close the console and wait for the score. If Firefox blocks pasted code, type
+it or follow Firefox's own paste instructions only after reviewing it. For each
+**reset** below, reopen the console, enter the given `await load4d(...)` command,
+and close it. Reset discards edits/history and starts in Select with **nothing
+selected and no lyric draft**. Do not reload this fixture page: reload clears the
+helper and requires setup again. Adjust the URL if Vite prints a different port.
+
+| Reset command                           | Starting score; neumes numbered from 1 in musical order                                                                 |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `await load4d()`                        | Seven puncta; Al/le/lu/ia/gre/gar/io on 1–7. Al and gre start words, all others continue: **Alleluia gregario**.        |
+| `await load4d('break')`                 | Fifteen puncta across systems; Al on 1, le on 13, lu on 14, ia on 15. Only Al starts a word; 2–12 are unanchored music. |
+| `await load4d('break', 'empty')`        | The same fifteen puncta, no syllables.                                                                                  |
+| `await load4d('wide')`                  | Al/le/lu/ia on Podatus/Clivis/Scandicus/Torculus; only Al starts a word.                                                |
+| `await load4d('two-words', 'accent')`   | Seven-punctum score above, with Al replaced by áe (two graphemes).                                                      |
+| `await load4d('two-words', 'overflow')` | Seven-punctum score above, with Al replaced by 160 b characters; exceptional local overflow.                            |
+
+Console use is **fixture preparation only**, not keyboard/focus evidence. During
+tests, close DevTools and use actual clicks and natural Tab/Shift+Tab; never
+DevTools `.focus()`. Returning from the console can alter initial focus, so each
+scenario specifies how to start.
+
+### Scenarios
+
+1. **Default navigation:** open the default app (not the fixture). At about
+   1440px / 100% zoom, focus the address bar and Tab through controls and score;
+   Shift+Tab back. Palette arrows browse; Enter opens Keyboard help. Check visible
+   focus, no trap and no accidental edits. Only Al is expected here.
+2. **Focus versus selection:** reset `await load4d()`. Click engraved Al, Tab to
+   engraved le without Space: purple selection stays Al, blue focus/panel names
+   le. Shift+Tab reverses. Press Space to select le and Enter to edit; Escape
+   exits. Reset before **each** destructive check: click Al → Tab to le → Delete
+   (then repeat with Backspace); only le disappears, music survives, Undo restores
+   it. Reset again, click Al → Tab to le, then click **Delete selected syllable**:
+   Al disappears instead. No history should be added by focus browsing alone.
+3. **Text, IME and history:** reset `await load4d()`, click le → L. Use caret
+   arrows, type l, and Delete/Backspace within the input; these edit characters,
+   not score entities. Try accents and your actual IME if used. Escape cancels
+   and exits. For **each** Save/Discard/Cancel history check, reset, click le → L,
+   replace its text with `lé`, click **Save syllable** (creates history), click engraved lé → L, change draft to `lu`, then click score **Undo**. Test each choice:
+   Cancel retains the draft; Discard navigates without saving lu; Save records
+   the draft before navigation (Redo can restore lu). Use score buttons rather
+   than native input undo. Check visible focus and atomic history.
+4. **Entry and boundaries:** reset `await load4d('break', 'empty')`. Click the
+   first note → L. Type `Al`, minus, underscore (empty draft skips note 2), then
+   type `le-lu-ia ah` **one key at a time**, and Enter. Expect Al/le/lu/ia/ah on
+   notes **1/3/4/5/6**, with only Al and ah starting words. Escape; click le →
+   Enter, change **Word boundary** to Starts word, save, then undo/redo; repeat
+   with Continues word. For occupied protection, reset `await load4d()`, click
+   Al → L → End → minus: it pauses at occupied le without replacing it; use
+   **Edit syllable** deliberately, then Escape. Verify undo/redo restores committed
+   entry text/boundaries and surviving entity selection/focus.
+5. **Move across systems:** reset `await load4d('break')`, click le → **Move
+   syllable**. Notes 2–12 are legal; Al on 1 and lu on 14 are unavailable. Click
+   those unavailable notes to check rejection, then browse legal destinations
+   with Left/Right or Previous/Next destination. Tab/Shift+Tab traverses controls
+   without changing selection; Escape cancels. Reset and repeat; preview **note
+   2 on the first system**, then Enter with score focus (or Move here) to commit
+   le from the later system. Check visible restored lyric focus and one-step
+   undo/redo. Reset and repeat with a direct click on note 2 to commit.
+6. **Music and compact targets:** for each of the seven palette kinds, reset
+   `await load4d()`, click that kind, inspect the hover preview over the staff,
+   click once to place, then Escape to Select. Click a new constituent to select;
+   Shift+click selects its whole neume. Up/Down moves a valid pitch/whole neume,
+   Delete removes the selected note/neume; Undo each edit. Reset between note
+   and whole-neume deletion. Then reset `await load4d('wide')` and click each
+   constituent near compact boundaries: verify the intended target, contained
+   selection and inert decorations. For a reflow repeat, click le → Enter, replace
+   its text with `misericordiam` repeated six times without spaces, save, exit
+   Lyrics with Escape, then repeat constituent selection on the reflowed music.
+7. **Language and graphemes:** reset `await load4d('two-words', 'accent')`, click
+   the first lyric áe. Change Latin/English/Greek/Unspecified; select/reset its
+   manual two-grapheme range in the alignment controls. Finish by applying an
+   override for only the first grapheme (á). Click áe → Enter to edit;
+   replace text with `Deo`, save, and check the override resets; Undo restores
+   text and range. For font-load/reflow recovery, keep this selection and change
+   Firefox's default serif font in Settings → Fonts (disable page-chosen fonts
+   if necessary), return to the tab and inspect the reflow without reloading.
+   Restore font settings afterward; if no font change occurs, record Not run.
+   Font changes must not create score history or lose entity selection.
+8. **Narrow usability (explicit owner decision):** reset `await load4d('break')`.
+   At a 320px viewport, then at real browser zoom 150–200%, repeat Tab/edit/move
+   on le: click Al → Tab to le for focus/selection, Enter → Escape for editing,
+   then click le → Move syllable and use scenario 5. Record viewport and zoom separately;
+   Firefox Responsive Design Mode can set 320px if needed (leave its controls
+   before traversing the page). Are ordinary score text, targets and controls
+   actually usable despite passing geometry checks? Check later-system focus
+   reveal and no page-wide overflow. Reset `await load4d('two-words', 'overflow')`;
+   scroll the score locally to both text edges, select/place at a visible note
+   while scrolled, Escape and Tab back to a lyric. Verify visible focus/cues and
+   reachable text. Accept or reject narrow usability explicitly.
+9. **Editorial review:** reset `await load4d()` for joined Alleluia and the true
+   space before gregario; `await load4d('wide')` for musically forced separation;
+   `await load4d('break')` for outgoing continuation to le on a later system.
+   Check legibility, ownership and no extra incoming mark. Review the linked
+   corpus screenshots as additional evidence, not manual interaction results.
+10. **Spoken accessibility:** reset `await load4d()` with Orca or your screen
+    reader running in the foreground. Repeat scenario 2 and le's edit from 3;
+    reset `await load4d('break')` for move/rejection from 5. Record actual spoken
+    names, roles, selected state, instructions, score totals, reading order and
+    live edit/error/undo announcements. Hyphens/ghosts/cues must not add spoken
+    syllables or tab stops. If no screen reader is used, record **Not run** and
+    explicitly accept or defer that risk. DOM assertions do not verify speech.
+
+### Checklist setup validation (review follow-up, 2026-11-02)
+
+Codex ran the exact setup snippet above and all six reset commands in real
+**headless Firefox 146.0** through BiDi. Automated DOM inspection confirmed the
+default app's one lyric/two neumes, each fixture's stated music and lyric counts,
+initial unselected lyrics/no draft, and Al on system one with le on system two
+in the break fixture. These checks validate preparation, **not** console paste
+policy, natural foreground focus, completion of the manual scenarios or speech.
+Formatting, lint, 847 pure tests, production build and whitespace checks passed
+again for this documentation follow-up. No application or fixture source changed.
 
 ## Owner decision and cleanup proposal
 
 - [ ] Record foreground Firefox results above (currently all Not run).
 - [ ] Record actual screen-reader results or explicitly accept the untested risk.
-- [ ] Review narrow usability, visual evidence and any reproduced failures.
+- [ ] Record explicit acceptance/rejection of narrow text/target/control usability
+      (scenario 8); review visual evidence and any reproduced failures.
 - [ ] Accept Stage 4D, or request scoped fixes; CI alone is not acceptance.
 - [ ] At acceptance, retire `docs/plans/lyric-system-redesign.md` and mark the
       overarching Stage 4 plan complete (or remove obsolete one-off handoffs).
