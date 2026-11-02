@@ -3,16 +3,21 @@
 Branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
-Status: **implemented on the isolated branch; owner/ADR review pending** for 4B only; Stage 4A merged in PR #43,
-4C hyphenation and 4D acceptance are **not** authorized on this branch.
+Status: **implemented and owner-accepted; PR #44 awaiting merge**. Stage 4A
+merged in PR #43; Stage 4C hyphenation and 4D acceptance remain deferred.
 
-**Overflow design gate resolved for this implementation handoff:**
+This plan records the original Codex implementation handoff and stop conditions;
+implementation and its visual review are complete. The architecture was
+accepted as [ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+and supersedes ADR 0005. Do not restart 4B or treat historical review gates
+below as pending. Remaining task: merge PR #44 after normal checks.
+
+**Overflow design decision (implemented and accepted):**
 Use **horizontal scrolling for an unbreakably oversized lyric** rather than
 clipping, truncating, shrinking, rejecting or splitting the syllable.
-This is an explicit 4B presentation policy, documented below and in Proposed
-ADR 0010. Codex may implement it without a further stop solely over the
-previously identified fixed-width/viewBox conflict. The owner will review
-this behavior and the Proposed ADR before merging.
+This 4B presentation policy is documented in accepted ADR 0010. The owner
+reviewed the implementation and agreed to the resulting scrollable overflow
+behavior; PR #44 remains unmerged until normal merge checks complete.
 
 ## Problem and desired user result
 
@@ -93,26 +98,20 @@ lyric-driven wrapping or increased between-neume spacing.
   ellipses, text-length validation, a parallel full-text panel, or
   hyphens as workarounds.
 
-This is a reviewable Stage 4B presentation decision, **not** acceptance of
-Proposed ADR 0010 or a revision to ADR 0005 on master.
+This presentation policy is part of accepted ADR 0010, which supersedes
+ADR 0005. Its implementation remains on the PR branch until merged.
 
-## Architecture decision / review gate
+## Architecture decision / acceptance
 
-A deliberately **Proposed** [ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-records the combined-geometry replacement for
-[accepted ADR 0005](../adrs/0005-derive-wrapping-from-rendered-geometry.md).
-Read `docs/adrs/README.md` and the full ADR 0010.
+[ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+records the accepted combined-geometry wrapping decision, superseding
+[ADR 0005](../adrs/0005-derive-wrapping-from-rendered-geometry.md).
+Read `docs/adrs/README.md` and both ADRs for the decision history.
 
-The owner authorized the Stage 4B _direction_ and this separate
-implementation experiment; **Codex may implement on this branch against
-the explicit Proposed ADR**. Do not silently mark ADR 0010 Accepted or
-ADR 0005 Superseded. Before merge, the owner will inspect the actual
-engraving and explicitly accept/reject the replacement. On acceptance,
-update both ADR statuses and reciprocal links and the owning guides
-in the PR before merging. If implementing 4B requires a materially
-different architecture than ADR 0010, **stop and report options** instead
-of changing the proposal unilaterally. The Proposed status alone is
-_not_ a reason to stop before starting the approved 4B experiment.
+The owner inspected PR #44 and its Firefox rendering and accepted ADR 0010
+as the replacement for ADR 0005. Both statuses, reciprocal links and owning
+guides were updated on this branch before merge. The implementation is now
+ready for the normal PR merge gate; this acceptance does not authorize Stage 4C.
 
 Read `AGENTS.md`, `docs/ai-workflow.md`,
 `docs/architecture.md`, `docs/layout-and-rendering.md`,
@@ -306,8 +305,8 @@ eleison`, a collision example with a long word, a word
   geometry tests as proof of pointer correctness.
 - Update the actual owning layout, interaction and testing
   guides and roadmap/limitations in the implementation PR.
-  Keep ADR 0010 explicitly Proposed and ADR 0005 Accepted
-  until the owner's architectural acceptance review.
+  The architectural acceptance gate has been completed:
+  ADR 0010 is Accepted and ADR 0005 is Superseded.
   Retain the multi-stage plan, updating milestone status.
   Keep test screenshots out of source control unless the
   project's verification policy specifically calls for a
@@ -333,7 +332,7 @@ layout experiment. Stop and explain evidence/options if the
 architecture requires semantic metric/word state, changing
 accepted neume engraving, an **additional** unresolved overflow
 constraint beyond the explicit scrollable-canvas policy, or a
-genuinely different wrapping model than the Proposed ADR. The
+genuinely different wrapping model than the accepted ADR. The
 fixed-720-unit canvas overflow question itself is **resolved**
 for implementation; do not stop on it again.
 
