@@ -8,6 +8,7 @@ Status: **active verification-and-fix handoff**; no new engraving feature or ADR
 ## Problem and definition of done
 
 Stages 4A–4C are merged:
+
 - 4A: lyric-language preference, measured vowel/nucleus alignment and manual
   grapheme-range overrides;
 - 4B: unified measured music/lyric clearances, whole-neume wrapping,
@@ -40,7 +41,7 @@ owner signoff. It is not a requirement for perfect historical chant engraving.
   Existing records (especially early 0.4-em Stage 4C screenshots) are
   **historical**. Never mistake them for current master results.
 
-No new ADR is expected for verification. If testing exposes a *material*
+No new ADR is expected for verification. If testing exposes a _material_
 change needed to an accepted semantic, alignment, music spacing, hyphen
 or selection contract, stop and bring evidence/options back to the owner;
 do not silently revise ADR 0010/0011.
@@ -54,7 +55,7 @@ do not silently revise ADR 0010/0011.
   behavior as covered by current pure tests, a current runnable browser
   driver, foreground human testing, or a known gap. Link actual
   commands/files and revision being tested.
-- Prefer running/reusing and, if necessary, repairing *existing* browser
+- Prefer running/reusing and, if necessary, repairing _existing_ browser
   drivers. Consolidate duplicate tests only if doing so clearly
   improves maintenance; do not replace them with a new broad framework.
 - Track each result as **Pass / Fail / Not run / Not supported**,
@@ -65,6 +66,7 @@ do not silently revise ADR 0010/0011.
 ### 4D.2 — Visual and responsive acceptance
 
 Exercise actual rendered scores with representative Stage 4 cases:
+
 - `Al ... leluia ah` with intervening music and a true word boundary;
 - `Kyrie eleison`, `Gloria`, `Miserere`, `Deo` and the
   eight-word/five-arrangement Stage 4C corpus as useful;
@@ -92,14 +94,15 @@ not pixel-difference golden files.
 
 Preserve the owner-approved **good-enough** geometric word composition.
 Current `auditi-óne` versus GregoBase `audi-ti-óne`, and wider
-spacing between repeated puncta in `et(hh)`, are *documented future
-refinements*, **not** Stage 4D failures. Do not change hyphen thresholds,
+spacing between repeated puncta in `et(hh)`, are _documented future
+refinements_, **not** Stage 4D failures. Do not change hyphen thresholds,
 global music spacing, neume kinds or lyric anchor policy solely to
 imitate a reference image.
 
 ### 4D.3 — Interaction and keyboard audit
 
 On the real editor, including after score reflow and font loading:
+
 - Keyboard-only navigation: natural Tab/Shift+Tab through controls
   and SVG syllable/note targets, correct Enter/Space activation,
   visible **focus distinct from semantic selection**, no trapped focus,
@@ -166,7 +169,7 @@ actual result; never claim it passed by inference.
 - Update `docs/testing.md` with reproducible current commands and
   the final Stage 4D acceptance record. Update owning guides only if
   verified behavior actually changed.
-- Audit stale statuses/links in *current* documentation. Keep dated
+- Audit stale statuses/links in _current_ documentation. Keep dated
   PR-specific verification records historically accurate; if their
   old claims could mislead, add a short "historical" note or link
   from the current index rather than rewriting old observations.
