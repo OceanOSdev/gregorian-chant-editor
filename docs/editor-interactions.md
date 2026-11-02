@@ -385,8 +385,8 @@ Tab order, pointer ownership, scrolling, accessible naming and status mutations
 are separately verified in the browser. Spoken output requires a screen-reader
 pass. See [testing](testing.md) and the linked verification record.
 
-Selected engraved lyrics retain their ordinary ink and use a purple dashed
-outline consistent with neume selection. Keyboard focus uses the labeled marker
+Selected engraved lyrics retain their ordinary ink and use a pale purple
+background highlight contained within their horizontal text extent. Keyboard focus uses the labeled marker
 described below; selection does not use a hyperlink-style underline.
 
 ## Focus and selection feedback
@@ -397,7 +397,8 @@ history entries, or change the active tool. A user can inspect another syllable
 and return without losing the musical selection. Automatic synchronization
 would make ordinary focus navigation change editing context or commit a draft.
 
-The purple dashed outline marks the selected entity. Engraved-lyric keyboard
+Purple marks selection: neumes retain their dashed outline and lyrics use a
+contained background highlight. Engraved-lyric keyboard
 focus uses a blue caret and a separate “Keyboard focus” caption, rather than
 another enclosing active box. The lyric panel names the currently focused
 syllable and explains that Delete/Backspace deletes it and Enter edits it.
@@ -490,7 +491,7 @@ outside reassignment. Moving lyrics changes no engraving/wrapping policy.
 
 The restored Lyrics target can differ from semantic selection, for example after
 pressing L on another focused syllable. The panel names the Lyrics target
-separately from the purple-outline selection. **Edit selected syllable** and
+separately from the purple selection cue. **Edit selected syllable** and
 **Delete selected syllable** always send the semantic selection's explicit ID;
 engraved keyboard actions continue to send their focused target's ID. Starting a
 move from a draft does not turn the resolved workflow target into selection on

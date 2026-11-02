@@ -201,6 +201,45 @@ await assertInkClear();
 await shot('same-word-overhang-320');
 await viewport(1440);
 await pause();
+// Selected decoration must never cross the neighboring glyphs or move music.
+for (const [width, zoom] of [
+  [1440, 1],
+  [320, 1],
+  [480, 1.5],
+]) {
+  await viewport(width);
+  await ev(`document.documentElement.style.zoom='${zoom}'`);
+  await pause();
+  const unselected = await geometry();
+  await click('.score__lyric[data-syllable-id="s1"]');
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 10, y: 10 });
+  const cue = await ev(
+    `(()=>{const t=document.querySelector('.score__lyric[data-syllable-id="s1"]'),g=t.parentElement,r=g.querySelector('.score__lyric-selection'),next=document.querySelector('.score__lyric[data-syllable-id="s2"]');return {pressed:t.getAttribute('aria-pressed'),outline:getComputedStyle(g).outlineStyle,stroke:getComputedStyle(r).stroke,pointer:getComputedStyle(r).pointerEvents,hidden:r.getAttribute('aria-hidden'),behind:g.firstElementChild===r,gap:next.getBBox().x-r.getBBox().x-r.getBBox().width}})()`,
+  );
+  assert.equal(cue.pressed, 'true');
+  assert.equal(cue.outline, 'none');
+  assert.equal(cue.stroke, 'none');
+  assert.equal(cue.pointer, 'none');
+  assert.equal(cue.hidden, 'true');
+  assert.equal(cue.behind, true);
+  assert(cue.gap >= -0.05);
+  await assertInkClear();
+  assert.deepEqual(await geometry(), unselected);
+  await ev('window.scrollTo(0,0)');
+  await shot(`selected-cue-${width}-${zoom}`);
+  await click('[data-note-id="note0"]');
+  assert.equal(
+    await ev(`document.querySelectorAll('.score__lyric-selection').length`),
+    0,
+  );
+  assert.deepEqual(await geometry(), unselected);
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 10, y: 10 });
+  await ev('window.scrollTo(0,0)');
+  await shot(`unselected-cue-${width}-${zoom}`);
+}
+await ev(`document.documentElement.style.zoom='1'`);
+await viewport(1440);
+await pause();
 // A longer version must wrap normally, then an unbreakable version must isolate.
 await focus('.score__lyric[data-syllable-id="s1"]');
 await key('Enter');

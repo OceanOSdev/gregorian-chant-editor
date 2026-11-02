@@ -263,12 +263,18 @@ Pure helpers test the accessible strings. Actual browser focus, event
 propagation, and visual behavior still require the manual checks described in
 the [testing guide](testing.md).
 
-Lyric selection uses a decorative group outline around the text, consistent
-with the purple dashed neume selection treatment. The text remains the sole
-focusable lyric control and retains its normal ink. A separate blue caret and “Keyboard focus” caption identify the focused
-engraved lyric without enclosing a second syllable in an active box. The cue
-sits outside the selection group so it cannot enlarge its outline. Neither cue changes
-lyric metrics, music geometry, wrapping, or semantic state.
+Lyric selection uses a pale purple, stroke-free SVG rectangle behind the text,
+inset two layout units from its measured occupied horizontal bounds (clamped
+for very narrow text). It has no outward CSS outline and cannot add a vertical
+border through an adjoining syllable. The background is pointer-inert and
+aria-hidden; the text remains the sole focusable lyric control and retains its
+ordinary ink and accessible pressed state. Until measurements arrive, the
+selection summary and pressed state still identify selection without guessed
+highlight width. Neume selection keeps its existing dashed outline.
+
+A separate blue caret and “Keyboard focus” caption identify the focused lyric,
+independently of selection. Both cues leave musical geometry, lyric spacing,
+wrapping and semantic history unchanged. No decorative clearance is reserved.
 
 During lyric reassignment, each neume has a nonfocusable pointer rectangle with
 the same rounded bounds and stroke extent as its seven-unit padded outline.

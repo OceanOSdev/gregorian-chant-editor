@@ -259,7 +259,7 @@ export function SyllableControls({
       ) : null}
       <p id="lyric-focus-help">
         Tab moves keyboard focus without changing selection. The blue marker
-        shows where engraved-lyric keys act; the purple outline marks selection.
+        shows where engraved-lyric keys act; the purple cue marks selection.
         Delete/Backspace deletes the focused engraved syllable. Selection
         buttons act on the selected syllable.
       </p>
@@ -419,7 +419,7 @@ export function SyllableControls({
               {selectedSyllable ? (
                 <>
                   <p>
-                    Selection (purple outline):{' '}
+                    Selection (purple cue):{' '}
                     <strong>{selectedSyllable.text}</strong>
                   </p>
                   <button
@@ -559,8 +559,7 @@ export function SyllableControls({
       ) : selectedSyllableId ? (
         <div className="lyric-actions">
           <p>
-            Selection (purple outline):{' '}
-            <strong>{selectedSyllable?.text}</strong>
+            Selection (purple cue): <strong>{selectedSyllable?.text}</strong>
           </p>
           <button
             type="button"

@@ -514,6 +514,21 @@ export function ScoreSvg({
               <g
                 className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
               >
+                {selection.kind === 'syllable' &&
+                selection.syllableId === lyric.syllableId &&
+                lyric.left !== null &&
+                lyric.right !== null ? (
+                  <rect
+                    className="score__lyric-selection"
+                    x={lyric.left + Math.min(2, (lyric.right - lyric.left) / 2)}
+                    y={lyric.y - lyric.fontSize}
+                    width={Math.max(0, lyric.right - lyric.left - 4)}
+                    height={lyric.fontSize * 1.3}
+                    rx={1.5}
+                    aria-hidden="true"
+                    pointerEvents="none"
+                  />
+                ) : null}
                 <text
                   className="score__lyric"
                   ref={(element) => {

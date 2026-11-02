@@ -76,3 +76,31 @@ passed with the fix. Invalid ink measurements retain the deterministic fallback.
 Before/after screenshots and the wrapped/narrow variants are generated in
 system temporary storage, with paths recorded in PR #44 review evidence.
 No hyphens or new same-word joining policy are introduced.
+
+## Selected-syllable cue regression
+
+The latest PR review identified an outward dashed selection outline crossing
+`lu`, despite clear underlying glyphs. This was reproduced in Firefox using
+native BiDi pointer selection with the pointer then moved away from the SVG.
+The replacement is a pale purple background painted behind the selected text,
+without a stroke or CSS outline and inset inside its measured horizontal extent.
+Selection never changes musical/lyric positions, reserves extra spacing or
+introduces hyphens. The original neume outline and separate blue lyric focus
+marker remain.
+
+`selection-cue-firefox.mjs` and the expanded Chromium driver check selected and
+unselected versions of the reported long-syllable pattern at 1440px, 320px and
+150% CSS zoom (480px viewport). They assert SVG glyph/background bounds, no
+outward outline/stroke, background paint order and pointer inertness, exact
+position stability, and cue removal when selecting a note. Screenshots include
+both states with the pointer away from the score. Firefox's screen rectangles
+include device-pixel rounding/padding; collision assertions use SVG glyph bounds.
+The observed SVG ink gap remained nonnegative, so no separate text-spacing or
+same-word legibility policy was introduced.
+
+Firefox headless reported `document.hasFocus() === false`, although native pointer
+actions correctly updated selection. This run verifies the captured rendering
+and pointer selection, not foreground Firefox keyboard focus or final Stage 4D
+acceptance. The earlier blanket Firefox-unverified statement describes the
+initial spacing implementation; this targeted later Firefox rendering check is
+now verified. Spoken screen-reader behavior remains unverified.
