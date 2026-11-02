@@ -1,7 +1,7 @@
-# Plan: Stage 4 lyric-aware engraving (4A–4C merged; 4D underway)
+# Plan: Stage 4 lyric-aware engraving (completed verification milestone)
 
 Status: **4A merged in PR #43; 4B merged in PR #44; 4C merged in PR #45;
-Stage 4D verification delivered on `test/stage-4d-acceptance`; owner acceptance pending**.
+Stage 4D verification complete with disclosed gaps; PR #46 review/merge pending**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Completed 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
@@ -13,8 +13,10 @@ following the [4C handoff](stage-4c-word-composition.md) and
 [Accepted ADR 0011](../adrs/0011-word-aware-chant-engraving.md).
 [Accepted ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
 continues to govern combined music/lyric layout, narrowly qualified by ADR 0011.
-The active implementation/acceptance handoff is
-[Stage 4D](stage-4d-acceptance.md). The preceding stage instructions below
+The completed verification handoff is [Stage 4D](stage-4d-acceptance.md).
+The [verification report](../verification/stage-4d/README.md) records the
+qualitative owner manual result, screen-reader checks Not run and the uncaptured
+detailed 320px usability signoff. Completion does not imply every scenario passed. The preceding stage instructions below
 are historical and should not be reimplemented.
 
 **Language-design gate resolved (2026-11-01):** The owner approved a required,
@@ -256,7 +258,7 @@ The original hyphen principles remain: derive from semantic word boundaries,
 measured gaps and system partitions; no decorative focus/hit targets and no
 persisted punctuation. Stage 4D stays separate.
 
-### 4D — Cross-browser visual, interaction and accessibility acceptance (owner review pending)
+### 4D — Cross-browser verification (complete with disclosed gaps)
 
 See the [Stage 4D verification report](../verification/stage-4d/README.md) for
 actual results and remaining owner checks. Follow the

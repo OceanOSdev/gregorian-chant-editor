@@ -68,7 +68,8 @@ Stage 1 introduced independent music and unique ordered syllable anchors. Stage 
 provides continuous Lyrics mode, scoped L activation, underscore skipping,
 commit-on-navigation, explicit replacement, occupied-anchor pauses, end-of-music
 resumption and draft/history recovery. Stage 3 provides explicit constrained anchor
-correction with pointer and keyboard targeting; generated hyphens remain Stage 4. No persistence migration is required.
+correction with pointer and keyboard targeting. Stage 4 supplies generated hyphens.
+No persistence migration is required.
 
 Stage 4A provides explicit document language, measured vowel alignment and manual
 grapheme segment overrides. Stage 4B is merged: measured lyric clearance and whole-neume wrapping share one derived
@@ -76,5 +77,11 @@ layout, with local scrollable overflow only for unbreakable oversized text.
 ADR 0010 is Accepted and supersedes ADR 0005 following owner review.
 Stage 4C composition was merged in PR #45 and its baseline visuals were
 owner-accepted; ADR 0011 is Accepted as a narrow qualification of ADR 0010.
-Stage 4D cross-browser/foreground Firefox keyboard and assistive-technology
-acceptance is underway under [its dedicated plan](plans/stage-4d-acceptance.md).
+Stage 4D's verification milestone is complete for PR #46 review, with the
+[verification report](verification/stage-4d/README.md) recording automated results
+and a qualitative owner report of successful non-screen-reader visual, keyboard
+and editing checks. Individual manual scenarios and environment/zoom were not
+itemized. Spoken screen-reader checks remain **Not run**; detailed 320px usability
+signoff is uncaptured, and ordinary score text/targets remain small. Completion
+does not imply comprehensive accessibility verification. Final PR review/merge
+remain pending.

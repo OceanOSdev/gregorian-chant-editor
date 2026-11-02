@@ -1,8 +1,9 @@
 # Stage 4D verification and owner acceptance
 
-Status: verification delivered for review; **owner acceptance pending**.
-This report is current evidence, not an assertion that all Stage 4 acceptance
-criteria passed. Historical Stage 4A–4C records retain their original results.
+Status: **Stage 4 verification milestone complete for PR review (2026-11-02)**,
+with the qualified owner report and remaining gaps below. PR #46 is not merged.
+This is not an assertion that every acceptance scenario passed. Historical
+Stage 4A–4C records retain their original results.
 
 ## Revision and environment
 
@@ -17,26 +18,44 @@ fixture, using native CDP/BiDi input plus explicitly scripted DOM inspections.
 Default browser zoom was 100%; the spacing drivers additionally use 150% CSS
 zoom (not browser chrome zoom). Desktop is 1440px; narrow is 320px.
 
+## Owner manual report (2026-11-02)
+
+The [owner acceptance update](https://github.com/OceanOSdev/gregorian-chant-editor/pull/46#issuecomment-6585233450)
+reports that the non-screen-reader workflows tested behaved as expected, with
+no problems found in visual, keyboard and editing checks. This is a **qualitative
+owner report**: individual scenarios, browser version, environment, viewport and
+zoom were not itemized. It does not independently verify every checklist item,
+actual IME, real browser zoom or 320px usability. Detailed narrow-screen signoff
+is not captured; ordinary score text and targets remain visibly small at 320px.
+
+The owner used **no screen reader**. Spoken accessibility checks remain **Not
+run**, a disclosed verification gap. DOM/ARIA assertions establish neither
+spoken-output success, screen-reader compatibility nor WCAG conformance.
+The owner requested documentation closeout and plan retirement with these
+limitations disclosed; final PR review and merge remain the owner's decision.
+
 ## Coverage audit and current results
 
 Pass means the named automated assertions completed, not human acceptance.
 All browser rows below are real browser automation, separate from pure tests.
+Foreground scenario results are not itemized in the owner report above; the
+matrix does not infer individual passes from that report.
 
-| Behavior / coverage source                                                                                                    | Pure coverage                                                         | Chromium                                                                                    | Firefox                                                           | Foreground human         |
-| ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------ |
-| Latin/English/Greek/unspecified, accents, combining graphemes, overrides                                                      | `lyric-alignment`, `update-lyric-alignment`                           | Pass: vowel driver, including manual ranges/history/dirty draft                             | Not run: interactive language workflow                            | Not run                  |
-| Measured ink/advance, wrapping, partial metrics, exceptional overhang                                                         | `lyric-spacing`, `multi-system-layout`                                | Pass: spacing driver, left/right/both overflow, local scrolling, scrolled pointer insertion | Not run: full overflow/input driver                               | Not run                  |
-| Eight words × five arrangements, auditione controls, et/lux (47 cases)                                                        | `word-corpus`, `et-lux`, `word-composition`, `rendered-continuations` | Pass: desktop, 320px, real DejaVu Sans substitution                                         | Pass: desktop, 320px, real DejaVu Sans substitution               | Not run                  |
-| Conditional/outgoing marks, true boundaries, melismas, near-edge reservation                                                  | same suites                                                           | Pass: composition driver                                                                    | Pass: composition driver                                          | Not run                  |
-| All seven compact kinds, each constituent, Shift whole-neume selection, clipped selection/placement/move cues                 | geometry/ownership/preview suites                                     | Pass: composition driver at desktop/320px                                                   | Pass: composition driver at desktop/320px                         | Not run                  |
-| Continuous lyrics, `_`, occupied anchors, L, native character deletion, focus vs selection, focused deletion, history prompts | `syllable-workflow`, `editor-session`, keyboard suites                | Pass: continuous driver                                                                     | Not run: foreground focus limitation remains                      | Not run                  |
-| Move preview/commit/cancel, selected vs focused targets, legal/rejected destinations, history/reflow                          | `lyric-move`                                                          | Pass: repaired move driver                                                                  | Not run                                                           | Not run                  |
-| Font readiness/invalidation, focused ID after reparenting, history after reflow                                               | alignment/spacing/session suites                                      | Pass: spacing driver (simulated loading events plus real alternate font)                    | Pass: real alternate-font corpus geometry; focus recovery not run | Not run                  |
-| Lyric role/name/state/instruction references, semantic DOM reading order, inert punctuation                                   | label/description helpers; new corpus DOM assertions                  | Pass across corpus matrix                                                                   | Pass across corpus matrix                                         | Not run                  |
-| Selection background at desktop/320px/150% CSS zoom                                                                           | spacing geometry                                                      | Pass: spacing driver                                                                        | Pass: selection-cue driver; document focus false                  | Not run                  |
-| Score summary, note names/selected state, live messages                                                                       | accessible helper/session tests                                       | Pass: existing workflow assertions; no complete accessibility-tree audit                    | Not run: complete accessibility-tree audit                        | Not run                  |
-| OS Tab/focus, keyboard traps, browser zoom, speech, actual IME                                                                | guard logic only                                                      | Not run: foreground                                                                         | Not run: foreground                                               | Not run; checklist below |
-| Repeated long-score editing / sustained performance                                                                           | bounded progress/repeated layout tests                                | Not run: sustained stress profiling                                                         | Not run                                                           | Not run                  |
+| Behavior / coverage source                                                                                                    | Pure coverage                                                         | Chromium                                                                                    | Firefox                                                           | Foreground human                               |
+| ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
+| Latin/English/Greek/unspecified, accents, combining graphemes, overrides                                                      | `lyric-alignment`, `update-lyric-alignment`                           | Pass: vowel driver, including manual ranges/history/dirty draft                             | Not run: interactive language workflow                            | Not itemized in owner report                   |
+| Measured ink/advance, wrapping, partial metrics, exceptional overhang                                                         | `lyric-spacing`, `multi-system-layout`                                | Pass: spacing driver, left/right/both overflow, local scrolling, scrolled pointer insertion | Not run: full overflow/input driver                               | Not itemized in owner report                   |
+| Eight words × five arrangements, auditione controls, et/lux (47 cases)                                                        | `word-corpus`, `et-lux`, `word-composition`, `rendered-continuations` | Pass: desktop, 320px, real DejaVu Sans substitution                                         | Pass: desktop, 320px, real DejaVu Sans substitution               | Not itemized in owner report                   |
+| Conditional/outgoing marks, true boundaries, melismas, near-edge reservation                                                  | same suites                                                           | Pass: composition driver                                                                    | Pass: composition driver                                          | Not itemized in owner report                   |
+| All seven compact kinds, each constituent, Shift whole-neume selection, clipped selection/placement/move cues                 | geometry/ownership/preview suites                                     | Pass: composition driver at desktop/320px                                                   | Pass: composition driver at desktop/320px                         | Not itemized in owner report                   |
+| Continuous lyrics, `_`, occupied anchors, L, native character deletion, focus vs selection, focused deletion, history prompts | `syllable-workflow`, `editor-session`, keyboard suites                | Pass: continuous driver                                                                     | Not run: foreground focus limitation remains                      | Not itemized in owner report                   |
+| Move preview/commit/cancel, selected vs focused targets, legal/rejected destinations, history/reflow                          | `lyric-move`                                                          | Pass: repaired move driver                                                                  | Not run                                                           | Not itemized in owner report                   |
+| Font readiness/invalidation, focused ID after reparenting, history after reflow                                               | alignment/spacing/session suites                                      | Pass: spacing driver (simulated loading events plus real alternate font)                    | Pass: real alternate-font corpus geometry; focus recovery not run | Not itemized in owner report                   |
+| Lyric role/name/state/instruction references, semantic DOM reading order, inert punctuation                                   | label/description helpers; new corpus DOM assertions                  | Pass across corpus matrix                                                                   | Pass across corpus matrix                                         | Not itemized in owner report                   |
+| Selection background at desktop/320px/150% CSS zoom                                                                           | spacing geometry                                                      | Pass: spacing driver                                                                        | Pass: selection-cue driver; document focus false                  | Not itemized in owner report                   |
+| Score summary, note names/selected state, live messages                                                                       | accessible helper/session tests                                       | Pass: existing workflow assertions; no complete accessibility-tree audit                    | Not run: complete accessibility-tree audit                        | Not itemized in owner report                   |
+| OS Tab/focus, keyboard traps, browser zoom, speech, actual IME                                                                | guard logic only                                                      | Not run: foreground                                                                         | Not run: foreground                                               | Non-speech checks not itemized; speech Not run |
+| Repeated long-score editing / sustained performance                                                                           | bounded progress/repeated layout tests                                | Not run: sustained stress profiling                                                         | Not run                                                           | Not itemized in owner report                   |
 
 The initial `format:check` failed solely on the committed 4D plan's formatting;
 Prettier corrected it. Lint, all **46 files / 847 tests**, and production build
@@ -107,7 +126,7 @@ Codex inspected these actual images. Words and outgoing marks remain distinct;
 compact selection is contained; exceptional text uses local scrolling. A viewport
 capture cannot show the entire oversized text at once; the scrolling assertions
 check edge reachability. Ordinary scores scale down at 320px and remain small;
-owner usability review is pending. Font substitution changes joins/hyphens
+detailed owner narrow-screen signoff remains uncaptured. Font substitution changes joins/hyphens
 (Firefox desktop default corpus: 76 joins/40 hyphens; Chromium: 77/39; Sans in both: 85/31), as intended from
 measured geometry. Both retain 9 outgoing and 17 true-word boundaries.
 
@@ -124,9 +143,10 @@ Firefox selection-cue run: `/tmp/chant-firefox-selection-kZwNLw` (Pass;
 `document.hasFocus()` false). Temporary paths are diagnostic provenance,
 not durable links.
 
-No foreground manual interaction was performed. Orca is installed locally, but
-this verification used headless browser sessions and did not drive a foreground
-assistive-technology session or hear speech. **Screen-reader testing: Not run**.
+Codex performed no foreground manual interaction; its browser checks used
+headless sessions. The owner separately reported manual results above. Orca is
+installed locally, but neither Codex nor the owner used a screen reader for this
+verification or verified speech. **Screen-reader testing: Not run**.
 No WCAG or comprehensive accessibility claim is made. Complete browser
 accessibility-tree inspection and sustained performance profiling are also
 unverified. Automated focus checks in Chromium do not close those gaps.
@@ -135,10 +155,11 @@ unverified. Automated focus checks in Chromium do not close those gaps.
 
 Run `npm run dev` and keep an ordinary **foreground** Firefox window active.
 Record each numbered scenario as Pass / Fail / Not run, with reproduction for
-failures. All foreground results remain **Not run** until the tester records them.
+failures. The owner supplied the qualitative report above; individual results
+remain **not itemized**. The checklist remains available for targeted follow-up.
 
-Tester/date: **pending**. OS / Firefox version: **pending**.
-Viewport / browser zoom / fonts / screen reader and version: **pending**.
+Tester/date: **owner, reported 2026-11-02**. OS / Firefox version: **not recorded**.
+Viewport / browser zoom / fonts: **not recorded**. Screen reader: **none used**.
 
 ### Setup and resets
 
@@ -283,19 +304,31 @@ policy, natural foreground focus, completion of the manual scenarios or speech.
 Formatting, lint, 847 pure tests, production build and whitespace checks passed
 again for this documentation follow-up. No application or fixture source changed.
 
-## Owner decision and cleanup proposal
+## Closeout and remaining review items
 
-- [ ] Record foreground Firefox results above (currently all Not run).
-- [ ] Record actual screen-reader results or explicitly accept the untested risk.
-- [ ] Record explicit acceptance/rejection of narrow text/target/control usability
-      (scenario 8); review visual evidence and any reproduced failures.
-- [ ] Accept Stage 4D, or request scoped fixes; CI alone is not acceptance.
-- [ ] At acceptance, retire `docs/plans/lyric-system-redesign.md` and mark the
-      overarching Stage 4 plan complete (or remove obsolete one-off handoffs).
+- Owner-reported visual, keyboard and editing checks: no problems reported;
+  individual checklist results and environment remain unitemized.
+- Spoken screen-reader testing: **Not run**. No compatibility or conformance claim.
+- Detailed 320px/real-zoom usability signoff: **not captured**; small score text,
+  targets and control usability remain an explicit owner review item.
+- Stage 4 plans marked complete as a verification milestone, with these gaps
+  preserved. Final PR review and merge remain pending; no merge was performed.
 
-Retirement is intentionally pending acceptance. Durable contracts already live
-in ADRs 0002/0003/0004/0007–0011 and the domain, commands/history, interactions,
-layout and architecture guides. No accepted decision needs to be kept alive
-solely by deleting or retaining a plan. Historical research and evidence stay.
+Retired `docs/plans/lyric-system-redesign.md` at the owner's explicit closeout
+request. Its durable decisions were checked against their permanent owners:
+
+| Retired plan concern                                                                                    | Durable source                                                                                |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Independent neumes, ordered unique anchors, inferred spans, boundaries and normalization                | [Domain model](../../domain-model.md), [ADR 0008](../../adrs/0008-anchor-lyrics-to-neumes.md) |
+| Immutable edits, atomic history, deletion and draft resolution                                          | [Commands and history](../../commands-and-history.md)                                         |
+| Continuous entry, occupied targets, skips, scoped shortcuts, focus/selection, recovery and anchor moves | [Editor interactions](../../editor-interactions.md)                                           |
+| Semantic/derived separation and shared engraving                                                        | [Architecture](../../architecture.md), ADRs 0002/0003/0004/0007                               |
+| Language, manual alignment, measured wrapping, conditional/outgoing marks and overflow                  | [Layout and rendering](../../layout-and-rendering.md), ADRs 0009/0010/0011                    |
+
+The old music-only/minimal-hyphen proposal was already superseded by accepted
+ADRs 0010/0011; it is not restored by retirement. Git history and historical
+verification evidence remain available. No application behavior or ADR changed. The documentation-only closeout reran
+formatting, lint, all 847 tests, production build and whitespace checks successfully;
+browser drivers were not rerun for this status/retirement change.
 Auditione `auditi-óne` vs reference `audi-ti-óne` and within-syllable repeated
 punctum spacing in `et(hh)` remain deferred; neither is a Stage 4D failure.

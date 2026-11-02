@@ -3,9 +3,12 @@
 Branch: `test/stage-4d-acceptance`
 Target: `master`
 Baseline: `46b1d597277d428b20231301c3b3306d13bd3a01` (PR #45 merged)
-Status: **verification delivered; owner acceptance pending**. See the
+Status: **verification milestone complete with disclosed gaps (2026-11-02); PR review/merge pending**. See the
 [Stage 4D verification report](../verification/stage-4d/README.md) for actual
-results and outstanding foreground checks. No new engraving feature or ADR is authorized.
+results and qualitative owner manual report. Individual manual scenarios/environment
+were not itemized; screen-reader checks remain Not run and detailed narrow-screen
+signoff is uncaptured. The plan below is historical scope, not evidence that every
+criterion passed. No new engraving feature or ADR is authorized.
 
 ## Problem and definition of done
 
