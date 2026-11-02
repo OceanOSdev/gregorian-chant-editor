@@ -1,10 +1,17 @@
-# Plan: Stage 4 lyric-aware engraving (begin with 4A)
+# Plan: Stage 4 lyric-aware engraving (4A completed; 4B underway)
 
-Branch: `feat/stage-4a-vowel-alignment`
+Status: **4A merged in PR #43; 4B active; 4C–4D deferred**.
+Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
+Current 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
-Baseline: `4c511a88e12296baefe29d79ff55ad65b4a91a71` (Stage 3 merged)
-Initial implementation scope: **4A only**. 4B–4D below document the direction,
-not authorization to implement them in this PR.
+Current 4B baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
+
+The historical 4A instructions below describe the completed milestone; **do not
+restart 4A or implement 4C–4D**. The active implementation handoff is
+[Stage 4B lyric-aware spacing](stage-4b-lyric-aware-spacing.md).
+Its [Proposed ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+documents the anticipated replacement for accepted ADR 0005. Implement 4B
+only on the new branch; owner acceptance of ADR 0010 is required before merge.
 
 **Language-design gate resolved (2026-11-01):** The owner approved a required,
 document-level lyric engraving language preference. New chants use Latin by
@@ -162,9 +169,9 @@ interface ChantDocument {
 
 ## Milestones and review gates
 
-### 4A — Text measurement, vowel alignment, and manual overrides
+### 4A — Text measurement, vowel alignment, and manual overrides (merged)
 
-**Implement this milestone on this branch and stop.**
+**Completed in PR #43.** The following details are retained as historical scope/acceptance criteria, not instructions to repeat the milestone.
 
 - Investigate the current SVG font, text baselines, `lyricAnchorX`, and
   `layoutChant` call sites. Add a small explicit font-metric / measurement
@@ -223,7 +230,9 @@ reflow or semantic anchor changes from alignment alone; selection vs focus
 and edit-target regression; atomic history and exact undo/redo. Verify in
 both multi-system and narrow browser cases.
 
-### 4B — Lyric-aware spacing and wrapping (future branch / PR)
+### 4B — Lyric-aware spacing and wrapping (active; separate branch / PR)
+
+Follow [the dedicated Stage 4B handoff](stage-4b-lyric-aware-spacing.md) and Proposed ADR 0010. Do not silently supersede accepted ADR 0005. The following original outline remains background context.
 
 After 4A review, agree ADR impact. Design a single pure placement walk that
 consumes neume ink geometry plus measured lyric/word requirements and yields
