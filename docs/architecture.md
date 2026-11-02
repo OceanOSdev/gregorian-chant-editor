@@ -13,6 +13,7 @@ architecture decision records.
 - [Commands and history](commands-and-history.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Editor interactions](editor-interactions.md)
+- [Experimental playback](playback.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
 - [Architecture decisions](adrs/README.md)
@@ -43,22 +44,23 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 
 ## Responsibility boundaries
 
-| Layer                  | Owns                                                                                      | Does not own                                   |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Semantic domain        | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state       |
-| Pure commands          | Validation and immutable semantic transitions                                             | UI state, layout, browser events               |
-| Document history       | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts         |
-| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus             | Canonical notation or engraving geometry       |
-| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation     |
-| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning                  |
-| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                           |
-| Persistence adapters   | Validated versioned files and conversion to/from semantic data                            | Authoritative layout or transient editor state |
-| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                  | Persisted or undoable notation                 |
+| Layer                   | Owns                                                                                      | Does not own                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Semantic domain         | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state       |
+| Pure commands           | Validation and immutable semantic transitions                                             | UI state, layout, browser events               |
+| Document history        | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts         |
+| Transient editor state  | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus             | Canonical notation or engraving geometry       |
+| Interaction resolvers   | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation     |
+| Derived layout          | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning                  |
+| SVG rendering           | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                           |
+| Persistence adapters    | Validated versioned files and conversion to/from semantic data                            | Authoritative layout or transient editor state |
+| Playback interpretation | Derived note events, pitch/frequency and equal-note timing                                | Persistent rhythm or semantic edits            |
+| Browser state           | Actual DOM focus, pointer coordinates, event propagation                                  | Persisted or undoable notation                 |
 
 The semantic document deliberately excludes pixels, SVG geometry, systems,
 automatic wrapping assignments, React or DOM objects, selection, active tools,
-hover points, previews, browser focus, history stacks, and drafts. Keeping
-these values outside the document prevents viewport and interaction details
+hover points, previews, browser focus, history stacks, drafts, audio resources and
+playback timing. Keeping these values outside the document prevents viewport and interaction details
 from entering semantic history.
 
 See [ADR 0002](adrs/0002-separate-semantic-and-derived-state.md) for the
@@ -98,6 +100,15 @@ Converts a semantic document into `ChantLayout`. It owns engraving geometry,
 whole-neume wrapping, repeated systems, lyric alignment, graphical snapping,
 and local insertion preview geometry. See
 [layout and rendering](layout-and-rendering.md).
+
+### `src/editor/playback/`
+
+Owns the pure `createPerformance` interpretation and browser audio transport.
+The current engine derives equal-duration events directly from semantic note
+order and C-clef pitch. Sound scheduling and playhead state stay outside semantic
+history and layout. `ChantEditor` supplies the current score and uses stable note
+IDs for a separate playback highlight. See [experimental playback](playback.md)
+for the interpretation contract, controls, resource lifecycle and limits.
 
 ### `src/editor/persistence/` and `src/editor/interchange/`
 
@@ -164,3 +175,19 @@ semantic data. The default API call and `wrapNeumes` retain the accepted
 music-only policy. Graphical commit resolves against the same measurement lookup
 and option as the rendered score. See [layout and rendering](layout-and-rendering.md#experimental-lyric-aware-layout)
 and the [Proposed ADR 0010](adrs/0010-experiment-with-lyric-aware-layout.md).
+
+## Experimental playback path
+
+The probe also derives a performance directly from `ChantDocument`:
+
+```text
+ChantDocument → createPerformance → performance events → browser audio
+                                              ↓
+                                    presentation-only playhead
+```
+
+The score document remains canonical notation. Tempo, octave, volume, transport
+state and audio resources are transient session state, not a second editable
+score or a persisted timing model. A document edit invalidates the current run.
+This exercises [Proposed ADR 0006](adrs/0006-separate-notation-from-playback.md)
+without changing that record’s adoption status.

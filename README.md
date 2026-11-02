@@ -32,7 +32,8 @@ The editor currently supports:
 - strict GABC interchange for the supported notation subset;
 - clean SVG downloads and browser printing between complete systems;
 - measured vowel alignment and optional manual grapheme segments;
-- experimental lyric-aware spacing, word gaps and continuation hyphens.
+- experimental lyric-aware spacing, word gaps and continuation hyphens;
+- browser playback with Play/Pause/Stop, tempo, volume, octave and note following.
 
 There is no explicit global semantic creation cap. File size, collection and
 pitch limits apply at persistence boundaries; see
@@ -52,6 +53,12 @@ is also saved in this browser after edits; lyric drafts and undo history are not
 provides GABC, passive SVG and browser printing. Finish or cancel lyric drafts
 before saving or exporting. Use downloaded files to keep work outside this browser.
 
+Use **Play** to hear the score as an organ-like tone, with equal-duration notes.
+Playback starts only from an explicit user gesture. Tempo, volume and octave
+controls affect listening; they do not rewrite notation. The moving note highlight
+and optional Follow behavior are independent of selection. See
+[experimental playback](docs/playback.md) for behavior and limits.
+
 The app enables **Lyric-aware spacing** by default. Turn it off to compare with
 the accepted music-only layout. The experiment remains a separate layout policy;
 [ADR 0010](docs/adrs/0010-experiment-with-lyric-aware-layout.md) is Proposed.
@@ -67,7 +74,9 @@ the accepted music-only layout. The experiment remains a separate layout policy;
 - GABC support is deliberately narrow and rejects unsupported notation. It does
   not retain semantic IDs or manual lyric alignment; chant JSON is the lossless format.
 - There are no authored system/page breaks, backend, accounts, cloud storage,
-  collaboration or audio playback. Browser recovery is one local copy, not a library.
+  collaboration. Browser recovery is one local copy, not a library.
+- Playback is a simple equal-note listening aid, without vocals or chant-rhythm
+  interpretation; it is not a complete musical performance engine.
 - Browser printing can paginate between systems; oversized content is fitted to
   the available page width. There is no dedicated PDF engraving/export engine.
 - Vitest remains a plain TypeScript suite. Separate Chromium checks exercise real
@@ -112,6 +121,7 @@ Editor code is organized by responsibility under `src/editor/`:
 - `rendering/` — interactive SVG, passive print rendering and accessibility descriptions;
 - `persistence/` — versioned JSON parsing, serialization and runtime validation;
 - `interchange/` — strict GABC import/export around the semantic document;
+- `playback/` — derived equal-note performances and browser audio, outside semantic history;
 - `components/` — editor orchestration and controls.
 
 Application entry points and global styles live directly under `src/`.
@@ -123,6 +133,7 @@ Application entry points and global styles live directly under `src/`.
 - [Domain model](docs/domain-model.md)
 - [Persistence and interchange](docs/persistence-and-interchange.md)
 - [Layout and rendering](docs/layout-and-rendering.md)
+- [Experimental playback](docs/playback.md)
 - [Editor interactions](docs/editor-interactions.md)
 - [Commands and history](docs/commands-and-history.md)
 - [Testing](docs/testing.md)

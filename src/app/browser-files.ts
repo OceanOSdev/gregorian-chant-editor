@@ -22,7 +22,7 @@ export function scoreSvgSource(source: SVGSVGElement, title: string): string {
   const svg = source.cloneNode(true) as SVGSVGElement;
   svg
     .querySelectorAll(
-      '.score__placement-preview, .score__placement-context, .score__note-selection, .score__neume-selection, .score__note-hit-target, .score__lyric-focus-cue, .score__move-target, .score__move-hit-target, .score__move-caption, foreignObject, .editor-sr-only, title, desc',
+      '.score__playback-highlight, .score__placement-preview, .score__placement-context, .score__note-selection, .score__neume-selection, .score__note-hit-target, .score__lyric-focus-cue, .score__move-target, .score__move-hit-target, .score__move-caption, foreignObject, .editor-sr-only, title, desc',
     )
     .forEach((node) => node.remove());
   svg.querySelectorAll('*').forEach((node) => {

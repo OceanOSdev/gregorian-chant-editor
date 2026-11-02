@@ -6,6 +6,13 @@ Date: 2026-07-28
 
 Proposed
 
+**Implementation note (2026-11-02):** The owner requested audible playback on the
+`one-shot-test` probe. That branch now exercises this separation with a pure
+equal-note performance timeline and a browser Web Audio renderer, without adding
+timing or audio state to the semantic document or saved JSON. This experiment
+does not mark the ADR accepted for the main project. The current interface, pitch
+reference, timing, controls and limits belong to [experimental playback](../playback.md).
+
 ## Context
 
 One of the long-term goals of this project is to support audio playback of
@@ -130,8 +137,9 @@ interface PlaybackEngine {
 where `Performance` represents a timeline of musical events consumed by an
 audio renderer.
 
-The exact shape of this interface is intentionally left open until playback
-work begins.
+The exact shape of the general interface remains open. The probe uses a concrete
+`Performance` timeline of stable note/neume IDs, MIDI/frequency, start and duration;
+that implementation does not establish every proposed engine’s final interface.
 
 ## Consequences
 

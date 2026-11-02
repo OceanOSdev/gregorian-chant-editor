@@ -53,6 +53,11 @@ export function focusAndReveal(
 ) {
   if (document.activeElement !== element)
     element.focus({ preventScroll: true });
+  revealElement(target, anchor);
+}
+
+/** Scroll a playback target into view without changing keyboard focus/selection. */
+export function revealElement(target: Element, anchor: Element = target) {
   const containers: HTMLElement[] = [];
   for (
     let parent = target.parentElement;

@@ -18,7 +18,7 @@ import {
 import { isPlacementTool, type EditorTool } from '../state/editor-tool';
 import type { EditorSelection } from '../state/selection';
 import type { EditorFocusRequest } from '../state/editor-session';
-import { focusAndReveal } from './focus-visibility';
+import { focusAndReveal, revealElement } from './focus-visibility';
 import {
   getNoteAccessibleLabel,
   getSelectedNeumeDescription,
@@ -33,6 +33,8 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  playingNoteId?: string | null;
+  followPlayback?: boolean;
   layout: ChantLayout;
   lyricMove: {
     syllableId: string;
@@ -69,6 +71,8 @@ interface ScoreSvgProps {
 
 export function ScoreSvg({
   layout,
+  playingNoteId,
+  followPlayback,
   lyricMove,
   onMoveDestination,
   placementPreview,
@@ -96,6 +100,10 @@ export function ScoreSvg({
   const lyricElements = useRef(new Map<string, SVGTextElement>());
   const noteElements = useRef(new Map<string, SVGGElement>());
   const placementActive = isPlacementTool(activeTool);
+  useLayoutEffect(() => {
+    const element = playingNoteId && noteElements.current.get(playingNoteId);
+    if (element && followPlayback) revealElement(element);
+  }, [playingNoteId, followPlayback]);
   useLayoutEffect(() => {
     if (
       !focusRequest ||
@@ -446,6 +454,18 @@ export function ScoreSvg({
                           }
                         />
                       </g>
+                      {playingNoteId === note.noteId ? (
+                        <g
+                          className="score__playback-highlight"
+                          pointerEvents="none"
+                          aria-hidden="true"
+                        >
+                          <InkShapeView
+                            shape={note.head}
+                            className="score__playback-note"
+                          />
+                        </g>
+                      ) : null}
                       {isNoteSelected ? (
                         <g pointerEvents="none" aria-hidden="true">
                           <InkShapeView

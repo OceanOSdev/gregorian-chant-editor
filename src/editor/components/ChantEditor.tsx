@@ -1,3 +1,5 @@
+import { usePlayback } from '../playback/use-playback';
+import { PlaybackControls } from './PlaybackControls';
 import { DocumentControls } from './DocumentControls';
 import { NeumePreview } from './NeumePreview';
 import { PrintScore } from '../rendering/PrintScore';
@@ -101,6 +103,11 @@ export function ChantEditor({
     createEditorSession,
   );
   const { history, selection, activeTool, rememberedKind } = session;
+  const playback = usePlayback(
+    history.present,
+    Boolean(session.lyricMove) || Boolean(session.pendingHistory),
+    history,
+  );
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
@@ -367,6 +374,7 @@ export function ChantEditor({
           </select>
         </label>
       </div>
+      <PlaybackControls playback={playback} />
       <div className="engraving-controls">
         <label>
           Lyric language{' '}
@@ -623,6 +631,8 @@ export function ChantEditor({
         >
           <ScoreSvg
             layout={layout}
+            playingNoteId={playback.activeNoteId}
+            followPlayback={playback.follow}
             lyricMove={
               session.lyricMove
                 ? {

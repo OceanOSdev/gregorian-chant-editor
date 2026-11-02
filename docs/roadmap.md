@@ -16,6 +16,7 @@ remain non-binding, with no promised order or date.
 - [Persistence and interchange](persistence-and-interchange.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Editor interactions](editor-interactions.md)
+- [Experimental playback](playback.md)
 
 ## Implemented probe workflow
 
@@ -23,6 +24,9 @@ The branch connects the existing seven-neume editor to new/example documents,
 title and C-clef editing, validated version 1 JSON files, one browser recovery
 copy, strict-subset GABC interchange, passive SVG export and browser printing.
 The responsive workspace adds visual neume tools, selection controls and zoom.
+The listening probe adds equal-note browser playback, transport controls, tempo,
+volume, octave and a presentation-only moving note highlight. Its interpretation
+is documented in [experimental playback](playback.md), while ADR 0006 stays Proposed.
 
 The app also enables experimental measured lyric clearances, word gaps,
 conditional hyphens and outgoing cross-system continuation marks. This policy
@@ -55,8 +59,12 @@ Accepted.
 - GABC supports only the documented subset and rejects unsupported constructs.
   It omits editorial alignment and regenerates IDs. It is not a general Gregorio
   compatibility layer.
-- There is no backend, account system, cloud storage, collaboration or audio
-  playback, and no dedicated PDF export engine.
+- Playback is an equal-note organ-like listening aid, not vocal synthesis or
+  chant-rhythm interpretation. Audio controls and timing are not persisted.
+  Accidentals, expressive phrase shaping, MIDI/audio-file export and broader
+  performance engines are not implemented.
+- There is no backend, account system, cloud storage or collaboration, and no
+  dedicated PDF export engine.
 - Vitest has no DOM or component environment. Separate Chromium drivers exercise
   actual browser behavior; they do not establish Firefox or spoken screen-reader
   acceptance. [Testing](testing.md) owns verification requirements and records.
@@ -69,6 +77,8 @@ Accepted.
   engraving, validation and editing contracts.
 - Refine font/ink-aware lyric metrics, justification, hyphen density, oversized
   fallback behavior, and cross-browser/assistive-technology acceptance.
+- Evaluate the playback probe’s pitch reference, equal-note interpretation and
+  browser behavior before adopting it or adding more musical interpretation.
 - Design explicit manual system/page controls and a durable document library if
   those become agreed product requirements.
 

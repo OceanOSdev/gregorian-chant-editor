@@ -730,3 +730,96 @@ kbd {
     page-break-inside: avoid;
   }
 }
+
+.playback-controls {
+  position: sticky;
+  top: 0.4rem;
+  z-index: 3;
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  background: #e7eee4;
+  border: 1px solid #bdccba;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.25rem 0.6rem #244f3e0c;
+  font:
+    0.8rem system-ui,
+    sans-serif;
+}
+.playback-transport,
+.playback-settings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.playback-transport {
+  margin-bottom: 0.7rem;
+}
+.chant-editor .playback-play {
+  min-width: 5.5rem;
+  color: white;
+  background: #244f3e;
+  border-color: #244f3e;
+}
+.playback-time {
+  font-variant-numeric: tabular-nums;
+}
+.playback-state {
+  color: #47614d;
+  margin-left: auto;
+}
+.playback-settings label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.5rem;
+  align-items: center;
+}
+.playback-settings output {
+  font-size: 0.7rem;
+  color: #5b705e;
+  justify-self: end;
+}
+.playback-settings input[type='range'] {
+  width: 9rem;
+  min-height: 1.4rem;
+  grid-column: 1 / -1;
+  accent-color: #244f3e;
+  padding: 0;
+}
+.playback-settings .playback-follow {
+  display: flex;
+  margin-left: auto;
+}
+.playback-follow input {
+  min-height: 1rem;
+  accent-color: #244f3e;
+}
+.playback-description {
+  font-size: 0.7rem;
+  color: #5b705e;
+  margin: 0.65rem 0 0;
+  line-height: 1.5;
+}
+.score__playback-note {
+  fill: #31825c;
+  stroke: #67c28b;
+  stroke-width: 3;
+  paint-order: stroke;
+}
+@media (max-width: 40rem) {
+  .playback-controls {
+    padding: 0.65rem;
+  }
+  .playback-settings {
+    gap: 0.65rem;
+  }
+  .playback-settings input[type='range'] {
+    width: 7rem;
+  }
+  .playback-state {
+    margin-left: 0;
+  }
+  .playback-settings .playback-follow {
+    margin-left: 0;
+  }
+}

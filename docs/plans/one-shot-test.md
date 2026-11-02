@@ -54,3 +54,14 @@ implementation probe within its inferred scope, not a claim that every Gregorian
 notation/interchange/engraving feature is implemented. No backend, audio or public
 site was introduced. The work remains on the throwaway branch for evaluation;
 there is no merge recommendation.
+
+## Playback follow-up
+
+After trying the hosted probe, the owner requested audible browser playback.
+A separate pure equal-note performance interpreter and Web Audio renderer now
+provide Play/Pause/Stop, tempo/volume/register controls, a moving note highlight
+and optional follow scrolling. Playback preferences and timing remain outside the
+semantic document, following the boundary explored in Proposed ADR 0006. This
+supersedes the initial probe's audio exclusion for this follow-up only. The
+[playback guide](../playback.md) and [verification record](../verification/playback/README.md)
+record behavior, approximation limits and the actual checks.

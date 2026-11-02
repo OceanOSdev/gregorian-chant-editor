@@ -379,3 +379,27 @@ run `npm run build` and `npm run preview -- --port 5174`, then set
 See the [probe verification record](verification/one-shot/README.md) for scenarios,
 actual results and remaining cross-browser/accessibility limits. This driver is
 separate from Vitest and CI; it adds no DOM/browser dependency to the project.
+
+## Browser playback
+
+`playback/performance.test.ts` covers C-clef pitch mapping, natural diatonic
+steps, all seven neume sequences, equal timing and range/settings validation.
+`playback/audio-player.test.ts` exercises scheduling and transport with a fake
+AudioContext: bounded lookahead, pause/resume, stop/completion, cancellation while
+resume is pending, interruption, unsupported audio and partial-startup cleanup.
+
+With the production preview on port 5174 and an isolated Chromium debugging
+profile on port 9230, run:
+
+```bash
+node docs/verification/playback/browser-check.mjs
+```
+
+The driver clears that browser origin's recovery slot, so use a test profile. It
+uses native Play-button clicks and a real Web Audio analyser to verify nonzero
+rendered samples, silence after pause/stop/mute, transport lifecycle, note
+highlighting, focus/selection preservation, editing cancellation, completion,
+replay, narrow containment and unsupported-audio feedback. Diagnostic screenshots
+are written to a fresh system temporary directory. See the
+[playback verification record](verification/playback/README.md) for actual results
+and the limits of a headless audio check.
