@@ -4,24 +4,24 @@ Date: 2026-11-02
 
 ## Status
 
-Proposed. Requires owner review before the affected Stage 5B implementation.
-ADR 0011 remains Accepted and unchanged. This proposal would narrowly qualify
+Accepted (2026-11-02), by explicit owner approval during Stage 5B review.
+ADR 0011 remains Accepted and unchanged. This decision narrowly qualifies
 its compaction eligibility; it does not supersede ADR 0010 or ADR 0011.
 
 ## Context
 
-The Stage 5B plan proposes that a visible division block contextual same-word
+The Stage 5B plan proposed that a visible division block contextual same-word
 neume compaction. ADR 0011 currently makes consecutive neumes starting
 consecutive same-word syllables eligible, excluding intervening melismatic
 neumes. Under ADR 0012, a division does not interrupt neume-array adjacency.
-The current layout checks successive lyric anchors without inspecting divisions.
+Before Stage 5B, layout checked successive lyric anchors without inspecting divisions.
 Thus excluding these pairs adds a condition to the accepted eligibility rule.
 ADR 0012 explicitly leaves lyric compaction and hyphenation effects for graphical
 design review; its acceptance does not amend ADR 0011.
 
 ## Decision
 
-Propose treating neumes as eligible for contextual compaction only when no
+Treat neumes as eligible for contextual compaction only when no
 division intervenes in `deriveScoreOrder`. Across a division, use ordinary
 musical separation plus the measured space required by the division and lyrics.
 Keep division-free layout unchanged.
@@ -32,7 +32,7 @@ hyphen threshold and outgoing continuation rule. Reserve space within the one
 authoritative placement/wrapping computation; a same-system mark must occupy
 clear lyric space, and an outgoing mark must remain visible when the preceding
 phrase includes a division. No automatic incoming mark or mandatory hyphen
-solely because a division exists is proposed.
+solely because a division exists is introduced.
 
 ## Consequences
 
@@ -47,15 +47,16 @@ solely because a division exists is proposed.
 - Adds an eligibility exception to the accepted Stage 4C policy.
 - Division width and continuation reservation can change system partitions.
 - Requires measured same-system and cross-system collision regressions and
-  graphical owner review; this proposal is not implementation evidence.
+  graphical owner review; ADR acceptance is separate from graphical acceptance.
 
-## Alternatives for owner review
+## Owner clarifications
 
-1. Accept this narrow qualification and update the Stage 5B handoff to authorize
-   implementation before continuing.
-2. Retain ADR 0011 eligibility across divisions, while requiring division ink,
-   interaction targets and lyric clearance to constrain the resulting placement.
-   Amend the handoff's proposed blocking policy accordingly before implementation.
+Musical and linguistic boundaries remain independent. Divisions may occur
+between neumes belonging to one syllable, including within melismas. Inserting,
+deleting or changing a division never changes syllable text, word boundaries or
+lyric anchors. No kind enforces completed words or phrases as a semantic
+invariant. Stage 5B introduces no automatic word splitting, validation errors or
+editorial warnings for unusual division placement.
 
-The first option matches the Stage 5B plan's proposed display policy. Neither
-option changes semantic word boundaries. No choice has been implemented.
+Conditional hyphenation remains based on measured lyric spacing and semantic
+syllable relationships. A division alone never forces a hyphen.

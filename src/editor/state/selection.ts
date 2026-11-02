@@ -4,6 +4,7 @@ import { findNeume, findNote } from '../domain/neume';
 
 /** Transient selection stores stable semantic IDs, never layout objects. */
 export type EditorSelection =
+  | { kind: 'division'; divisionId: string }
   | { kind: 'none' }
   | { kind: 'note'; noteId: string }
   | { kind: 'neume'; neumeId: string }
@@ -29,6 +30,11 @@ export function reconcileSelection(
   if (selection.kind === 'none') {
     return selection;
   }
+
+  if (selection.kind === 'division')
+    return document.divisions.some((d) => d.id === selection.divisionId)
+      ? selection
+      : clearSelection();
 
   if (selection.kind === 'syllable')
     return document.syllables.some((s) => s.id === selection.syllableId)

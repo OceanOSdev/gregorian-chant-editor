@@ -216,9 +216,11 @@ await click('[aria-label="Redo last undone edit"]');
 assert.deepEqual(await positions(), wholeManual);
 await ev('window.scrollTo(0,0)');
 await shot('manual-whole-Ky');
-await ev("document.querySelector('fieldset').scrollIntoView({block:'center'})");
+await ev(
+  "document.querySelector('.lyric-alignment-controls').scrollIntoView({block:'center'})",
+);
 await shot('manual-controls');
-await focus('fieldset button');
+await focus('.lyric-alignment-controls button');
 await key('Enter');
 assert.deepEqual(await positions(), automatic);
 // A dirty text draft survives language edits without save, retarget or focus theft.
@@ -244,7 +246,7 @@ assert.equal(
 );
 assert.equal(
   await ev(
-    `!document.querySelector('fieldset') || document.querySelector('fieldset').disabled`,
+    `!document.querySelector('.lyric-alignment-controls') || document.querySelector('.lyric-alignment-controls').disabled`,
   ),
   true,
 );
@@ -297,7 +299,9 @@ await viewport(320);
 await ev('window.scrollTo(0,0)');
 await pause();
 await shot('narrow-greek-manual');
-await ev("document.querySelector('fieldset').scrollIntoView({block:'center'})");
+await ev(
+  "document.querySelector('.lyric-alignment-controls').scrollIntoView({block:'center'})",
+);
 await shot('narrow-manual-controls');
 assert.equal(
   await ev('document.documentElement.scrollWidth <= innerWidth'),

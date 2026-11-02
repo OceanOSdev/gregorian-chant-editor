@@ -140,3 +140,18 @@ its preview ID and preceding resolved Lyrics context. Its legal destinations are
 derived from the existing pure reassignment command. This implements ADRs 0002
 and 0008 without changing semantic data, history structure or engraving ownership;
 no new ADR is needed.
+
+## Stage 5B graphical divisions
+
+`deriveScoreOrder` orders the existing independent neume and division collections.
+The existing measured placement walker reserves following division geometry
+before choosing a system break. `DivisionLayout` and explicit `ScoreSlotLayout`
+boundaries belong to each derived system; rendering and pointer resolvers consume
+that same snapshot. The reducer resolves clicks again against its latest document
+and the displayed font snapshot. No second score model or wrapping engine exists.
+
+Division selection and focus use stable division IDs; tools, previews and focus
+remain outside semantic history. Stage 5A commands own insertion, deletion and
+kind replacement. [Accepted ADR 0013](adrs/0013-divisions-interrupt-word-compaction.md)
+adds the owner-approved exception to contextual compaction across divisions.
+Musical punctuation never changes semantic lyric relationships.

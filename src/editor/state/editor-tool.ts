@@ -1,4 +1,6 @@
+import type { DivisionKind } from '../domain/chant-document';
 export type EditorTool =
+  | { kind: 'place-division'; divisionKind: DivisionKind }
   | { kind: 'select' }
   | { kind: 'place-punctum' }
   | { kind: 'place-podatus' }
@@ -42,6 +44,7 @@ export function placePorrectusTool(): EditorTool {
 
 export function isPlacementTool(tool: EditorTool): boolean {
   return (
+    tool.kind === 'place-division' ||
     tool.kind === 'place-punctum' ||
     tool.kind === 'place-podatus' ||
     tool.kind === 'place-clivis' ||

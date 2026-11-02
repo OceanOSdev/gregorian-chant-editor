@@ -38,8 +38,8 @@ guarantee: practical browser and memory limits still apply.
 - Graphical placement uses fixed pitch contours for those seven kinds.
 - Lyrics use measured vowel/manual alignment, collision-aware spacing and
   derived continuation marks. Ambiguous alignment falls back to whole text.
-- Divisions have pure semantic commands; graphical division editing and rendering
-  remain future Stage 5B work.
+- Four division kinds support graphical placement, selection, kind changes and
+  deletion, with explicit neume insertion before or after a division.
 - There are no manual system breaks, persistence, GABC import/export, backend,
   or component test environment. Reusable browser verification drivers are
   documented in the [testing guide](docs/testing.md).

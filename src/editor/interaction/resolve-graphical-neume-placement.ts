@@ -1,3 +1,5 @@
+import { resolveScoreSlot } from './resolve-score-slot';
+import type { ScoreInsertionBoundary } from '../domain/chant-document';
 import type { StaffPosition } from '../domain/chant-document';
 import {
   canGraphicalNeumeFitNormalSystem,
@@ -10,6 +12,7 @@ import {
 
 interface ResolvedPlacementBase {
   insertionIndex: number;
+  boundary: ScoreInsertionBoundary;
   preview: GraphicalPlacementPreviewLayout;
 }
 
@@ -74,7 +77,15 @@ export function resolveGraphicalNeumePlacement(
     return null;
   }
 
-  const insertionIndex = placement.preferredNeumeInsertionIndex;
+  const resolved = resolveScoreSlot(layout, point);
+  if (!resolved) return null;
+  const slot = system.divisions.length
+    ? resolved.slot
+    : (system.slots.find(
+        (s) => s.insertionIndex === placement.preferredNeumeInsertionIndex,
+      ) ?? resolved.slot);
+  const insertionIndex = slot.insertionIndex;
+  const boundary = slot.boundary;
 
   if (
     !canGraphicalNeumeFitNormalSystem(placement.kind, placement.staffPositions)
@@ -92,12 +103,19 @@ export function resolveGraphicalNeumePlacement(
   );
   if (!preview) return null;
 
+  preview.caret = {
+    systemIndex: system.index,
+    x: slot.x,
+    top: resolved.top,
+    bottom: resolved.bottom,
+  };
   switch (placement.kind) {
     case 'punctum':
       return {
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
+        boundary,
         preview,
       };
     case 'podatus':
@@ -105,6 +123,7 @@ export function resolveGraphicalNeumePlacement(
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
+        boundary,
         preview,
       };
     case 'clivis':
@@ -112,6 +131,7 @@ export function resolveGraphicalNeumePlacement(
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
+        boundary,
         preview,
       };
     case 'scandicus':
@@ -119,6 +139,7 @@ export function resolveGraphicalNeumePlacement(
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
+        boundary,
         preview,
       };
     case 'climacus':
@@ -128,6 +149,7 @@ export function resolveGraphicalNeumePlacement(
         kind: placement.kind,
         staffPositions: placement.staffPositions,
         insertionIndex,
+        boundary,
         preview,
       };
   }

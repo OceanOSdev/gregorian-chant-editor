@@ -1,3 +1,8 @@
+import { isPlacementTool } from '../state/editor-tool';
+import { buildDivisionGeometry } from '../layout/division-geometry';
+import { resolveScoreSlot } from '../interaction/resolve-score-slot';
+import { isDivisionKind } from '../domain/divisions';
+import type { DivisionKind } from '../domain/chant-document';
 import { useLyricMeasurement } from '../rendering/use-lyric-measurement';
 import {
   updateLyricLanguage,
@@ -8,6 +13,7 @@ import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
 import type { LyricAction } from '../state/lyric-entry';
 import { findNeume, findNote } from '../domain/neume';
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useReducer,
@@ -29,7 +35,11 @@ import {
   type PaletteTool,
 } from '../interaction/palette-navigation';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
-import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
+import {
+  layoutChant,
+  staffLineSpacing,
+  type GraphicalNeumeKind,
+} from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import { focusAndReveal } from '../rendering/focus-visibility';
 import {
@@ -95,6 +105,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
+  const [divisionKind, setDivisionKind] = useState<DivisionKind>('minima');
+  const [focusedDivisionId, setFocusedDivisionId] = useState<string | null>(
+    null,
+  );
   const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
@@ -115,6 +129,38 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         : selectedSyllable
           ? findNeume(history.present, selectedSyllable.startsAtNeumeId)?.neume
           : null;
+  const selectedDivision =
+    selection.kind === 'division'
+      ? history.present.divisions.find((d) => d.id === selection.divisionId)
+      : null;
+  const divisionTarget =
+    history.present.divisions.find((d) => d.id === focusedDivisionId) ??
+    selectedDivision;
+  const placing = isPlacementTool(activeTool);
+  const divisionSlot =
+    activeTool.kind === 'place-division' && session.hoveredPoint
+      ? resolveScoreSlot(layout, session.hoveredPoint)
+      : null;
+  const divisionPreview =
+    divisionSlot && activeTool.kind === 'place-division'
+      ? {
+          division: buildDivisionGeometry(
+            {
+              id: 'preview',
+              kind: activeTool.divisionKind,
+              beforeNeumeId: null,
+            },
+            divisionSlot.slot.x,
+            divisionSlot.bottom - 12,
+            staffLineSpacing,
+          ),
+          caret: {
+            x: divisionSlot.slot.x,
+            top: divisionSlot.top,
+            bottom: divisionSlot.bottom,
+          },
+        }
+      : null;
   const placementKind = getGraphicalNeumeKind(activeTool);
   const placementPreview =
     placementKind && session.hoveredPoint
@@ -126,18 +172,38 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       : null;
   const placementDescription = placementKind
     ? `${neumeName(placementKind)}. Escape selects the editing tool.`
-    : '';
+    : activeTool.kind === 'place-division'
+      ? `${activeTool.divisionKind} division. Click a caret slot to insert. Escape selects the editing tool.`
+      : '';
+  // Some background Firefox sessions expose activeElement changes without
+  // focus events. Reconcile presentation after our focus requests and keyup too.
+  function syncNotationFocus() {
+    const target = globalThis.document.activeElement;
+    if (target instanceof Element && target.closest('.score'))
+      setFocusedDivisionId(
+        target
+          .closest('[data-division-id]')
+          ?.getAttribute('data-division-id') ?? null,
+      );
+  }
+
   function lyricAction(action: LyricAction) {
     dispatch({ type: 'lyrics', action, newId: crypto.randomUUID() });
   }
 
-  function navigateHistory(direction: 'undo' | 'redo') {
-    dispatch({
-      type: 'history',
-      direction,
-      focusedNoteId: getFocusedScoreNoteId(),
-    });
-  }
+  const navigateHistory = useCallback(
+    (direction: 'undo' | 'redo') => {
+      dispatch({
+        type: 'history',
+        direction,
+        focusedNoteId: getFocusedScoreNoteId(),
+        focusedDivisionId:
+          globalThis.document.activeElement?.getAttribute('data-division-id') ??
+          focusedDivisionId,
+      });
+    },
+    [focusedDivisionId],
+  );
 
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
     // Invalid pointer intent allocates no IDs. The reducer resolves again against
@@ -160,9 +226,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     dispatch({ type: 'focus-handled', request });
   }, [session.focusRequest]);
 
-  function insertRememberedNeume() {
+  function insertRememberedNeume(divisionSide?: {
+    divisionId: string;
+    side: 'before' | 'after';
+  }) {
     dispatch({
       type: 'insert',
+      divisionSide,
       ids: allocateInsertionIds(),
       lyricCommitId: crypto.randomUUID(),
     });
@@ -184,7 +254,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           event,
           event.target instanceof Element &&
             Boolean(event.target.closest('.score')),
-          Boolean(placementKind),
+          placing,
         )
       ) {
         event.preventDefault();
@@ -215,6 +285,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       if (shortcut) {
         event.preventDefault();
         if (shortcut === 'insert') {
+          const divisionId =
+            event.target instanceof Element
+              ? event.target
+                  .closest('[data-division-id]')
+                  ?.getAttribute('data-division-id')
+              : null;
+          if (divisionId)
+            dispatch({
+              type: 'select',
+              selection: { kind: 'division', divisionId },
+            });
           dispatch({
             type: 'insert',
             ids: allocateInsertionIds(),
@@ -235,7 +316,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           return;
         }
         dispatch(
-          placementKind
+          placing
             ? { type: 'select-tool' }
             : { type: 'select', selection: clearSelection() },
         );
@@ -259,6 +340,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [
     placementKind,
+    navigateHistory,
+    placing,
     canUndo,
     canRedo,
     session.lyrics,
@@ -269,6 +352,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   return (
     <main
       className="chant-editor"
+      onKeyUpCapture={syncNotationFocus}
       onKeyDownCapture={(event) => {
         if (
           !session.lyricMove ||
@@ -307,6 +391,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       }}
       onFocusCapture={(event) => {
         const target = event.target;
+        if (target instanceof Element && target.closest('.score'))
+          setFocusedDivisionId(target.getAttribute('data-division-id'));
         setFocusedLyricId(
           target instanceof Element && target.matches('.score__lyric')
             ? target.getAttribute('data-syllable-id')
@@ -386,9 +472,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               else paletteButtons.current.delete(tool);
             }}
             tabIndex={rovingTool === tool ? 0 : -1}
-            aria-pressed={
-              tool === 'select' ? !placementKind : placementKind === tool
-            }
+            aria-pressed={tool === 'select' ? !placing : placementKind === tool}
             onFocus={() => setRovingTool(tool)}
             onClick={() => {
               if (tool === 'select') dispatch({ type: 'select-tool' });
@@ -413,6 +497,118 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its palette button.
       </p>
+      <fieldset
+        className="division-controls"
+        disabled={Boolean(session.lyricMove) || Boolean(session.pendingHistory)}
+      >
+        <legend>Divisions</legend>
+        <label>
+          Placement kind{' '}
+          <select
+            aria-label="Division placement kind"
+            value={divisionKind}
+            onChange={(event) => {
+              const kind = event.currentTarget.value;
+              if (!isDivisionKind(kind)) return;
+              setDivisionKind(kind);
+              if (activeTool.kind === 'place-division')
+                dispatch({
+                  type: 'arm',
+                  tool: { kind: 'place-division', divisionKind: kind },
+                  lyricCommitId: crypto.randomUUID(),
+                });
+            }}
+          >
+            {(['minima', 'minor', 'maior', 'finalis'] as const).map((kind) => (
+              <option key={kind} value={kind}>
+                {neumeName(kind)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          aria-pressed={activeTool.kind === 'place-division'}
+          onClick={() =>
+            dispatch({
+              type: 'arm',
+              tool: { kind: 'place-division', divisionKind },
+              lyricCommitId: crypto.randomUUID(),
+            })
+          }
+        >
+          Place division
+        </button>
+        {divisionTarget ? (
+          <div data-notation-shortcuts>
+            <p>
+              Division target: {divisionTarget.kind}.{' '}
+              {focusedDivisionId === divisionTarget.id
+                ? 'Last focused division'
+                : 'Selected'}
+              .
+            </p>
+            <label>
+              Change division kind{' '}
+              <select
+                aria-label="Change division kind"
+                value={divisionTarget.kind}
+                disabled={placing}
+                onChange={(event) => {
+                  const kind = event.currentTarget.value;
+                  if (isDivisionKind(kind))
+                    dispatch({
+                      type: 'change-division',
+                      id: divisionTarget.id,
+                      kind,
+                    });
+                }}
+              >
+                {(['minima', 'minor', 'maior', 'finalis'] as const).map(
+                  (kind) => (
+                    <option key={kind} value={kind}>
+                      {neumeName(kind)}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+            <button
+              type="button"
+              disabled={placing}
+              onClick={() =>
+                insertRememberedNeume({
+                  divisionId: divisionTarget.id,
+                  side: 'before',
+                })
+              }
+            >
+              Insert {neumeName(rememberedKind)} before division
+            </button>
+            <button
+              type="button"
+              disabled={placing}
+              onClick={() =>
+                insertRememberedNeume({
+                  divisionId: divisionTarget.id,
+                  side: 'after',
+                })
+              }
+            >
+              Insert {neumeName(rememberedKind)} after division
+            </button>
+            <button
+              type="button"
+              disabled={placing}
+              onClick={() =>
+                dispatch({ type: 'delete-division', id: divisionTarget.id })
+              }
+            >
+              Delete division
+            </button>
+          </div>
+        ) : null}
+      </fieldset>
       <div className="editor-actions">
         <button
           type="button"
@@ -431,7 +627,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           type="button"
           data-notation-shortcuts
           aria-keyshortcuts="I"
-          onClick={insertRememberedNeume}
+          onClick={() => insertRememberedNeume()}
         >
           Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
         </button>
@@ -473,6 +669,29 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         >
           <ScoreSvg
             layout={layout}
+            divisionPreview={divisionPreview}
+            onSelectDivision={(divisionId) => {
+              setFocusedDivisionId(divisionId);
+              dispatch({
+                type: 'select',
+                selection: { kind: 'division', divisionId },
+              });
+            }}
+            onDeleteDivision={(id) => dispatch({ type: 'delete-division', id })}
+            onPlaceDivision={(point) => {
+              if (
+                activeTool.kind !== 'place-division' ||
+                !resolveScoreSlot(layout, point)
+              )
+                return;
+              dispatch({
+                type: 'place-division',
+                kind: activeTool.divisionKind,
+                point,
+                id: crypto.randomUUID(),
+                measureLyrics,
+              });
+            }}
             lyricMove={
               session.lyricMove
                 ? {
@@ -509,9 +728,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             activeTool={activeTool}
             placementDescription={placementDescription}
             focusRequest={session.focusRequest}
-            onFocusHandled={(request) =>
-              dispatch({ type: 'focus-handled', request })
-            }
+            onFocusHandled={(request) => {
+              syncNotationFocus();
+              dispatch({ type: 'focus-handled', request });
+            }}
             onSelectNote={(noteId) => {
               const note = findNote(history.present, noteId);
               if (session.lyrics && session.lyrics.kind !== 'recovery' && note)

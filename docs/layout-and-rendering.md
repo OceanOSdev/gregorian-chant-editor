@@ -402,3 +402,48 @@ syllable, with unchanged baseline, accessible name and ID-based interaction.
 Stage 4B extends the Stage 4A measurements into combined placement as described
 above. The Stage 4C branch experiment derives conditional and outgoing hyphens
 when safe musical geometry leaves continuing syllables visibly separated.
+
+## Stage 5B divisions and score slots
+
+Divisions are non-pitched layout items. `division-geometry.ts` builds thin bars
+from staff lines: minima straddles the top line by half a space on each side;
+minor spans the central two spaces; maior spans all four lines; finalis has two
+full-height strokes six units apart. Strokes are 1.5 units wide. Occupied widths
+are 1.5/7.5 units, with 16 units of clearance before and between divisions and
+ordinary musical clearance after the last division. Padded targets remain
+separate from musical ink and adjacent targets. Finalis is legal in mid-score.
+These are provisional modern-square proportions, not publication-quality glyphs.
+The [Gregorio separation-bar reference](https://gregorio-project.github.io/gabc/#separation-bars)
+and [worked score tutorial](https://gregorio-project.github.io/tutorial/tutorial-gabc-01.html)
+inform the forms, without adding rhythmic interpretation.
+
+The same measured walker reserves each neume's following division run before
+wrapping. A normally fitting phrase ending moves its neume and bars together;
+maior/finalis never force a break. Authored leading bars and division-only scores
+are legal. An unusually long division run that cannot fit with a neume on an
+empty normal system splits with bounded progress; its remaining bars can begin
+subsequent systems. This exceptional punctuation arrangement has no manual-break
+or semantic significance. Division advances follow musical ink; their occupied extents are combined with
+measured lyric extents, rather than shifting bars past overhanging syllable text.
+For a genuinely oversized measured syllable, following bars remain with its
+isolated anchored unit within the normal staff; the exceptional canvas exposes
+the text. No ordinary
+bar is dropped or drawn after wrapping at an unrelated offset. Empty music still has a deterministic system and slot.
+
+Each system exposes stable-ID divisions and explicit slots in semantic score
+order, including before/between/after adjacent bars. Slot x coordinates come from
+occupied neighboring bounds and remain within the staff placement region.
+Pointer intent chooses a displayed slot; the caret and commit carry that exact
+`ScoreInsertionBoundary`. Existing numeric indexes remain compatibility data for
+neume-only helpers, not the runtime choice of a division side. Previews are local
+and inert, and do not reflow committed music. The reducer rederives current slots
+for rapid clicks with the immutable displayed font measurement snapshot.
+
+Under [Accepted ADR 0013](adrs/0013-divisions-interrupt-word-compaction.md), an
+intervening division blocks same-word anchor compaction. Semantic word boundaries,
+text and anchors never change. Divisions within one syllable's melisma introduce
+no syllable or hyphen. Between continuing syllables, the existing measured
+joining threshold still decides whether a hyphen is needed; punctuation alone
+does not force it. Same-system marks use measured free space after intervening
+bars; outgoing marks reserve room after occupied music, lyrics and divisions.
+True word boundaries still receive clearance without continuation marks.

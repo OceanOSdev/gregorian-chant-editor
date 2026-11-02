@@ -91,3 +91,16 @@ itemized. Spoken screen-reader checks remain **Not run**; detailed 320px usabili
 signoff is uncaptured, and ordinary score text/targets remain small. Completion
 does not imply comprehensive accessibility verification. Final PR review/merge
 remain pending.
+
+## Division stages
+
+Stage 5A's semantic divisions and explicit insertion boundaries are Accepted
+under ADR 0012. Stage 5B implements four staff-relative bar forms, persistent
+placement, explicit before/after neume insertion, stable-ID selection/focus,
+kind replacement/deletion and semantic history in the measured layout.
+Accepted ADR 0013 blocks contextual compaction across divisions without changing
+linguistic boundaries or forcing hyphens. Extremely long punctuation runs may
+split across systems after bounded progress; normal phrase-ending bars stay
+with the preceding neume. Stage 5C remains the detailed cross-browser, foreground,
+spoken-screen-reader and owner graphical acceptance milestone. Stage 5B headless
+checks do not constitute that acceptance.
