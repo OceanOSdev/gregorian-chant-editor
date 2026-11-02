@@ -340,3 +340,21 @@ undo/redo, focus-selection independence, and 320px/multi-system verification.
 The [verification record](verification/vowel-alignment/README.md) describes
 actual results and limitations. Generated screenshots stay in system temporary
 storage; no browser dependency or DOM test environment was added.
+
+## Stage 4B lyric-aware layout
+
+`lyric-spacing.test.ts` verifies complete music-only geometry across all seven
+kinds, word versus continuation clearance, melismatic minimum advances, exact
+fits, first left bearings, isolated oversized progress, both canvas overhangs,
+missing/partial/invalid metrics, semantic history and repeated measured pointer
+resolution on the reducer's latest document.
+
+Run `node docs/verification/lyric-spacing/browser-check.mjs` with Vite and
+Chromium debugging port 9230, plus the Stage 4A browser driver above. The
+[implementation record](verification/lyric-spacing/README.md) distinguishes
+actual native interaction checks, font tests and remaining acceptance work.
+Verify focused-ID preservation during measurement reparenting, later-system
+pointer/caret agreement, word-boundary/text/alignment/language history, 320px
+containment, native horizontal scrolling to both edges and scrolled insertion
+with a negative viewBox origin. Generated before/after screenshots remain in
+temporary storage. ADR 0010 stays Proposed pending owner review.

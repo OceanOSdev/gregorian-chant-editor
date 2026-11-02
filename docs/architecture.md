@@ -94,7 +94,7 @@ document changes. See [editor interactions](editor-interactions.md).
 
 Converts a semantic document into `ChantLayout`. It owns engraving geometry,
 whole-neume wrapping, repeated systems, lyric alignment, graphical snapping,
-and hypothetical post-insertion preview layout. See
+and local caret/ghost preview layout. See
 [layout and rendering](layout-and-rendering.md).
 
 ### `src/editor/rendering/`
@@ -121,6 +121,9 @@ Stable identity is covered by
 by [ADR 0004](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md), and
 wrapping by
 [ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md).
+Stage 4B implements combined music/lyric geometry on its isolated branch under
+[Proposed ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md);
+the owner must accept that proposal before superseding ADR 0005.
 
 The lyric anchor relationship is defined in [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md). Music insertion does not require an active syllable.
 

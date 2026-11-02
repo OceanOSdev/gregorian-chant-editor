@@ -7,6 +7,7 @@ import {
 import {
   staffPosition,
   type ChantDocument,
+  type LyricSyllable,
   type Neume,
   type StaffLine,
   type StaffPosition,
@@ -54,6 +55,10 @@ export interface LyricLayout {
   x: number;
   y: number;
   fontSize: number;
+  boundaryBefore: LyricSyllable['boundaryBefore'];
+  /** Measured advance edges; null during provisional music-only layout. */
+  left: number | null;
+  right: number | null;
 }
 
 /**
@@ -76,6 +81,8 @@ export interface ChantSystemLayout {
 /** Derived, score-absolute geometry with height determined by system count. */
 export interface ChantLayout {
   title: string;
+  /** Derived canvas origin; logical system coordinates remain unchanged. */
+  x: number;
   width: number;
   height: number;
   systems: readonly ChantSystemLayout[];
@@ -233,23 +240,34 @@ function geometryInput(neume: Neume): GeometryInput {
   };
 }
 
-/** One sequence walker owns advances, exact-fit wrapping, and oversized progress. */
+interface LyricRequirement {
+  alignment: ReturnType<typeof alignLyricText>;
+  boundaryBefore: LyricSyllable['boundaryBefore'];
+}
+
+/** One walker owns music minima, lyric clearance, wrapping and oversized progress. */
 function placeNeumeSequence(
   inputs: readonly GeometryInput[],
   usableRightBoundary = staffEndX,
+  lyrics: ReadonlyMap<number, LyricRequirement> = new Map(),
 ): readonly PositionedSystem[] {
   const systems: PositionedSystem[] = [];
   let geometries: NeumeGeometry[] = [];
   let startNeumeIndex = 0;
   let nextLeftX = 0;
+  let previousLyricRight: number | null = null;
   function finishSystem() {
     systems.push({ startNeumeIndex, geometries });
     startNeumeIndex += geometries.length;
     geometries = [];
+    previousLyricRight = null;
   }
-  for (const input of inputs) {
-    const build = () =>
-      buildNeumeGeometry(
+  for (const [inputIndex, input] of inputs.entries()) {
+    const lyric = lyrics.get(inputIndex);
+    const width = lyric?.alignment.width;
+    const measured = width !== null && width !== undefined;
+    const build = () => {
+      const initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         geometries.length
@@ -257,18 +275,57 @@ function placeNeumeSequence(
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
       );
+      if (!measured || !lyric) return initial;
+      const left = initial.lyricAnchorX + lyric.alignment.offset - width / 2;
+      // Word clearance is a deterministic quarter-em minimum (5 score units).
+      const minimum =
+        previousLyricRight === null
+          ? staffStartX
+          : previousLyricRight +
+            (lyric.boundaryBefore === 'word' ? lyricFontSize / 4 : 0);
+      const shift = Math.max(0, minimum - left);
+      const shifted = () =>
+        buildNeumeGeometry(
+          input.kind,
+          input.staffPositions,
+          initial.bounds.x + shift,
+          firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+        );
+      // If an empty system cannot contain this anchored unit, retain its normal
+      // musical anchor. Canvas expansion exposes both overhangs without scaling.
+      if (
+        !geometries.length &&
+        Math.max(
+          initial.bounds.x + initial.bounds.width + shift,
+          left + width + shift,
+        ) > usableRightBoundary
+      )
+        return initial;
+      return shift ? shifted() : initial;
+    };
+    const rightEdge = (g: NeumeGeometry) =>
+      Math.max(
+        g.bounds.x + g.bounds.width,
+        measured && lyric
+          ? g.lyricAnchorX + lyric.alignment.offset + width / 2
+          : -Infinity,
+      );
+    const oversized = (g: NeumeGeometry) =>
+      rightEdge(g) > usableRightBoundary ||
+      (measured && lyric
+        ? g.lyricAnchorX + lyric.alignment.offset - width / 2 < staffStartX
+        : false);
     let geometry = build();
-    if (
-      geometries.length &&
-      geometry.bounds.x + geometry.bounds.width > usableRightBoundary
-    ) {
+    if (geometries.length && rightEdge(geometry) > usableRightBoundary) {
       finishSystem();
       geometry = build();
     }
     geometries.push(geometry);
     nextLeftX = geometry.bounds.x + geometry.advanceX;
-    if (geometry.bounds.x + geometry.bounds.width > usableRightBoundary)
-      finishSystem();
+    if (measured && lyric)
+      previousLyricRight =
+        geometry.lyricAnchorX + lyric.alignment.offset + width / 2;
+    if (oversized(geometry)) finishSystem();
   }
   if (geometries.length || systems.length === 0) finishSystem();
   return systems;
@@ -299,6 +356,7 @@ export function measureNeumeWidth(neume: Neume): number {
   ).bounds.width;
 }
 
+/** Music-only wrapping utility; lyric scores use layoutChant with measurements. */
 export function wrapNeumes(
   neumes: readonly Neume[],
   usableRightBoundary = staffEndX,
@@ -320,7 +378,7 @@ export function getNeumeLyricAlignmentX(
   return Number.isFinite(neume.lyricAnchorX) ? neume.lyricAnchorX : null;
 }
 
-/** Unwrapped boundary helper; runtime pointer boundaries use positioned ink bounds. */
+/** Music-only unwrapped helper; runtime pointer boundaries use displayed ink bounds. */
 export function getNeumeBoundaryCenterX(
   neumes: readonly Neume[],
   insertionIndex: number,
@@ -583,7 +641,31 @@ export function layoutChant(
   document: ChantDocument,
   measure?: MeasureLyricText,
 ): ChantLayout {
-  const wrappedSystems = placeNeumeSequence(document.neumes.map(geometryInput));
+  const alignments = new Map(
+    document.syllables.map((syllable) => [
+      syllable.id,
+      alignLyricText(syllable, lyricLanguage(document.lyricLanguage), measure),
+    ]),
+  );
+  // A partial/stale font snapshot cannot establish safe adjacent clearances.
+  const ready = [...alignments.values()].every((a) => a.measured);
+  const requirements = new Map<number, LyricRequirement>();
+  const indexes = new Map(document.neumes.map((n, i) => [n.id, i]));
+  if (ready)
+    for (const syllable of document.syllables) {
+      const index = indexes.get(syllable.startsAtNeumeId);
+      const alignment = alignments.get(syllable.id);
+      if (index !== undefined && alignment)
+        requirements.set(index, {
+          alignment,
+          boundaryBefore: syllable.boundaryBefore,
+        });
+    }
+  const wrappedSystems = placeNeumeSequence(
+    document.neumes.map(geometryInput),
+    staffEndX,
+    requirements,
+  );
   const systemsWithoutLyrics = wrappedSystems.map(
     ({ startNeumeIndex, geometries }, index): ChantSystemLayout => {
       const y = firstSystemTopY + index * systemVerticalAdvance;
@@ -642,17 +724,19 @@ export function layoutChant(
       continue;
     }
 
-    const alignment = alignLyricText(
-      syllable,
-      lyricLanguage(document.lyricLanguage),
-      measure,
-    );
+    const alignment =
+      alignments.get(syllable.id) ??
+      alignLyricText(syllable, lyricLanguage(document.lyricLanguage));
+    const x = alignmentX + alignment.offset;
     lyricsBySystem[first.systemIndex]?.push({
       alignment,
       anchorX: alignmentX,
       syllableId: syllable.id,
       text: syllable.text,
-      x: alignmentX + alignment.offset,
+      x,
+      boundaryBefore: syllable.boundaryBefore,
+      left: alignment.width === null ? null : x - alignment.width / 2,
+      right: alignment.width === null ? null : x + alignment.width / 2,
       y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
       fontSize: lyricFontSize,
     });
@@ -663,9 +747,18 @@ export function layoutChant(
     lyrics: lyricsBySystem[system.index] ?? [],
   }));
 
+  // Normal systems still wrap at staffEndX, irrespective of this canvas.
+  const edges = ready ? systems.flatMap((system) => system.lyrics) : [];
+  let canvasLeft = 0;
+  let canvasRight = scoreWidth;
+  for (const lyric of edges) {
+    canvasLeft = Math.min(canvasLeft, (lyric.left ?? 12) - 12);
+    canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
+  }
   return {
     title: document.title,
-    width: scoreWidth,
+    x: canvasLeft,
+    width: canvasRight - canvasLeft,
     height:
       firstSystemBottomY +
       (systems.length - 1) * systemVerticalAdvance +

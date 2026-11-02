@@ -29,7 +29,7 @@ export function alignLyricText(
   if (
     !metrics ||
     !Number.isFinite(metrics.width) ||
-    metrics.width < 0 ||
+    metrics.width <= 0 ||
     metrics.boundaries.length !== count + 1 ||
     metrics.boundaries.some(
       (x, i, xs) => !Number.isFinite(x) || x < 0 || (i > 0 && x < xs[i - 1]),

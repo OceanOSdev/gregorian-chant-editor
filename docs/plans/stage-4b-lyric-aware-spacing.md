@@ -3,7 +3,7 @@
 Branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
-Status: **implementation handoff** for 4B only; Stage 4A merged in PR #43,
+Status: **implemented on the isolated branch; owner/ADR review pending** for 4B only; Stage 4A merged in PR #43,
 4C hyphenation and 4D acceptance are **not** authorized on this branch.
 
 **Overflow design gate resolved for this implementation handoff:**
@@ -25,9 +25,9 @@ wrapping. Stage 4B makes **measured lyrics participate in horizontal
 placement and system wrapping**, while retaining the current engraved
 neumes and edit UX.
 
-Our agreed visual principle: *music determines the alignment; lyrics
+Our agreed visual principle: _music determines the alignment; lyrics
 influence minimum spacing; hyphens appear where needed to preserve the
-readability of a word*. Use `Kyrie eleison` and, eventually in 4C,
+readability of a word_. Use `Kyrie eleison` and, eventually in 4C,
 the mixed joined/separated `auditione` reference from
 https://gregobase.selapa.net/chant.php?id=1261.
 
@@ -103,7 +103,7 @@ records the combined-geometry replacement for
 [accepted ADR 0005](../adrs/0005-derive-wrapping-from-rendered-geometry.md).
 Read `docs/adrs/README.md` and the full ADR 0010.
 
-The owner authorized the Stage 4B *direction* and this separate
+The owner authorized the Stage 4B _direction_ and this separate
 implementation experiment; **Codex may implement on this branch against
 the explicit Proposed ADR**. Do not silently mark ADR 0010 Accepted or
 ADR 0005 Superseded. Before merge, the owner will inspect the actual
@@ -112,7 +112,7 @@ update both ADR statuses and reciprocal links and the owning guides
 in the PR before merging. If implementing 4B requires a materially
 different architecture than ADR 0010, **stop and report options** instead
 of changing the proposal unilaterally. The Proposed status alone is
-*not* a reason to stop before starting the approved 4B experiment.
+_not_ a reason to stop before starting the approved 4B experiment.
 
 Read `AGENTS.md`, `docs/ai-workflow.md`,
 `docs/architecture.md`, `docs/layout-and-rendering.md`,
@@ -142,7 +142,7 @@ Read `AGENTS.md`, `docs/ai-workflow.md`,
    words require readable word separation, derived from the matching lyric
    font (or a documented deterministic minimum when no space metric is
    available). Keep intervening melismatic neumes as tightly grouped as
-   their *musical* geometry allows: no arbitrary extra spread among
+   their _musical_ geometry allows: no arbitrary extra spread among
    unanchored neumes merely because a syllable is long. A single large
    neume or multiple neumes may keep syllables far apart, which is
    acceptable until 4C.
@@ -170,8 +170,8 @@ Read `AGENTS.md`, `docs/ai-workflow.md`,
    bearing**; no silent clipping of otherwise placeable lyrics.
    Apply the **resolved scrollable oversized-score policy above** for
    unbreakable syllables that cannot fit an otherwise empty normal
-   system. This explicitly permits a *derived exceptional viewBox/canvas
-   width and x origin* while retaining normal 720-unit wrapping bounds.
+   system. This explicitly permits a _derived exceptional viewBox/canvas
+   width and x origin_ while retaining normal 720-unit wrapping bounds.
    Do not re-escalate that previously identified fixed-width conflict.
    Escalate only genuinely new material constraints not resolved here.
 
@@ -179,7 +179,7 @@ Read `AGENTS.md`, `docs/ai-workflow.md`,
    `ChantEditor` passes measured metrics to `layoutChant`, but
    `editor-session.ts` recomputes `layoutChant(document)` (without
    metrics) when resolving a graphical placement. After 4B, those
-   can disagree on *system membership and boundary positions*.
+   can disagree on _system membership and boundary positions_.
    Resolve this explicitly: click -> correct current whole-neume
    insertion index in the **displayed measured layout** -> commit on
    the reducer's current semantic document without retargeting a
@@ -240,7 +240,7 @@ duplicating layout and wrap logic.
 
 **Geometry and correctness**
 
-- A lyricless document's *complete* geometry, layout height,
+- A lyricless document's _complete_ geometry, layout height,
   system counts and break indexes match the pre-4B music-only
   baseline (including all seven supported neume types).
 - Under measured lyrics, words/syllables never collide on the
@@ -271,8 +271,8 @@ duplicating layout and wrap logic.
   system after horizontal scrolling.
 - Editing a lyric, changing a word boundary, editing vowel
   alignment, or changing the document language can reflow
-  systems *without changing the semantic document beyond that
-  user action*, and undo/redo restores the derived placement.
+  systems _without changing the semantic document beyond that
+  user action_, and undo/redo restores the derived placement.
 - The current musical placement cursor and local ghost remain
   correctly hit-tested before/after lyric-induced reflow;
   no stale music-only reducer layout silently changes the
@@ -283,7 +283,7 @@ duplicating layout and wrap logic.
 **Visual and accessibility acceptance**
 
 - Compare before/after browser screenshots for `Kyrie
-  eleison`, a collision example with a long word, a word
+eleison`, a collision example with a long word, a word
   boundary, and a multi-system layout. Confirm the letters'
   vowel nuclei remain aligned to the musical neumes.
 - Inspect results with multiple fonts/font fallback, multiple

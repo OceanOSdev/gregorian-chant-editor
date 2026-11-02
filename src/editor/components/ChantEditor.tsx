@@ -142,7 +142,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     // Invalid pointer intent allocates no IDs. The reducer resolves again against
     // its latest document to serialize even several clicks in the same React batch.
     if (!resolveGraphicalNeumePlacement(layout, kind, point)) return;
-    dispatch({ type: 'place', kind, point, ids: allocateInsertionIds() });
+    dispatch({
+      type: 'place',
+      kind,
+      point,
+      measureLyrics,
+      ids: allocateInsertionIds(),
+    });
   }
 
   useLayoutEffect(() => {
@@ -339,7 +345,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       </label>
       <p>
         Alignment follows the lyric language. Manual segments take precedence.
-        Lyric spacing and collision avoidance are planned for a later stage.
+        Lyrics provide minimum spacing between neumes. Oversized syllables can
+        be viewed by scrolling the score.
       </p>
       <div
         className="neume-palette"
@@ -457,104 +464,118 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         </p>
       </details>
       <div className="score-workspace">
-        <ScoreSvg
-          layout={layout}
-          lyricMove={
-            session.lyricMove
-              ? {
-                  ...session.lyricMove,
-                  anchorId:
-                    history.present.syllables.find(
-                      (s) => s.id === session.lyricMove?.syllableId,
-                    )?.startsAtNeumeId ?? '',
-                  legalIds: lyricMoveTargets(
-                    history.present,
-                    session.lyricMove.syllableId,
-                  ),
-                }
-              : null
-          }
-          onMoveDestination={(neumeId) =>
-            dispatch({
-              type: 'lyric-move',
-              action: { type: 'commit', neumeId },
-            })
-          }
-          onSelectSyllable={(syllableId) =>
-            lyricAction({ type: 'select', syllableId })
-          }
-          onEditSyllable={(syllableId, replacement) =>
-            lyricAction({ type: 'edit', syllableId, replacement })
-          }
-          onAdvanceLyric={(key) => lyricAction({ type: 'advance', key })}
-          onDeleteSyllable={(syllableId) =>
-            lyricAction({ type: 'delete', syllableId })
-          }
-          placementPreview={placementPreview}
-          selection={selection}
-          activeTool={activeTool}
-          placementDescription={placementDescription}
-          focusRequest={session.focusRequest}
-          onFocusHandled={(request) =>
-            dispatch({ type: 'focus-handled', request })
-          }
-          onSelectNote={(noteId) => {
-            const note = findNote(history.present, noteId);
-            if (session.lyrics && session.lyrics.kind !== 'recovery' && note)
-              lyricAction({ type: 'navigate', neumeId: note.neume.id });
-            else dispatch({ type: 'select', selection: selectNote(noteId) });
-          }}
-          onSelectNeumeForNote={(noteId) => {
-            const note = findNote(history.present, noteId);
-            if (note && session.lyrics && session.lyrics.kind !== 'recovery') {
-              lyricAction({ type: 'navigate', neumeId: note.neume.id });
-              return;
+        <div
+          className="score-viewport"
+          tabIndex={layout.width > 720 ? 0 : undefined}
+          role={layout.width > 720 ? 'region' : undefined}
+          aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
+        >
+          <ScoreSvg
+            layout={layout}
+            lyricMove={
+              session.lyricMove
+                ? {
+                    ...session.lyricMove,
+                    anchorId:
+                      history.present.syllables.find(
+                        (s) => s.id === session.lyricMove?.syllableId,
+                      )?.startsAtNeumeId ?? '',
+                    legalIds: lyricMoveTargets(
+                      history.present,
+                      session.lyricMove.syllableId,
+                    ),
+                  }
+                : null
             }
-            if (note)
+            onMoveDestination={(neumeId) =>
               dispatch({
-                type: 'select',
-                selection: selectNeume(note.neume.id),
+                type: 'lyric-move',
+                action: { type: 'commit', neumeId },
+              })
+            }
+            onSelectSyllable={(syllableId) =>
+              lyricAction({ type: 'select', syllableId })
+            }
+            onEditSyllable={(syllableId, replacement) =>
+              lyricAction({ type: 'edit', syllableId, replacement })
+            }
+            onAdvanceLyric={(key) => lyricAction({ type: 'advance', key })}
+            onDeleteSyllable={(syllableId) =>
+              lyricAction({ type: 'delete', syllableId })
+            }
+            placementPreview={placementPreview}
+            selection={selection}
+            activeTool={activeTool}
+            placementDescription={placementDescription}
+            focusRequest={session.focusRequest}
+            onFocusHandled={(request) =>
+              dispatch({ type: 'focus-handled', request })
+            }
+            onSelectNote={(noteId) => {
+              const note = findNote(history.present, noteId);
+              if (session.lyrics && session.lyrics.kind !== 'recovery' && note)
+                lyricAction({ type: 'navigate', neumeId: note.neume.id });
+              else dispatch({ type: 'select', selection: selectNote(noteId) });
+            }}
+            onSelectNeumeForNote={(noteId) => {
+              const note = findNote(history.present, noteId);
+              if (
+                note &&
+                session.lyrics &&
+                session.lyrics.kind !== 'recovery'
+              ) {
+                lyricAction({ type: 'navigate', neumeId: note.neume.id });
+                return;
+              }
+              if (note)
+                dispatch({
+                  type: 'select',
+                  selection: selectNeume(note.neume.id),
+                  focusNoteId: noteId,
+                });
+            }}
+            onPlacementPointerMove={(point) =>
+              dispatch({ type: 'hover', point })
+            }
+            onPlacementPointerLeave={() =>
+              dispatch({ type: 'hover', point: null })
+            }
+            onPlaceNeume={handlePlaceNeume}
+            onMoveNote={(noteId, delta) =>
+              dispatch({
+                type: 'edit',
+                edit: (document) => moveNoteVertically(document, noteId, delta),
                 focusNoteId: noteId,
-              });
-          }}
-          onPlacementPointerMove={(point) => dispatch({ type: 'hover', point })}
-          onPlacementPointerLeave={() =>
-            dispatch({ type: 'hover', point: null })
-          }
-          onPlaceNeume={handlePlaceNeume}
-          onMoveNote={(noteId, delta) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => moveNoteVertically(document, noteId, delta),
-              focusNoteId: noteId,
-            })
-          }
-          onMoveNeume={(neumeId, delta, invokingNoteId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => moveNeumeVertically(document, neumeId, delta),
-              focusNoteId: invokingNoteId,
-            })
-          }
-          onDeleteNote={(noteId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => deleteNote(document, noteId),
-              clearSelection: true,
-            })
-          }
-          onDeleteNeume={(neumeId) =>
-            dispatch({
-              type: 'edit',
-              edit: (document) => deleteNeume(document, neumeId),
-              clearSelection: true,
-            })
-          }
-          onClearSelection={() =>
-            !session.lyrics &&
-            dispatch({ type: 'select', selection: clearSelection() })
-          }
-        />
+              })
+            }
+            onMoveNeume={(neumeId, delta, invokingNoteId) =>
+              dispatch({
+                type: 'edit',
+                edit: (document) =>
+                  moveNeumeVertically(document, neumeId, delta),
+                focusNoteId: invokingNoteId,
+              })
+            }
+            onDeleteNote={(noteId) =>
+              dispatch({
+                type: 'edit',
+                edit: (document) => deleteNote(document, noteId),
+                clearSelection: true,
+              })
+            }
+            onDeleteNeume={(neumeId) =>
+              dispatch({
+                type: 'edit',
+                edit: (document) => deleteNeume(document, neumeId),
+                clearSelection: true,
+              })
+            }
+            onClearSelection={() =>
+              !session.lyrics &&
+              dispatch({ type: 'select', selection: clearSelection() })
+            }
+          />
+        </div>
         <SyllableControls
           onAlignment={(syllableId, range) =>
             dispatch({

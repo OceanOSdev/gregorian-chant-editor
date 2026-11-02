@@ -1,6 +1,6 @@
-# Plan: Stage 4 lyric-aware engraving (4A completed; 4B underway)
+# Plan: Stage 4 lyric-aware engraving (4A completed; 4B implemented pending review)
 
-Status: **4A merged in PR #43; 4B active; 4C–4D deferred**.
+Status: **4A merged in PR #43; 4B implemented pending review; 4C–4D deferred**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Current 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
@@ -230,7 +230,7 @@ reflow or semantic anchor changes from alignment alone; selection vs focus
 and edit-target regression; atomic history and exact undo/redo. Verify in
 both multi-system and narrow browser cases.
 
-### 4B — Lyric-aware spacing and wrapping (active; separate branch / PR)
+### 4B — Lyric-aware spacing and wrapping (implemented; owner review pending)
 
 Follow [the dedicated Stage 4B handoff](stage-4b-lyric-aware-spacing.md) and Proposed ADR 0010. Do not silently supersede accepted ADR 0005. The following original outline remains background context.
 

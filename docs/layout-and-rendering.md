@@ -27,7 +27,7 @@ Even an empty document produces one empty system.
 
 `layoutChant` converts `ChantDocument` to `ChantLayout`:
 
-- score `title`, fixed `width`, and derived `height`;
+- score `title`, derived canvas `x`, `width`, and `height`;
 - ordered `systems`;
 - each system's index, bounds, staff lines, clef, neumes, lyrics, and
   `startNeumeIndex`.
@@ -46,10 +46,12 @@ groups are organizational and have no translation transform.
 This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
-The score width is currently fixed at 720 layout units. Its height grows from
-the number of systems and the vertical advance between them. `ScoreSvg` uses
-both dimensions in its `viewBox`; CSS can scale the vector drawing
-responsively while the layout retains stable internal units.
+Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
+Height grows with system count. The Stage 4B implementation follows
+[Proposed ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+on this isolated branch; ADR 0005 remains Accepted pending owner review.
+For exceptional unbreakable lyrics, see the overflow policy below. Logical
+system placement always retains its normal bounds, independently of canvas size.
 
 Every system repeats the same four staff-line x extents and a C clef positioned
 on the semantic clef line. Their y coordinates advance by the system offset.
@@ -96,13 +98,14 @@ whole-neume outlines. They exclude interaction padding and selection styling.
 Musical lyric anchors are explicit and never recomputed from the union of all
 ink. `advanceX` is the distance from one glyph's left ink edge to the following
 left ink edge: complete painted width plus the existing 33-unit edge gap.
-Each system's first nominal pitch anchor remains x = 230; all seven kinds now
-use a six-unit first bearing with the same ink-gap rule.
+Each system's first nominal pitch anchor starts at x = 230; measured left
+bearings can increase it. All seven kinds use a six-unit first bearing with
+the same minimum ink-gap rule.
 
 ## Automatic whole-neume wrapping
 
 `placeNeumeSequence` processes semantic neumes in order and measures each
-complete raw rendered extent at its proposed horizontal position. A candidate that exceeds
+complete raw rendered extent and measured lyric advance at its proposed horizontal position. A candidate that exceeds
 the usable right boundary starts the next system when the current system
 already has content.
 
@@ -128,8 +131,43 @@ Changing an individual pitch can switch between adjacent and wider Clivis
 construction, changing width and system membership. Whole-neume transposition
 retains interval widths. Insertion, deletion, normalization, and interval edits
 can reflow later entities while preserving semantic IDs and pending focus.
-`wrapNeumes` and committed layout use the same sequence walker, including
-exact-fit and oversized progress rules. Hover does not run a wrapping pass.
+`wrapNeumes` and `getNeumeBoundaryCenterX` are explicitly music-only helpers.
+`layoutChant(document, measurementSnapshot)` is authoritative for displayed
+scores and interaction resolution. They share the same placement walker,
+including exact-fit and oversized progress rules. Hover does not run a wrapping pass.
+
+### Lyric clearances and oversized canvas (Stage 4B)
+
+One placement walk preserves each neume's musical minimum advance, then increases
+only the incoming anchored neume's position as required by the previous lyric's
+right advance edge. Same-word syllables may abut; distinct words receive a
+5-unit (quarter-em at the matching 20-unit font) deterministic minimum gap.
+Unanchored melismatic neumes keep their musical advances. Each candidate tests
+both musical ink and lyric right bounds; a new system resets lyric clearance
+and accommodates the first lyric's left bearing at the staff start. A candidate
+fits on equality. Internal neume geometry and lyric-to-musical alignment never change.
+
+All syllables must have valid, positive measurements before lyrics influence
+placement. A missing, zero, malformed or partial snapshot keeps provisional
+music-only spacing and a 720-unit canvas; the browser remeasures after fonts
+become ready. Measurements never enter semantic state or history.
+
+If the first anchored unit cannot fit even after accommodating its left bearing,
+retain its normal musical anchor, place it once alone, and advance to the next
+normal-width system. Its text is neither split nor scaled. The derived canvas
+contains all measured lyric edges with 12 units of padding, extending the normal
+[0, 720] interval as necessary, including a negative `ChantLayout.x`. The SVG
+uses that origin and width, at one CSS pixel per layout unit for this exceptional
+canvas. A named, focusable local score viewport provides native horizontal
+scrolling, including arrow-key scrolling; controls remain outside it. Ordinary
+scores keep responsive scaling. Canvas width never expands wrapping bounds.
+The floating lyric form remains within the workspace, with exceptional vertical
+positions in CSS pixels to match the unscaled SVG.
+
+Pointer conversion uses the inverse screen CTM, including scrolling and negative
+origins. Focus reveal visits local scroll containers before the page. Reparented
+note/lyric controls restore browser focus by ID after measurement reflow without
+changing semantic selection or stealing focus from editor controls.
 
 ## Committed layout and previews
 
@@ -152,7 +190,7 @@ for input and lifecycle rules.
 Lyric syllables carry stable `startsAtNeumeId` anchors. Layout resolves each
 anchor directly to its committed neume and emits one lyric on that system.
 Later neumes in the span never repeat the text, including across system breaks.
-Music-only geometry still determines spacing and wrapping.
+Measured lyric advances participate in the same placement and wrapping walk as music.
 
 Current horizontal alignment rules are:
 
@@ -170,8 +208,9 @@ generated hyphens are deferred to Stage 4C.
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
-contract below. Automatic hyphenation, lyric collision avoidance, word-spacing
-logic and continuation marks remain deferred.
+contract below. Each lyric also exposes measured `left`/`right` advance edges
+(or null when unavailable), `boundaryBefore`, and `anchorX`; the enclosing system
+provides its boundary. Conditional hyphens and continuation marks remain deferred.
 
 ## Rendering and accessibility
 
@@ -267,8 +306,6 @@ SVG substring lengths only in that adapter. Platform font substitution can
 change measured geometry. Rendering keeps one interactive text control per
 syllable, with unchanged baseline, accessible name and ID-based interaction.
 
-Stage 4A leaves **music-only spacing and wrapping** intact (ADR 0005).
-Long/shifted lyrics may collide or extend outside a system; clearance, hyphens
-and lyric-driven wrapping await 4B/4C. The older minimal-engraving proposal in
-`plans/lyric-system-redesign.md` describes the prior direction; the Stage 4 plan
-supersedes its future engraving scope, without implementing those later stages.
+Stage 4B extends the Stage 4A measurements into combined placement as described
+above. Stage 4C hyphens and system continuation marks remain deferred; same-word
+syllables can still appear widely separated when music requires it.

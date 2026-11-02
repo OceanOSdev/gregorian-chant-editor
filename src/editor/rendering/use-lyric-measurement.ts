@@ -61,11 +61,16 @@ export function useLyricMeasurement(
       const values: string[] = JSON.parse(textKey);
       setMetrics(new Map(values.map((text) => [text, measure(text)])));
     };
+    const pending = () => {
+      if (active) setMetrics(new Map());
+    };
+    document.fonts.addEventListener('loading', pending);
     void document.fonts.ready.then(refresh);
     document.fonts.addEventListener('loadingdone', refresh);
     return () => {
       active = false;
       document.fonts.removeEventListener('loadingdone', refresh);
+      document.fonts.removeEventListener('loading', pending);
     };
   }, [textKey]);
   return useMemo(() => (text: string) => metrics.get(text) ?? null, [metrics]);

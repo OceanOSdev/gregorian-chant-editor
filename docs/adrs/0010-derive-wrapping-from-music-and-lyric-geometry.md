@@ -21,8 +21,8 @@ measured SVG advances without moving music.
 
 The owner approved lyric-aware spacing/wrapping in Stage 4B, followed by
 conditional hyphenation and system-break marks in Stage 4C. The guiding
-engraving principle is: *music determines alignment, lyrics influence minimum
-spacing, and hyphens appear when needed to keep words readable*.
+engraving principle is: _music determines alignment, lyrics influence minimum
+spacing, and hyphens appear when needed to keep words readable_.
 
 ## Proposed decision
 
@@ -59,8 +59,8 @@ musical alignment anchor or changing a neume's internal engraving contour.
   once (progress guaranteed) and expand the **derived canvas/viewBox** as
   required to display its full text and musical ink, including left or right
   overhang and modest padding. Its vowel or manual alignment stays centered
-  on the same musical anchor. The *logical normal music-placement and
-  wrapping width* does **not** expand with that visual canvas; the exception
+  on the same musical anchor. The _logical normal music-placement and
+  wrapping width_ does **not** expand with that visual canvas; the exception
   does not let other neumes fill an arbitrarily long line. An exceptional
   canvas may have a negative viewBox x origin. Expose it in a **local
   horizontally scrollable score viewport**, using enough intrinsic rendered
@@ -74,7 +74,7 @@ musical alignment anchor or changing a neume's internal engraving contour.
   metadata is introduced.
 - Use one shared pure layout decision for committed rendering, score-based
   hit testing, and semantic insertion-boundary resolution. Render previews
-  as local caret/ghost feedback on the *actual displayed* committed layout;
+  as local caret/ghost feedback on the _actual displayed_ committed layout;
   do not promise hypothetical full-system reflow on hover.
 - All coordinates, word extents, system assignments, padding and optional
   future hyphen reservations remain **derived**; never persist them in

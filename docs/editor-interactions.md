@@ -310,7 +310,8 @@ visible. The SVG viewBox and visible dimensions use only committed layout.
 No system is added, removed, reserved or rearranged during hover. There is no
 prospective scene or speculative score height.
 
-On click, current document/layout/point are resolved again; then semantic
+On click, the reducer resolves its latest document and point with the same
+measurement snapshot used by the displayed layout; then semantic
 insertion and normal `layoutChant` apply spacing and whole-neume wrapping. The
 new note's actual committed destination drives the existing postcommit focus
 and minimal reveal. The tool stays active and hover clears. Preview/commit
@@ -341,7 +342,7 @@ Insert/Place toggle.
 
 A second click at the same client coordinates is allowed with no pointer move
 and no visible preview. Each click converts through the current screen transform
-and is resolved anew against the reducer's latest document, layout and armed kind. The preview's cached insertion intent is never a
+and is resolved anew against the reducer's latest document, measured layout and armed kind. The preview's cached insertion intent is never a
 commit source. Clearing hover does not disable the click path.
 
 Accepted clicks allocate fresh entity IDs, commit exactly one neume and one
@@ -511,3 +512,22 @@ Manual initially selects the whole syllable, then each range choice is one
 history action. Reset to automatic uses the current document language. Save
 or cancel a text draft before changing its alignment. The control explains
 that any text change resets an override, recoverable with text undo.
+
+## Stage 4B measured reflow and overflow
+
+Graphical placement actions carry the displayed text-measurement snapshot outside
+semantic history. The reducer calls `layoutChant` with that snapshot on its latest
+document, serializing rapid clicks without a music-only retargeting step. Hover,
+caret, hit regions and click resolution therefore use the same geometry policy.
+Text, boundary, language and manual-alignment edits rederive layout without extra
+history entries. Pending/missing metrics use the same provisional music-only
+fallback in the renderer and reducer.
+
+Exceptional oversized lyrics use the locally scrollable score viewport described
+in [layout and rendering](layout-and-rendering.md#lyric-clearances-and-oversized-canvas-stage-4b).
+Tab reaches its named region; native horizontal arrow keys scroll it. The inverse
+SVG screen CTM handles negative origins and horizontal scroll when placing on
+any system. Editor controls stay outside that scroller. Focus reveal scrolls
+clipped destinations locally, and measurement-driven reparenting restores the
+focused semantic ID independently of selection. The local ghost continues to
+show current-system intent, without simulating hypothetical reflow.

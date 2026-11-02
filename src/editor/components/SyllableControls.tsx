@@ -312,8 +312,14 @@ export function SyllableControls({
           className="syllable-form lyric-floating-entry"
           aria-label={draft.original ? 'Edit syllable' : 'Insert syllable'}
           style={{
-            left: `clamp(0.5rem, ${((neume.lyricAnchorX - 80) / layout.width) * 100}%, calc(100% - min(13rem, 65%) - 0.5rem))`,
-            top: `${((system.y + 156) / layout.width) * 100}cqw`,
+            left:
+              layout.width > 720
+                ? '0.5rem'
+                : `clamp(0.5rem, ${((neume.lyricAnchorX - 80) / layout.width) * 100}%, calc(100% - min(13rem, 65%) - 0.5rem))`,
+            top:
+              layout.width > 720
+                ? `${system.y + 156}px`
+                : `${((system.y + 156) / layout.width) * 100}cqw`,
           }}
           onSubmit={(event) => {
             event.preventDefault();
