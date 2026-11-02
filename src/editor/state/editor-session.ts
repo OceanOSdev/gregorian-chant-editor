@@ -16,6 +16,7 @@ import {
   type InsertionIds,
 } from '../interaction/insert-editor-neume';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
+import type { MeasureLyricText } from '../layout/lyric-text-metrics';
 import { layoutChant, type GraphicalNeumeKind } from '../layout/layout-chant';
 import {
   applyDocumentEdit,
@@ -117,6 +118,8 @@ export type EditorAction =
   | { type: 'hover'; point: { x: number; y: number } | null }
   | {
       type: 'place';
+      /** Immutable displayed font snapshot; never stored in semantic history. */
+      measureLyrics?: MeasureLyricText;
       kind: GraphicalNeumeKind;
       point: { x: number; y: number };
       ids: InsertionIds;
@@ -258,11 +261,11 @@ function reduceSessionAction(
       if (action.type === 'place' && placing !== action.kind) return state;
       const kind = action.type === 'place' ? action.kind : state.rememberedKind;
       const document = state.history.present;
-      // Recompute on the reducer's current document, never the handler's render closure.
+      // Latest semantic state plus the displayed font snapshot serializes rapid clicks.
       const insertion =
         action.type === 'place'
           ? resolveGraphicalNeumePlacement(
-              layoutChant(document),
+              layoutChant(document, action.measureLyrics),
               kind,
               action.point,
             )

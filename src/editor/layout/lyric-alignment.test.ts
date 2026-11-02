@@ -97,6 +97,12 @@ describe('language-specific lyric segments', () => {
       { width: NaN, boundaries: [] },
       { width: 20, boundaries: [0, 30, 20] },
       { width: 20, boundaries: [0, 10] },
+      {
+        width: 20,
+        boundaries: [0, 10, 20],
+        inkBounds: { left: NaN, right: 21 },
+      },
+      { width: 20, boundaries: [0, 10, 20], inkBounds: { left: 5, right: 4 } },
     ]) {
       expect(alignLyricText(syllable('Ky'), 'la', () => metrics).measured).toBe(
         false,

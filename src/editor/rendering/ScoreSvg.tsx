@@ -95,6 +95,49 @@ export function ScoreSvg({
   const scoreElement = useRef<SVGSVGElement>(null);
   const lyricElements = useRef(new Map<string, SVGTextElement>());
   const noteElements = useRef(new Map<string, SVGGElement>());
+  // Reflow can reparent keyed controls between system groups. Track browser
+  // focus separately from selection so measurement changes can restore that ID.
+  const focusedEntity = useRef<{
+    kind: 'note' | 'lyric';
+    id: string;
+    element: Element;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const track = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        !(target instanceof Element) ||
+        !scoreElement.current?.contains(target)
+      ) {
+        focusedEntity.current = null;
+        return;
+      }
+      const noteId = target.getAttribute('data-note-id');
+      const syllableId = target.getAttribute('data-syllable-id');
+      focusedEntity.current = noteId
+        ? { kind: 'note', id: noteId, element: target }
+        : syllableId
+          ? { kind: 'lyric', id: syllableId, element: target }
+          : null;
+    };
+    document.addEventListener('focusin', track);
+    return () => document.removeEventListener('focusin', track);
+  }, []);
+  useLayoutEffect(() => {
+    const target = focusedEntity.current;
+    if (
+      !target ||
+      target.element.isConnected ||
+      focusRequest ||
+      document.activeElement !== document.body
+    )
+      return;
+    const element =
+      target.kind === 'note'
+        ? noteElements.current.get(target.id)
+        : lyricElements.current.get(target.id);
+    if (element) focusAndReveal(element);
+  });
   const placementActive = isPlacementTool(activeTool);
   useLayoutEffect(() => {
     if (
@@ -251,7 +294,12 @@ export function ScoreSvg({
       ref={scoreElement}
       tabIndex={placementActive ? -1 : undefined}
       className={`score${placementActive ? ' score--placing' : ''}`}
-      viewBox={`0 0 ${layout.width} ${layout.height}`}
+      viewBox={`${layout.x} 0 ${layout.width} ${layout.height}`}
+      style={
+        layout.width > 720
+          ? { width: layout.width, maxWidth: 'none' }
+          : undefined
+      }
       role="group"
       aria-label={placementActive ? 'Score placement' : undefined}
       aria-labelledby={
@@ -466,6 +514,21 @@ export function ScoreSvg({
               <g
                 className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
               >
+                {selection.kind === 'syllable' &&
+                selection.syllableId === lyric.syllableId &&
+                lyric.left !== null &&
+                lyric.right !== null ? (
+                  <rect
+                    className="score__lyric-selection"
+                    x={lyric.left + Math.min(2, (lyric.right - lyric.left) / 2)}
+                    y={lyric.y - lyric.fontSize}
+                    width={Math.max(0, lyric.right - lyric.left - 4)}
+                    height={lyric.fontSize * 1.3}
+                    rx={1.5}
+                    aria-hidden="true"
+                    pointerEvents="none"
+                  />
+                ) : null}
                 <text
                   className="score__lyric"
                   ref={(element) => {

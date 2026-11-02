@@ -6,6 +6,8 @@ context, and its consequences.
 
 The lyric relationship decision is [ADR 0008: Anchor lyric syllables to independent neumes](0008-anchor-lyrics-to-neumes.md).
 
+The **Accepted** [ADR 0010: Derive wrapping from combined music and lyric geometry](0010-derive-wrapping-from-music-and-lyric-geometry.md) governs Stage 4B layout and supersedes [ADR 0005](0005-derive-wrapping-from-rendered-geometry.md), which remains in the log as historical context.
+
 The accepted engraving decision is
 [ADR 0007: Share derived neume engraving geometry](0007-share-derived-neume-engraving-geometry.md).
 

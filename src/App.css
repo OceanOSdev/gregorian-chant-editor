@@ -318,9 +318,10 @@ kbd {
 .score__lyric[role='button'] {
   cursor: pointer;
 }
-.score__lyric-group--selected {
-  outline: 2.5px dashed #7e49a3;
-  outline-offset: 3px;
+.score__lyric-selection {
+  fill: #e3d1ee;
+  stroke: none;
+  pointer-events: none;
 }
 .score__lyric:focus {
   outline: none;
@@ -359,4 +360,13 @@ kbd {
 
 .score__move-hit-target {
   cursor: pointer;
+}
+
+.score-viewport {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.score-viewport:focus-visible {
+  outline: 2px solid #2879b8;
+  outline-offset: 2px;
 }

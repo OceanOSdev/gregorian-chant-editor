@@ -34,7 +34,21 @@ export function createSvgLyricMeasurer(): MeasureLyricText {
       ];
       const width = text.getComputedTextLength();
       boundaries[boundaries.length - 1] = width;
-      const result = width > 0 ? { width, boundaries } : null;
+      const ink = text.getBBox();
+      // SVG font hinting varies slightly with responsive scale. Enclose the
+      // painted bounds with a half-unit precision guard, not a word-space policy.
+      const precision = 0.5;
+      const result =
+        width > 0
+          ? {
+              width,
+              boundaries,
+              inkBounds: {
+                left: ink.x - precision,
+                right: ink.x + ink.width + precision,
+              },
+            }
+          : null;
       cache.set(value, result);
       return result;
     } catch {
@@ -61,11 +75,16 @@ export function useLyricMeasurement(
       const values: string[] = JSON.parse(textKey);
       setMetrics(new Map(values.map((text) => [text, measure(text)])));
     };
+    const pending = () => {
+      if (active) setMetrics(new Map());
+    };
+    document.fonts.addEventListener('loading', pending);
     void document.fonts.ready.then(refresh);
     document.fonts.addEventListener('loadingdone', refresh);
     return () => {
       active = false;
       document.fonts.removeEventListener('loadingdone', refresh);
+      document.fonts.removeEventListener('loading', pending);
     };
   }, [textKey]);
   return useMemo(() => (text: string) => metrics.get(text) ?? null, [metrics]);

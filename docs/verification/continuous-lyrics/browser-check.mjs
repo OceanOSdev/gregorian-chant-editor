@@ -521,11 +521,11 @@ const originalInk = await ev(
 );
 await key(' ', ' ');
 const selectedStyle = await ev(
-  "(()=>{const t=document.querySelector('.score__lyric'),g=t.parentElement,s=getComputedStyle(g),f=getComputedStyle(t),cue=t.closest('.score__lyric-control').querySelector('.score__lyric-focus-cue'),c=getComputedStyle(cue);return {ink:f.fill,decoration:f.textDecorationLine,selection:s.outlineStyle,selectionColor:s.outlineColor,focus:f.outlineStyle,focusColor:c.fill,focusCue:c.display,focusLabel:cue.textContent.trim(),focusVisible:t.matches(':focus-visible')}})()",
+  "(()=>{const t=document.querySelector('.score__lyric'),g=t.parentElement,s=getComputedStyle(g),f=getComputedStyle(t),cue=t.closest('.score__lyric-control').querySelector('.score__lyric-focus-cue'),c=getComputedStyle(cue);return {ink:f.fill,decoration:f.textDecorationLine,selection:s.outlineStyle,selectionColor:getComputedStyle(g.querySelector('.score__lyric-selection')).fill,focus:f.outlineStyle,focusColor:c.fill,focusCue:c.display,focusLabel:cue.textContent.trim(),focusVisible:t.matches(':focus-visible')}})()",
 );
 assert.equal(selectedStyle.ink, originalInk);
 assert.equal(selectedStyle.decoration, 'none');
-assert.equal(selectedStyle.selection, 'dashed');
+assert.equal(selectedStyle.selection, 'none');
 assert.equal(selectedStyle.focus, 'none');
 assert.equal(selectedStyle.focusCue, 'block');
 assert.equal(selectedStyle.focusLabel, 'Keyboard focus');
@@ -605,7 +605,7 @@ for (const activeMode of [false, true]) {
     );
     assert.equal(
       await ev(
-        "document.querySelector('.lyric-actions').textContent.includes('Selection (purple outline): Al')",
+        "document.querySelector('.lyric-actions').textContent.includes('Selection (purple cue): Al')",
       ),
       true,
     );

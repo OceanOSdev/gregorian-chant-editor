@@ -16,9 +16,12 @@ wrapping. Painted extents, musical alignment points, and padded interaction
 regions serve different purposes and need independent definitions.
 
 This decision extends the derived-layout responsibilities established by
-[ADR 0002](0002-separate-semantic-and-derived-state.md) and
-[ADR 0005](0005-derive-wrapping-from-rendered-geometry.md). It does not supersede
-them or change the semantic kinds and stable IDs in ADRs 0003 and 0004.
+[ADR 0002](0002-separate-semantic-and-derived-state.md) and, at its adoption,
+[ADR 0005](0005-derive-wrapping-from-rendered-geometry.md). The latter has since
+been superseded by [ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md),
+which adds measured lyric extents to spacing and wrapping without replacing
+this ADR's shared neume-geometry contract or changing the semantic kinds and
+stable IDs in ADRs 0003 and 0004.
 
 ## Decision
 

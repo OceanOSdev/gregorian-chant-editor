@@ -259,7 +259,7 @@ export function SyllableControls({
       ) : null}
       <p id="lyric-focus-help">
         Tab moves keyboard focus without changing selection. The blue marker
-        shows where engraved-lyric keys act; the purple outline marks selection.
+        shows where engraved-lyric keys act; the purple cue marks selection.
         Delete/Backspace deletes the focused engraved syllable. Selection
         buttons act on the selected syllable.
       </p>
@@ -312,8 +312,14 @@ export function SyllableControls({
           className="syllable-form lyric-floating-entry"
           aria-label={draft.original ? 'Edit syllable' : 'Insert syllable'}
           style={{
-            left: `clamp(0.5rem, ${((neume.lyricAnchorX - 80) / layout.width) * 100}%, calc(100% - min(13rem, 65%) - 0.5rem))`,
-            top: `${((system.y + 156) / layout.width) * 100}cqw`,
+            left:
+              layout.width > 720
+                ? '0.5rem'
+                : `clamp(0.5rem, ${((neume.lyricAnchorX - 80) / layout.width) * 100}%, calc(100% - min(13rem, 65%) - 0.5rem))`,
+            top:
+              layout.width > 720
+                ? `${system.y + 156}px`
+                : `${((system.y + 156) / layout.width) * 100}cqw`,
           }}
           onSubmit={(event) => {
             event.preventDefault();
@@ -413,7 +419,7 @@ export function SyllableControls({
               {selectedSyllable ? (
                 <>
                   <p>
-                    Selection (purple outline):{' '}
+                    Selection (purple cue):{' '}
                     <strong>{selectedSyllable.text}</strong>
                   </p>
                   <button
@@ -553,8 +559,7 @@ export function SyllableControls({
       ) : selectedSyllableId ? (
         <div className="lyric-actions">
           <p>
-            Selection (purple outline):{' '}
-            <strong>{selectedSyllable?.text}</strong>
+            Selection (purple cue): <strong>{selectedSyllable?.text}</strong>
           </p>
           <button
             type="button"
