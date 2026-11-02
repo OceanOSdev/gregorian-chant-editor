@@ -533,14 +533,14 @@ clipped destinations locally, and measurement-driven reparenting restores the
 focused semantic ID independently of selection. The local ghost continues to
 show current-system intent, without simulating hypothetical reflow.
 
-## Stage 4C compact pointer ownership (branch experiment)
+## Stage 4C compact pointer ownership
 
-Under [Proposed ADR 0011](adrs/0011-word-aware-chant-engraving.md), compact
+Under [Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md), compact
 same-word neumes use layout-derived horizontal ownership clips. The midpoint
 between adjacent ink bounds clips external note padding and lyric reassignment
 destinations, preserving internal constituent contours and every visible ink
 edge. Decorative hyphens never receive pointer events or focus. Graphical
 insertion and caret/ghost feedback continue using the committed measured layout;
 there is no second word-spacing authority in event handlers. See the
-[layout guide](layout-and-rendering.md#stage-4c-branch-experiment-word-composition)
+[layout guide](layout-and-rendering.md#stage-4c-word-composition)
 for geometry, reservation and fallback policy.

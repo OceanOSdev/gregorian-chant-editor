@@ -357,7 +357,7 @@ Verify focused-ID preservation during measurement reparenting, later-system
 pointer/caret agreement, word-boundary/text/alignment/language history, 320px
 containment, native horizontal scrolling to both edges and scrolled insertion
 with a negative viewBox origin. Generated before/after screenshots remain in
-temporary storage. ADR 0010 stays Proposed pending owner review.
+temporary storage. ADR 0010 is Accepted; ADR 0011 narrowly qualifies same-word spacing.
 
 The same-word regression uses `Al / lealsdkfjaasdfhasdf / lu / ia / bla`.
 Assert painted SVG `getBBox()` clearance as well as advance clearance, including
@@ -448,3 +448,15 @@ three shared corpus specimens cover one syllable owning two equal-pitch puncta,
 no internal hyphen, full-phrase pitch/boundary metadata, and a split syllable span.
 The corpus driver also measures the actual e center and both note centers
 relative to their staffs. No image matching or production policy change is used.
+
+## Stage 4D acceptance audit
+
+The [current Stage 4D record](verification/stage-4d/README.md) inventories pure
+and runnable browser coverage, reproduction commands, actual Chromium/Firefox
+results, selected fresh visual evidence and unverified areas. Its foreground
+Firefox checklist is a separate owner signoff; headless input and DOM/ARIA
+assertions do not verify foreground keyboard behavior or spoken output.
+The existing corpus driver now also checks semantic lyric DOM order, names,
+roles, initial pressed/tab state, instruction references and inert punctuation.
+The Stage 3 move driver uses the current purple-cue caption and explicit Latin
+fixture. Historical placement/Stage 1 drivers still need adaptation.

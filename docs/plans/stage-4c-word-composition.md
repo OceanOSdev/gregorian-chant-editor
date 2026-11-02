@@ -3,10 +3,12 @@
 Branch: `feat/stage-4c-word-composition`
 Target: `master`
 Baseline: `8672a1ee8dc7a505cb7761f675aa33a0febf3d61` (PR #44 merged)
-Status: **implemented and owner-accepted; PR #45 awaiting merge**.
+Status: **implemented, owner-accepted and merged in PR #45**.
 [ADR 0011](../adrs/0011-word-aware-chant-engraving.md) and
 [ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-are both Accepted. Stage 4D is deferred.
+are both Accepted. Stage 4D verification is complete with disclosed gaps;
+PR #46 review/merge remains pending. See the
+[Stage 4D report](../verification/stage-4d/README.md) for actual evidence and limits.
 
 This handoff preserves **historical instructions and original review gates**
 below; those gates have been satisfied. The owner accepted the current

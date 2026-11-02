@@ -14,8 +14,7 @@ including derived whole-neume wrapping, measured lyric clearance, exact fit,
 oversized progression and scrollable exceptional overhang, remain in force.
 The owner accepted the current geometry-derived word composition as a
 good-enough baseline, not a promise of publication-quality hyphenation or
-a requirement to reproduce every GregoBase editorial choice. PR #45 remains
-open until normal merge checks and owner merge.
+a requirement to reproduce every GregoBase editorial choice. PR #45 was subsequently merged.
 
 ## Context
 
@@ -139,5 +138,5 @@ Two improvements are deliberately **deferred, not approved changes**:
 
 See [auditione analysis](../verification/word-composition/auditione-review.md)
 and [et/lux analysis](../verification/word-composition/et-lux-review.md).
-Neither refinement is implemented or promised for this PR. Its remaining
-step is the normal merge process; acceptance does not itself merge it.
+Neither refinement was implemented or promised for PR #45. The PR subsequently
+merged; acceptance of this ADR was a separate owner decision.

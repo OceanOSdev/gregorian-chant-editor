@@ -1,20 +1,23 @@
-# Plan: Stage 4 lyric-aware engraving (4A–4B merged; 4C underway)
+# Plan: Stage 4 lyric-aware engraving (completed verification milestone)
 
-Status: **4A merged in PR #43; 4B merged in PR #44; Stage 4C underway,
-Stage 4D deferred**.
+Status: **4A merged in PR #43; 4B merged in PR #44; 4C merged in PR #45;
+Stage 4D verification complete with disclosed gaps; PR #46 review/merge pending**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Completed 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`
 4B original baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 
 The 4A and 4B instructions below are historical; both stages are merged.
-Stage 4C is implemented and owner-accepted on `feat/stage-4c-word-composition`
-(PR #45, pending merge), following the [4C handoff](stage-4c-word-composition.md)
-and [Accepted ADR 0011](../adrs/0011-word-aware-chant-engraving.md).
+Stage 4C merged in [PR #45](https://github.com/OceanOSdev/gregorian-chant-editor/pull/45),
+following the [4C handoff](stage-4c-word-composition.md) and
+[Accepted ADR 0011](../adrs/0011-word-aware-chant-engraving.md).
 [Accepted ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
-still governs combined music/lyric layout, narrowly qualified for eligible
-same-word compaction by ADR 0011. Historical implementation instructions
-below remain for context; Stage 4D is deferred.
+continues to govern combined music/lyric layout, narrowly qualified by ADR 0011.
+The completed verification handoff is [Stage 4D](stage-4d-acceptance.md).
+The [verification report](../verification/stage-4d/README.md) records the
+qualitative owner manual result, screen-reader checks Not run and the uncaptured
+detailed 320px usability signoff. Completion does not imply every scenario passed. The preceding stage instructions below
+are historical and should not be reimplemented.
 
 **Language-design gate resolved (2026-11-01):** The owner approved a required,
 document-level lyric engraving language preference. New chants use Latin by
@@ -37,8 +40,9 @@ in the referenced Requiem gradual (https://gregobase.selapa.net/chant.php?id=126
 spacing; hyphens appear as needed to preserve a word's readability.
 
 Stage 4 intentionally expands the older "minimal engraving / music-only
-wrapping" proposal in `docs/plans/lyric-system-redesign.md`. That earlier
-section describes the prior plan, not the newly agreed Stage 4 outcome.
+wrapping" proposal in the retired `docs/plans/lyric-system-redesign.md`
+(available through Git history). That earlier section describes the prior plan,
+not the implemented Stage 4 outcome.
 The implementation must reconcile this change explicitly in the owning docs.
 
 ## Source contracts and accepted decisions
@@ -245,26 +249,27 @@ parity, short/long words, multiple neumes per syllable, large neume kinds,
 narrow systems, a single unbreakably long syllable, and stable undo/redo.
 Present a visual before/after and inspect music geometry.
 
-### 4C — Word composition, conditional hyphens and system continuations (active)
+### 4C — Word composition, conditional hyphens and system continuations (merged in PR #45)
 
 Follow the [Stage 4C plan](stage-4c-word-composition.md), including optional
 compact spacing for consecutive same-word syllables, while safeguarding neume
 ink and interaction bounds. The contextual compaction exception to ADR 0010
-is recorded in Proposed ADR 0011; no accepted ADR is silently changed.
+was originally recorded in Proposed ADR 0011, now Accepted; no other accepted
+ADR was silently changed.
 The original hyphen principles remain: derive from semantic word boundaries,
 measured gaps and system partitions; no decorative focus/hit targets and no
 persisted punctuation. Stage 4D stays separate.
 
-### 4D — Cross-browser visual/accessibility acceptance (future branch / PR)
+### 4D — Cross-browser verification (complete with disclosed gaps)
 
-Inspect _Kyrie eleison_, the mixed-join-and-hyphen _auditione_ example from
-the GregoBase Requiem gradual, same-word and separate-word cases, 320px
-viewport, multi-system breaks, editing/focus and real pointer behavior.
-Use actual Chromium browser checks and foreground Firefox/manual assistive
-technology checks where possible; distinguish what was and was not run.
-Review pure tests, generated SVG and screenshots, typography, responsive
-clipping, performance, accessibility and interaction regressions. Update
-owning docs and clean up completed temporary plans at final merge.
+See the [Stage 4D verification report](../verification/stage-4d/README.md) for
+actual results and remaining owner checks. Follow the
+[dedicated Stage 4D acceptance plan](stage-4d-acceptance.md),
+which audits existing tests, verifies real Chromium and Firefox behavior,
+and adds a foreground Firefox keyboard/accessibility signoff. Fix verified
+regressions; do not reopen accepted editorial typography decisions merely
+because the reference engraves a word differently. At final owner acceptance,
+close out retained historical plans according to `docs/ai-workflow.md`.
 
 ## Scope exclusions
 

@@ -1,5 +1,13 @@
 # Verification resources and housekeeping audit
 
+For current Stage 4 results and outstanding owner checks, see the
+[Stage 4D acceptance record](stage-4d/README.md). The audit below is historical;
+its statement that only Stage 2 is runnable describes the post-PR-38 checkout.
+Current runnable Stage 3–4 drivers are listed in the Stage 4D record.
+Dated Stage 4B/4C records retain their review-time Proposed ADR labels and
+unmerged/pending-stage observations; current ADRs 0010 and 0011 are Accepted,
+and the Stage 4D record owns the current milestone results and limitations.
+
 Audited after PR #38, before lyric redesign Stage 3. This directory combines
 approved design evidence with historical implementation records and standalone
 browser checks. Current contracts belong to [ADRs](../adrs/README.md),
