@@ -201,6 +201,24 @@ export function ScoreSvg({
       return;
     }
 
+    if (
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      const notes = layout.systems.flatMap((system) =>
+        system.neumes.flatMap((neume) => neume.notes),
+      );
+      const at = notes.findIndex((note) => note.noteId === noteId);
+      const next = notes[at + (event.key === 'ArrowRight' ? 1 : -1)];
+      const element = next && noteElements.current.get(next.noteId);
+      if (element) focusAndReveal(element);
+      return;
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       event.stopPropagation();
@@ -461,6 +479,20 @@ export function ScoreSvg({
             );
           })}
 
+          {system.hyphens?.map((mark, index) => (
+            <text
+              key={`hyphen-${index}`}
+              className="score__hyphen"
+              x={mark.x}
+              y={mark.y}
+              textAnchor="middle"
+              fontSize={20}
+              aria-hidden="true"
+              pointerEvents="none"
+            >
+              -
+            </text>
+          ))}
           {system.lyrics.map((lyric) => (
             <g key={lyric.syllableId} className="score__lyric-control">
               <g
@@ -586,7 +618,7 @@ export function ScoreSvg({
 }
 
 /** Shared committed staff and clef rendering. */
-function SystemStaff({
+export function SystemStaff({
   system,
 }: {
   system: Pick<ChantSystemLayout, 'index' | 'staffLines' | 'clef'>;
@@ -604,17 +636,11 @@ function SystemStaff({
         />
       ))}
 
-      <text
+      <path
         className="score__clef"
-        x={system.clef.x}
-        y={system.clef.y}
-        fontSize={system.clef.fontSize}
-        textAnchor="middle"
-        dominantBaseline="central"
         aria-hidden="true"
-      >
-        C
-      </text>
+        d={`M ${system.clef.x - 6} ${system.clef.y - 18} h 5 v 36 h -5 Z M ${system.clef.x + 2} ${system.clef.y - 18} h 15 v 8 h -10 v 6 h -5 Z M ${system.clef.x + 2} ${system.clef.y + 4} h 5 v 6 h 10 v 8 h -15 Z`}
+      />
     </>
   );
 }

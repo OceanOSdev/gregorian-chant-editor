@@ -10,6 +10,7 @@ graphical placement, previews, and pointer and keyboard lifecycle.
 - [Architecture](architecture.md)
 - [Domain model](domain-model.md)
 - [Commands and history](commands-and-history.md)
+- [Persistence and interchange](persistence-and-interchange.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
@@ -57,6 +58,9 @@ score surface owns pointer placement input.
 ## Focus
 
 Each committed note is a focusable SVG control keyed by stable note ID.
+Unmodified Left/Right visits the previous/next note in semantic order, including
+across systems, without changing semantic selection. During lyric reassignment,
+Left/Right instead retains its documented destination-browsing role.
 `ScoreSvg` maintains a map from note IDs to mounted SVG groups.
 
 `ChantEditor` uses a pure session reducer; history contains semantic documents
@@ -90,7 +94,7 @@ Tab/Shift+Tab use browser traversal, skipping disabled notes during placement;
 there is no focus trap. Reverse Tab from the surface reaches Keyboard help;
 forward Tab may leave page content. Escape and Undo/Redo work on the surface.
 Text fields, native selects, contenteditable and composition are excluded from
-document shortcuts. Lyric Escape cancels the current draft and exits Lyrics.
+notation shortcuts. File-save/open chords are handled separately by Document controls. Lyric Escape cancels the current draft and exits Lyrics.
 
 Browser focus and reparenting remain separate from pure unit tests. See the
 [placement verification record](verification/placement/README.md).
@@ -485,7 +489,9 @@ Current-anchor, occupied, crossing and missing targets create no semantic edit
 and announce the reason while leaving the move recoverable. Unrelated music,
 lyric and history actions are suspended until commit/cancel; toolbar controls
 are disabled. Enter, L and double-click retain their normal text-editing roles
-outside reassignment. Moving lyrics changes no engraving/wrapping policy.
+outside reassignment. Moving an anchor preserves the musical semantics; with
+experimental lyric-aware spacing enabled, its changed text constraints can move
+derived music positions and system partitions.
 
 The restored Lyrics target can differ from semantic selection, for example after
 pressing L on another focused syllable. The panel names the Lyrics target
@@ -511,3 +517,29 @@ Manual initially selects the whole syllable, then each range choice is one
 history action. Reset to automatic uses the current document language. Save
 or cancel a text draft before changing its alignment. The control explains
 that any text change resets an override, recoverable with text undo.
+
+## Local document workspace
+
+The file bar provides New chant, Open file, Save chant, Load example, and export
+or print actions. Ctrl/Cmd+S downloads the semantic chant file; Ctrl/Cmd+O invokes
+the file picker. A dirty lyric draft blocks saving/exporting and is visibly named;
+finish or cancel it first. Unsaved changes or drafts require an explicit replacement
+choice before New/Open/Load example resets the session. File errors leave the
+current score available for editing.
+
+The title field commits on blur or Enter and Escape restores its current semantic
+title. The C-clef line control edits the document without shifting written notes.
+A selection inspector offers pointer-accessible pitch movement, whole-neume
+selection and deletion using the same commands as score keyboard editing.
+
+The View control scales the SVG to fit width or a chosen percentage; the score
+scrolls inside its container when needed. Zoom and Lyric-aware spacing are
+presentation state, not document edits, and are not saved in chant files.
+The app starts with lyric-aware spacing enabled; disabling it compares the
+accepted music-only policy. Generated hyphens do not become focusable controls.
+
+Browser-save status distinguishes pending, saved, unavailable and paused recovery.
+Malformed recovery and another tab's writes pause automatic saving until an
+explicit resume; the stored browser copy can be downloaded before replacement.
+These safeguards do not provide collaborative editing. Exact file and recovery
+contracts are owned by [persistence and interchange](persistence-and-interchange.md).

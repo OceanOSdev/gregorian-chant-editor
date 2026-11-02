@@ -10,6 +10,7 @@ identity, ordering, pitch representation, and neume invariants.
 - [Architecture](architecture.md)
 - [Commands and history](commands-and-history.md)
 - [Layout and rendering](layout-and-rendering.md)
+- [Persistence and interchange](persistence-and-interchange.md)
 - [Glossary](glossary.md)
 - [Stable identity decision](adrs/0003-use-stable-semantic-identities.md)
 - [Explicit neume types decision](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md)
@@ -19,6 +20,7 @@ identity, ordering, pitch representation, and neume invariants.
 `ChantDocument` is the canonical semantic representation:
 
 - `title` is the score title;
+- `lyricLanguage` explicitly selects the lyric engraving rules;
 - `clef` is currently a C clef placed on staff line 1, 2, 3, or 4;
 - `syllables` is the semantic lyric order;
 - `neumes` is the semantic notation order.
@@ -43,8 +45,8 @@ anchor, music has no lyrics; the last syllable extends to document end.
 Explicit lyricless tails and unanchored lyrics are future extensions.
 
 Text cannot be blank or contain whitespace, ASCII hyphens, or underscores.
-Word structure is metadata, not literal entry delimiters. Continuous entry interprets these delimiters outside the domain. Generated
-hyphens remain a deferred engraving stage.
+Word structure is metadata, not literal entry delimiters. Continuous entry interprets these delimiters outside the domain. Generated hyphens are derived decoration in the probe’s experimental layout;
+they never enter lyric text or semantic history.
 
 Semantic order is the order of `ChantDocument.neumes`. Layout preserves that
 order while partitioning it into derived systems. Array indexes are useful
@@ -156,7 +158,9 @@ See [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md) for the relationship decisi
 `el` (Greek), or `und` (Unspecified). New chants, including the example, explicitly
 use Latin. This is a document-wide engraving preference, never a text restriction
 or inferred language. Missing/invalid runtime values are handled as `und` at
-layout and control boundaries. There is no persisted format or migration today.
+layout and control boundaries. Version 1 chant files require a valid explicit
+value and retain manual alignment ranges; see the
+[persisted format](persistence-and-interchange.md#chant-json-version-1).
 
 A syllable may have `alignment: { start, end }`, a half-open range of Unicode
 extended grapheme indexes into its exact text. It overrides automatic alignment,

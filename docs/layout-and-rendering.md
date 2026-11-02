@@ -15,6 +15,7 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 - [Project drawing metrics](engraving-metrics.md)
 - [Shared geometry decision](adrs/0007-share-derived-neume-engraving-geometry.md)
 - [Wrapping decision](adrs/0005-derive-wrapping-from-rendered-geometry.md)
+- [Experimental lyric-layout proposal](adrs/0010-experiment-with-lyric-aware-layout.md)
 - [Roadmap and limitations](roadmap.md)
 
 ## Staff, system, and score
@@ -27,7 +28,7 @@ Even an empty document produces one empty system.
 
 `layoutChant` converts `ChantDocument` to `ChantLayout`:
 
-- score `title`, fixed `width`, and derived `height`;
+- score `title`, `width`, and derived `height` (the default policy keeps width fixed);
 - ordered `systems`;
 - each system's index, bounds, staff lines, clef, neumes, lyrics, and
   `startNeumeIndex`.
@@ -46,13 +47,15 @@ groups are organizational and have no translation transform.
 This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
-The score width is currently fixed at 720 layout units. Its height grows from
-the number of systems and the vertical advance between them. `ScoreSvg` uses
-both dimensions in its `viewBox`; CSS can scale the vector drawing
-responsively while the layout retains stable internal units.
+The default music-only policy uses a 720-unit score width and fixed system bands.
+The experimental policy can expand width for oversized content and vary system
+height to contain extreme pitches and lyrics. `ScoreSvg` uses the derived dimensions
+in its `viewBox`; CSS fit/zoom scales the drawing without changing semantic data.
+See [experimental lyric-aware layout](#experimental-lyric-aware-layout).
 
-Every system repeats the same four staff-line x extents and a C clef positioned
-on the semantic clef line. Their y coordinates advance by the system offset.
+Every system repeats the same four staff-line x extents and a vector C clef
+positioned on the semantic clef line. Their y coordinates include the system's
+derived offset and, in the experiment, any extra upper clearance.
 
 Graphical placement previews contain an ID-free local ghost and a caret on
 committed systems. They do not assemble hypothetical systems or lyrics, or
@@ -102,7 +105,9 @@ use a six-unit first bearing with the same ink-gap rule.
 ## Automatic whole-neume wrapping
 
 `placeNeumeSequence` processes semantic neumes in order and measures each
-complete raw rendered extent at its proposed horizontal position. A candidate that exceeds
+complete raw rendered extent at its proposed horizontal position. This section
+describes its default music-only policy; optional lyric constraints are described
+[below](#experimental-lyric-aware-layout). A candidate that exceeds
 the usable right boundary starts the next system when the current system
 already has content.
 
@@ -129,7 +134,9 @@ construction, changing width and system membership. Whole-neume transposition
 retains interval widths. Insertion, deletion, normalization, and interval edits
 can reflow later entities while preserving semantic IDs and pending focus.
 `wrapNeumes` and committed layout use the same sequence walker, including
-exact-fit and oversized progress rules. Hover does not run a wrapping pass.
+exact-fit and oversized progress rules. `wrapNeumes` deliberately keeps the
+music-only policy; it is not an API for reproducing experimental lyric-aware
+system partitions. Hover does not run a wrapping pass.
 
 ## Committed layout and previews
 
@@ -152,7 +159,8 @@ for input and lifecycle rules.
 Lyric syllables carry stable `startsAtNeumeId` anchors. Layout resolves each
 anchor directly to its committed neume and emits one lyric on that system.
 Later neumes in the span never repeat the text, including across system breaks.
-Music-only geometry still determines spacing and wrapping.
+Music-only geometry determines spacing and wrapping unless the experimental
+`lyricSpacing` option is enabled.
 
 Current horizontal alignment rules are:
 
@@ -165,13 +173,13 @@ Current horizontal alignment rules are:
 
 Valid semantic documents contain only anchored, nonblank syllables in anchor
 order. Layout preserves that order. Word boundaries are semantic metadata;
-generated hyphens are deferred to Stage 4C.
+generated hyphens belong to the experimental layout, not semantic lyric text.
 
 `ScoreSvg` renders each entire string with `textAnchor="middle"` at the
 measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
-contract below. Automatic hyphenation, lyric collision avoidance, word-spacing
-logic and continuation marks remain deferred.
+contract below. The experiment adds collision clearances, word gaps and
+conditional continuation marks without introducing automatic syllabification.
 
 ## Rendering and accessibility
 
@@ -265,10 +273,70 @@ for `document.fonts.ready` and refreshes after font loading, caching repeated
 texts per measurement pass. Unicode grapheme indexes are converted to UTF-16
 SVG substring lengths only in that adapter. Platform font substitution can
 change measured geometry. Rendering keeps one interactive text control per
-syllable, with unchanged baseline, accessible name and ID-based interaction.
+syllable, with the layout-derived baseline, accessible name and ID-based interaction.
 
-Stage 4A leaves **music-only spacing and wrapping** intact (ADR 0005).
-Long/shifted lyrics may collide or extend outside a system; clearance, hyphens
-and lyric-driven wrapping await 4B/4C. The older minimal-engraving proposal in
-`plans/lyric-system-redesign.md` describes the prior direction; the Stage 4 plan
-supersedes its future engraving scope, without implementing those later stages.
+Stage 4A's default API policy leaves **music-only spacing and wrapping** intact
+(ADR 0005), so long/shifted lyrics may still collide in that mode. The probe's
+separately enabled policy below explores later spacing behavior; it does not
+claim acceptance of the original staged 4B/4C milestones. The older plans remain
+historical design context rather than the probe's execution scope.
+
+## Experimental lyric-aware layout
+
+`layoutChant(document, measure, { lyricSpacing: true })` enables the probe policy.
+`ChantEditor` starts with it enabled and exposes a comparison toggle. Omitting the
+option leaves the accepted music-only layout intact. The option is presentation
+state and is not stored in `ChantDocument` or semantic history. Its proposed
+architectural status is recorded in [ADR 0010](adrs/0010-experiment-with-lyric-aware-layout.md).
+
+The existing sequence walk still begins from musical geometry and never shrinks
+its normal advances. An anchored syllable adds its measured aligned left/right
+extents. If needed, its complete neume shifts right to clear the prior rendered
+syllable on the same system by 14 units for a new word or 2 units for continuation.
+The first syllable clears the staff's left edge. Music between lyric anchors keeps
+its musical advances; melismas are not uniformly stretched. The candidate's right
+extent includes its lyric plus a 14-unit reserve, and the same walk uses that
+extent for whole-neume wrapping. A nonempty system wraps on overflow; an oversized
+candidate on an empty system is placed once and the input advances.
+
+When font measurements are not yet available, the probe estimates width from
+Unicode code points at 0.65 times the lyric font size and centers the whole text.
+This is a deterministic provisional layout, not a claim of exact font clearance.
+The browser measurement effect then supplies actual advance metrics and layout
+may reflow. Invalid metrics retain the alignment layer's whole-string fallback.
+
+After horizontal placement, each experimental system gets enough upper/lower
+space for its complete neume bounds. Its lyric baseline sits at least 36 units
+below the lowest painted extent, with a minimum standard system height. All
+resulting geometry remains score-absolute; callers must use each system's actual
+`y`, `height` and staff lines rather than infer y from `index * systemVerticalAdvance`.
+The score viewBox expands horizontally for oversized ink, text and outgoing marks
+instead of clipping them. Staff-line x extents remain the normal ones. Such a
+fallback can make the complete score appear smaller in fit-width or print view.
+
+Hyphens derive from adjacent authored syllables and actual layout. Within a word,
+a gap of at least 12 units between rendered text edges receives one centered
+hyphen; closer syllables join visually without it. New-word gaps never receive
+hyphens. If a word spans systems, every outgoing system gets a hyphen near its
+right staff edge, moved past the preceding text edge when necessary; no incoming
+repeated mark or extender is added. Marks are optional `system.hyphens` data with
+absolute x/y coordinates. They are decorative, pointer-inert and hidden from
+accessibility APIs, never part of lyric hit areas or semantic text.
+
+Graphical hover reads the committed layout. Its caret and ghost remain local,
+while placement commit recomputes using the current document and the same pure
+measurement lookup and lyric-spacing option as the visible score. No DOM measure
+or cached system ownership enters the reducer. Exact-fit, oversized-progress,
+identity, undo/redo and insertion boundaries remain complete-neume contracts.
+
+This is an intentionally simple collision/continuation experiment: it does not
+justify systems, infer word entities, syllabify text, optimize hyphen density or
+implement authored breaks. `PrintScore` and passive SVG export use the current
+layout; their browser/file boundaries are described in
+[persistence and interchange](persistence-and-interchange.md#svg-and-browser-printing).
+
+For oversized fallback content, the viewBox can extend beyond the normal staff
+region. Such notes remain selectable and toolbar insertion remains available;
+graphical insertion is intentionally constrained to the normal staff extents.
+The optional `lyricBaselineY` on each system positions the floating lyric input
+against the same expanded vertical band as the engraved text.

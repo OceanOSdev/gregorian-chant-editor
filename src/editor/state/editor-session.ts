@@ -1,3 +1,4 @@
+import type { MeasureLyricText } from '../layout/lyric-text-metrics';
 import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
 import {
   transitionLyrics,
@@ -99,6 +100,7 @@ export function lyricMoveTargets(
 }
 
 export type EditorAction =
+  | { type: 'replace-document'; document: ChantDocument }
   | { type: 'engraving-edit'; edit: DocumentEdit }
   | { type: 'lyric-move'; action: LyricMoveAction }
   | {
@@ -117,6 +119,8 @@ export type EditorAction =
   | { type: 'hover'; point: { x: number; y: number } | null }
   | {
       type: 'place';
+      measure?: MeasureLyricText;
+      lyricSpacing?: boolean;
       kind: GraphicalNeumeKind;
       point: { x: number; y: number };
       ids: InsertionIds;
@@ -205,6 +209,7 @@ function reduceSessionAction(
 ): EditorSession {
   const placing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'replace-document':
     case 'lyric-move':
     case 'start-lyrics-at-focus':
     case 'lyrics':
@@ -262,7 +267,9 @@ function reduceSessionAction(
       const insertion =
         action.type === 'place'
           ? resolveGraphicalNeumePlacement(
-              layoutChant(document),
+              layoutChant(document, action.measure, {
+                lyricSpacing: action.lyricSpacing,
+              }),
               kind,
               action.point,
             )
@@ -410,6 +417,8 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  if (action.type === 'replace-document')
+    return announce(createEditorSession(action.document), 'Chant opened.');
   if (action.type === 'lyric-move') {
     const move = state.lyricMove;
     const intent = action.action;

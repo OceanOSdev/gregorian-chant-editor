@@ -9,6 +9,7 @@ architecture decision records.
 ## Related documents
 
 - [Domain model](domain-model.md)
+- [Persistence and interchange](persistence-and-interchange.md)
 - [Commands and history](commands-and-history.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Editor interactions](editor-interactions.md)
@@ -42,16 +43,17 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 
 ## Responsibility boundaries
 
-| Layer                  | Owns                                                                                      | Does not own                               |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Semantic domain        | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state   |
-| Pure commands          | Validation and immutable semantic transitions                                             | UI state, layout, browser events           |
-| Document history       | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts     |
-| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus             | Canonical notation or engraving geometry   |
-| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation |
-| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning              |
-| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                       |
-| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                  | Persisted or undoable notation             |
+| Layer                  | Owns                                                                                      | Does not own                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Semantic domain        | Title, C clef, lyric syllables, ordered neumes, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state       |
+| Pure commands          | Validation and immutable semantic transitions                                             | UI state, layout, browser events               |
+| Document history       | Past, present, and future semantic documents                                              | Selection, tools, focus, hover, drafts         |
+| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus             | Canonical notation or engraving geometry       |
+| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent   | DOM event handling or semantic ID creation     |
+| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions        | Authoritative musical meaning                  |
+| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces    | Canonical score data                           |
+| Persistence adapters   | Validated versioned files and conversion to/from semantic data                            | Authoritative layout or transient editor state |
+| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                  | Persisted or undoable notation                 |
 
 The semantic document deliberately excludes pixels, SVG geometry, systems,
 automatic wrapping assignments, React or DOM objects, selection, active tools,
@@ -94,19 +96,37 @@ document changes. See [editor interactions](editor-interactions.md).
 
 Converts a semantic document into `ChantLayout`. It owns engraving geometry,
 whole-neume wrapping, repeated systems, lyric alignment, graphical snapping,
-and hypothetical post-insertion preview layout. See
+and local insertion preview geometry. See
 [layout and rendering](layout-and-rendering.md).
+
+### `src/editor/persistence/` and `src/editor/interchange/`
+
+`persistence/chant-file.ts` validates untyped file data and serializes a versioned
+semantic envelope. `interchange/gabc.ts` maps a strict external notation subset
+into and out of `ChantDocument`; GABC is never the canonical score model. See
+[persistence and interchange](persistence-and-interchange.md) for formats, limits,
+identity behavior and browser recovery.
+
+### `src/app/`
+
+Owns the initial specimen, recovery loading and browser download/SVG export
+adapters. `App` chooses the initial document once; `ChantEditor` continues to own
+the live semantic history. Browser storage and downloads do not create a second
+editable score representation.
 
 ### `src/editor/rendering/`
 
 Renders layout data as accessible SVG. It uses semantic IDs copied into layout
-for keys, selection, and focus, but it does not store musical state.
+for keys, selection, and focus, but it does not store musical state. `PrintScore`
+renders passive systems from the same layout for browser pagination.
 
 ### `src/editor/components/`
 
 `ChantEditor` coordinates React state, semantic commands, history navigation,
 layout, resolvers, focus requests, and controls. Component state is not a
-second score model.
+second score model. `DocumentControls` coordinates metadata, guarded document
+replacement, file workflows and browser-save status. Replacement is an explicit
+session reset, while title, clef and lyric-preference edits enter semantic history.
 
 ## Why the boundaries matter
 
@@ -134,3 +154,13 @@ its preview ID and preceding resolved Lyrics context. Its legal destinations are
 derived from the existing pure reassignment command. This implements ADRs 0002
 and 0008 without changing semantic data, history structure or engraving ownership;
 no new ADR is needed.
+
+## Experimental layout policy
+
+The probe app requests `layoutChant(document, measure, { lyricSpacing: true })`.
+The option adds measured lyric clearances and derived hyphens, and can expand
+vertical bands and the score viewBox. It is transient presentation policy, not
+semantic data. The default API call and `wrapNeumes` retain the accepted
+music-only policy. Graphical commit resolves against the same measurement lookup
+and option as the rendered score. See [layout and rendering](layout-and-rendering.md#experimental-lyric-aware-layout)
+and the [Proposed ADR 0010](adrs/0010-experiment-with-lyric-aware-layout.md).

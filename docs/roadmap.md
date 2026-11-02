@@ -2,68 +2,86 @@
 
 ## Scope
 
-This document separates current limitations from possible future work.
-Roadmap items are non-binding, have no promised order or date, and may change.
+This document describes the `one-shot-test` implementation probe. The owner asked
+for autonomous design extrapolation on a throwaway branch; implemented experiments
+are not accepted product commitments or a recommendation to merge the whole branch.
+The [probe plan](plans/one-shot-test.md) records its inferred scope. Roadmap items
+remain non-binding, with no promised order or date.
 
 ## Related documents
 
 - [README](../README.md)
 - [Architecture](architecture.md)
 - [Domain model](domain-model.md)
+- [Persistence and interchange](persistence-and-interchange.md)
 - [Layout and rendering](layout-and-rendering.md)
 - [Editor interactions](editor-interactions.md)
 
+## Implemented probe workflow
+
+The branch connects the existing seven-neume editor to new/example documents,
+title and C-clef editing, validated version 1 JSON files, one browser recovery
+copy, strict-subset GABC interchange, passive SVG export and browser printing.
+The responsive workspace adds visual neume tools, selection controls and zoom.
+
+The app also enables experimental measured lyric clearances, word gaps,
+conditional hyphens and outgoing cross-system continuation marks. This policy
+can expand vertical bands and the score viewport for oversized content. The
+accepted music-only layout remains the default API behavior and is available
+through the app's comparison toggle. [ADR 0010](adrs/0010-experiment-with-lyric-aware-layout.md)
+is Proposed and leaves [ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md)
+Accepted.
+
 ## Current limitations
 
-- All seven initial neume kinds use the project square-notation conventions;
-  the clef is still a letter C.
-  See [drawing metrics](engraving-metrics.md) for exact choices and extrapolated
-  intervals beyond the reference coverage (Porrectus ribbons through Δ5,
-  explicit Climacus spacing cases through Δ4). This is not complete publication-quality
-  chant typography; extreme pitches can exceed fixed vertical system bounds.
-- The semantic vocabulary contains Punctum, Podatus, Clivis, Scandicus,
-  Torculus, Climacus, and Porrectus.
-- Graphical entry uses fixed contours for those seven whitelisted kinds.
-- Lyrics center the whole SVG string and have no vowel-aware typography,
-  automatic hyphenation, collision avoidance, word-spacing logic, or
-  continuation marks.
-- Systems wrap automatically from measured geometry, but there are no manual
-  system breaks, pagination controls, or alternate wrapping policies.
-- There is no persistence layer or persisted document format. Consequently
-  there is no document schema version yet.
-- There is no GABC import/export or other interchange adapter.
-- There is no backend.
-- The test suite has no DOM, React component, or browser automation
-  environment. Actual focus, pointer, tab-order, event, clipping, and responsive
-  behavior require manual checks.
+- The semantic vocabulary remains Punctum, Podatus, Clivis, Scandicus, Torculus,
+  Climacus and Porrectus with a document-wide C clef. Bars, accidentals, ornaments,
+  in-score clef changes and other neumes/traditions are not modeled.
+- Graphical entry uses fixed initial contours; individual pitch edits preserve
+  the selected kind's invariants. See [drawing metrics](engraving-metrics.md) for
+  the project shapes and interval extrapolations. The vector clef and notation
+  are not complete publication-quality chant typography.
+- Lyric alignment uses explicit-language spelling heuristics and optional manual
+  grapheme ranges, not pronunciation inference or automatic syllabification.
+  Platform fonts affect measured geometry. Experimental clearances and hyphens
+  need broader visual and musical evaluation; legacy music-only layout can still
+  allow lyric collisions and extreme-pitch clipping.
+- There are no manual system breaks, authored page breaks, alternate score sizes
+  or full justification. Browser printing breaks between passive systems and can
+  shrink oversized content to page width.
+- JSON files have explicit size, collection and pitch limits. Browser recovery
+  is one site-local semantic copy, not a library or durable backup; drafts and
+  history are not persisted. See the [file contract](persistence-and-interchange.md).
+- GABC supports only the documented subset and rejects unsupported constructs.
+  It omits editorial alignment and regenerates IDs. It is not a general Gregorio
+  compatibility layer.
+- There is no backend, account system, cloud storage, collaboration or audio
+  playback, and no dedicated PDF export engine.
+- Vitest has no DOM or component environment. Separate Chromium drivers exercise
+  actual browser behavior; they do not establish Firefox or spoken screen-reader
+  acceptance. [Testing](testing.md) owns verification requirements and records.
 
 ## Possible future work
 
-- Expand the modern square-notation neume vocabulary.
-- Improve notehead, connector, clef, ledger-line, and spacing engraving.
-- Add vowel-aware lyric alignment and lyric spacing/collision behavior.
-- Add explicit manual system breaks.
-- Define versioned local persistence.
-- Add GABC import and export adapters around the internal semantic document.
+- Evaluate which probe workflows and architecture choices should be adopted,
+  revised or removed as separate, reviewable milestones.
+- Broaden notation vocabulary and interchange only with corresponding semantic,
+  engraving, validation and editing contracts.
+- Refine font/ink-aware lyric metrics, justification, hyphen density, oversized
+  fallback behavior, and cross-browser/assistive-technology acceptance.
+- Design explicit manual system/page controls and a durable document library if
+  those become agreed product requirements.
 
-Automatic measured multi-system wrapping, graphical placement on rendered
-systems, independent musical insertion across systems, hypothetical post-reflow
-previews, and the removal of an explicit global semantic creation cap are
-current behavior, not roadmap items.
-
-Features excluded by the repository's current scope rules are not implied
-commitments merely because they are technically possible.
+Features excluded by the repository's scope rules are not implied commitments
+merely because they are technically possible.
 
 ## Lyric redesign stages
 
-Stage 1 introduced independent music and unique ordered syllable anchors. Stage 2
-provides continuous Lyrics mode, scoped L activation, underscore skipping,
-commit-on-navigation, explicit replacement, occupied-anchor pauses, end-of-music
-resumption and draft/history recovery. Stage 3 provides explicit constrained anchor
-correction with pointer and keyboard targeting; generated hyphens remain Stage 4. No persistence migration is required.
+Stages 1–3 provide independent musical order and lyric anchors, continuous lyric
+entry, and constrained anchor correction. Stage 4A provides explicit document
+language, measured vowel alignment and manual grapheme segments.
 
-Stage 4A adds explicit document language, measured vowel alignment and manual
-grapheme segment overrides. It does not add lyric clearance: shifted or long
-syllables can still collide under music-only spacing. Conditional hyphens,
-word gaps and lyric-driven wrapping remain Stage 4B/4C work; broader Firefox
-and assistive-technology acceptance remains outstanding.
+The original staged [Stage 4 plan](plans/stage-4-lyric-engraving.md) remains a record
+of the methodical main-project path. This separately authorized probe explores
+4B/4C-like spacing and continuation behavior without claiming those planned
+milestones have been reviewed or accepted. Broader 4D acceptance remains open.

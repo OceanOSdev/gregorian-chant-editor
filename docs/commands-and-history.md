@@ -28,7 +28,8 @@ Current command families cover:
 - moving one note vertically;
 - moving every note of a neume vertically as one unit;
 - deleting one note with normalization;
-- deleting a complete neume.
+- deleting a complete neume;
+- updating the document title and C-clef line.
 
 Insertion resolvers calculate unrestricted complete-neume boundaries from musical selection or pointer intent. Their output is semantic intent, not layout.
 
@@ -148,3 +149,21 @@ therefore coexist with a dirty draft without saving or discarding it. Subsequent
 history navigation still uses the existing Save/Discard/Cancel safeguard.
 Manual controls are disabled while a text draft/recovery is active; save or
 cancel it first. Pending history and anchor-move modes block engraving edits.
+
+## Document metadata and replacement
+
+`updateDocumentTitle` trims a title, rejects blank or over-200-character values,
+and returns the original document for an unchanged value. `updateClef` changes
+only the C clef's line. It preserves written staff positions, so this is not a
+sounding-pitch-preserving transposition. Both commands retain entity IDs and
+unrelated collections and enter history as semantic edits. The title field commits
+on blur or Enter; saving a still-focused title includes that title in the snapshot.
+
+New/Open/Load example are document operations, not semantic edits. After any
+required replacement choice, `replace-document` creates a fresh session around the
+validated candidate, clearing history, selection, tool/draft/move state and focus
+requests. Replacement cannot be undone into the previous document. Invalid imports
+must fail before replacement. Saving files, autosaving, exporting, zoom changes and
+the lyric-spacing toggle do not enter history. See
+[persistence and interchange](persistence-and-interchange.md) for the file and
+recovery safeguards.

@@ -4,9 +4,11 @@ Gregorian Chant Editor is an experimental browser-based graphical editor for
 four-line Gregorian chant notation. It uses React, TypeScript, Vite, and SVG,
 and currently focuses on a narrow modern square-notation profile.
 
-The project is a working architectural and interaction foundation, not a
-replacement for mature chant engraving software. Its internal formats and
-interface may still change.
+This `one-shot-test` branch is an autonomous implementation probe, presented as
+**Scriptorium**. It explores a complete local composing workflow without committing
+the main project to its design choices. Its formats and interface may still change;
+it is not a replacement for mature chant engraving software. See the
+[probe plan](docs/plans/one-shot-test.md) and [limitations](docs/roadmap.md).
 
 ## Current capabilities
 
@@ -18,29 +20,58 @@ The editor currently supports:
 - vertical movement of an individual note or a complete neume;
 - individual-note deletion with neume normalization, and whole-neume deletion;
 - continuous lyric entry with underscore skipping and independent neume insertion;
-- graphical placement with a post-reflow preview on any rendered system;
+- graphical placement with a local ghost and semantic insertion caret on any rendered system;
 - independent music insertion with stable lyric anchors;
 - immutable semantic edits with atomic undo and redo;
 - measured, whole-neume automatic wrapping across multiple systems;
 - stable semantic identity when notation reflows;
 - repeated four-line staffs and C clefs in a responsive SVG with dynamic height;
-- accessible note controls and score summaries.
+- accessible note controls and score summaries;
+- new and example chants, editable titles and C-clef lines, and score zoom;
+- versioned chant JSON files with validated open/save and browser recovery;
+- strict GABC interchange for the supported notation subset;
+- clean SVG downloads and browser printing between complete systems;
+- measured vowel alignment and optional manual grapheme segments;
+- experimental lyric-aware spacing, word gaps and continuation hyphens.
 
-There is no explicit global semantic creation cap. That is not a performance
-guarantee: practical browser and memory limits still apply.
+There is no explicit global semantic creation cap. File size, collection and
+pitch limits apply at persistence boundaries; see
+[persistence and interchange](docs/persistence-and-interchange.md). Practical
+browser and memory limits also apply.
+
+## Using the probe
+
+Choose a neume tool, then click a pitch on the staff to add music. Use Select to
+change individual pitches or whole neumes, and Lyrics to enter syllables:
+`-` continues a word, Space starts a word and `_` skips a neume. The Keyboard help
+panel explains focus and editing controls.
+
+**Save chant** downloads a lossless `.chant.json` file. The current semantic score
+is also saved in this browser after edits; lyric drafts and undo history are not.
+**Open file** accepts chant JSON or the documented GABC subset. **Export & print**
+provides GABC, passive SVG and browser printing. Finish or cancel lyric drafts
+before saving or exporting. Use downloaded files to keep work outside this browser.
+
+The app enables **Lyric-aware spacing** by default. Turn it off to compare with
+the accepted music-only layout. The experiment remains a separate layout policy;
+[ADR 0010](docs/adrs/0010-experiment-with-lyric-aware-layout.md) is Proposed.
 
 ## Current limitations
 
-- The seven initial neumes use the approved project square-notation engraving.
-  The C clef remains a placeholder; engraving is not complete publication-quality
-  chant typography.
-- Only Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus are modeled.
-- Graphical placement uses fixed pitch contours for those seven kinds.
-- Lyric rendering centers the complete text string; it has no vowel-aware
-  alignment, automatic hyphenation, collision avoidance, word-spacing logic,
-  or continuation marks.
-- There are no manual system breaks, persistence, GABC import/export, backend,
-  or browser/component automation tests.
+- The musical vocabulary is the seven listed neumes and one document-wide C clef.
+  Bars, accidentals, ornaments, clef changes, other neume types and other notation
+  traditions are not modeled. Graphical entry starts from fixed contours.
+- Engraving and lyric spacing are experimental, not publication-quality typography.
+  Font substitution can alter alignment and wrapping. There is no automatic
+  linguistic syllabification or comprehensive pronunciation model.
+- GABC support is deliberately narrow and rejects unsupported notation. It does
+  not retain semantic IDs or manual lyric alignment; chant JSON is the lossless format.
+- There are no authored system/page breaks, backend, accounts, cloud storage,
+  collaboration or audio playback. Browser recovery is one local copy, not a library.
+- Browser printing can paginate between systems; oversized content is fitted to
+  the available page width. There is no dedicated PDF engraving/export engine.
+- Vitest remains a plain TypeScript suite. Separate Chromium checks exercise real
+  interactions; Firefox and spoken assistive-technology acceptance remain separate.
 
 See the [roadmap](docs/roadmap.md) for non-binding possibilities and a fuller
 account of current limits.
@@ -78,15 +109,19 @@ Editor code is organized by responsibility under `src/editor/`:
 - `state/` — document history, selection, and editor tools;
 - `interaction/` — pure graphical-placement and focus resolvers;
 - `layout/` — score layout, engraving geometry, wrapping, and previews;
-- `rendering/` — SVG rendering and accessibility descriptions;
+- `rendering/` — interactive SVG, passive print rendering and accessibility descriptions;
+- `persistence/` — versioned JSON parsing, serialization and runtime validation;
+- `interchange/` — strict GABC import/export around the semantic document;
 - `components/` — editor orchestration and controls.
 
 Application entry points and global styles live directly under `src/`.
+`src/app/` owns the specimen, browser recovery startup and file-download/SVG adapters.
 
 ## Documentation
 
 - [Architecture](docs/architecture.md)
 - [Domain model](docs/domain-model.md)
+- [Persistence and interchange](docs/persistence-and-interchange.md)
 - [Layout and rendering](docs/layout-and-rendering.md)
 - [Editor interactions](docs/editor-interactions.md)
 - [Commands and history](docs/commands-and-history.md)

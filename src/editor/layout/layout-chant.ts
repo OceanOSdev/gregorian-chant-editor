@@ -71,6 +71,8 @@ export interface ChantSystemLayout {
   neumes: readonly NeumeLayout[];
   lyrics: readonly LyricLayout[];
   startNeumeIndex: number;
+  hyphens?: readonly { x: number; y: number }[];
+  lyricBaselineY?: number;
 }
 
 /** Derived, score-absolute geometry with height determined by system count. */
@@ -219,6 +221,7 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 interface GeometryInput {
   kind: Neume['kind'];
   staffPositions: readonly StaffPosition[];
+  lyric?: { offset: number; width: number; word: boolean };
 }
 
 interface PositionedSystem {
@@ -242,10 +245,12 @@ function placeNeumeSequence(
   let geometries: NeumeGeometry[] = [];
   let startNeumeIndex = 0;
   let nextLeftX = 0;
+  let previousLyricRight: number | null = null;
   function finishSystem() {
     systems.push({ startNeumeIndex, geometries });
     startNeumeIndex += geometries.length;
     geometries = [];
+    previousLyricRight = null;
   }
   for (const input of inputs) {
     const build = () =>
@@ -257,18 +262,46 @@ function placeNeumeSequence(
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
       );
-    let geometry = build();
-    if (
-      geometries.length &&
-      geometry.bounds.x + geometry.bounds.width > usableRightBoundary
-    ) {
+    const place = () => {
+      let geometry = build();
+      if (input.lyric) {
+        const left =
+          geometry.lyricAnchorX + input.lyric.offset - input.lyric.width / 2;
+        const minimum =
+          previousLyricRight === null
+            ? staffStartX + 4
+            : previousLyricRight + (input.lyric.word ? 14 : 2);
+        if (left < minimum)
+          geometry = buildNeumeGeometry(
+            input.kind,
+            input.staffPositions,
+            geometry.bounds.x + minimum - left,
+            firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+          );
+      }
+      return geometry;
+    };
+    const right = (geometry: NeumeGeometry) =>
+      Math.max(
+        geometry.bounds.x + geometry.bounds.width,
+        input.lyric
+          ? geometry.lyricAnchorX +
+              input.lyric.offset +
+              input.lyric.width / 2 +
+              14
+          : 0,
+      );
+    let geometry = place();
+    if (geometries.length && right(geometry) > usableRightBoundary) {
       finishSystem();
-      geometry = build();
+      geometry = place();
     }
     geometries.push(geometry);
     nextLeftX = geometry.bounds.x + geometry.advanceX;
-    if (geometry.bounds.x + geometry.bounds.width > usableRightBoundary)
-      finishSystem();
+    if (input.lyric)
+      previousLyricRight =
+        geometry.lyricAnchorX + input.lyric.offset + input.lyric.width / 2;
+    if (right(geometry) > usableRightBoundary) finishSystem();
   }
   if (geometries.length || systems.length === 0) finishSystem();
   return systems;
@@ -582,19 +615,66 @@ function layoutCommittedNeume(
 export function layoutChant(
   document: ChantDocument,
   measure?: MeasureLyricText,
+  options: { lyricSpacing?: boolean } = {},
 ): ChantLayout {
-  const wrappedSystems = placeNeumeSequence(document.neumes.map(geometryInput));
+  const lyricByAnchor = new Map(
+    document.syllables.map((s) => [s.startsAtNeumeId, s]),
+  );
+  const wrappedSystems = placeNeumeSequence(
+    document.neumes.map((neume) => {
+      const input: GeometryInput = geometryInput(neume);
+      const syllable = lyricByAnchor.get(neume.id);
+      if (options.lyricSpacing && syllable) {
+        const aligned = alignLyricText(
+          syllable,
+          lyricLanguage(document.lyricLanguage),
+          measure,
+        );
+        // Before fonts are ready, conservative grapheme metrics keep a usable layout.
+        input.lyric = {
+          offset: aligned.offset,
+          width:
+            aligned.width ??
+            Array.from(syllable.text).length * lyricFontSize * 0.65,
+          word: syllable.boundaryBefore === 'word',
+        };
+      }
+      return input;
+    }),
+  );
+  let nextSystemY = firstSystemTopY;
+  const lyricBaselines: number[] = [];
   const systemsWithoutLyrics = wrappedSystems.map(
     ({ startNeumeIndex, geometries }, index): ChantSystemLayout => {
-      const y = firstSystemTopY + index * systemVerticalAdvance;
-      const bottomStaffY = firstSystemBottomStaffY + y;
+      const originalY = index * systemVerticalAdvance;
+      const inkTop = Math.min(
+        12,
+        ...geometries.map((g) => g.bounds.y - originalY),
+      );
+      const extraTop = options.lyricSpacing ? Math.max(0, 12 - inkTop) : 0;
+      const inkBottom =
+        Math.max(
+          firstSystemBottomStaffY,
+          ...geometries.map((g) => g.bounds.y + g.bounds.height - originalY),
+        ) + extraTop;
+      const baseline = options.lyricSpacing
+        ? Math.max(firstSystemLyricBaselineY + extraTop, inkBottom + 36)
+        : firstSystemLyricBaselineY;
+      const height = options.lyricSpacing
+        ? Math.max(systemHeight + extraTop, baseline + 40)
+        : systemHeight;
+      const y = nextSystemY;
+      nextSystemY += height + systemGap;
+      const bottomStaffY = firstSystemBottomStaffY + y + extraTop;
+      lyricBaselines.push(y + baseline);
 
       return {
         index,
         x: 0,
         y,
         width: systemWidth,
-        height: systemHeight,
+        height,
+        lyricBaselineY: y + baseline,
         staffLines: ([1, 2, 3, 4] as const).map((line) => ({
           x1: staffStartX,
           x2: staffEndX,
@@ -610,7 +690,16 @@ export function layoutChant(
         neumes: geometries.map((geometry, offset) =>
           layoutCommittedNeume(
             document.neumes[startNeumeIndex + offset],
-            geometry,
+            options.lyricSpacing
+              ? buildNeumeGeometry(
+                  document.neumes[startNeumeIndex + offset].kind,
+                  document.neumes[startNeumeIndex + offset].notes.map(
+                    (n) => n.staffPosition,
+                  ),
+                  geometry.bounds.x,
+                  bottomStaffY,
+                )
+              : geometry,
           ),
         ),
         lyrics: [],
@@ -653,23 +742,70 @@ export function layoutChant(
       syllableId: syllable.id,
       text: syllable.text,
       x: alignmentX + alignment.offset,
-      y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
+      y: lyricBaselines[first.systemIndex],
       fontSize: lyricFontSize,
     });
   }
 
+  const hyphens = systemsWithoutLyrics.map(
+    () => [] as { x: number; y: number }[],
+  );
+  let width = scoreWidth;
+  if (options.lyricSpacing) {
+    for (const system of systemsWithoutLyrics) {
+      for (const neume of system.neumes)
+        width = Math.max(width, neume.bounds.x + neume.bounds.width + 64);
+      for (const lyric of lyricsBySystem[system.index]) {
+        const textWidth =
+          lyric.alignment.width ??
+          Array.from(lyric.text).length * lyricFontSize * 0.65;
+        width = Math.max(width, lyric.x + textWidth / 2 + 64);
+      }
+    }
+    for (let i = 1; i < document.syllables.length; i++) {
+      const before = document.syllables[i - 1];
+      const after = document.syllables[i];
+      if (after.boundaryBefore !== 'continuation') continue;
+      const a = neumesById.get(before.startsAtNeumeId);
+      const b = neumesById.get(after.startsAtNeumeId);
+      if (!a || !b) continue;
+      const left = lyricsBySystem[a.systemIndex].find(
+        (l) => l.syllableId === before.id,
+      );
+      const right = lyricsBySystem[b.systemIndex].find(
+        (l) => l.syllableId === after.id,
+      );
+      if (!left || !right) continue;
+      const textWidth = (lyric: LyricLayout) =>
+        lyric.alignment.width ??
+        Array.from(lyric.text).length * lyricFontSize * 0.65;
+      const edge = left.x + textWidth(left) / 2;
+      if (a.systemIndex === b.systemIndex) {
+        const nextEdge = right.x - textWidth(right) / 2;
+        if (nextEdge - edge >= 12)
+          hyphens[a.systemIndex].push({ x: (edge + nextEdge) / 2, y: left.y });
+      } else {
+        for (let system = a.systemIndex; system < b.systemIndex; system++) {
+          const x = Math.max(
+            staffEndX - 8,
+            system === a.systemIndex ? edge + 9 : 0,
+          );
+          width = Math.max(width, x + 64);
+          hyphens[system].push({ x, y: lyricBaselines[system] });
+        }
+      }
+    }
+  }
   const systems = systemsWithoutLyrics.map((system) => ({
     ...system,
     lyrics: lyricsBySystem[system.index] ?? [],
+    ...(options.lyricSpacing ? { hyphens: hyphens[system.index] } : {}),
   }));
 
   return {
     title: document.title,
-    width: scoreWidth,
-    height:
-      firstSystemBottomY +
-      (systems.length - 1) * systemVerticalAdvance +
-      svgBottomPadding,
+    width,
+    height: nextSystemY - systemGap + svgBottomPadding,
     systems,
   };
 }

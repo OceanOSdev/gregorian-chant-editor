@@ -360,3 +360,373 @@ kbd {
 .score__move-hit-target {
   cursor: pointer;
 }
+
+/* Local composing workbench */
+.chant-editor {
+  width: min(74rem, calc(100% - 3rem));
+  padding: 2rem 0 3rem;
+}
+.document-controls,
+.neume-palette,
+.editor-actions,
+.engraving-controls,
+.editor-help,
+.selection-inspector,
+.score-footer {
+  font-family: system-ui, sans-serif;
+}
+.app-masthead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #d3d7d1;
+}
+.app-eyebrow {
+  color: #3e6356;
+  font:
+    600 0.7rem/1.5 system-ui,
+    sans-serif;
+  letter-spacing: 0.14em;
+}
+.app-masthead p {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #64716b;
+}
+.probe-badge {
+  background: #e5ebe5;
+  color: #355e4d;
+  border: 1px solid #c6d5c9;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  padding: 0.4rem 0.7rem;
+}
+.file-actions {
+  display: flex;
+  align-items: start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-size: 0.8rem;
+}
+.file-actions button,
+.export-menu summary {
+  padding: 0.6rem 1rem;
+  border: 1px solid #c5cec5;
+  background: #fcfdf9;
+  color: #294d3d;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+.file-actions button:nth-child(3) {
+  background: #244f3e;
+  color: #fff;
+  border-color: #244f3e;
+}
+.export-menu {
+  position: relative;
+}
+.export-options {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 16rem;
+  padding: 0.7rem;
+  z-index: 4;
+  background: #fff;
+  border: 1px solid #c5cec5;
+  border-radius: 0.4rem;
+  box-shadow: 0 1rem 2rem #233c3020;
+}
+.export-options button {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.4rem;
+}
+.export-options p {
+  line-height: 1.5;
+  color: #55645c;
+  margin-bottom: 0;
+}
+.example-action {
+  margin-left: auto;
+}
+.document-meta {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background: #e9eee7;
+  border: 1px solid #d7dfd3;
+  border-radius: 0.5rem;
+}
+.document-meta label {
+  display: grid;
+  gap: 0.3rem;
+  color: #4d6053;
+  font-size: 0.75rem;
+}
+.title-field {
+  flex: 1 1 16rem;
+}
+.chant-editor input,
+.chant-editor select {
+  font: inherit;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #b5c1b4;
+  border-radius: 0.3rem;
+  background: #fcfdf9;
+  color: #25392d;
+}
+.save-status {
+  flex: 1 1 10rem;
+  font-size: 0.72rem;
+  color: #4f6857;
+  align-self: center;
+  text-align: right;
+}
+.document-error,
+.document-warning,
+.replacement-dialog {
+  padding: 1rem;
+  border: 1px solid #c29876;
+  border-radius: 0.4rem;
+  background: #fff4e7;
+  font-size: 0.85rem;
+}
+.document-error {
+  color: #8a271c;
+  border-color: #dfb7ad;
+  background: #fff2ed;
+}
+.replacement-dialog button + button {
+  margin-left: 0.6rem;
+}
+.document-hint {
+  font-size: 0.8rem;
+  color: #55645c;
+}
+.editing-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
+}
+.chant-editor h1 {
+  margin: 0.3rem 0 0;
+  text-align: left;
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  overflow-wrap: anywhere;
+}
+.zoom-control {
+  display: grid;
+  gap: 0.25rem;
+  font:
+    0.7rem system-ui,
+    sans-serif;
+  color: #617268;
+}
+.engraving-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.75rem;
+  margin: 0 0 1rem;
+}
+.engraving-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.engraving-controls input[type='checkbox'] {
+  min-height: auto;
+  accent-color: #244f3e;
+}
+.control-hint {
+  color: #677569;
+}
+.neume-palette {
+  gap: 0.45rem;
+  padding: 0.6rem;
+  background: #dfe6dc;
+  border-radius: 0.6rem;
+}
+.neume-palette button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 5.5rem;
+  border: 1px solid #bdc9b9;
+  border-radius: 0.35rem;
+  background: #fafbf6;
+  font-size: 0.7rem;
+}
+.neume-palette button[aria-pressed='true'] {
+  background: #244f3e;
+  border-color: #244f3e;
+}
+.neume-preview {
+  width: 3.5rem;
+  height: 2rem;
+  overflow: visible;
+}
+.select-tool-icon {
+  font:
+    2rem/1 system-ui,
+    sans-serif;
+}
+.editor-actions {
+  gap: 0.5rem;
+}
+.editor-actions button,
+.selection-inspector button {
+  border-color: #c5cec5;
+  border-radius: 0.35rem;
+  background: #fcfdf9;
+}
+.editor-help {
+  color: #56665b;
+  margin: 0.9rem 0;
+}
+.selection-inspector {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 3rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.75rem;
+}
+.selection-inspector > span {
+  flex: 1 1 15rem;
+  color: #596557;
+}
+.empty-score-hint {
+  padding: 1rem;
+  border: 1px dashed #a3b5a1;
+  color: #4c6650;
+  font:
+    0.9rem/1.6 system-ui,
+    sans-serif;
+}
+.score-scroll {
+  overflow: auto;
+  border: 1px solid #d0d5ca;
+  background: #fffdf8;
+  box-shadow: 0 0.5rem 1.5rem #233c3008;
+  border-radius: 0.4rem;
+}
+.score-workspace {
+  min-width: 0;
+}
+.score {
+  border: 0;
+  border-radius: 0;
+}
+.score__hyphen {
+  fill: currentColor;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.syllable-controls {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #e3e2d5;
+  padding: 1.25rem;
+  font-family: system-ui, sans-serif;
+  background: #f9faf4;
+}
+.score-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  color: #687568;
+  font-size: 0.7rem;
+}
+.chant-editor :is(button, input, select, summary):focus-visible {
+  outline: 3px solid #2677bb;
+  outline-offset: 3px;
+}
+.chant-editor button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+.print-score {
+  display: none;
+}
+@media (max-width: 40rem) {
+  .chant-editor {
+    width: calc(100% - 1.5rem);
+    padding-top: 1rem;
+  }
+  .app-masthead {
+    gap: 0.5rem;
+  }
+  .probe-badge {
+    max-width: 7rem;
+  }
+  .file-actions {
+    gap: 0.35rem;
+  }
+  .file-actions button,
+  .export-menu summary {
+    padding: 0.6rem;
+  }
+  .example-action {
+    margin-left: 0;
+  }
+  .save-status {
+    text-align: left;
+  }
+  .export-options {
+    left: auto;
+    right: 0;
+    width: min(16rem, calc(100vw - 2rem));
+  }
+  .editing-heading {
+    margin-top: 1.5rem;
+  }
+  .control-hint {
+    display: none;
+  }
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  .chant-editor {
+    width: 100%;
+    padding: 0;
+  }
+  .chant-editor > :not(.print-score) {
+    display: none !important;
+  }
+  .print-score {
+    display: block;
+  }
+  .print-score h1 {
+    text-align: center;
+    font-size: 22pt;
+    margin: 0 0 12mm;
+  }
+  .print-score svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -36,3 +36,21 @@ all tests and production build, then real Chromium keyboard/pointer/file/reload
 and narrow viewport checks if a browser is available. Record limits honestly.
 Commit and push this branch; do not merge. Record implementation outcome and
 known limitations here at completion.
+
+## Probe outcome
+
+Implemented on this branch: a local composing workbench with new/example scores,
+metadata, graphical neume icons and pitch controls, keyboard note browsing,
+versioned/validated lossless JSON, guarded file replacement, browser recovery,
+cross-tab and storage-failure protection, strict supported-subset GABC, clean SVG,
+passive paginated printing, zoom, measured lyric clearance, conditional outgoing
+hyphens and adaptive vertical bands. The legacy layout API remains available;
+Proposed ADR 0010 records the experiment without superseding accepted decisions.
+
+The full 703-test suite, lint, formatting and production build pass. Real Chromium
+workflow/edge-case checks and an independent code review are recorded in
+[the verification record](../verification/one-shot/README.md). This is a completed
+implementation probe within its inferred scope, not a claim that every Gregorian
+notation/interchange/engraving feature is implemented. No backend, audio or public
+site was introduced. The work remains on the throwaway branch for evaluation;
+there is no merge recommendation.

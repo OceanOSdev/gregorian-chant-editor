@@ -80,3 +80,7 @@ rather than being rewritten.
 [ADR 0009: Keep lyric engraving language in the semantic document](0009-document-lyric-language.md)
 records the owner-approved Stage 4A language preference without superseding the
 existing anchor or wrapping decisions.
+
+[ADR 0010: Experiment with measured lyric clearances in derived layout](0010-experiment-with-lyric-aware-layout.md)
+is **Proposed** and implemented only as an explicit `one-shot-test` probe policy.
+It leaves ADR 0005 Accepted and the music-only layout API default intact.

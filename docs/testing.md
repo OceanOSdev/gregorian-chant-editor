@@ -340,3 +340,42 @@ undo/redo, focus-selection independence, and 320px/multi-system verification.
 The [verification record](verification/vowel-alignment/README.md) describes
 actual results and limitations. Generated screenshots stay in system temporary
 storage; no browser dependency or DOM test environment was added.
+
+## One-shot editor probe
+
+The experimental `one-shot-test` branch adds pure tests at the new file, recovery,
+interchange, metadata and lyric-spacing seams:
+
+- `chant-file.test.ts`: lossless versioned semantic round trips, global IDs,
+  malformed/unsupported data, pitch/anchor/alignment validation and size limits.
+- `gabc.test.ts`: seven-kind musical round trips, melismas/lyricless prefixes,
+  word boundaries, pitch mapping and explicit rejection of unsupported syntax.
+- `recovery.test.ts`: validated startup recovery and preservation of unreadable
+  or inaccessible browser copies.
+- `update-document.test.ts`: atomic metadata history, no-op identity and explicit
+  session replacement.
+- `lyric-spacing.test.ts`: text clearance, conditional/outgoing hyphens, melisma
+  spacing, oversize progress, vertical clearance and measured graphical commits.
+
+The dependency-free Chromium driver below exercises the actual app, using native
+pointer/keyboard input, file selection, downloads, reloads, multiple tabs and print:
+
+```bash
+npm run dev
+# In a separate terminal, start Chromium with an isolated temporary profile:
+chromium --headless --no-sandbox --disable-dev-shm-usage \
+  --remote-debugging-port=9230 --user-data-dir=/tmp/chant-probe-browser about:blank
+# In another terminal:
+node docs/verification/one-shot/browser-check.mjs
+```
+
+Run the driver only against an isolated browser profile: it clears that origin's
+browser storage and intentionally replaces fixture documents. It writes downloads,
+PNG diagnostics and a print PDF into a fresh system temporary directory, and never
+refreshes historical committed specimens. To test a production preview instead,
+run `npm run build` and `npm run preview -- --port 5174`, then set
+`CHANT_EDITOR_URL=http://127.0.0.1:5174` for the same driver.
+
+See the [probe verification record](verification/one-shot/README.md) for scenarios,
+actual results and remaining cross-browser/accessibility limits. This driver is
+separate from Vitest and CI; it adds no DOM/browser dependency to the project.

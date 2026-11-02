@@ -1,9 +1,16 @@
 import { ChantEditor } from './editor/components/ChantEditor';
-import { exampleDocument } from './editor/domain/example-document';
+import { useState } from 'react';
+import { readRecovery } from './app/recovery';
 import './App.css';
 
 function App() {
-  return <ChantEditor document={exampleDocument} />;
+  const [recovery] = useState(readRecovery);
+  return (
+    <ChantEditor
+      document={recovery.document}
+      initialWarning={recovery.warning}
+    />
+  );
 }
 
 export default App;
