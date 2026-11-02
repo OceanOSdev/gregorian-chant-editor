@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { assertRenderedContinuations } from './assert-rendered-corpus.ts';
 
 export async function runCorpusReview({
   ev,
@@ -19,7 +20,7 @@ export async function runCorpusReview({
     );
   const diagnostic = process.env.CHANT_CORPUS === 'diagnostic';
   const corpus = await ev(
-    `(async()=>{const c=await import('/docs/verification/word-composition/corpus.ts');const v=await import('/docs/verification/word-composition/inspect-corpus.ts');const l=await import('/src/editor/layout/layout-chant.ts');const m=await import('/src/editor/rendering/use-lyric-measurement.ts');window.corpusInspect=sample=>v.inspectCorpusCase(sample,l.layoutChant(sample.document,m.createSvgLyricMeasurer()),m.createSvgLyricMeasurer());window.corpusFontSize=(await import('/src/editor/layout/lyric-text-metrics.ts')).lyricFontSize;return c.compositionCorpus})()`,
+    `(async()=>{const c=await import('/docs/verification/word-composition/corpus.ts');const v=await import('/docs/verification/word-composition/inspect-corpus.ts');const l=await import('/src/editor/layout/layout-chant.ts');const m=await import('/src/editor/rendering/use-lyric-measurement.ts');window.corpusInspect=sample=>v.inspectCorpusCase(sample,l.layoutChant(sample.document,m.createSvgLyricMeasurer()),m.createSvgLyricMeasurer());window.corpusFontSize=(await import('/src/editor/layout/lyric-text-metrics.ts')).lyricFontSize;const a=await import('/docs/verification/word-composition/auditione.ts');return [...c.compositionCorpus,...a.auditioneCorpus]})()`,
   );
   const results = [],
     specimens = [];
@@ -29,8 +30,9 @@ export async function runCorpusReview({
     const wordSpaceMinimum = await ev('corpusFontSize/4');
     const rendered = await ev(`(()=>{
       const systems=Array.from(document.querySelectorAll('[data-system-index]'));
-      return systems.map(s=>({lyrics:Array.from(s.querySelectorAll('.score__lyric')).map(t=>{const b=t.getBBox();return {id:t.dataset.syllableId,left:b.x,right:b.x+b.width,advance:t.getComputedTextLength()}}),marks:Array.from(s.querySelectorAll('.score__hyphens text')).map(t=>{const b=t.getBBox();return {left:b.x,right:b.x+b.width,outgoing:t.dataset.outgoing==='true',pointer:getComputedStyle(t).pointerEvents,hidden:t.parentElement.getAttribute('aria-hidden')}})}))
+      return systems.map(s=>({index:Number(s.dataset.systemIndex),lyrics:Array.from(s.querySelectorAll('.score__lyric')).map(t=>{const b=t.getBBox();return {id:t.dataset.syllableId,left:b.x,right:b.x+b.width,advance:t.getComputedTextLength()}}),marks:Array.from(s.querySelectorAll('.score__hyphens text')).map(t=>{const b=t.getBBox();return {left:b.x,right:b.x+b.width,outgoing:t.dataset.outgoing==='true',pointer:getComputedStyle(t).pointerEvents,hidden:t.parentElement.getAttribute('aria-hidden')}})}))
     })()`);
+    if (!diagnostic) assertRenderedContinuations(result.boundaries, rendered);
     for (const system of rendered) {
       for (let i = 1; i < system.lyrics.length; i++)
         assert(
@@ -65,6 +67,7 @@ export async function runCorpusReview({
     results.push({
       measurementWidth,
       alternateFont,
+      id: sample.id,
       name: sample.name,
       arrangement: sample.arrangement,
       ...result,
@@ -105,6 +108,11 @@ export async function runCorpusReview({
   // Screenshots are review evidence only: no image comparisons or coordinate goldens.
   for (const [name, items, columns] of [
     [
+      'auditione',
+      specimens.filter((s) => s.sample.arrangement === 'reference'),
+      2,
+    ],
+    [
       'corpus-words',
       specimens.filter((s) => s.sample.arrangement === 'puncta'),
       2,
@@ -119,7 +127,7 @@ export async function runCorpusReview({
       4,
     ],
   ]) {
-    const html = `<!doctype html><meta charset="UTF-8"><style>body{margin:20px;background:#f4f0e8;color:#211c16;font:15px Georgia,serif}h1{font-size:24px;margin:0 0 8px}p{margin:4px 0 16px}.grid{display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px}article{background:#fffdf7;border:1px solid #cfc4b3;padding:10px;overflow:hidden}h2{font:18px Georgia;margin:0 0 4px}small{display:block;font:12px system-ui;color:#5c5449;margin-bottom:8px}svg{display:block;max-width:100%;height:auto;max-height:310px;overflow:hidden;margin:8px auto}.score__staff-line{stroke:#342e26;stroke-width:1}.score__ink{fill:currentColor}text{fill:currentColor}.score__lyric-group{outline:none}.score__lyric-focus-cue{display:none}.summary{font:12px system-ui;line-height:1.5;border-top:1px solid #ddd;padding-top:5px}</style><h1>${name === 'corpus-words' ? 'Word composition — all eight corpus entries' : 'Musical constraints — representative arrangements'}</h1><p>Actual editor SVG; occupied advance/ink gaps in score units. Join / hyphen / outgoing follow measured geometry; screenshots are review evidence.</p><div class="grid">${items.map((s) => `<article><h2>${s.sample.name}</h2><small>${s.sample.arrangement} · ${s.sample.words.map((w) => w.join('/')).join(' + ')}</small>${s.svg}<div class="summary">${s.summary}</div></article>`).join('')}</div>`;
+    const html = `<!doctype html><meta charset="UTF-8"><style>body{margin:20px;background:#f4f0e8;color:#211c16;font:15px Georgia,serif}h1{font-size:24px;margin:0 0 8px}p{margin:4px 0 16px}.grid{display:grid;grid-template-columns:repeat(${columns},minmax(0,1fr));gap:12px}article{background:#fffdf7;border:1px solid #cfc4b3;padding:10px;overflow:hidden}h2{font:18px Georgia;margin:0 0 4px}small{display:block;font:12px system-ui;color:#5c5449;margin-bottom:8px}svg{display:block;max-width:100%;height:auto;max-height:310px;overflow:hidden;margin:8px auto}.score__staff-line{stroke:#342e26;stroke-width:1}.score__ink{fill:currentColor}text{fill:currentColor}.score__lyric-group{outline:none}.score__lyric-focus-cue{display:none}.summary{font:12px system-ui;line-height:1.5;border-top:1px solid #ddd;padding-top:5px}</style><h1>${name === 'auditione' ? 'Auditione — reference assignment and controls' : name === 'corpus-words' ? 'Word composition — all eight corpus entries' : 'Musical constraints — representative arrangements'}</h1><p>Actual editor SVG; occupied advance/ink gaps in score units. Join / hyphen / outgoing follow measured geometry; screenshots are review evidence.</p><div class="grid">${items.map((s) => `<article><h2>${s.sample.name}</h2><small>${s.sample.arrangement === 'reference' ? s.sample.id : s.sample.arrangement} · ${s.sample.words.map((w) => w.join('/')).join(' + ')}</small>${s.svg}<div class="summary">${s.summary}</div></article>`).join('')}</div>`;
     await writeFile(join(screenshotDirectory, `${name}.html`), html);
     await viewport(name === 'corpus-words' ? 1200 : 1800);
     await send('Page.navigate', {
@@ -127,10 +135,12 @@ export async function runCorpusReview({
     });
     await new Promise((r) => setTimeout(r, 200));
     // Capture enough height for a compact complete contact sheet.
-    const height = await ev('document.documentElement.scrollHeight');
+    const height = await ev(
+      "Math.ceil(document.querySelector('.grid').getBoundingClientRect().bottom+20)",
+    );
     await send('Emulation.setDeviceMetricsOverride', {
       width: name === 'corpus-words' ? 1200 : 1800,
-      height: Math.max(height, 900),
+      height: Math.max(height, 600),
       deviceScaleFactor: 1,
       mobile: false,
     });

@@ -281,3 +281,13 @@ The join policy must not leave unmarked continuation gaps as large as real word
 spaces. Keep shared musical constructions unchanged and ADR 0011 Proposed.
 See the [corpus record](../verification/word-composition/corpus-review.md) for
 actual measurements, the general policy refinement and remaining review limits.
+
+## Auditione acceptance investigation and giga-review follow-up
+
+The owner requested a reference-like `au / di / ti / ó / ne` specimen and an
+unaccented control, with neume assignments verified against GregoBase. Add the
+specimens and report geometry/alignment/hyphen-policy differences before changing
+the general engraving design; no auditione-specific rule or threshold tuning is
+authorized. Continue repairing the giga-review findings on the same PR. See the
+[investigation](../verification/word-composition/auditione-review.md). ADR 0011
+remains Proposed and the branch stays unmerged.

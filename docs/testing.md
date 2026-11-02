@@ -426,3 +426,16 @@ retained as [review evidence](verification/word-composition/corpus-review.md),
 never automatically compared to golden images or refreshed by test runs.
 `CHANT_CORPUS=diagnostic` records invariant failures for investigation; it is not
 a passing correctness run. Run each browser's drivers sequentially.
+
+### Auditione and giga-review regressions
+
+The corpus now includes four auditione reference/control documents in addition
+to the existing 40 arrangements. See the [investigation](verification/word-composition/auditione-review.md)
+for the source assignment and measured differences; the join threshold is unchanged.
+`rendered-continuations.test.ts` rejects missing, extra, wrong-system and wrongly
+flagged displayed marks using the same typed assertion as the browser driver.
+`word-composition.test.ts` includes a first source lyric that fits by itself but
+requires room for its outgoing mark. The native browser driver Shift-selects
+compact whole neumes and inspects selection/placement/move ownership clips for
+all seven kinds at desktop and 320px, and checks a real near-edge outgoing mark.
+Firefox resource cleanup uses one encompassing finally, including setup errors.

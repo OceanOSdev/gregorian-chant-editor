@@ -1,34 +1,39 @@
 import { describe, expect, it } from 'vitest';
+import { auditioneCorpus } from '../../../docs/verification/word-composition/auditione';
 import { compositionCorpus } from '../../../docs/verification/word-composition/corpus';
 import { inspectCorpusCase } from '../../../docs/verification/word-composition/inspect-corpus';
 import { layoutChant } from './layout-chant';
 import type { MeasureLyricText } from './lyric-text-metrics';
 
-describe.each(compositionCorpus)('$name / $arrangement', (sample) => {
-  it.each([6, 10, 16])(
-    'preserves relative engraving invariants at %i-unit synthetic glyph advances',
-    (unit) => {
-      const measure: MeasureLyricText = (text) => {
-        const widths = [...text].map(
-          (c) => unit * ('il'.includes(c) ? 0.45 : 'mW'.includes(c) ? 1.4 : 1),
-        );
-        const boundaries = [0];
-        for (const w of widths) boundaries.push((boundaries.at(-1) ?? 0) + w);
-        return {
-          width: boundaries.at(-1) ?? 0,
-          boundaries,
-          inkBounds: { left: -0.3, right: (boundaries.at(-1) ?? 0) + 0.4 },
+describe.each([...compositionCorpus, ...auditioneCorpus])(
+  '$name / $arrangement',
+  (sample) => {
+    it.each([6, 10, 16])(
+      'preserves relative engraving invariants at %i-unit synthetic glyph advances',
+      (unit) => {
+        const measure: MeasureLyricText = (text) => {
+          const widths = [...text].map(
+            (c) =>
+              unit * ('il'.includes(c) ? 0.45 : 'mW'.includes(c) ? 1.4 : 1),
+          );
+          const boundaries = [0];
+          for (const w of widths) boundaries.push((boundaries.at(-1) ?? 0) + w);
+          return {
+            width: boundaries.at(-1) ?? 0,
+            boundaries,
+            inkBounds: { left: -0.3, right: (boundaries.at(-1) ?? 0) + 0.4 },
+          };
         };
-      };
-      const original = JSON.stringify(sample.document);
-      const layout = layoutChant(sample.document, measure);
-      expect(inspectCorpusCase(sample, layout, measure).errors).toEqual([]);
-      expect(JSON.stringify(sample.document)).toBe(original);
-      if (sample.arrangement === 'break')
-        expect(layout.systems.length).toBeGreaterThan(1);
-    },
-  );
-});
+        const original = JSON.stringify(sample.document);
+        const layout = layoutChant(sample.document, measure);
+        expect(inspectCorpusCase(sample, layout, measure).errors).toEqual([]);
+        expect(JSON.stringify(sample.document)).toBe(original);
+        if (sample.arrangement === 'break')
+          expect(layout.systems.length).toBeGreaterThan(1);
+      },
+    );
+  },
+);
 
 it('detects a plausible but incorrect continuation at an explicit word boundary', () => {
   const sample = compositionCorpus.find(

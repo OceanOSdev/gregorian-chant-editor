@@ -28,7 +28,7 @@ export const arrangements = [
   'break',
   'two-words',
 ] as const;
-export type CorpusArrangement = (typeof arrangements)[number];
+export type CorpusArrangement = (typeof arrangements)[number] | 'reference';
 export interface CompositionCase {
   id: string;
   name: string;

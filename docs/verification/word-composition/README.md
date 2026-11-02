@@ -1,6 +1,9 @@
 # Stage 4C implementation review
 
-For the current PR #45 corpus iteration and refined joining policy, see the
+For the latest auditione comparison and review repairs, see the
+[auditione investigation](auditione-review.md).
+
+For the PR #45 corpus iteration and refined joining policy, see the
 [corpus review](corpus-review.md). The four-case screenshots and numeric results
 below record the **initial** iteration (0.4-em threshold, before geometric text
 rendering); they are retained as historical evidence, not current expectations.
