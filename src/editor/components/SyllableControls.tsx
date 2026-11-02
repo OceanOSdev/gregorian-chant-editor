@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
 import { isValidLyricText } from '../domain/lyrics';
 import { nextSyllableId } from '../interaction/syllable-navigation';
@@ -7,7 +7,11 @@ import {
   focusAndReveal,
   getVisibilityAdjustment,
 } from '../rendering/focus-visibility';
-import type { EditorFocusRequest } from '../state/editor-session';
+import type {
+  EditorFocusRequest,
+  EditorSession,
+  LyricMoveAction,
+} from '../state/editor-session';
 import {
   isDirtyLyricEntry,
   lyricTargetId,
@@ -17,6 +21,8 @@ import {
 
 interface SyllableControlsProps {
   document: ChantDocument;
+  lyricMove: EditorSession['lyricMove'];
+  onMove: (action: LyricMoveAction) => void;
   layout: ChantLayout;
   entry: LyricEntry | null;
   selectedSyllableId: string | null;
@@ -31,6 +37,8 @@ interface SyllableControlsProps {
 
 export function SyllableControls({
   document,
+  lyricMove,
+  onMove,
   layout,
   entry,
   selectedSyllableId,
@@ -54,6 +62,14 @@ export function SyllableControls({
   const focusedSyllable = document.syllables.find(
     (s) => s.id === focusedSyllableId,
   );
+  // Keep the last focus caption's space when focus leaves engraved lyrics.
+  // Removing it on pointer-down would move the button before pointer-up/click.
+  const [lastFocusedId, setLastFocusedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (focusedSyllable) setLastFocusedId(focusedSyllable.id);
+  }, [focusedSyllable]);
+  const focusCaptionSyllable =
+    focusedSyllable ?? document.syllables.find((s) => s.id === lastFocusedId);
   const selectedSyllable = document.syllables.find(
     (s) => s.id === selectedSyllableId,
   );
@@ -67,6 +83,8 @@ export function SyllableControls({
     entry?.kind === 'occupied' || entry?.kind === 'selected'
       ? document.syllables.find((s) => s.id === entry.syllableId)
       : draft?.original;
+  const movableSyllableId =
+    selectedSyllableId ?? draft?.original?.id ?? syllable?.id;
   const first = draft
     ? !document.syllables.some(
         (s) =>
@@ -119,9 +137,13 @@ export function SyllableControls({
           input.current.value.length,
         );
     } else {
-      const control = controls.current?.querySelector<HTMLButtonElement>(
-        '[data-lyric-primary]:not(:disabled), button:not(:disabled)',
-      );
+      const control =
+        controls.current?.querySelector<HTMLButtonElement>(
+          '[data-lyric-primary]:not(:disabled)',
+        ) ??
+        controls.current?.querySelector<HTMLButtonElement>(
+          'button:not(:disabled)',
+        );
       if (control) focusAndReveal(control);
     }
     onFocusHandled(focusRequest);
@@ -130,6 +152,49 @@ export function SyllableControls({
   useLayoutEffect(() => {
     if (pendingHistory) historySave.current?.focus({ preventScroll: true });
   }, [pendingHistory]);
+
+  if (lyricMove) {
+    const moving = document.syllables.find(
+      (s) => s.id === lyricMove.syllableId,
+    );
+    const ordinal = (id: string) =>
+      document.neumes.findIndex((n) => n.id === id) + 1;
+    return (
+      <section className="syllable-controls" aria-label="Move syllable">
+        <p id="lyric-move-help">
+          Moving <strong>{moving?.text}</strong> from neume{' '}
+          {ordinal(moving?.startsAtNeumeId ?? '')}. Highlighted neumes are legal
+          destinations. Click one to move immediately. Previous/Next or
+          Left/Right previews; Enter on the score confirms. Escape cancels. Tab
+          visits controls without changing selection.
+        </p>
+        <p>
+          Preview: neume {ordinal(lyricMove.candidateId)}
+          {lyricMove.candidateId === moving?.startsAtNeumeId
+            ? ' (current anchor)'
+            : ' (legal destination)'}
+        </p>
+        <button
+          type="button"
+          onClick={() => onMove({ type: 'browse', direction: -1 })}
+        >
+          Previous destination
+        </button>
+        <button
+          type="button"
+          onClick={() => onMove({ type: 'browse', direction: 1 })}
+        >
+          Next destination
+        </button>
+        <button type="button" onClick={() => onMove({ type: 'commit' })}>
+          Move here
+        </button>
+        <button type="button" onClick={() => onMove({ type: 'cancel' })}>
+          Cancel move
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -169,17 +234,38 @@ export function SyllableControls({
           });
       }}
     >
+      {movableSyllableId ? (
+        <button
+          type="button"
+          disabled={pendingHistory}
+          onClick={() =>
+            onMove({
+              type: 'start',
+              syllableId: movableSyllableId,
+              newId: crypto.randomUUID(),
+            })
+          }
+        >
+          Move syllable:{' '}
+          {document.syllables.find((s) => s.id === movableSyllableId)?.text}
+        </button>
+      ) : null}
       <p id="lyric-focus-help">
         Tab moves keyboard focus without changing selection. The blue marker
         shows where engraved-lyric keys act; the purple outline marks selection.
         Delete/Backspace deletes the focused engraved syllable. Selection
         buttons act on the selected syllable.
       </p>
-      {focusedSyllable ? (
-        <p className="lyric-keyboard-target" data-lyric-keyboard-target>
-          <strong>Keyboard focus: {focusedSyllable.text}.</strong>{' '}
-          Delete/Backspace deletes {focusedSyllable.text}; Enter edits it.{' '}
-          {focusedSyllable.id === selectedSyllableId
+      {focusCaptionSyllable ? (
+        <p
+          className="lyric-keyboard-target"
+          data-lyric-keyboard-target={focusedSyllable ? true : undefined}
+          aria-hidden={!focusedSyllable}
+          style={{ visibility: focusedSyllable ? undefined : 'hidden' }}
+        >
+          <strong>Keyboard focus: {focusCaptionSyllable.text}.</strong>{' '}
+          Delete/Backspace deletes {focusCaptionSyllable.text}; Enter edits it.{' '}
+          {focusCaptionSyllable.id === selectedSyllableId
             ? 'Typing replaces it; minus continues its word; Space starts a word.'
             : 'Space selects it.'}
         </p>
@@ -314,23 +400,49 @@ export function SyllableControls({
           {entry.kind === 'selected' ? (
             <>
               <p>
-                Selection (purple outline): <strong>{syllable?.text}</strong>
+                Lyrics target: <strong>{syllable?.text}</strong>
               </p>
-              <button
-                data-lyric-primary
-                type="button"
-                onClick={() =>
-                  onAction({ type: 'edit', syllableId: entry.syllableId })
-                }
-              >
-                Edit selected syllable
-              </button>
-              <button
-                type="button"
-                onClick={() => onAction({ type: 'delete' })}
-              >
-                Delete selected syllable
-              </button>
+              {selectedSyllable ? (
+                <>
+                  <p>
+                    Selection (purple outline):{' '}
+                    <strong>{selectedSyllable.text}</strong>
+                  </p>
+                  <button
+                    data-lyric-primary
+                    type="button"
+                    onClick={() =>
+                      onAction({
+                        type: 'edit',
+                        syllableId: selectedSyllable.id,
+                      })
+                    }
+                  >
+                    Edit selected syllable
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onAction({
+                        type: 'delete',
+                        syllableId: selectedSyllable.id,
+                      })
+                    }
+                  >
+                    Delete selected syllable
+                  </button>
+                </>
+              ) : (
+                <button
+                  data-lyric-primary
+                  type="button"
+                  onClick={() =>
+                    onAction({ type: 'edit', syllableId: entry.syllableId })
+                  }
+                >
+                  Edit syllable
+                </button>
+              )}
             </>
           ) : null}
           {entry.kind === 'ready' ? (
@@ -444,7 +556,12 @@ export function SyllableControls({
           >
             Edit selected syllable
           </button>
-          <button type="button" onClick={() => onAction({ type: 'delete' })}>
+          <button
+            type="button"
+            onClick={() =>
+              onAction({ type: 'delete', syllableId: selectedSyllableId })
+            }
+          >
             Delete selected syllable
           </button>
         </div>

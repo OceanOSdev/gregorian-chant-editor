@@ -1,6 +1,6 @@
 # Neume-anchored lyrics with continuous entry
 
-Status: Stage 1 merged; Stage 2 implemented and under review; Stages 3 and 4 pending.
+Status: Stages 1 and 2 merged; Stage 3 implemented for review; Stage 4 pending.
 
 Keep this plan while Stages 3 and 4 are pending. After Stage 4 is implemented
 and merged, remove this file as part of the final documentation cleanup. Ensure

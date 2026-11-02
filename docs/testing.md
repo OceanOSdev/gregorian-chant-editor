@@ -314,3 +314,13 @@ Pure session tests cover
 focused notes, missing IDs and active-draft resolution. Browser checks prove L
 reaches the intended handler even from selected lyric text and stays ordinary
 letter input within the native field.
+
+## Lyric anchor correction verification
+
+`lyric-move.test.ts` covers temporary reassignment, derived legal targets, middle
+and edge moves, exact-reference rejection, sibling/music preservation, atomic
+undo/redo, selection versus preview, cancellation and draft integration (including
+stale/recovery targets). The [Stage 3 browser record](verification/lyric-move/README.md)
+covers actual pointer targeting, keyboard browsing/confirmation, native Tab,
+rejection announcements, text drafts, stable selection/focus and multi-system
+reveal at narrow widths. Stage 2 browser regressions remain applicable.

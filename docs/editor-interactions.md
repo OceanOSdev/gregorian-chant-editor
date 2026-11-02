@@ -403,7 +403,9 @@ syllable and explains that Delete/Backspace deletes it and Enter edits it.
 The selection summary names the selected syllable; **Edit selected syllable**
 and **Delete selected syllable** keep acting on that selection. Their activation
 moves browser focus to the button, so the engraved-lyric keyboard marker and
-focused-target summary disappear. Focus tracking is presentation-only and is
+focused-target summary disappear. The last caption retains hidden, aria-hidden
+layout space so that focus changes during pointer-down cannot shift a button
+before pointer-up. Focus tracking is presentation-only and is
 never used to retarget editing commands.
 
 Delete/Backspace on an engraved lyric continues to use the event target's stable
@@ -447,3 +449,50 @@ The visible Lyrics button remains selection/context-based activation or draft
 resumption. Activation from the score surface without an entity retains its
 existing selection/first-neume fallback. This change does not redesign I/T, note
 editing, native input keys, or lyric Space-as-word-boundary behavior.
+
+## Lyric anchor correction
+
+Select an engraved syllable and choose **Move syllable**. The action is also
+available while editing an existing syllable. Activation resolves the current
+draft through the continuous-entry navigation policy: valid text commits first,
+empty/unchanged text creates no edit, cleared existing text preserves its original,
+and invalid or stale/recovery drafts block activation without losing text.
+
+The session reducer owns a temporary reassignment with the moving syllable ID,
+previewed neume ID and preceding resolved Lyrics context. It selects the moving
+syllable and initially focuses its current anchor's first note. The panel names
+the syllable, current anchor and preview. Green dashed score outlines identify
+legal destinations; a solid blue outline identifies the preview. Captions and
+accessible note labels distinguish legal destinations, the current anchor and
+unavailable targets. Legal targets are derived from the open interval between
+neighboring anchors, excluding occupied/current anchors. The pure reassignment
+command remains authoritative at commit.
+
+Clicking anywhere in a legal destination's highlighted rectangle immediately
+commits, with no confirmation
+step. Previous/Next destination and Left/Right browse legal neumes in semantic
+order without wrapping or changing selection. Browsing requests focus/reveal on
+the candidate's first note across systems. Enter on the score or **Move here**
+commits the preview. Tab/Shift+Tab remain native focus traversal and do not change
+the preview or selection. Escape or **Cancel move** restores the preceding
+resolved Lyrics context and the preceding semantic selection (reconciled by ID),
+focusing that restored selection without changing the anchor or history. Successful moves
+retain syllable identity and selection, resume that context, and focus/reveal the
+moved engraved syllable. An already-resolved draft remains resolved on cancellation;
+its preceding text commit, if any, remains independently undoable.
+
+Current-anchor, occupied, crossing and missing targets create no semantic edit
+and announce the reason while leaving the move recoverable. Unrelated music,
+lyric and history actions are suspended until commit/cancel; toolbar controls
+are disabled. Enter, L and double-click retain their normal text-editing roles
+outside reassignment. Moving lyrics changes no engraving/wrapping policy.
+
+The restored Lyrics target can differ from semantic selection, for example after
+pressing L on another focused syllable. The panel names the Lyrics target
+separately from the purple-outline selection. **Edit selected syllable** and
+**Delete selected syllable** always send the semantic selection's explicit ID;
+engraved keyboard actions continue to send their focused target's ID. Starting a
+move from a draft does not turn the resolved workflow target into selection on
+cancel. Enter confirms only with score focus; Keyboard help retains native Enter
+activation. Lyrics activation focuses its primary action before considering
+fallback controls such as Move syllable.

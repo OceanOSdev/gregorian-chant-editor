@@ -1,3 +1,4 @@
+import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
 import {
   transitionLyrics,
   reconcileLyricEntry,
@@ -43,6 +44,12 @@ export type EditorFocusRequest =
 
 export interface EditorSession {
   history: DocumentHistory;
+  lyricMove: {
+    syllableId: string;
+    candidateId: string;
+    previousLyrics: LyricEntry | null;
+    previousSelection: EditorSelection;
+  } | null;
   lyrics: LyricEntry | null;
   pendingHistory: {
     direction: 'undo' | 'redo';
@@ -56,7 +63,43 @@ export interface EditorSession {
   announcement: { sequence: number; text: string };
 }
 
+export type LyricMoveAction =
+  | { type: 'start'; syllableId: string; newId: string }
+  | { type: 'browse'; direction: -1 | 1 }
+  | { type: 'commit'; neumeId?: string }
+  | { type: 'cancel' };
+
+/** Derive the open interval between neighboring anchors without trial edits. */
+export function lyricMoveTargets(
+  document: ChantDocument,
+  syllableId: string,
+): string[] {
+  const index = document.syllables.findIndex((s) => s.id === syllableId);
+  if (index < 0) return [];
+  const syllable = document.syllables[index];
+  const previous = document.syllables[index - 1];
+  const following = document.syllables[index + 1];
+  const lower = previous
+    ? document.neumes.findIndex((n) => n.id === previous.startsAtNeumeId)
+    : -1;
+  const upper = following
+    ? document.neumes.findIndex((n) => n.id === following.startsAtNeumeId)
+    : document.neumes.length;
+  if ((previous && lower < 0) || upper < 0) return [];
+  const occupied = new Set(document.syllables.map((s) => s.startsAtNeumeId));
+  return document.neumes
+    .filter(
+      (n, i) =>
+        i > lower &&
+        i < upper &&
+        n.id !== syllable.startsAtNeumeId &&
+        !occupied.has(n.id),
+    )
+    .map((n) => n.id);
+}
+
 export type EditorAction =
+  | { type: 'lyric-move'; action: LyricMoveAction }
   | {
       type: 'start-lyrics-at-focus';
       target: Extract<EditorSelection, { kind: 'note' | 'syllable' }>;
@@ -96,6 +139,7 @@ export type EditorAction =
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
     history: createDocumentHistory(document),
+    lyricMove: null,
     lyrics: null,
     pendingHistory: null,
     selection: clearSelection(),
@@ -160,6 +204,7 @@ function reduceSessionAction(
 ): EditorSession {
   const placing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'lyric-move':
     case 'start-lyrics-at-focus':
     case 'lyrics':
     case 'resolve-history':
@@ -359,6 +404,135 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  if (action.type === 'lyric-move') {
+    const move = state.lyricMove;
+    const intent = action.action;
+    if (state.pendingHistory) return state;
+    if (intent.type === 'start') {
+      if (
+        move ||
+        !state.history.present.syllables.some((s) => s.id === intent.syllableId)
+      )
+        return state;
+      // Done uses the established commit-on-navigation policy, including stale recovery.
+      const resolved = state.lyrics
+        ? applyLyrics(state, { type: 'done' }, intent.newId)
+        : state;
+      if (resolved.lyrics) return resolved;
+      const syllable = resolved.history.present.syllables.find(
+        (s) => s.id === intent.syllableId,
+      );
+      if (!syllable) return state;
+      const previousLyrics = state.lyrics
+        ? reconcileLyricEntry(
+            resolved.history.present,
+            state.lyrics.kind === 'draft'
+              ? state.lyrics.original || state.lyrics.text !== ''
+                ? {
+                    kind: 'selected',
+                    syllableId: state.lyrics.original?.id ?? intent.newId,
+                  }
+                : state.lyrics
+              : state.lyrics,
+          )
+        : null;
+      const anchorNote = findNeume(
+        resolved.history.present,
+        syllable.startsAtNeumeId,
+      )?.neume.notes[0];
+      return announce(
+        {
+          ...resolved,
+          lyrics: previousLyrics,
+          lyricMove: {
+            syllableId: syllable.id,
+            candidateId: syllable.startsAtNeumeId,
+            previousLyrics,
+            previousSelection: state.selection,
+          },
+          selection: selectSyllable(syllable.id),
+          activeTool: selectTool(),
+          hoveredPoint: null,
+          focusRequest: anchorNote
+            ? { kind: 'note', noteId: anchorNote.id }
+            : null,
+        },
+        `${resolved.announcement !== state.announcement ? resolved.announcement.text + ' ' : ''}Moving ${syllable.text} from neume ${resolved.history.present.neumes.findIndex((n) => n.id === syllable.startsAtNeumeId) + 1}. Click a highlighted destination to move immediately, or use Previous/Next or Left/Right then Enter. Escape cancels.`,
+      );
+    }
+    if (!move) return state;
+    const document = state.history.present;
+    const syllable = document.syllables.find((s) => s.id === move.syllableId);
+    if (intent.type === 'cancel')
+      return announce(
+        {
+          ...state,
+          lyricMove: null,
+          lyrics: reconcileLyricEntry(document, move.previousLyrics),
+          selection: reconcileSelection(document, move.previousSelection),
+          focusRequest: getSelectFocusRequest({
+            ...state,
+            selection: reconcileSelection(document, move.previousSelection),
+          }),
+        },
+        'Move canceled. Anchor unchanged.',
+      );
+    if (intent.type === 'browse') {
+      const targets = lyricMoveTargets(document, move.syllableId);
+      const current = document.neumes.findIndex(
+        (n) => n.id === move.candidateId,
+      );
+      const ordered = intent.direction === 1 ? targets : [...targets].reverse();
+      const candidateId = ordered.find(
+        (id) =>
+          (document.neumes.findIndex((n) => n.id === id) - current) *
+            intent.direction >
+          0,
+      );
+      if (!candidateId)
+        return announce(
+          state,
+          'No further legal destination in this direction.',
+        );
+      const note = findNeume(document, candidateId)?.neume.notes[0];
+      return announce(
+        {
+          ...state,
+          lyricMove: { ...move, candidateId },
+          focusRequest: note ? { kind: 'note', noteId: note.id } : null,
+        },
+        `Destination neume ${document.neumes.findIndex((n) => n.id === candidateId) + 1}. Enter moves ${syllable?.text ?? 'syllable'} here.`,
+      );
+    }
+    const neumeId = intent.neumeId ?? move.candidateId;
+    const next = reassignLyricSyllable(document, move.syllableId, neumeId);
+    if (next === document) {
+      const reason = !findNeume(document, neumeId)
+        ? 'Destination no longer exists.'
+        : syllable?.startsAtNeumeId === neumeId
+          ? 'This is the current anchor; choose another destination.'
+          : document.syllables.some((s) => s.startsAtNeumeId === neumeId)
+            ? 'Destination already starts another syllable.'
+            : 'Destination would cross a neighboring syllable anchor.';
+      return announce(
+        state,
+        `${reason} Choose a highlighted neume, or Escape to cancel.`,
+      );
+    }
+    return announce(
+      {
+        ...state,
+        history: applyDocumentEdit(state.history, () => next),
+        lyricMove: null,
+        lyrics: reconcileLyricEntry(next, move.previousLyrics),
+        selection: selectSyllable(move.syllableId),
+        focusRequest: { kind: 'lyric', syllableId: move.syllableId },
+      },
+      `Moved ${syllable?.text ?? 'syllable'} to neume ${document.neumes.findIndex((n) => n.id === neumeId) + 1}.`,
+    );
+  }
+  // Temporary reassignment owns editing until explicit commit or cancellation.
+  if (state.lyricMove && action.type !== 'focus-handled') return state;
   if (state.pendingHistory) {
     if (action.type === 'focus-handled')
       return reduceSessionAction(state, action);

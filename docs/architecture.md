@@ -128,3 +128,9 @@ The lyric anchor relationship is defined in [ADR 0008](adrs/0008-anchor-lyrics-t
 commit/navigation, occupied/end states and stale-target recovery). The session
 reducer applies each accepted semantic result once to history and reconciles focus.
 There is no second component-owned draft or active-syllable insertion target.
+
+Temporary lyric-anchor reassignment also belongs to the session reducer, including
+its preview ID and preceding resolved Lyrics context. Its legal destinations are
+derived from the existing pure reassignment command. This implements ADRs 0002
+and 0008 without changing semantic data, history structure or engraving ownership;
+no new ADR is needed.

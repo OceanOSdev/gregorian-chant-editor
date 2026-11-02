@@ -33,6 +33,13 @@ export interface SvgPoint {
 
 interface ScoreSvgProps {
   layout: ChantLayout;
+  lyricMove: {
+    syllableId: string;
+    candidateId: string;
+    anchorId: string;
+    legalIds: string[];
+  } | null;
+  onMoveDestination: (neumeId: string) => void;
   placementPreview: GraphicalPlacementPreviewLayout | null;
   selection: EditorSelection;
   activeTool: EditorTool;
@@ -61,6 +68,8 @@ interface ScoreSvgProps {
 
 export function ScoreSvg({
   layout,
+  lyricMove,
+  onMoveDestination,
   placementPreview,
   selection,
   activeTool,
@@ -120,6 +129,13 @@ export function ScoreSvg({
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation();
     if (placementActive) return;
+    if (lyricMove) {
+      const neumeId =
+        event.currentTarget.closest<SVGGElement>('[data-neume-id]')?.dataset
+          .neumeId;
+      if (neumeId) onMoveDestination(neumeId);
+      return;
+    }
 
     if (event.shiftKey) {
       onSelectNeumeForNote(noteId);
@@ -176,7 +192,11 @@ export function ScoreSvg({
     isNoteSelected: boolean,
     isNeumeSelected: boolean,
   ) {
-    if (isPlacementTool(activeTool) || event.nativeEvent.isComposing) {
+    if (
+      lyricMove ||
+      isPlacementTool(activeTool) ||
+      event.nativeEvent.isComposing
+    ) {
       return;
     }
 
@@ -265,6 +285,14 @@ export function ScoreSvg({
             );
             const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
             const selectionGap = 5;
+            // Music has a 33-unit inter-neume ink gap; seven units of padding
+            // on each side leaves disjoint destination targets within a system.
+            const moveBounds = {
+              x: neume.bounds.x - 7,
+              y: neume.bounds.y - 7,
+              width: neume.bounds.width + 14,
+              height: neume.bounds.height + 14,
+            };
 
             return (
               <g
@@ -305,6 +333,28 @@ export function ScoreSvg({
                     aria-hidden="true"
                   />
                 ) : null}
+                {lyricMove &&
+                (lyricMove.legalIds.includes(neume.neumeId) ||
+                  lyricMove.anchorId === neume.neumeId) ? (
+                  <g pointerEvents="none" aria-hidden="true">
+                    <rect
+                      className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
+                      {...moveBounds}
+                      rx="3"
+                    />
+                    <text
+                      className="score__move-caption"
+                      x={neume.bounds.x}
+                      y={neume.bounds.y - 14}
+                    >
+                      {lyricMove.anchorId === neume.neumeId
+                        ? 'Current anchor'
+                        : lyricMove.candidateId === neume.neumeId
+                          ? 'Preview'
+                          : 'Legal'}
+                    </text>
+                  </g>
+                ) : null}
                 <NeumeInk ink={neume.ink} />
                 {neume.notes.map((note, noteIndex) => {
                   const isNoteSelected =
@@ -329,9 +379,19 @@ export function ScoreSvg({
                       data-note-id={note.noteId}
                       role="button"
                       tabIndex={placementActive ? -1 : 0}
-                      pointerEvents={placementActive ? 'none' : 'all'}
-                      aria-label={accessibleLabel}
-                      aria-describedby={`whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`}
+                      pointerEvents={
+                        placementActive || lyricMove ? 'none' : 'all'
+                      }
+                      aria-label={
+                        lyricMove
+                          ? `${accessibleLabel}. Neume ${system.startNeumeIndex + system.neumes.indexOf(neume) + 1}. ${lyricMove.anchorId === neume.neumeId ? 'Current anchor' : lyricMove.legalIds.includes(neume.neumeId) ? 'Legal destination' : 'Unavailable: occupied or crosses another anchor'}.${lyricMove.candidateId === neume.neumeId ? ' Previewed destination.' : ''}`
+                          : accessibleLabel
+                      }
+                      aria-describedby={
+                        lyricMove
+                          ? 'lyric-move-help'
+                          : `whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
+                      }
                       aria-pressed={isNoteSelected}
                       aria-disabled={placementActive}
                       onClick={(event) => handleNoteClick(event, note.noteId)}
@@ -348,7 +408,7 @@ export function ScoreSvg({
                       <g
                         aria-hidden="true"
                         pointerEvents={
-                          placementActive
+                          placementActive || lyricMove
                             ? 'none'
                             : neume.kind === 'climacus' ||
                                 neume.kind === 'porrectus'
@@ -378,6 +438,24 @@ export function ScoreSvg({
                     </g>
                   );
                 })}
+                {lyricMove ? (
+                  <rect
+                    className="score__move-hit-target"
+                    {...moveBounds}
+                    rx="3"
+                    fill="transparent"
+                    stroke="transparent"
+                    strokeWidth={
+                      lyricMove.candidateId === neume.neumeId ? 3 : 2
+                    }
+                    pointerEvents="all"
+                    aria-hidden="true"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onMoveDestination(neume.neumeId);
+                    }}
+                  />
+                ) : null}
               </g>
             );
           })}
@@ -396,23 +474,26 @@ export function ScoreSvg({
                   }}
                   role="button"
                   aria-describedby="lyric-focus-help"
-                  tabIndex={placementActive ? -1 : 0}
+                  tabIndex={placementActive || lyricMove ? -1 : 0}
                   aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
                   aria-pressed={
                     selection.kind === 'syllable' &&
                     selection.syllableId === lyric.syllableId
                   }
-                  aria-disabled={placementActive}
-                  pointerEvents={placementActive ? 'none' : 'all'}
+                  aria-disabled={placementActive || Boolean(lyricMove)}
+                  pointerEvents={placementActive || lyricMove ? 'none' : 'all'}
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (!placementActive) onSelectSyllable(lyric.syllableId);
+                    if (!placementActive && !lyricMove)
+                      onSelectSyllable(lyric.syllableId);
                   }}
                   onDoubleClick={(event) => {
                     event.stopPropagation();
-                    if (!placementActive) onEditSyllable(lyric.syllableId);
+                    if (!placementActive && !lyricMove)
+                      onEditSyllable(lyric.syllableId);
                   }}
                   onKeyDown={(event) => {
+                    if (lyricMove) return;
                     const action = getSyllableKeyAction(
                       event.nativeEvent,
                       selection.kind === 'syllable' &&

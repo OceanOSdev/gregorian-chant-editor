@@ -228,3 +228,12 @@ focusable lyric control and retains its normal ink. A separate blue caret and â€
 engraved lyric without enclosing a second syllable in an active box. The cue
 sits outside the selection group so it cannot enlarge its outline. Neither cue changes
 lyric metrics, music geometry, wrapping, or semantic state.
+
+During lyric reassignment, each neume has a nonfocusable pointer rectangle with
+the same rounded bounds and stroke extent as its seven-unit padded outline.
+That rectangle owns all pointer input for its neume; constituent note targets
+are pointer-inert until reassignment ends, while retaining keyboard focus.
+The 33-unit inter-neume ink gap leaves these padded regions disjoint, including
+stroke extents. Invalid/occupied regions use the same pointer routing but never
+commit. Decorative captions remain pointer-inert. This changes neither normal
+note hit geometry nor musical bounds, spacing or wrapping.
