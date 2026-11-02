@@ -49,6 +49,19 @@ describe('language-specific lyric segments', () => {
       expected,
     );
   });
+  it.each([
+    ['\u0301b', 'la'],
+    ['\u0301β', 'el'],
+  ] as const)(
+    'centers the whole %s when only an orphan mark and consonant remain',
+    (text, language) => {
+      expect(automaticLyricSegment(text, language)).toEqual({
+        start: 0,
+        end: 2,
+      });
+      expect(alignLyricText(syllable(text), language, measure).offset).toBe(0);
+    },
+  );
   it('uses und for malformed or missing runtime language', () => {
     for (const value of [undefined, null, 'fr', 2, {}])
       expect(lyricLanguage(value)).toBe('und');

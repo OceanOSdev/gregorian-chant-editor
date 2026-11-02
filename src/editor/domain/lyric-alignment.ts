@@ -41,6 +41,7 @@ export function automaticLyricSegment(
     return whole;
   const vowels = greek ? 'αεηιουω' : 'aeiouyæœ';
   const indexes = letters.flatMap((g, i) =>
+    g.length > 0 &&
     vowels.includes(g) &&
     !(language === 'la' && g === 'u' && letters[i - 1] === 'q')
       ? [i]
