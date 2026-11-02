@@ -61,7 +61,7 @@ const mount = async (
   ],
 ) => {
   await ev(
-    `mountChantFixture(${JSON.stringify({ title: 'Stage 3', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
+    `mountChantFixture(${JSON.stringify({ title: 'Stage 3', lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
   );
   await pause();
   // Each fixture starts at the top rather than inheriting the previous case's
@@ -317,7 +317,7 @@ for (const outcome of ['commit', 'cancel']) {
     );
     assert(
       await ev(
-        "document.querySelector('.lyric-actions').textContent.includes('Selection (purple outline): ri')",
+        "document.querySelector('.lyric-actions').textContent.includes('Selection (purple cue): ri')",
       ),
     );
     if (action === 'focused-delete') {

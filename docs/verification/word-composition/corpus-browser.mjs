@@ -26,6 +26,33 @@ export async function runCorpusReview({
     specimens = [];
   for (const sample of corpus) {
     await mount(sample.document);
+    // DOM semantics are a separate assertion from painted geometry. This does
+    // not establish foreground focus or screen-reader speech behavior.
+    const controls = await ev(
+      `Array.from(document.querySelectorAll('.score__lyric')).map(t=>({id:t.dataset.syllableId,role:t.getAttribute('role'),name:t.getAttribute('aria-label'),tabIndex:t.tabIndex,pressed:t.getAttribute('aria-pressed'),described:!!document.getElementById(t.getAttribute('aria-describedby'))}))`,
+    );
+    assert.deepEqual(
+      controls.map((t) => t.id),
+      sample.document.syllables.map((s) => s.id),
+      `${sample.id}: semantic lyric reading order`,
+    );
+    for (const [index, control] of controls.entries()) {
+      assert.equal(control.role, 'button');
+      assert(
+        control.name.startsWith(
+          `Syllable: ${sample.document.syllables[index].text}.`,
+        ),
+      );
+      assert.equal(control.tabIndex, 0);
+      assert.equal(control.pressed, 'false');
+      assert(control.described, 'lyric instructions resolve');
+    }
+    assert(
+      await ev(
+        `Array.from(document.querySelectorAll('.score__hyphens')).every(g=>g.getAttribute('aria-hidden')==='true'&&getComputedStyle(g).pointerEvents==='none'&&Array.from(g.querySelectorAll('*')).every(t=>!t.hasAttribute('tabindex')&&!t.hasAttribute('role')))`,
+      ),
+      'generated punctuation must remain inert and outside the accessibility tree',
+    );
     const result = await ev(`corpusInspect(${JSON.stringify(sample)})`);
     const wordSpaceMinimum = await ev('corpusFontSize/4');
     const rendered = await ev(`(()=>{
