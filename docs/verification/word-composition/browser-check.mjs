@@ -161,6 +161,7 @@ try {
   } else {
     const fixture = {
       title: 'Stage 4C — Al ... leluia ah',
+      divisions: [],
       lyricLanguage: 'la',
       clef: { type: 'c', staffLine: 3 },
       neumes: Array.from({ length: 8 }, (_, i) => ({

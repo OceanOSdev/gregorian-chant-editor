@@ -1,43 +1,14 @@
-import type { ChantDocument, ClimacusNeume } from '../domain/chant-document';
-import { isValidNeume } from '../domain/neume';
+import type {
+  ChantDocument,
+  ClimacusNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
-/**
- * Accepts only a complete boundary, three unique
- * collision-free note IDs, and a runtime-valid strictly descending Climacus.
- */
 export function insertClimacus(
   document: ChantDocument,
   climacus: ClimacusNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  const [firstNote, secondNote, thirdNote] = climacus.notes;
-  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id];
-  const hasUniqueCandidateNoteIds =
-    candidateNoteIds.every((id) => id !== undefined) &&
-    new Set(candidateNoteIds).size === 3;
-  const hasIdCollision = document.neumes.some(
-    (neume) =>
-      neume.id === climacus.id ||
-      neume.notes.some((note) => candidateNoteIds.includes(note.id)),
-  );
-
-  if (
-    !Number.isInteger(insertionIndex) ||
-    insertionIndex < 0 ||
-    insertionIndex > document.neumes.length ||
-    !hasUniqueCandidateNoteIds ||
-    hasIdCollision ||
-    !isValidNeume(climacus)
-  ) {
-    return document;
-  }
-
-  return {
-    ...document,
-    neumes: [
-      ...document.neumes.slice(0, insertionIndex),
-      climacus,
-      ...document.neumes.slice(insertionIndex),
-    ],
-  };
+  return insertNeume(document, climacus, boundary);
 }

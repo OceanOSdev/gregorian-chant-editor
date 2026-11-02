@@ -1,10 +1,14 @@
-import type { ChantDocument, PodatusNeume } from '../domain/chant-document';
-import { insertTwoNoteNeume } from './insert-two-note-neume';
+import type {
+  ChantDocument,
+  PodatusNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
 export function insertPodatus(
   document: ChantDocument,
   podatus: PodatusNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  return insertTwoNoteNeume(document, podatus, insertionIndex);
+  return insertNeume(document, podatus, boundary);
 }

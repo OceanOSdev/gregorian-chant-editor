@@ -1,3 +1,4 @@
+import { hasValidDivisions } from '../domain/divisions';
 import type { ChantDocument, LyricSyllable } from '../domain/chant-document';
 import { hasValidLyricAnchors } from '../domain/lyrics';
 
@@ -9,6 +10,8 @@ export function createLyricSyllable(
     (n) => n.id === syllable.startsAtNeumeId,
   );
   if (
+    !hasValidDivisions(document) ||
+    document.divisions.some((d) => d.id === syllable.id) ||
     at < 0 ||
     document.syllables.some(
       (s) =>

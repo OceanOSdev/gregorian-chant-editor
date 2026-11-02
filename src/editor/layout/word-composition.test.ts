@@ -14,6 +14,7 @@ const measure: MeasureLyricText = (text) => ({
 function fixture(anchors = [0, 3, 4, 5, 6], count = 8): ChantDocument {
   return {
     title: 'Alleluia',
+    divisions: [],
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },
     neumes: Array.from({ length: count }, (_, i) => ({

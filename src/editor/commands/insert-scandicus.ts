@@ -1,43 +1,14 @@
-import type { ChantDocument, ScandicusNeume } from '../domain/chant-document';
-import { isValidNeume } from '../domain/neume';
+import type {
+  ChantDocument,
+  ScandicusNeume,
+  ScoreInsertionBoundary,
+} from '../domain/chant-document';
+import { insertNeume } from './insert-neume';
 
-/**
- * Accepts only a complete boundary, three unique
- * collision-free note IDs, and a runtime-valid ascending Scandicus.
- */
 export function insertScandicus(
   document: ChantDocument,
   scandicus: ScandicusNeume,
-  insertionIndex: number,
+  boundary: number | ScoreInsertionBoundary,
 ): ChantDocument {
-  const [firstNote, secondNote, thirdNote] = scandicus.notes;
-  const candidateNoteIds = [firstNote?.id, secondNote?.id, thirdNote?.id];
-  const hasUniqueCandidateNoteIds =
-    candidateNoteIds.every((id) => id !== undefined) &&
-    new Set(candidateNoteIds).size === 3;
-  const hasIdCollision = document.neumes.some(
-    (neume) =>
-      neume.id === scandicus.id ||
-      neume.notes.some((note) => candidateNoteIds.includes(note.id)),
-  );
-
-  if (
-    !Number.isInteger(insertionIndex) ||
-    insertionIndex < 0 ||
-    insertionIndex > document.neumes.length ||
-    !hasUniqueCandidateNoteIds ||
-    hasIdCollision ||
-    !isValidNeume(scandicus)
-  ) {
-    return document;
-  }
-
-  return {
-    ...document,
-    neumes: [
-      ...document.neumes.slice(0, insertionIndex),
-      scandicus,
-      ...document.neumes.slice(insertionIndex),
-    ],
-  };
+  return insertNeume(document, scandicus, boundary);
 }

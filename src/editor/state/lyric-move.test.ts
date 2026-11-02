@@ -13,6 +13,7 @@ import type { LyricAction } from './lyric-entry';
 
 function fixture(): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Move',
     clef: { type: 'c', staffLine: 3 },

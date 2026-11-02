@@ -148,3 +148,27 @@ therefore coexist with a dirty draft without saving or discarding it. Subsequent
 history navigation still uses the existing Save/Discard/Cancel safeguard.
 Manual controls are disabled while a text draft/recovery is active; save or
 cancel it first. Pending history and anchor-move modes block engraving edits.
+
+## Division commands and explicit score insertion (Stage 5A)
+
+`insertDivision` accepts a validated division and `ScoreInsertionBoundary`;
+the entity anchor must match the boundary. `updateDivisionKind` preserves ID
+and position; `deleteDivision` removes only the requested entity. Unsupported
+kinds, invalid IDs/anchors, collisions, stale boundaries and unchanged edits
+return the exact input document. These commands share ordinary semantic
+history: each accepted edit is one action and undo/redo restores the exact
+music, lyric and division snapshot together.
+
+All seven neume insertion entrypoints delegate to `insertNeume`, accepting
+an explicit score boundary or a legacy number. Numeric boundaries containing
+divisions reject ambiguity. Explicit insertion reanchors the preceding subset
+of divisions to the new neume, preserving every division's derived order.
+Whole-neume and final-note deletion reanchor punctuation before the next
+surviving neume or end, preserving the pre-delete score order on convergence.
+Other note deletion/normalization and vertical movement preserve division data.
+The existing anchored-syllable deletion policy is unchanged.
+
+See the [domain model](domain-model.md#semantic-divisions-stage-5a) for the
+boundary/order invariants and [Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md)
+for alternatives. No new selection model or graphical division handling is
+implemented in Stage 5A.

@@ -124,6 +124,7 @@ const words = [
 ];
 const fixture = {
   title: 'Kyrie eleison — lyric spacing and wrapping',
+  divisions: [],
   lyricLanguage: 'la',
   clef: { type: 'c', staffLine: 3 },
   syllables: words.map((text, i) => ({

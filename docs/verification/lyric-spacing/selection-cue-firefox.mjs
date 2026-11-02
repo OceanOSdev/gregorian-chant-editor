@@ -60,6 +60,7 @@ try {
   }
   const fixture = {
     title: 'Selected syllable clearance',
+    divisions: [],
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },
     syllables: ['Al', 'lealsdkfjaasdfhasdf', 'lu', 'ia', 'bla'].map(

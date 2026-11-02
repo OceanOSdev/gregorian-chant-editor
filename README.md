@@ -18,7 +18,7 @@ The editor currently supports:
 - vertical movement of an individual note or a complete neume;
 - individual-note deletion with neume normalization, and whole-neume deletion;
 - continuous lyric entry with underscore skipping and independent neume insertion;
-- graphical placement with a post-reflow preview on any rendered system;
+- graphical placement with a caret and local ghost preview on any rendered system;
 - independent music insertion with stable lyric anchors;
 - immutable semantic edits with atomic undo and redo;
 - measured, whole-neume automatic wrapping across multiple systems;
@@ -36,11 +36,13 @@ guarantee: practical browser and memory limits still apply.
   chant typography.
 - Only Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus are modeled.
 - Graphical placement uses fixed pitch contours for those seven kinds.
-- Lyric rendering centers the complete text string; it has no vowel-aware
-  alignment, automatic hyphenation, collision avoidance, word-spacing logic,
-  or continuation marks.
+- Lyrics use measured vowel/manual alignment, collision-aware spacing and
+  derived continuation marks. Ambiguous alignment falls back to whole text.
+- Divisions have pure semantic commands; graphical division editing and rendering
+  remain future Stage 5B work.
 - There are no manual system breaks, persistence, GABC import/export, backend,
-  or browser/component automation tests.
+  or component test environment. Reusable browser verification drivers are
+  documented in the [testing guide](docs/testing.md).
 
 See the [roadmap](docs/roadmap.md) for non-binding possibilities and a fuller
 account of current limits.

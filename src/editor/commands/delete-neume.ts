@@ -1,3 +1,4 @@
+import { deriveScoreOrder } from '../domain/divisions';
 import { deleteLyricSyllable } from './delete-lyric-syllable';
 import { findSyllableAtNeume } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
@@ -7,6 +8,8 @@ export function deleteNeume(
   document: ChantDocument,
   neumeId: string,
 ): ChantDocument {
+  const order = deriveScoreOrder(document);
+  if (!order) return document;
   const locatedNeume = findNeume(document, neumeId);
 
   if (!locatedNeume) {
@@ -19,6 +22,19 @@ export function deleteNeume(
     : document;
   return {
     ...withoutLyric,
+    divisions: order.flatMap((item) =>
+      item.type === 'division'
+        ? [
+            {
+              ...item.entity,
+              beforeNeumeId:
+                item.entity.beforeNeumeId === neumeId
+                  ? (document.neumes[locatedNeume.neumeIndex + 1]?.id ?? null)
+                  : item.entity.beforeNeumeId,
+            },
+          ]
+        : [],
+    ),
     neumes: document.neumes.filter(
       (_, index) => index !== locatedNeume.neumeIndex,
     ),

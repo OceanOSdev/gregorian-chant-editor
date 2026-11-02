@@ -21,7 +21,8 @@ identity, ordering, pitch representation, and neume invariants.
 - `title` is the score title;
 - `clef` is currently a C clef placed on staff line 1, 2, 3, or 4;
 - `syllables` is the semantic lyric order;
-- `neumes` is the semantic notation order.
+- `neumes` is the pitched semantic order;
+- `divisions` is a required collection of non-pitched punctuation.
 
 The document contains no pixel coordinates, connector geometry, system
 assignment, placeholder glyph shape, selection, tool, focus, or history data.
@@ -46,7 +47,7 @@ Text cannot be blank or contain whitespace, ASCII hyphens, or underscores.
 Word structure is metadata, not literal entry delimiters. Continuous entry interprets these delimiters outside the domain. Generated
 hyphens are derived engraving decorations, never semantic text.
 
-Semantic order is the order of `ChantDocument.neumes`. Layout preserves that
+Pitched order is the order of `ChantDocument.neumes`. Current layout preserves that
 order while partitioning it into derived systems. Array indexes are useful
 inside one operation, but stable IDs connect entities across edits, reflow,
 selection, focus, normalization, and history.
@@ -105,9 +106,15 @@ may change after any edit that changes horizontal flow.
 
 ## Semantic insertion boundaries
 
-Insertion indexes are boundaries in the top-level neume array, from zero
-through `document.neumes.length`, inclusive. A boundary never points between
-notes inside a compact neume.
+`ScoreInsertionBoundary` identifies a boundary by `beforeNeumeId` (null means
+end) and `beforeDivisionId` (null means after all divisions there). A non-null
+division ID must belong to that neume boundary. This distinguishes every slot
+among adjacent divisions, including leading/trailing punctuation and an empty
+score. A boundary never points inside a compact neume.
+
+Legacy numeric insertion indexes remain valid only at division-free boundaries;
+occupied boundaries reject ambiguous numeric insertion with the original document.
+Stage 5B will provide graphical and keyboard side selection.
 
 Insertion is independent of lyrics: any valid whole-neume boundary is legal,
 and inserting music never moves existing syllable anchors. Toolbar insertion
@@ -166,3 +173,31 @@ Every accepted text change removes the override, even if the old indexes would
 still fit. Exact unchanged text preserves it; undo restores the original text
 and range together. This prevents silently shifting editorial intent.
 See [ADR 0009](adrs/0009-document-lyric-language.md).
+
+## Semantic divisions (Stage 5A)
+
+`ChantDivision` has a stable nonblank `id`, a `kind` (`minima`, `minor`, `maior`,
+`finalis`), and `beforeNeumeId` referencing a surviving neume or null for end.
+Finalis is legal anywhere. Divisions have no notes, pitch, lyrics or geometry.
+Their IDs must be unique across divisions and existing semantic entities.
+`hasValidDivisions` rejects missing/malformed collections, unsupported kinds,
+extra entity fields, duplicate IDs and dangling anchors. There is no persisted
+schema or save/load migration today; existing fixtures explicitly supply `[]`.
+
+`deriveScoreOrder` returns a tagged stream of neumes and divisions, or null for
+invalid division data. Neume order determines boundary order; division-array
+order determines order only within each boundary. There is no persisted second
+full-score ordering authority. Consumers must not treat the raw division array
+as global score order.
+
+Inserting a neume at an explicit slot reanchors only the divisions preceding
+that slot to the new neume. Thus A D B becomes A X D B before D, or A D X B
+after D. Lyrics and surviving neume IDs remain unchanged. Deleting a neume
+rehomes its divisions to the next neume or end. Rehomed divisions precede those
+already at the destination in their prior derived order; none are discarded.
+Normalization preserving a neume ID preserves its division anchors.
+
+[Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md) records the
+owner-approved semantic model and alternatives. Rendering, accessible division controls, and any effect
+on lyric compaction/hyphenation remain Stage 5B work; current layout ignores
+divisions and the accepted lyric contracts are unchanged.

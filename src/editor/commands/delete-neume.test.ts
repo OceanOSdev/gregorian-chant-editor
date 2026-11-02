@@ -56,6 +56,7 @@ const neumes: Neume[] = [
 
 function createDocument(): ChantDocument {
   return {
+    divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',
     clef: { type: 'c', staffLine: 3 },
