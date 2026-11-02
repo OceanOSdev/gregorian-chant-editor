@@ -120,10 +120,10 @@ Stable identity is covered by
 [ADR 0003](adrs/0003-use-stable-semantic-identities.md), explicit neume types
 by [ADR 0004](adrs/0004-use-explicit-neume-types-and-ordered-tuples.md), and
 wrapping by
-[ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md).
-Stage 4B implements combined music/lyric geometry on its isolated branch under
-[Proposed ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md);
-the owner must accept that proposal before superseding ADR 0005.
+[accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md).
+Stage 4B extends the original whole-neume music-geometry wrapping contract,
+now preserved as [superseded ADR 0005](adrs/0005-derive-wrapping-from-rendered-geometry.md),
+with measured lyric clearances and lyric-aware system breaks.
 
 The lyric anchor relationship is defined in [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md). Music insertion does not require an active syllable.
 
