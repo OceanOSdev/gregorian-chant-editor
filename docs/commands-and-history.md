@@ -169,6 +169,6 @@ Other note deletion/normalization and vertical movement preserve division data.
 The existing anchored-syllable deletion policy is unchanged.
 
 See the [domain model](domain-model.md#semantic-divisions-stage-5a) for the
-boundary/order invariants and [Proposed ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md)
+boundary/order invariants and [Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md)
 for alternatives. No new selection model or graphical division handling is
 implemented in Stage 5A.

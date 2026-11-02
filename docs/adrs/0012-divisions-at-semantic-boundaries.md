@@ -4,8 +4,19 @@ Date: 2026-11-02
 
 ## Status
 
-Proposed. Stage 5A implements this proposal for review; owner acceptance remains
-pending. No accepted ADR is superseded.
+Accepted (2026-11-02), following the owner's approval of the semantic boundary
+model implemented in Stage 5A and reviewed in
+[PR #47](https://github.com/OceanOSdev/gregorian-chant-editor/pull/47).
+No accepted ADR is superseded. Acceptance of this architecture is separate from
+merging the PR.
+
+Acceptance covers the semantic entities, explicit insertion boundaries, derived
+score order, reanchoring rules and semantic history described below. Graphical
+engraving and interaction decisions remain deferred to a separate Stage 5B
+handoff: division glyphs and controls, visible insertion-side affordances,
+selection/focus, spacing, wrapping, and effects on lyric compaction/hyphenation.
+This acceptance does not amend ADRs 0008, 0010 or 0011 or claim browser acceptance
+of graphical divisions.
 
 ## Context
 
@@ -17,7 +28,7 @@ layout and pointer resolvers depend heavily on the separate neume array.
 The four initial kinds follow the terminology of the
 [Gregorio separation bars reference](https://gregorio-project.github.io/gabc/#separation-bars)
 and [tutorial](https://gregorio-project.github.io/tutorial/tutorial-gabc-01.html).
-Virgula, rhythmic meaning and engraving dimensions are outside this proposal.
+Virgula, rhythmic meaning and engraving dimensions are outside this decision.
 
 ## Decision
 

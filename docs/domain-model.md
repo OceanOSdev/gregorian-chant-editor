@@ -197,7 +197,7 @@ rehomes its divisions to the next neume or end. Rehomed divisions precede those
 already at the destination in their prior derived order; none are discarded.
 Normalization preserving a neume ID preserves its division anchors.
 
-[Proposed ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md) records the
-model and alternatives. Rendering, accessible division controls, and any effect
+[Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md) records the
+owner-approved semantic model and alternatives. Rendering, accessible division controls, and any effect
 on lyric compaction/hyphenation remain Stage 5B work; current layout ignores
 divisions and the accepted lyric contracts are unchanged.

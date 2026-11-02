@@ -2,9 +2,17 @@
 
 Branch: `feat/stage-5a-divisions-domain`
 Target: `master`
-Status: **Stage 5A implemented for review; ADR 0012 remains Proposed.**
+Status: **Stage 5A implemented and reviewed; ADR 0012 Accepted by the owner (2026-11-02). PR #47 awaits merge.**
 Stage 5B graphical editing and Stage 5C browser/owner acceptance remain pending.
 This is a Git-backed ChatGPT → Codex handoff. Implement only 5A; do not merge.
+
+The original handoff below required ADR 0012 to remain Proposed until the owner
+made a decision. The owner has now approved the implemented semantic boundary
+model in [PR #47](https://github.com/OceanOSdev/gregorian-chant-editor/pull/47).
+That acceptance does not approve graphical engraving or interaction policies;
+explicit graphical insertion, division spacing/wrapping and lyric hyphenation
+integration require a separate Stage 5B handoff. The original requirements below
+are retained as the historical implementation brief.
 
 ## Problem and intended milestone
 

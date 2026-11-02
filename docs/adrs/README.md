@@ -85,6 +85,7 @@ rather than being rewritten.
 records the owner-approved Stage 4A language preference without superseding the
 existing anchor or wrapping decisions.
 
-[Proposed ADR 0012: Order divisions at semantic neume boundaries](0012-divisions-at-semantic-boundaries.md)
-records Stage 5A's implemented semantic proposal. Division rendering and UI
-remain Stage 5B work; owner acceptance is pending.
+[Accepted ADR 0012: Order divisions at semantic neume boundaries](0012-divisions-at-semantic-boundaries.md)
+records the owner-approved Stage 5A semantic boundary model. Graphical division
+engraving and interaction, including spacing, wrapping and lyric hyphenation
+integration, remain deferred to a separate Stage 5B handoff.
