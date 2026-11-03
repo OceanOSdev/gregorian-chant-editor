@@ -509,3 +509,15 @@ boxes and native pointer sides after horizontal scrolling to extended visual
 staff ink; logical wrapping remains normal. Caret positions and midpoint pointer
 intervals are tested separately so unequal lyric-driven gaps cannot reverse a
 bar's insertion side.
+
+## Stage 5C division acceptance
+
+The [Stage 5C record](verification/divisions/stage-5c.md) maps existing pure and
+browser coverage to the [owner checklist](verification/divisions/owner-acceptance.md),
+records fresh runs and keeps foreground acceptance pending. The division driver
+adds native Tab traversal to both explicit insertion-side buttons from
+the focused kind select, at desktop and 320px; Chromium also checks Enter
+activation. Firefox headless HTML activation remains unverified, as recorded
+in the Stage 5C evidence. Run it sequentially with other
+drivers sharing its tab. Owner foreground results, actual browser zoom, OS
+popups, IME and spoken screen-reader testing remain separate from these checks.

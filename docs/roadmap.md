@@ -83,24 +83,26 @@ layout, with local scrollable overflow only for unbreakable oversized text.
 ADR 0010 is Accepted and supersedes ADR 0005 following owner review.
 Stage 4C composition was merged in PR #45 and its baseline visuals were
 owner-accepted; ADR 0011 is Accepted as a narrow qualification of ADR 0010.
-Stage 4D's verification milestone is complete for PR #46 review, with the
+Stage 4D's verification milestone merged in PR #46, with the
 [verification report](verification/stage-4d/README.md) recording automated results
 and a qualitative owner report of successful non-screen-reader visual, keyboard
 and editing checks. Individual manual scenarios and environment/zoom were not
 itemized. Spoken screen-reader checks remain **Not run**; detailed 320px usability
 signoff is uncaptured, and ordinary score text/targets remain small. Completion
-does not imply comprehensive accessibility verification. Final PR review/merge
-remain pending.
+does not imply comprehensive accessibility verification.
 
 ## Division stages
 
-Stage 5A's semantic divisions and explicit insertion boundaries are Accepted
-under ADR 0012. Stage 5B implements four staff-relative bar forms, persistent
+Stage 5A (PR #47 merged) supplies semantic divisions and explicit insertion
+boundaries under Accepted ADR 0012. Stage 5B (PR #48 merged) implements four staff-relative bar forms, persistent
 placement, explicit before/after neume insertion, stable-ID selection/focus,
 kind replacement/deletion and semantic history in the measured layout.
 Accepted ADR 0013 blocks contextual compaction across divisions without changing
 linguistic boundaries or forcing hyphens. Extremely long punctuation runs may
 split across systems after bounded progress; normal phrase-ending bars stay
-with the preceding neume. Stage 5C remains the detailed cross-browser, foreground,
-spoken-screen-reader and owner graphical acceptance milestone. Stage 5B headless
-checks do not constitute that acceptance.
+with the preceding neume. Stage 5C owner acceptance is pending. The
+[owner checklist](verification/divisions/owner-acceptance.md) and
+[Stage 5C evidence](verification/divisions/stage-5c.md) separate automated checks
+from foreground acceptance. Foreground keyboard, actual browser zoom and IME
+remain unverified; spoken screen-reader testing remains Not run. Stage 5B/5C
+headless checks do not constitute owner acceptance.

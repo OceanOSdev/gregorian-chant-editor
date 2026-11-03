@@ -7,7 +7,7 @@ Status: **implemented, owner-accepted and merged in PR #45**.
 [ADR 0011](../adrs/0011-word-aware-chant-engraving.md) and
 [ADR 0010](../adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
 are both Accepted. Stage 4D verification is complete with disclosed gaps;
-PR #46 review/merge remains pending. See the
+PR #46 is merged. See the
 [Stage 4D report](../verification/stage-4d/README.md) for actual evidence and limits.
 
 This handoff preserves **historical instructions and original review gates**

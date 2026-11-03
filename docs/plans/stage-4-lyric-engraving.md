@@ -1,7 +1,7 @@
 # Plan: Stage 4 lyric-aware engraving (completed verification milestone)
 
 Status: **4A merged in PR #43; 4B merged in PR #44; 4C merged in PR #45;
-Stage 4D verification complete with disclosed gaps; PR #46 review/merge pending**.
+Stage 4D verification complete with disclosed gaps; PR #46 merged**.
 Original 4A branch: `feat/stage-4a-vowel-alignment` (merged).
 Completed 4B branch: `feat/stage-4b-lyric-aware-spacing`
 Target: `master`

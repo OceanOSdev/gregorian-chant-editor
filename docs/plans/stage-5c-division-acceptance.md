@@ -2,7 +2,11 @@
 
 Branch: `feat/stage-5c-division-acceptance`
 Target: `master`
-Status: **Implementation handoff; owner acceptance pending.**
+Status: **Codex verification handoff prepared; owner acceptance pending.**
+See the [owner checklist](../verification/divisions/owner-acceptance.md) and
+[Stage 5C verification](../verification/divisions/stage-5c.md) for actual results
+and limits. The acceptance sequence below remains active; no owner signoff or
+merge is implied.
 
 ## Goal
 
