@@ -73,6 +73,15 @@ there is no DOM measurement, notation font, glyph framework, or semantic format
 change. See [drawing metrics](engraving-metrics.md) for the exact project
 recipes, their reference basis, and large-interval extrapolations.
 
+The public `neume-geometry.ts` entry point dispatches to focused recipes in
+`layout/neumes/`: Punctum, the shared Podatus/Clivis construction,
+Scandicus/Torculus with their fitted compound edges, Climacus, and Porrectus.
+`neumes/shared.ts` owns geometry types, absolute-coordinate construction,
+note padding, painted-bound union and advance calculation. Scandicus reuses
+Punctum and Podatus directly; Climacus reuses Punctum's selection head.
+Recipe modules do not depend on the public dispatcher. These boundaries
+implement ADR 0007 without changing its shared geometry contract.
+
 Punctum, ordinary Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus use the approved
 square-notation constructions. Intended joined components render as traced
 filled contours, without internal antialiased boundaries. A semantically unified
