@@ -100,9 +100,13 @@ kind replacement/deletion and semantic history in the measured layout.
 Accepted ADR 0013 blocks contextual compaction across divisions without changing
 linguistic boundaries or forcing hyphens. Extremely long punctuation runs may
 split across systems after bounded progress; normal phrase-ending bars stay
-with the preceding neume. Stage 5C owner acceptance is pending. The
-[owner checklist](verification/divisions/owner-acceptance.md) and
-[Stage 5C evidence](verification/divisions/stage-5c.md) separate automated checks
-from foreground acceptance. Foreground keyboard, actual browser zoom and IME
-remain unverified; spoken screen-reader testing remains Not run. Stage 5B/5C
-headless checks do not constitute owner acceptance.
+with the preceding neume. Stage 5C’s verification milestone is complete with
+qualitative owner acceptance (2026-11-02): the owner tested division workflows
+in foreground Firefox and reported no issues needing fixes before merge.
+The [Stage 5C record](verification/divisions/stage-5c.md) separates this report
+from headless results. Individual scenarios, browser version, OS and viewport/zoom
+details were not supplied; detailed 320px/actual-zoom usability and the Firefox
+headless HTML activation gap are not separately verified by that report.
+Small responsive notation remains a limitation. Screen-reader and foreground
+IME testing remain **Not run**; completion does not imply comprehensive
+accessibility or publication-quality engraving. PR #49 has not been merged.

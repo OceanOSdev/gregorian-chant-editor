@@ -514,7 +514,8 @@ bar's insertion side.
 
 The [Stage 5C record](verification/divisions/stage-5c.md) maps existing pure and
 browser coverage to the [owner checklist](verification/divisions/owner-acceptance.md),
-records fresh runs and keeps foreground acceptance pending. The division driver
+records headless runs and qualitative foreground Firefox owner acceptance,
+without inferring individual checklist results or environment/zoom details. The division driver
 adds native Tab traversal to both explicit insertion-side buttons from
 the focused kind select, at desktop and 320px; Chromium also checks Enter
 activation. Firefox headless HTML activation remains unverified, as recorded

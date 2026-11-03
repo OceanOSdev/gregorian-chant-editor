@@ -1,7 +1,12 @@
 # Stage 5C owner acceptance checklist
 
-Status: **Pending — owner has not run this checklist.**
-All boxes below start **Not run**. Only the owner records foreground results.
+Status: **Accepted qualitatively by the owner (2026-11-02).**
+The owner reported testing Stage 5C division workflows in foreground Firefox;
+everything tried appeared to work as expected, with no issues needing fixes
+before merge. Individual scenarios, browser version, OS and zoom/viewport
+details were not supplied. Boxes below remain unchecked and are labeled
+**Not individually reported**, rather than inferred Passed or Not run.
+Only the owner records individual foreground results.
 Headless driver results are recorded separately in [Stage 5C verification](stage-5c.md).
 
 ## Run and record
@@ -30,24 +35,24 @@ Build a short fragment with Punctum and a few other neumes. A useful lyric is
 Use underscore or Skip neume to leave extra notes in one syllable's melisma.
 Choose Done before musical placement. Repeat with lyrics added after bars.
 
-- [ ] **Not run:** Choose each of Minima, Minor, Maior and Finalis in Divisions;
+- [ ] **Not individually reported:** Choose each of Minima, Minor, Maior and Finalis in Divisions;
       use Place division between existing neumes and at the end. Hover then
       click: caret and committed position agree, glyphs are recognizable, and
       repeated clicks keep the tool armed. Compare minima/minor proportions.
       Escape and Select return to editing; the remembered neume kind survives.
       Result / observations: ____________________
-- [ ] **Not run:** Select a bar, change its kind, delete it, Undo and Redo.
+- [ ] **Not individually reported:** Select a bar, change its kind, delete it, Undo and Redo.
       Its position is stable on kind change; neighboring notes and lyrics
       survive. Verify words and syllable anchors remain attached to the same
       music. Undo restores content; do not expect it to restore old selection.
       Result / observations: ____________________
-- [ ] **Not run:** Place a neume directly before a bar, then directly after it.
+- [ ] **Not individually reported:** Place a neume directly before a bar, then directly after it.
       Compare the hover caret side with committed order. Repeat between two
       adjacent bars and beside a trailing Finalis. With mouse aside, Tab to a
       bar, Enter/Space to select, then Tab to each explicit Insert before/after
       button and activate it. No hidden default side or keyboard dead end.
       Result / observations: ____________________
-- [ ] **Not run:** Add/edit lyrics before and after bars: between words,
+- [ ] **Not individually reported:** Add/edit lyrics before and after bars: between words,
       within one syllable's melisma, and between two syllables of one word.
       Read the phrase aloud. Bars must not split words, move anchors, or force
       hyphens solely by being present; measured gaps may warrant a hyphen.
@@ -56,24 +61,24 @@ Choose Done before musical placement. Repeat with lyrics added after bars.
 
 ## Wrapping, focus and recovery
 
-- [ ] **Not run:** Add enough neumes for several systems. Place divisions
+- [ ] **Not individually reported:** Add enough neumes for several systems. Place divisions
       near line ends, including a finalis and adjacent bars. Ordinary phrase
       endings should stay with preceding music; inspect collisions, outgoing
       continuation marks and caret sides on later systems. An exceptional long
       run of bars may split for progress; Finalis does not force a line break.
       Result / observations: ____________________
-- [ ] **Not run:** Try a fairly long syllable, then one long enough to require
+- [ ] **Not individually reported:** Try a fairly long syllable, then one long enough to require
       local horizontal scrolling. Reach both ends, inspect all text/bars, and
       insert on both sides of a nearby division after scrolling. Subsequent
       music still wraps normally and controls remain reachable.
       Result / observations: ____________________
-- [ ] **Not run:** Use native Tab and Shift+Tab across score, lyrics, toolbar,
+- [ ] **Not individually reported:** Use native Tab and Shift+Tab across score, lyrics, toolbar,
       division selects and before/after controls, also after wrapping. Focus
       browsing must not change selection. Inspect the separate focus/selection
       cues; exercise Enter/Space and Delete/Backspace on focused bars and lyrics.
       Open the native kind dropdown by keyboard. No keyboard trap.
       Result / observations: ____________________
-- [ ] **Not run:** On selected notes try pitch arrows, I insertion, T then
+- [ ] **Not individually reported:** On selected notes try pitch arrows, I insertion, T then
       palette arrows/Enter, and L to enter/edit lyrics. Native text keys must
       remain text editing. Undo/Redo musical edits. Leave a dirty lyric draft,
       change a bar kind, then request Undo: try Cancel, Save and Discard paths.
@@ -85,13 +90,13 @@ Choose Done before musical placement. Repeat with lyrics added after bars.
 
 ## Size and engraving review
 
-- [ ] **Not run:** Inspect normal desktop width and approximately 320 CSS px.
+- [ ] **Not individually reported:** Inspect normal desktop width and approximately 320 CSS px.
       At actual Firefox zoom 80%, 100%, 125% and 150%, try placement, selection,
       lyrics and controls. Record viewport at each zoom and whether small score
       targets remain usable. CSS zoom automation does not satisfy this check;
       the known small responsive score does not imply a new zoom policy.
       Result / observations: ____________________
-- [ ] **Not run:** Compare all four forms and phrasing positions with a
+- [ ] **Not individually reported:** Compare all four forms and phrasing positions with a
       representative modern Gregorian square-notation score. The existing
       [Gregorio bar reference](https://gregorio-project.github.io/gabc/#separation-bars)
       is a starting point; record the actual score/page used above. Separate
@@ -107,13 +112,15 @@ Choose Done before musical placement. Repeat with lyrics added after bars.
 
 ## Owner decision
 
-Final status: **Pending** (choose Pending / Accepted / Blocked only after review).
+Final status: **Accepted — qualitative owner report (2026-11-02).**
+No individual checklist results or environment details are inferred.
 Acceptance does not imply IME or screen-reader testing.
 
 - Bugs / reproduction steps / PR comments: ____________________
 - Subjective engraving concerns / agreed deferrals: ____________________
 - Unrun items and reason / blockers: ____________________
-- Owner decision / date: ____________________
+- Owner decision / date: Qualitative acceptance reported 2026-11-02; no issues
+  needing fixes before merge.
 
 Report observations in the Stage 5C PR for follow-up on the same branch.
 Merge remains an explicit owner decision.

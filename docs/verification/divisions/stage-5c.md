@@ -1,8 +1,11 @@
-# Stage 5C verification and acceptance handoff
+# Stage 5C verification and owner acceptance
 
-**Stage 5C owner acceptance is pending.** Use the separate
-[foreground owner checklist](owner-acceptance.md). No owner boxes have been
-completed by Codex. The [Stage 5B record](README.md) retains historical evidence.
+**Stage 5C verification milestone complete with qualitative owner acceptance
+(2026-11-02).** The owner reported successful foreground Firefox division
+workflows and no issues requiring fixes before merge. Individual checklist
+results and environment details were not supplied; no boxes have been checked
+on the owner’s behalf. See the [owner checklist](owner-acceptance.md).
+The [Stage 5B record](README.md) retains historical evidence.
 
 ## Scope and environment
 
@@ -26,7 +29,10 @@ Final runs must be sequential within each browser, as documented below.
 
 ## Coverage audit
 
-| Owner workflow                           | Existing automated evidence                                                                   | Remaining owner evidence                                         |
+The final column identifies evidence not itemized in the qualitative owner
+report; it does not negate that acceptance or claim these scenarios failed.
+
+| Owner workflow                           | Existing automated evidence                                                                   | Owner evidence not itemized                                      |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Four forms, persistent placement, Escape | Division driver ghosts/tools; pure glyph geometry                                             | Recognizability, minima/minor proportions, end placement feel    |
 | Kind/delete/history and unchanged lyrics | Division driver ID/order/history; pure semantic structural sharing                            | Readability and word/anchor continuity during ordinary editing   |
@@ -100,15 +106,30 @@ event, not an OS dropdown interaction. Composition/paste guard assertions in
 the lyric driver use synthetic events and do not establish foreground IME.
 Corpus invariant measurements and screenshots do not establish musical taste.
 
-## Owner foreground and Not run
+## Owner foreground acceptance and remaining limits
 
-Foreground Firefox/Chromium manual testing, actual browser/OS zoom, native
-select popup operation, foreground IME and spoken screen-reader output:
-**Not run by Codex**. No new foreground owner result has been supplied.
-Screen-reader-specific testing was previously declined; it can remain Not run
-without blocking an accurately scoped owner decision. Small responsive notation
-remains an existing limitation, with no Stage 5C zoom redesign.
+On 2026-11-02, the owner reported manually testing the Stage 5C division
+workflows in foreground Firefox: everything tried appeared to work as expected,
+and no issues were encountered that needed fixing before merge. At the owner’s
+request, this is recorded as **qualitative owner acceptance** and completion of
+the Stage 5C verification milestone.
 
-The owner should run the checklist, report failures on the same PR and explicitly
-record Pending, Accepted or Blocked. Acceptance and merge remain owner decisions;
-this verification handoff does not declare Stage 5C accepted or merge-ready.
+The report does not identify individual scenarios, Firefox version, operating
+system, viewport, display scaling, zoom levels, reference score or exact tested
+commit. The Codex headless environment above must not be attributed to the
+owner. No individual checklist item is marked Passed. In particular, the report
+does not separately establish native dropdown operation, explicit button Enter
+activation, narrow-screen usability or actual browser/OS zoom coverage. The
+Firefox headless activation limitation remains recorded; qualitative acceptance
+does not turn that skipped automated assertion into a pass.
+
+- Spoken screen-reader testing: **Not run**.
+- Foreground IME testing: **Not run**.
+- Itemized foreground scenarios and environment/zoom details: **Not supplied**.
+- Codex foreground manual testing: **Not run**; browser-driver results remain
+  headless evidence.
+
+Small responsive notation remains an existing limitation; no zoom redesign,
+publication-quality engraving claim or comprehensive accessibility verification
+is implied. No additional pre-merge fix was requested by the owner. PR #49
+remains subject to review and the owner’s merge decision; no merge was performed.

@@ -2,11 +2,16 @@
 
 Branch: `feat/stage-5c-division-acceptance`
 Target: `master`
-Status: **Codex verification handoff prepared; owner acceptance pending.**
+Status: **Verification milestone complete with qualitative owner acceptance (2026-11-02); PR #49 not merged.**
 See the [owner checklist](../verification/divisions/owner-acceptance.md) and
 [Stage 5C verification](../verification/divisions/stage-5c.md) for actual results
-and limits. The acceptance sequence below remains active; no owner signoff or
-merge is implied.
+and limits. The owner reported successful foreground Firefox division workflows
+with no issues needing fixes before merge. Individual scenarios, browser version,
+OS and zoom/viewport details were not supplied; no checklist boxes are inferred
+Passed. Screen-reader and foreground IME testing remain **Not run**. Small
+responsive notation and the documented Firefox headless activation limitation
+remain disclosed. The handoff and acceptance sequence below are historical scope,
+not a claim that every listed scenario passed. Merge remains an owner decision.
 
 ## Goal
 

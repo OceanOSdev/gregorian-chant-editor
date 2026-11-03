@@ -4,7 +4,7 @@ Stage 5B implements the four divisions in the real editor. ADR 0013 is Accepted
 with the owner's musical/linguistic independence clarifications. This record
 is implementation evidence, not Stage 5C owner graphical acceptance.
 
-For current verification and the pending owner handoff, see the separate
+For current verification and qualitative owner acceptance, see the separate
 [Stage 5C record](stage-5c.md) and [owner checklist](owner-acceptance.md).
 The results below remain historical Stage 5B evidence.
 
