@@ -10,6 +10,7 @@ export {
   engravingStaffStep,
   interNeumeInkGap,
   getInkBounds,
+  firstHeadHalfWidth,
 } from './neumes/shared';
 export type {
   LayoutBounds,
@@ -17,19 +18,6 @@ export type {
   NoteGeometry,
   NeumeGeometry,
 } from './neumes/shared';
-
-export function firstHeadHalfWidth(kind: Neume['kind']): number {
-  switch (kind) {
-    case 'punctum':
-    case 'podatus':
-    case 'clivis':
-    case 'scandicus':
-    case 'torculus':
-    case 'climacus':
-    case 'porrectus':
-      return 6;
-  }
-}
 
 /**
  * Approved project contours; see docs/engraving-metrics.md. Intended joins

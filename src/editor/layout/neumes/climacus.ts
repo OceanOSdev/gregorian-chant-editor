@@ -1,6 +1,7 @@
 import type { StaffPosition } from '../../domain/chant-document';
 import {
   geometryContext,
+  firstHeadHalfWidth,
   finishGeometry,
   note,
   engravingStaffStep,
@@ -47,7 +48,7 @@ export function buildClimacus(
   );
   let notes: NoteGeometry[];
   let ink: readonly InkShape[];
-  const lyricAnchorX = x + 6;
+  const lyricAnchorX = x + firstHeadHalfWidth('climacus');
   const second = positions[1];
   const third = positions[2];
   if (second === undefined || third === undefined)

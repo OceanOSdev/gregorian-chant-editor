@@ -1,4 +1,4 @@
-import type { StaffPosition } from '../../domain/chant-document';
+import type { Neume, StaffPosition } from '../../domain/chant-document';
 
 export interface LayoutBounds {
   x: number;
@@ -33,6 +33,19 @@ export interface NeumeGeometry {
 
 export const engravingStaffStep = 12;
 export const interNeumeInkGap = 33;
+
+export function firstHeadHalfWidth(kind: Neume['kind']): number {
+  switch (kind) {
+    case 'punctum':
+    case 'podatus':
+    case 'clivis':
+    case 'scandicus':
+    case 'torculus':
+    case 'climacus':
+    case 'porrectus':
+      return 6;
+  }
+}
 
 export function getInkBounds(ink: readonly InkShape[]): LayoutBounds {
   const x = Math.min(...ink.map((part) => part.bounds.x));
@@ -101,4 +114,17 @@ export function finishGeometry(
     lyricAnchorX,
     advanceX: bounds.width + interNeumeInkGap,
   };
+}
+
+/** Exposed head edges; fitted joining contours stay in their recipes. */
+export function headContours(
+  move: (dx: number, dy: number) => string,
+  y: number,
+) {
+  const crown = (left: number, top: number) =>
+    `M${move(left, top + 2)} C${move(left, top + 0.6)} ${move(left + 3, top)} ${move(left + 6, top)} C${move(left + 9, top)} ${move(left + 12, top + 0.6)} ${move(left + 12, top + 2)}`;
+  const underside = (left: number, pitch: number) =>
+    `V${y + pitch + 5.6} C${move(left + 12, pitch + 5.9)} ${move(left + 11.85, pitch + 6)} ${move(left + 11.6, pitch + 6)} C${move(left + 9.8, pitch + 6)} ${move(left + 8, pitch + 4.8)} ${move(left + 6, pitch + 4.8)} C${move(left + 4, pitch + 4.8)} ${move(left + 2.2, pitch + 6)} ${move(left + 0.4, pitch + 6)} C${move(left + 0.15, pitch + 6)} ${move(left, pitch + 5.9)} ${move(left, pitch + 5.6)}`;
+
+  return { crown, underside };
 }

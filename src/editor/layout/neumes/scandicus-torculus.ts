@@ -1,6 +1,8 @@
 import type { StaffPosition } from '../../domain/chant-document';
 import {
   geometryContext,
+  headContours,
+  firstHeadHalfWidth,
   finishGeometry,
   note,
   engravingStaffStep,
@@ -24,7 +26,7 @@ export function buildScandicusOrTorculus(
   );
   let notes: NoteGeometry[];
   let ink: readonly InkShape[];
-  const lyricAnchorX = x + 6;
+  const lyricAnchorX = x + firstHeadHalfWidth(kind);
   const second = positions[1];
   const third = positions[2];
   if (second === undefined || third === undefined)
@@ -34,12 +36,7 @@ export function buildScandicusOrTorculus(
   const u = (first - second) * engravingStaffStep;
   const v = (first - third) * engravingStaffStep;
   const h = a === 1 ? 12 : 10.5;
-  // Only fitted compound edges use these local fragments. The standalone
-  // Punctum, Podatus and Clivis recipes retain their exact paths.
-  const crown = (left: number, top: number) =>
-    `M${move(left, top + 2)} C${move(left, top + 0.6)} ${move(left + 3, top)} ${move(left + 6, top)} C${move(left + 9, top)} ${move(left + 12, top + 0.6)} ${move(left + 12, top + 2)}`;
-  const underside = (left: number, pitch: number) =>
-    `V${y + pitch + 5.6} C${move(left + 12, pitch + 5.9)} ${move(left + 11.85, pitch + 6)} ${move(left + 11.6, pitch + 6)} C${move(left + 9.8, pitch + 6)} ${move(left + 8, pitch + 4.8)} ${move(left + 6, pitch + 4.8)} C${move(left + 4, pitch + 4.8)} ${move(left + 2.2, pitch + 6)} ${move(left + 0.4, pitch + 6)} C${move(left + 0.15, pitch + 6)} ${move(left, pitch + 5.9)} ${move(left, pitch + 5.6)}`;
+  const { crown, underside } = headContours(move, y);
 
   if (kind === 'scandicus') {
     const firstGeometry = buildPunctum([first], x, bottomStaffY);

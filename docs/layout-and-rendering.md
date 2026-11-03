@@ -77,8 +77,13 @@ The public `neume-geometry.ts` entry point dispatches to focused recipes in
 `layout/neumes/`: Punctum, the shared Podatus/Clivis construction,
 Scandicus/Torculus with their fitted compound edges, Climacus, and Porrectus.
 `neumes/shared.ts` owns geometry types, absolute-coordinate construction,
-note padding, painted-bound union and advance calculation. Scandicus reuses
-Punctum and Podatus directly; Climacus reuses Punctum's selection head.
+note padding, exposed crown/underside contours, first-head half-widths,
+painted-bound union and advance calculation. Scandicus uses the unchanged
+Punctum ink and selection head when its first interval is one staff step;
+only the (1,1) construction also reuses Podatus for its upper pair. For wider
+first intervals, its recipe replaces the initial Punctum head with a fitted
+ascending attachment and traces the joined silhouette. Climacus reuses
+Punctum's selection head.
 Recipe modules do not depend on the public dispatcher. These boundaries
 implement ADR 0007 without changing its shared geometry contract.
 
