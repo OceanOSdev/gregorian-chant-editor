@@ -45,7 +45,7 @@ Future additions such as Virga, Quilisma, mora dots, and B-flat are **change-imp
 - The resulting code has discoverable, cohesive neume-specific recipes and minimal shared helper surface, without duplicating large contour logic or creating dependency cycles.
 - Same inputs yield the same geometry as before: complete painted paths/bounds, note-level shapes/anchors/hit regions, lyric anchors, and horizontal advances. In particular, preserve fractional-scale joins, Porrectus ribbon note ownership, Climacus polygonal hit targets, Scandicus (1,1) separation, and interval extrapolations.
 - Committed layout and graphical previews remain equivalent to their pre-refactor results; no changed wrapping, typography, divisions, selection, or focus behavior.
-- Existing tests continue to pass. Add *focused* regression assertions only where the extraction reveals a gap; prefer existing geometry matrix tests over giant new snapshots.
+- Existing tests continue to pass. Add _focused_ regression assertions only where the extraction reveals a gap; prefer existing geometry matrix tests over giant new snapshots.
 
 ## Verification and delivery
 
@@ -58,7 +58,7 @@ npm test
 npm run build
 ```
 
-Also run relevant geometry/layout suites directly while iterating. Review the PR diff for *unintended changed geometry*, not merely test passing. Where practical, perform manual browser checks of a few representative neumes (especially joined Podatus/Clivis, disconnected Scandicus, Climacus hit targets, Porrectus ribbons), placement preview, selection, and wrapping. Clearly distinguish checks actually executed from checks not run. Hosted CI is not a substitute for actual-browser interaction testing.
+Also run relevant geometry/layout suites directly while iterating. Review the PR diff for _unintended changed geometry_, not merely test passing. Where practical, perform manual browser checks of a few representative neumes (especially joined Podatus/Clivis, disconnected Scandicus, Climacus hit targets, Porrectus ribbons), placement preview, selection, and wrapping. Clearly distinguish checks actually executed from checks not run. Hosted CI is not a substitute for actual-browser interaction testing.
 
 Implement on this branch, commit changes, and open one focused PR targeting `master`. Do not merge. In the PR summary, explain the module boundaries chosen, notable shared primitives, verification results, any behavior differences or deviations (there should ideally be none), and any deferred opportunities.
 
