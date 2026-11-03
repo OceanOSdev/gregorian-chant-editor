@@ -2,8 +2,11 @@
 
 Branch: `feat/stage-5b-division-engraving-ui`
 Target: `master`
-Status: Stage 5B implemented for PR #48 review after owner acceptance of ADR 0013; automated and headless verification recorded in `docs/verification/divisions/README.md`; Stage 5C owner graphical acceptance remains pending.
-Do not merge. Do not silently change Accepted ADRs.
+Status: **Historical — Stage 5B merged in PR #48 (2026-11-02); ADR 0013 Accepted.**
+Automated and headless evidence is recorded in `docs/verification/divisions/README.md`.
+Stage 5C owner acceptance remains pending. Instructions and review gates below
+are the original handoff, not active implementation work. Accepted ADRs own the
+current contracts.
 
 ## Goal
 

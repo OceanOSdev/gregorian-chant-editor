@@ -1,7 +1,7 @@
 # Stage 4D verification and owner acceptance
 
 Status: **Stage 4 verification milestone complete for PR review (2026-11-02)**,
-with the qualified owner report and remaining gaps below. PR #46 is not merged.
+with the qualified owner report and remaining gaps below. PR #46 subsequently merged.
 This is not an assertion that every acceptance scenario passed. Historical
 Stage 4A–4C records retain their original results.
 
@@ -312,7 +312,8 @@ again for this documentation follow-up. No application or fixture source changed
 - Detailed 320px/real-zoom usability signoff: **not captured**; small score text,
   targets and control usability remain an explicit owner review item.
 - Stage 4 plans marked complete as a verification milestone, with these gaps
-  preserved. Final PR review and merge remain pending; no merge was performed.
+  preserved. At the time of that verification, final PR review and merge remained pending;
+  PR #46 subsequently merged.
 
 Retired `docs/plans/lyric-system-redesign.md` at the owner's explicit closeout
 request. Its durable decisions were checked against their permanent owners:

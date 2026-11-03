@@ -3,7 +3,7 @@
 Branch: `test/stage-4d-acceptance`
 Target: `master`
 Baseline: `46b1d597277d428b20231301c3b3306d13bd3a01` (PR #45 merged)
-Status: **verification milestone complete with disclosed gaps (2026-11-02); PR review/merge pending**. See the
+Status: **verification milestone complete with disclosed gaps (2026-11-02); merged in PR #46**. See the
 [Stage 4D verification report](../verification/stage-4d/README.md) for actual
 results and qualitative owner manual report. Individual manual scenarios/environment
 were not itemized; screen-reader checks remain Not run and detailed narrow-screen

@@ -5,7 +5,7 @@ Target: `master`
 Baseline: `fe25b80c78dec513bce5e9b0a647c647a7bb05bb`
 Status: **completed and merged in PR #44**. Stage 4A merged in PR #43.
 Stage 4C merged in PR #45; Stage 4D verification is complete with disclosed
-gaps and PR #46 review/merge pending. See the
+gaps and PR #46 merged. See the
 [Stage 4D report](../verification/stage-4d/README.md) for the qualified owner
 manual result and remaining accessibility/narrow-screen verification limits.
 

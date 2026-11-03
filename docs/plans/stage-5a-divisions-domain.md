@@ -2,9 +2,9 @@
 
 Branch: `feat/stage-5a-divisions-domain`
 Target: `master`
-Status: **Stage 5A implemented and reviewed; ADR 0012 Accepted by the owner (2026-11-02). PR #47 awaits merge.**
-Stage 5B graphical editing and Stage 5C browser/owner acceptance remain pending.
-This is a Git-backed ChatGPT → Codex handoff. Implement only 5A; do not merge.
+Status: **Stage 5A implemented and reviewed; ADR 0012 Accepted by the owner (2026-11-02). PR #47 merged.**
+Stage 5B graphical editing subsequently merged in PR #48; Stage 5C owner acceptance is pending.
+The handoff instructions below are historical; do not restart implementation.
 
 The original handoff below required ADR 0012 to remain Proposed until the owner
 made a decision. The owner has now approved the implemented semantic boundary

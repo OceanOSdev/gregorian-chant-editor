@@ -240,6 +240,7 @@ try {
           type,
           key: name,
           code: name,
+          ...(name === 'Enter' && type === 'keyDown' ? { text: '\r' } : {}),
           windowsVirtualKeyCode:
             { Escape: 27, Enter: 13, Delete: 46, Backspace: 8, Tab: 9 }[name] ??
             name.toUpperCase().charCodeAt(0),
@@ -311,6 +312,28 @@ try {
       await clickText(`Insert Punctum ${side} division`);
       const actual = await order();
       assert.equal(actual.indexOf('D'), side === 'before' ? 2 : 1);
+    }
+    // Stage 5C: native Tab to explicit sides; Chromium also activates with Enter.
+    for (const side of ['before', 'after']) {
+      await mount(fixture());
+      await focus('[data-division-id="D"]');
+      await key('Enter');
+      await focus('select[aria-label="Change division kind"]');
+      await key('Tab');
+      if (side === 'after') await key('Tab');
+      assert.equal(
+        await ev(`document.activeElement.textContent.trim()`),
+        `Insert Punctum ${side} division`,
+      );
+      // Firefox headless changes activeElement but does not activate this HTML
+      // button with BiDi Return/Enter in this environment; retain foreground acceptance.
+      if (firefox) continue;
+      await key('Enter');
+      const actual = await order();
+      assert.equal(actual.length, 4, `Keyboard insertion ${side} division`);
+      assert.equal(actual.indexOf('D'), side === 'before' ? 2 : 1);
+      await clickText('Undo');
+      assert.deepEqual(await order(), ['n0', 'D', 'n1']);
     }
     await mount(fixture());
     await nativeClick('[data-division-id="D"]');
@@ -522,6 +545,11 @@ try {
       await shot(`review-clearance-${width}-${side}`);
     }
   }
+  console.log(
+    firefox
+      ? 'PASS: native Tab reaches both explicit insertion-side buttons. NOT RUN: Firefox headless HTML Enter activation; owner foreground check pending.'
+      : 'PASS: native Tab/Enter inserts on both explicit division sides and Undo restores order at desktop/320px.',
+  );
   console.log(
     'PASS: PR #48 measured glyph/bar clearance on both sides, continuing/distinct words, oversized wrapping and native scrolled insertion sides.',
   );
