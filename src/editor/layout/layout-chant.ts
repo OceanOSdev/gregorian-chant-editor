@@ -1,3 +1,9 @@
+import {
+  createNeumeEntryPitches,
+  type GraphicalNeumeKind,
+  type GraphicalStaffPositions,
+  type NeumeEntryPitches,
+} from '../neume-entry-pitches';
 import { deriveScoreOrder } from '../domain/divisions';
 import type {
   ChantDivision,
@@ -32,6 +38,10 @@ import {
   type NeumeGeometry,
   type NoteGeometry,
 } from './neume-geometry';
+export type {
+  GraphicalNeumeKind,
+  GraphicalStaffPositions,
+} from '../neume-entry-pitches';
 export type { LayoutBounds } from './neume-geometry';
 
 export interface StaffLineLayout {
@@ -119,63 +129,10 @@ export interface ChantLayout {
   systems: readonly ChantSystemLayout[];
 }
 
-export type GraphicalNeumeKind =
-  | 'punctum'
-  | 'podatus'
-  | 'clivis'
-  | 'scandicus'
-  | 'torculus'
-  | 'climacus'
-  | 'porrectus';
-
-export type GraphicalStaffPositions =
-  | readonly [StaffPosition]
-  | readonly [StaffPosition, StaffPosition]
-  | readonly [StaffPosition, StaffPosition, StaffPosition];
-
-export type GraphicalNeumePlacement =
-  | {
-      kind: 'punctum';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'podatus';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'clivis';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'scandicus';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'torculus';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'climacus';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    }
-  | {
-      kind: 'porrectus';
-      firstStaffPosition: StaffPosition;
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      preferredNeumeInsertionIndex: number;
-    };
+export type GraphicalNeumePlacement = NeumeEntryPitches & {
+  firstStaffPosition: StaffPosition;
+  preferredNeumeInsertionIndex: number;
+};
 
 /** Insertion intent on committed systems, not hypothetical engraved placement. */
 export type GraphicalPlacementPreviewLayout = NeumeGeometry & {
@@ -663,86 +620,6 @@ export function layoutGraphicalPlacementPreview(
   };
 }
 
-function createGraphicalNeumePlacement(
-  kind: GraphicalNeumeKind,
-  firstStaffPosition: StaffPosition,
-  preferredNeumeInsertionIndex: number,
-): GraphicalNeumePlacement {
-  switch (kind) {
-    case 'punctum':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [firstStaffPosition],
-        preferredNeumeInsertionIndex,
-      };
-    case 'podatus':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition + 1),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-    case 'clivis':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition - 1),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-    case 'scandicus':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition + 1),
-          staffPosition(firstStaffPosition + 2),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-    case 'torculus':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition + 2),
-          staffPosition(firstStaffPosition + 1),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-    case 'climacus':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition - 1),
-          staffPosition(firstStaffPosition - 2),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-    case 'porrectus':
-      return {
-        kind,
-        firstStaffPosition,
-        staffPositions: [
-          firstStaffPosition,
-          staffPosition(firstStaffPosition - 2),
-          staffPosition(firstStaffPosition - 1),
-        ],
-        preferredNeumeInsertionIndex,
-      };
-  }
-}
-
 /**
  * Resolves a score-absolute point within one rendered system. Exact
  * vertical half-step ties snap upward to the higher StaffPosition. A point at
@@ -790,11 +667,11 @@ export function getSystemNeumePlacement(
     }
   }
 
-  return createGraphicalNeumePlacement(
-    kind,
+  return {
+    ...createNeumeEntryPitches(kind, firstStaffPosition),
     firstStaffPosition,
-    system.startNeumeIndex + neumeInsertionIndex,
-  );
+    preferredNeumeInsertionIndex: system.startNeumeIndex + neumeInsertionIndex,
+  };
 }
 
 function layoutCommittedNeume(

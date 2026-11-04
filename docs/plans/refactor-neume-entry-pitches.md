@@ -13,7 +13,7 @@ The editor independently constructs the same seven default neume pitch contours 
 
 The pitch patterns are musical entry conventions, whereas pointer snapping, toolbar fallback, semantic insertion boundaries, and preview generation are distinct operations. The duplicated pitch recipes make future neume additions more error-prone.
 
-**Goal:** Represent the default graphical/toolbar pitch pattern of each supported kind in one pure, well-typed place and consume it from both paths. This is the next *small, behavior-preserving maintainability PR* after geometry extraction, not a general layout or insertion redesign.
+**Goal:** Represent the default graphical/toolbar pitch pattern of each supported kind in one pure, well-typed place and consume it from both paths. This is the next _small, behavior-preserving maintainability PR_ after geometry extraction, not a general layout or insertion redesign.
 
 ## Read first
 
@@ -33,12 +33,12 @@ The pitch patterns are musical entry conventions, whereas pointer snapping, tool
    - Porrectus: [0, -2, -1]
 2. Prefer a small **pure, exhaustive, kind-aware construction function** (or similarly restrained typed helper) rather than a generalized glyph registry, plugin framework, classes, or a collection of unrelated configuration values. Do not weaken the discriminated unions or fixed-cardinality tuple guarantees from ADR 0004; preserve compile-time exhaustive handling.
 3. Place the shared helper where both layout and interaction can consume it without a runtime import cycle. If moving placement-specific type declarations is necessary, keep existing public imports compatible using re-exports. Choose the smallest coherent module boundary.
-4. Keep the following *distinct existing behavior* exactly as it is:
+4. Keep the following _distinct existing behavior_ exactly as it is:
    - Graphical placement snaps to its hovered staff position, chooses a whole-neume insertion boundary and renders its caret and ID-free ghost on the committed layout.
    - Toolbar insertion derives a reference position from the existing selection, and retains its current fallback pitch policy: 3 for Clivis, Climacus, Porrectus and 2 for the other kinds.
    - Selected divisions require explicit before/after controls; `ScoreInsertionBoundary` and sibling division ordering stay unchanged.
    - Fit checks, system targeting, wrapping, preview/commit geometry parity, stable IDs, focus, selection, undo/redo and continued placement remain unchanged.
-5. Existing neume insertion commands and domain validation stay authoritative. Do not conflate the shared *default entry contour* with semantic validity, engraving geometry or general pitch transposition.
+5. Existing neume insertion commands and domain validation stay authoritative. Do not conflate the shared _default entry contour_ with semantic validity, engraving geometry or general pitch transposition.
 
 ## Scope
 
@@ -59,7 +59,7 @@ The pitch patterns are musical entry conventions, whereas pointer snapping, tool
 
 - One obvious source of truth for default pitch construction; no duplicate kind-specific offset lists remain between the two entry paths.
 - Preserve exact kind-correlated fixed tuples and exhaustive TypeScript checking; no lossy `StaffPosition[]` casts or `as any` workarounds.
-- Graphical and toolbar insertion produce the exact same *staff-position sequence* for the same kind/reference pitch. Preserve their distinct positioning, fallback and score-boundary policies.
+- Graphical and toolbar insertion produce the exact same _staff-position sequence_ for the same kind/reference pitch. Preserve their distinct positioning, fallback and score-boundary policies.
 - Verify all seven kinds at multiple first pitches, including negative/above-staff where already accepted; preserve each toolbar fallback and selection-derived starting pitch.
 - No behavior changes to placement hit testing, snapping, previews, exact-fit/clamped ghosts, multi-system placement, division-adjacent insertion, repeated insertion, or atomic undo/redo.
 - Tests remain at the smallest pure seam; add only focused regression assertions. Check for lost abstraction/duplicated responsibilities and avoid redundant convenience wrappers.

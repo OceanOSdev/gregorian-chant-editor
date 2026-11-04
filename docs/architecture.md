@@ -64,6 +64,14 @@ durable separation decision.
 
 ## Module map
 
+### `src/editor/neume-entry-pitches.ts`
+
+Owns the explicit graphical-kind whitelist and pure default entry contours shared
+by layout and toolbar insertion. Kind-correlated tuples preserve semantic note
+order; snapping, fallback pitches, boundaries, validation and engraving stay with
+their existing owners. Layout re-exports the existing public placement types.
+This extraction preserves the accepted ADR contracts; no new ADR is needed.
+
 ### `src/editor/domain/`
 
 Defines `ChantDocument`, semantic entities, `StaffPosition`, supported neume

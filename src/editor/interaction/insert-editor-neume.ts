@@ -1,3 +1,4 @@
+import { createNeumeEntryPitches } from '../neume-entry-pitches';
 import type { EditorSelection } from '../state/selection';
 import { insertClimacus } from '../commands/insert-climacus';
 import { insertClivis } from '../commands/insert-clivis';
@@ -162,57 +163,11 @@ export function resolveEditorToolbarInsertion(
       document.divisions.find((d) => d.beforeNeumeId === beforeNeumeId)?.id ??
       null,
   };
-  switch (kind) {
-    case 'punctum':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p],
-      };
-    case 'podatus':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p + 1)],
-      };
-    case 'clivis':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p - 1)],
-      };
-    case 'scandicus':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p + 1), staffPosition(p + 2)],
-      };
-    case 'torculus':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p + 2), staffPosition(p + 1)],
-      };
-    case 'climacus':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p - 1), staffPosition(p - 2)],
-      };
-    case 'porrectus':
-      return {
-        kind,
-        boundary: scoreBoundary,
-        insertionIndex,
-        staffPositions: [p, staffPosition(p - 2), staffPosition(p - 1)],
-      };
-  }
+  return {
+    ...createNeumeEntryPitches(kind, p),
+    boundary: scoreBoundary,
+    insertionIndex,
+  };
 }
 
 /** Resolve a division-relative control intent against the current document. */
