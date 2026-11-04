@@ -6,7 +6,7 @@ Base commit: `103b612f39b402dd5d5296753c457be3e7af2f8c` (merged PR #51)
 
 ## Problem and goal
 
-`src/editor/layout/layout-chant.ts` is still responsible both for the authoritative combined music-and-lyric score layout and for *interactive graphical placement* calculations. It currently contains these closely related functions:
+`src/editor/layout/layout-chant.ts` is still responsible both for the authoritative combined music-and-lyric score layout and for _interactive graphical placement_ calculations. It currently contains these closely related functions:
 
 - `canGraphicalNeumeFitNormalSystem`: tests a proposed neume's geometry against normal staff bounds;
 - `layoutGraphicalPlacementPreview`: positions an ID-free pointer-following ghost and semantic-boundary caret on the existing committed systems;
@@ -25,7 +25,7 @@ Inspect `src/editor/layout/layout-chant.ts`, `src/editor/interaction/resolve-gra
 ## Agreed decisions and invariants
 
 1. `layoutChant` remains the single authoritative combined music-and-lyric layout. The `placeNeumeSequence` walker retains exactly its existing responsibility for spacing, system breaks, oversized progress, and division reservations. **Do not extract, duplicate, or split the wrapping algorithm.**
-2. Graphical placement remains *derived*, pure and transient. Pointer snapping, fit decisions, ID-free ghost geometry, and caret geometry must continue to use the committed `ChantLayout` snapshot. No semantic model, React, SVG or browser APIs in the new pure module.
+2. Graphical placement remains _derived_, pure and transient. Pointer snapping, fit decisions, ID-free ghost geometry, and caret geometry must continue to use the committed `ChantLayout` snapshot. No semantic model, React, SVG or browser APIs in the new pure module.
 3. Preserve all exact existing rules, including:
    - input point finite checks, vertical system membership and precise on-staff bounds (inclusive edges);
    - staff-position snapping and half-step tie behavior, including accepted outside-staff positions;
@@ -36,7 +36,7 @@ Inspect `src/editor/layout/layout-chant.ts`, `src/editor/interaction/resolve-gra
    - division-aware insertion slots, real score boundaries, selection and focus, repeated placement and undo/redo.
 4. Preserve existing public imports from `layout-chant.ts` for consumers and tests (functions, exported types and constants). Re-export or use compatible facades as needed. Keep `NeumeEntryPitches` and kind-correlated tuples intact.
 5. Avoid **runtime dependency cycles**. A new placement module can import `ChantLayout` and system types using `import type`, but if `layout-chant.ts` imports/re-exports implementation and the placement module imports runtime constants/helpers from `layout-chant.ts`, that would form an undesirable runtime cycle. Resolve this with a minimal coherent dependency-neutral home for only truly shared metrics/helpers or another comparably small approach, without duplicating values or moving the entire layout engine. Verify the actual runtime import graph; type-only imports are fine.
-6. Distinguish graphical *layout* decisions (ghost positioning, snapping and fit against staff bounds) from `interaction/resolve-graphical-neume-placement.ts` (slot resolution, division-aware semantic boundary and valid insertion intent). Do not casually move the interaction resolver or put score-slot policy in engraving geometry.
+6. Distinguish graphical _layout_ decisions (ghost positioning, snapping and fit against staff bounds) from `interaction/resolve-graphical-neume-placement.ts` (slot resolution, division-aware semantic boundary and valid insertion intent). Do not casually move the interaction resolver or put score-slot policy in engraving geometry.
 
 ## In scope
 
