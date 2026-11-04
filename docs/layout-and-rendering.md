@@ -485,7 +485,7 @@ True word boundaries still receive clearance without continuation marks.
 
 ## Initial clef engraving (Stage 6A)
 
-`buildClefGeometry` derives independent, curved C/do and F/fa SVG contours, exact occupied bounds
+`buildClefGeometry` derives a shared curved C/do body and an F/fa-specific attachment, exact occupied bounds
 and separately padded hit bounds, scaled from `staffStep`. Both C/do and F/fa
 support lines 1–4. The y anchor is the reference line; all automatic systems
 repeat this geometry, including the empty-score system. Geometry contains no

@@ -93,3 +93,19 @@ it('keeps outgoing-reservation leftward fitting clear of clef ink', () => {
   expect(layout.width).toBeGreaterThan(720);
   expect(system.hyphens[0].outgoing).toBe(true);
 });
+
+// Frozen from the owner-approved attachment comparison, independently of the builder.
+it('retains the approved C contour and adopts the reviewed F attachment exactly', () => {
+  const c = buildClefGeometry({ type: 'c', staffLine: 3 }, 2.4, 0);
+  const f = buildClefGeometry({ type: 'f', staffLine: 3 }, 0, 0);
+  expect(c.path).toBe(
+    'M 7.800000000000001 -19.44 C -4.440892098500626e-16 -19.44 -3.36 -15.72 -3.36 -10.2 L -3.36 11.52 C -3.36 17.52 0.23999999999999977 19.44 7.800000000000001 19.44 L 7.800000000000001 4.800000000000001 C 4.4399999999999995 5.76 0.96 5.16 -1.1999999999999997 3 L -1.1999999999999997 -3 C 0.96 -5.28 4.4399999999999995 -5.76 7.800000000000001 -4.800000000000001 Z',
+  );
+  expect(f.path).toBe(
+    'M 7.800000000000001 -19.44 C -4.440892098500626e-16 -19.44 -3.36 -15.72 -3.36 -10.2 L -3.36 11.52 C -3.36 17.52 0.23999999999999977 19.44 7.800000000000001 19.44 L 7.800000000000001 4.800000000000001 C 4.4399999999999995 5.76 0.96 5.16 -1.1999999999999997 3 L -1.1999999999999997 -3 C 0.96 -5.28 4.4399999999999995 -5.76 7.800000000000001 -4.800000000000001 Z M -3.3600000000000003 -5.04 L -7.92 -6 L -12.48 -6.48 Q -15.600000000000001 -6.48 -15.600000000000001 -3.5999999999999996 L -15.600000000000001 4.800000000000001 Q -15.600000000000001 6.12 -13.440000000000001 6.36 L -7.4399999999999995 5.88 C -7.32 10.32 -6.720000000000001 14.64 -6.48 17.88 Q -6.36 19.080000000000002 -5.16 18.48 C -4.5600000000000005 16.56 -3.84 13.68 -3.3600000000000003 11.52 Z',
+  );
+  expect(f.path.startsWith(`${c.path} `)).toBe(true);
+  expect(f.bounds.y).toBe(-19.44);
+  expect(f.bounds.width).toBeCloseTo(23.4);
+  expect(f.bounds.height).toBe(38.88);
+});

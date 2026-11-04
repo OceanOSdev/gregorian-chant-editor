@@ -423,23 +423,20 @@ remove them from tab order.
 
 ## Clefs (Stage 6A)
 
-Original, independently drawn C/do and F/fa contours use the same staff step
-s=12. The revised silhouettes follow printed Solesmes _Liber Usualis_ examples:
-a narrow, substantial do body with rounded shoulders and a small central
-aperture; a separately drawn fa body with its own curved lobes and left block
-at the reference line. Fa is not a do path with an appended virga. Both have
-a reference-line opening with curved inner returns. The do terminals remain
-square. Fa has a defined, flat-based left block, a narrower rising shoulder,
-and a short descending axis beside its separately turning lower heel. Its
-central opening is asymmetric about the reference line, rather than a
-semicircular cutout in a uniform body. No scanned contour or font outline is
-shipped as an application glyph.
+Original C/do geometry uses staff step s=12. F/fa shares that approved body
+exactly, translated 0.20s right to preserve its existing right face. A separate,
+overlapping attachment supplies a shallow left block with softened corners and
+a gently tapered descending shaft. Both contours use the same winding so their
+overlap fills once. The body, heel and reference-line opening are identical to
+do; no scanned contour or font outline is shipped as an application glyph.
+The attachment follows the musical F4 specimen from printed Solesmes
+_Liber Usualis_, with the F3 instructional example as supporting evidence.
 
 | Metric                                          | C/do              | F/fa              |
 | ----------------------------------------------- | ----------------- | ----------------- |
 | Horizontal ink extent, relative to anchor       | −0.48s…0.45s      | −1.30s…0.65s      |
-| Vertical ink extent, relative to reference line | −1.62s…1.62s      | −1.64s…1.68s      |
-| Occupied size at s=12                           | 11.16 × 38.88     | 23.40 × 39.84     |
+| Vertical ink extent, relative to reference line | −1.62s…1.62s      | −1.62s…1.62s      |
+| Occupied size at s=12                           | 11.16 × 38.88     | 23.40 × 38.88     |
 | Padded hit bounds                               | s/2 on every side | s/2 on every side |
 
 All Bézier controls lie inside the declared bounds, with extrema reached by
@@ -456,9 +453,10 @@ Measured lyric bearings can still increase the first anchor. Neume internal
 geometry, inter-neume minima, lyric alignment and word-spacing rules are unchanged.
 The extra musical room can change automatic system assignment.
 
-The [F-only follow-up](verification/clefs/refinement/f-review.md) records the
-current fa silhouette against the existing F3/F4 printed crops. It preserves
-the C contour, both clefs’ bounds and all leading metrics exactly.
+The [shared-body adoption](verification/clefs/shared-body-adoption.md) records
+the approved attachment comparison and production verification. The
+[F-only follow-up](verification/clefs/refinement/f-review.md) remains historical
+evidence for the superseded independent F contour.
 The [earlier refinement review](verification/clefs/refinement/review.md) includes the
 printed examples, measurements and actual-size C3/C4/F3/F4 comparisons. It
 supersedes the earlier flag-like silhouettes, whose original screenshots remain
