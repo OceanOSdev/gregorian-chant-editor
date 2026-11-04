@@ -1,10 +1,11 @@
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 // Explicit review-artifact generator; never part of tests or automatic saves.
-// Baseline is the pre-review PR commit. Both builders use the documented s=12.
+// Baselines are explicit review commits. Both builders use the documented s=12.
 function loadGeometry(source) {
   const compiled = ts.transpileModule(
     source.replace(
@@ -22,10 +23,18 @@ function loadGeometry(source) {
   new Function('exports', compiled)(exports);
   return exports.buildClefGeometry;
 }
+const fOnly = process.argv.includes('--f-only');
+const baseline = fOnly ? '964788d' : '4b23fe2';
+const beforeOrigin = fOnly ? 150 : 230;
+const outputName = fOnly ? 'f-actual-size' : 'actual-size';
 const before = loadGeometry(
-  execFileSync('git', ['show', '4b23fe2:src/editor/layout/clef-geometry.ts'], {
-    encoding: 'utf8',
-  }),
+  execFileSync(
+    'git',
+    ['show', `${baseline}:src/editor/layout/clef-geometry.ts`],
+    {
+      encoding: 'utf8',
+    },
+  ),
 );
 const after = loadGeometry(
   readFileSync(
@@ -34,6 +43,38 @@ const after = loadGeometry(
   ),
 );
 const root = new URL('./', import.meta.url);
+if (fOnly) {
+  assert.equal(
+    readFileSync(
+      new URL(
+        '../../../../src/editor/layout/staff-metrics.ts',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+    execFileSync(
+      'git',
+      ['show', '964788d:src/editor/layout/staff-metrics.ts'],
+      { encoding: 'utf8' },
+    ),
+    'Leading-origin and staff metrics must remain exact',
+  );
+  for (const staffLine of [1, 2, 3, 4]) {
+    const c = { type: 'c', staffLine };
+    assert.deepEqual(
+      after(c, 100, 124 - 24 * (staffLine - 1)),
+      before(c, 100, 124 - 24 * (staffLine - 1)),
+      'C geometry must remain exact',
+    );
+    const f = { type: 'f', staffLine };
+    assert.deepEqual(
+      { ...after(f, 100, 124 - 24 * (staffLine - 1)), path: undefined },
+      { ...before(f, 100, 124 - 24 * (staffLine - 1)), path: undefined },
+      'F bounds and registration must remain exact',
+    );
+  }
+}
+
 function staff(clef, geometry, origin) {
   const y = 104 - 24 * (clef.staffLine - 1);
   const ink = geometry(clef, 100, y);
@@ -85,6 +126,7 @@ const references = {
   },
 };
 const rows = Object.entries(references)
+  .filter(([name]) => !fOnly || name.startsWith('f'))
   .map(([name, ref]) => {
     const clef = { type: name[0], staffLine: Number(name[1]) };
     const scale = 24 / ref.space,
@@ -95,19 +137,19 @@ const rows = Object.entries(references)
       (origin - 6 - g.bounds.x - g.bounds.width).toFixed(1);
     return `<h2>${name.toUpperCase()}</h2><div class="row">
     <section><svg width="360" height="144" viewBox="0 0 360 144"><image href="reference-${name}.png" x="${ref.x}" y="${lineY - ref.line * scale}" width="${ref.width * scale}" height="${ref.height * scale}"/></svg><p>${ref.source}</p></section>
-    <section>${staff(clef, before, 230)}<p>Leading ink gap ${gap(230, original)} px</p></section>
+    <section>${staff(clef, before, beforeOrigin)}<p>Leading ink gap ${gap(beforeOrigin, original)} px</p></section>
     <section>${staff(clef, after, 150)}<p>Leading ink gap ${gap(150, revised)} px</p></section>
   </div>`;
   })
   .join('');
-const html = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Clef engraving revision — actual-size comparison</title>
+const html = `<!doctype html><html lang="en"><meta charset="utf-8"><title>${fOnly ? 'F-clef refinement' : 'Clef engraving revision'} — actual-size comparison</title>
 <style>body{margin:24px;background:#fff;color:#222;font:14px Georgia,serif}h1{font-size:23px}h2{font-size:17px;margin:16px 0 0}.row,.head{display:grid;grid-template-columns:repeat(3,360px);gap:12px}section{border:1px solid #ddd}svg{display:block}p{margin:8px 12px}body>p{margin:12px 0;max-width:1050px}.head{margin-top:22px;font-weight:bold}.head span{padding-left:12px}</style>
-<h1>Printed Solesmes · PR before review · Revised engraving</h1>
+<h1>${fOnly ? 'Printed Solesmes F3/F4 · Previous revision · F-only refinement' : 'Printed Solesmes · PR before review · Revised engraving'}</h1>
 <p>Actual-size view: 1 SVG unit = 1 CSS pixel; four-line staff spacing is 24 px (the editor at a 720 px score width). Keep browser zoom at 100%. The scanned excerpts are uniformly scaled to the same staff spacing and reference line; aspect ratios are preserved. They retain scan skew and printing irregularities.</p>
-<p>The two application columns use identical neutral punctum context, not a transcription of the printed melody. Only the clef contours and leading origin differ. Reference-line registration is unchanged.</p>
-<div class="head"><span>Printed Liber Usualis (source crops)</span><span>Before: 4b23fe2, first note x=230</span><span>Revised: first note x=150</span></div>${rows}
-<p>Reference: <a href="https://archive.org/download/TheLiberUsualis1961/liberusualis.pdf">Liber Usualis scan</a>, PDF pages 17, 128 and 1397. Small excerpts retained for comparative engraving review; no scanned outline is used as an application glyph. See <a href="review.md">review notes</a> for measurements, reproduction and remaining visual acceptance.</p></html>`;
-writeFileSync(fileURLToPath(new URL('actual-size.html', root)), html);
+<p>The two application columns use identical neutral punctum context, not a transcription of the printed melody. ${fOnly ? 'Only the F contour differs. C geometry, F bounds, reference-line registration and leading spacing are checked against 964788d and remain exact.' : 'Only the clef contours and leading origin differ. Reference-line registration is unchanged.'}</p>
+<div class="head"><span>Printed Liber Usualis (source crops)</span><span>Before: ${baseline}, first note x=${beforeOrigin}</span><span>Revised: first note x=150</span></div>${rows}
+<p>Reference: <a href="https://archive.org/download/TheLiberUsualis1961/liberusualis.pdf">Liber Usualis scan</a>, PDF pages ${fOnly ? '17 and 1397' : '17, 128 and 1397'}. Small excerpts retained for comparative engraving review; no scanned outline is used as an application glyph. See <a href="${fOnly ? 'f-review.md' : 'review.md'}">review notes</a> for measurements, reproduction and remaining visual acceptance.</p></html>`;
+writeFileSync(fileURLToPath(new URL(`${outputName}.html`, root)), html);
 console.log(
-  'Wrote actual-size.html; inspect in Chromium at 100% zoom before retaining a screenshot.',
+  `Wrote ${outputName}.html; inspect in Chromium at 100% zoom before retaining a screenshot.${fOnly ? ' C geometry and F registration/bounds match 964788d exactly.' : ''}`,
 );

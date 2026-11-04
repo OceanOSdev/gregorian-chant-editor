@@ -1,5 +1,9 @@
 # Clef refinement after PR #54 visual review
 
+The F contour was subsequently refined in the [F-only follow-up](f-review.md).
+The C contour and horizontal spacing from this record are retained exactly;
+the screenshots below preserve the prior F contour for comparison.
+
 2026-11-03. This follow-up supersedes the initial glyph silhouettes and leading
 spacing in commit `4b23fe2`. Semantics, the relative-pitch transform, history and
 editing interactions are unchanged. ADR 0014 remains Proposed. This refinement

@@ -1,5 +1,7 @@
 # Stage 6A initial clef verification
 
+Latest: [F-only silhouette follow-up and aligned F3/F4 comparisons](refinement/f-review.md).
+
 The engraving was subsequently revised after owner review. See the
 [printed-reference and actual-size refinement comparison](refinement/review.md)
 for the current contours and leading spacing. The original screenshots and

@@ -428,8 +428,11 @@ s=12. The revised silhouettes follow printed Solesmes _Liber Usualis_ examples:
 a narrow, substantial do body with rounded shoulders and a small central
 aperture; a separately drawn fa body with its own curved lobes and left block
 at the reference line. Fa is not a do path with an appended virga. Both have
-fine connecting waists and squared right terminals, with slight asymmetry in
-their inner returns and lower heels. No scanned contour or font outline is
+a reference-line opening with curved inner returns. The do terminals remain
+square. Fa has a defined, flat-based left block, a narrower rising shoulder,
+and a short descending axis beside its separately turning lower heel. Its
+central opening is asymmetric about the reference line, rather than a
+semicircular cutout in a uniform body. No scanned contour or font outline is
 shipped as an application glyph.
 
 | Metric                                          | C/do              | F/fa              |
@@ -453,7 +456,10 @@ Measured lyric bearings can still increase the first anchor. Neume internal
 geometry, inter-neume minima, lyric alignment and word-spacing rules are unchanged.
 The extra musical room can change automatic system assignment.
 
-The [refinement review](verification/clefs/refinement/review.md) includes the
+The [F-only follow-up](verification/clefs/refinement/f-review.md) records the
+current fa silhouette against the existing F3/F4 printed crops. It preserves
+the C contour, both clefs’ bounds and all leading metrics exactly.
+The [earlier refinement review](verification/clefs/refinement/review.md) includes the
 printed examples, measurements and actual-size C3/C4/F3/F4 comparisons. It
 supersedes the earlier flag-like silhouettes, whose original screenshots remain
 historical evidence. Visual fidelity is reviewed separately from bounds tests.
