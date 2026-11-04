@@ -123,6 +123,32 @@ describe('system graphical neume placement', () => {
     });
   });
 
+  it('includes exact staff edges and outside-staff pitches on every system', () => {
+    const layout = layoutChant(
+      documentWith(
+        Array.from({ length: 30 }, (_, index) => punctum(`${index}`)),
+      ),
+    );
+    for (const system of layout.systems) {
+      const bottom = Math.max(...system.staffLines.map((line) => line.y));
+      for (const x of [64, 656]) {
+        for (const position of [-1, 7]) {
+          const point = { x, y: bottom - position * 12 };
+          expect(
+            getSystemNeumePlacement(point, 'punctum', system),
+          ).toMatchObject({ firstStaffPosition: position });
+          expect(
+            getSystemNeumePlacement(
+              { x, y: point.y + (position === -1 ? 0.001 : -0.001) },
+              'punctum',
+              system,
+            ),
+          ).toBeNull();
+        }
+      }
+    }
+  });
+
   it('rejects invalid and out-of-region points', () => {
     const document = documentWith([]);
     const system = layoutChant(document).systems[0];
@@ -133,6 +159,12 @@ describe('system graphical neume placement', () => {
 
     expect(
       getSystemNeumePlacement({ x: Number.NaN, y: 100 }, 'punctum', system),
+    ).toBeNull();
+    expect(
+      getSystemNeumePlacement({ x: 300, y: 100 }, 'punctum', {
+        ...system,
+        staffLines: [],
+      }),
     ).toBeNull();
     expect(resolve(document, 0, 'punctum', 63)).toBeNull();
     expect(resolve(document, 0, 'punctum', 657)).toBeNull();
