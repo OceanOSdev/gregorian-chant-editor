@@ -21,7 +21,7 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 ## Staff, system, and score
 
 A [staff](glossary.md#staff) is one four-line writing area. A
-[system](glossary.md#system) contains a repeated staff, C clef, an ordered
+[system](glossary.md#system) contains a repeated staff, initial C/F clef, an ordered
 partition of neumes, and the lyrics owned by that partition. The
 [score](glossary.md#score) contains one or more vertically arranged systems.
 Even an empty document produces one empty system.
@@ -54,7 +54,7 @@ which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
 system placement always retains its normal bounds, independently of canvas size.
 
-Every system repeats the same four staff-line x extents and a C clef positioned
+Every system repeats the same four staff-line x extents and the global C/F clef positioned
 on the semantic clef line. Their y coordinates advance by the system offset.
 
 Graphical placement previews contain an ID-free local ghost and a caret on
@@ -353,7 +353,7 @@ neumes, notes, and rendered lyric syllables across the complete multi-system
 layout. During placement, the root instead exposes the concise placement
 name/description specified in [editor interactions](editor-interactions.md#focus).
 Its local placement-context cue uses derived neume bounds without altering ink,
-advance, or wrapping. Preview geometry and purely visual connectors, clefs, hit targets, and
+advance, or wrapping. Preview geometry and purely visual connectors, repeated clefs, hit targets, and
 selection outlines are hidden from accessibility APIs where appropriate.
 
 Pure helpers test the accessible strings. Actual browser focus, event
@@ -482,3 +482,22 @@ joining threshold still decides whether a hyphen is needed; punctuation alone
 does not force it. Same-system marks use measured free space after intervening
 bars; outgoing marks reserve room after occupied music, lyrics and divisions.
 True word boundaries still receive clearance without continuation marks.
+
+## Initial clef engraving (Stage 6A)
+
+`buildClefGeometry` derives original filled SVG contours, exact occupied bounds
+and separately padded hit bounds, scaled from `staffStep`. Both C/do and F/fa
+support lines 1–4. The y anchor is the reference line; all automatic systems
+repeat this geometry, including the empty-score system. Geometry contains no
+semantic IDs or DOM/font dependencies. The first copy uses `ClefControl`;
+subsequent copies are aria-hidden, pointer-inert paths. The score summary names
+the global type and line. See [drawing metrics](engraving-metrics.md#clefs-stage-6a)
+for the contours and reference sources.
+
+Clefs occupy the existing leading region at x=100, separated from the normal
+first-neume anchor at x=230. Leftward fitting of a first source unit for an
+outgoing lyric/bar reservation retains the ordinary 33-unit musical clearance
+from clef ink. Normal music minima and lyric composition rules are unchanged.
+Melody-preserving edits change note heights before layout.
+The existing fixed vertical system bounds and absent ledger lines still limit
+extreme pitches; this stage adds no vertical collision or pagination engine.

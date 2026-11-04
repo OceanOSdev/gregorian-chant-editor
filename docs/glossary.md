@@ -49,7 +49,7 @@ One four-line musical writing area inside a rendered system.
 
 ### System
 
-One horizontal staff, C clef, notation partition, and owned lyric row within
+One horizontal staff, global C/F clef, notation partition, and owned lyric row within
 the score. System membership is derived by layout.
 
 ### Score
@@ -58,8 +58,10 @@ The complete derived layout and SVG, containing one or more systems.
 
 ### Clef
 
-The semantic pitch reference. The current model supports a C clef on staff
-line 1, 2, 3, or 4; its rendered letter shape is a placeholder.
+The semantic pitch reference. The current model supports one initial C/do or
+F/fa clef on staff line 1, 2, 3, or 4 (bottom to top). SVG contours repeat it
+on every derived system. Initial clef edits translate note positions to preserve
+relative diatonic melody; mid-score clef events are not yet supported.
 
 ### `StaffPosition`
 

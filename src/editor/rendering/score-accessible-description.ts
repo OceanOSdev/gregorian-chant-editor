@@ -15,6 +15,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
     0,
   );
 
+  const clef = layout.systems[0]?.clef;
   const divisions = layout.systems.flatMap((system) => system.divisions);
   return (
     `A Gregorian chant score with ${countLabel(
@@ -26,6 +27,6 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
+    )}.${clef ? ` Initial ${clef.type.toUpperCase()} (${clef.type === 'c' ? 'do' : 'fa'}) clef on staff line ${clef.staffLine} from bottom, repeated on every system.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
   );
 }

@@ -461,6 +461,9 @@ for (let target = 0; target < mixed.length; target++) {
     `mountChantFixture(${JSON.stringify({ title: 'Mixed targets', divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, neumes: mixed, syllables: [{ id: 'source', text: 'Al', startsAtNeumeId: target === 0 ? 'mix1' : 'mix0', boundaryBefore: 'word' }] })})`,
   );
   await pause();
+  // Match mount(): fixture replacement must not inherit a prior panel's scroll.
+  await ev('window.scrollTo(0, 0)');
+  await pause();
   await lyric('source');
   await button('Move syllable');
   const bounds = await ev(

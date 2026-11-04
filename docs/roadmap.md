@@ -16,7 +16,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 ## Current limitations
 
 - All seven initial neume kinds use the project square-notation conventions;
-  the clef is still a letter C.
+  C/do and F/fa clefs now use original SVG contours.
   See [drawing metrics](engraving-metrics.md) for exact choices and extrapolated
   intervals beyond the reference coverage (Porrectus ribbons through Δ5,
   explicit Climacus spacing cases through Δ4). This is not complete publication-quality
@@ -48,7 +48,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
 ## Possible future work
 
 - Expand the modern square-notation neume vocabulary.
-- Improve notehead, connector, clef, ledger-line, and spacing engraving.
+- Refine notehead, connector, clef, ledger-line, and spacing engraving.
 - Revisit word-continuation hyphen aesthetics and whether authors should be
   able to prefer a hyphen at a particular syllable boundary, e.g. historical
   `audi-ti-óne` versus geometry-derived `auditi-óne`. This is a future
@@ -110,3 +110,18 @@ headless HTML activation gap are not separately verified by that report.
 Small responsive notation remains a limitation. Screen-reader and foreground
 IME testing remain **Not run**; completion does not imply comprehensive
 accessibility or publication-quality engraving. PR #49 has not been merged.
+
+## Clef stages
+
+Stage 6A implements initial C/F clef engraving and melody-preserving type/line
+editing, with selection, keyboard movement and atomic history.
+[Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md) records the
+implemented relative diatonic rule and awaits owner review. Glyph appearance
+also requires owner acceptance before merge. Extreme pitches retain the fixed
+vertical bounds and absent ledger-line limitations.
+
+Stage 6B remains deferred pending a separate proposed ADR and owner acceptance
+of mid-score event ordering, boundary/deletion rules and downstream pitch
+preservation. Stage 6C's graphical insertion, horizontal movement and dragging
+are also deferred. No persisted clef-change collection or new boundary model
+is implemented in Stage 6A.

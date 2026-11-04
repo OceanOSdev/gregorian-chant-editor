@@ -32,57 +32,7 @@ export function moveNeumeVertically(
     return document;
   }
 
-  let movedNeume: Neume;
-
-  switch (locatedNeume.neume.kind) {
-    case 'punctum': {
-      const [note] = locatedNeume.neume.notes;
-
-      movedNeume = {
-        ...locatedNeume.neume,
-        notes: [moveNote(note, delta)],
-      };
-      break;
-    }
-    case 'podatus':
-    case 'clivis': {
-      const [firstNote, secondNote] = locatedNeume.neume.notes;
-
-      movedNeume = {
-        ...locatedNeume.neume,
-        notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
-      };
-      break;
-    }
-    case 'scandicus': {
-      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes;
-
-      movedNeume = {
-        ...locatedNeume.neume,
-        notes: [
-          moveNote(firstNote, delta),
-          moveNote(secondNote, delta),
-          moveNote(thirdNote, delta),
-        ],
-      };
-      break;
-    }
-    case 'climacus':
-    case 'porrectus':
-    case 'torculus': {
-      const [firstNote, secondNote, thirdNote] = locatedNeume.neume.notes;
-
-      movedNeume = {
-        ...locatedNeume.neume,
-        notes: [
-          moveNote(firstNote, delta),
-          moveNote(secondNote, delta),
-          moveNote(thirdNote, delta),
-        ],
-      };
-      break;
-    }
-  }
+  const movedNeume = transposeNeume(locatedNeume.neume, delta);
 
   if (!isValidNeume(movedNeume)) {
     return document;
@@ -94,4 +44,61 @@ export function moveNeumeVertically(
       index === locatedNeume.neumeIndex ? movedNeume : neume,
     ),
   };
+}
+
+/** Translate every note while retaining kind-correlated tuples and identities. */
+export function transposeNeume(neume: Neume, delta: number): Neume {
+  let movedNeume: Neume;
+
+  switch (neume.kind) {
+    case 'punctum': {
+      const [note] = neume.notes;
+
+      movedNeume = {
+        ...neume,
+        notes: [moveNote(note, delta)],
+      };
+      break;
+    }
+    case 'podatus':
+    case 'clivis': {
+      const [firstNote, secondNote] = neume.notes;
+
+      movedNeume = {
+        ...neume,
+        notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
+      };
+      break;
+    }
+    case 'scandicus': {
+      const [firstNote, secondNote, thirdNote] = neume.notes;
+
+      movedNeume = {
+        ...neume,
+        notes: [
+          moveNote(firstNote, delta),
+          moveNote(secondNote, delta),
+          moveNote(thirdNote, delta),
+        ],
+      };
+      break;
+    }
+    case 'climacus':
+    case 'porrectus':
+    case 'torculus': {
+      const [firstNote, secondNote, thirdNote] = neume.notes;
+
+      movedNeume = {
+        ...neume,
+        notes: [
+          moveNote(firstNote, delta),
+          moveNote(secondNote, delta),
+          moveNote(thirdNote, delta),
+        ],
+      };
+      break;
+    }
+  }
+
+  return movedNeume;
 }

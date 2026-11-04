@@ -129,7 +129,6 @@ kbd {
   vector-effect: non-scaling-stroke;
 }
 
-.score__clef,
 .score__lyric {
   fill: currentColor;
   font-family: Georgia, 'Times New Roman', serif;
@@ -402,4 +401,25 @@ kbd {
   stroke: #a855f7;
   stroke-width: 2;
   stroke-dasharray: 3 2;
+}
+
+.score__clef-ink {
+  fill: currentColor;
+}
+
+.score__clef-control {
+  cursor: pointer;
+  outline: none;
+}
+
+.score__clef-control--selected .score__clef-target {
+  fill: #dcecff;
+  stroke: #235f9b;
+  stroke-width: 1.5;
+}
+
+.score__clef-control:focus .score__clef-target {
+  stroke: #7b3fb0;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
 }

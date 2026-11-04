@@ -1,3 +1,4 @@
+import { isValidClef } from '../commands/update-clef';
 import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
@@ -497,6 +498,51 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its palette button.
       </p>
+      <fieldset disabled={Boolean(session.pendingHistory || session.lyricMove)}>
+        <legend>Initial clef</legend>
+        <label>
+          Clef type{' '}
+          <select
+            aria-label="Initial clef type"
+            value={history.present.clef.type}
+            onChange={(event) => {
+              const clef = {
+                ...history.present.clef,
+                type: event.target.value,
+              };
+              if (isValidClef(clef)) dispatch({ type: 'change-clef', clef });
+            }}
+          >
+            <option value="c">C (do)</option>
+            <option value="f">F (fa)</option>
+          </select>
+        </label>{' '}
+        <label>
+          Staff line (bottom to top){' '}
+          <select
+            aria-label="Initial clef staff line"
+            value={history.present.clef.staffLine}
+            onChange={(event) => {
+              const clef = {
+                ...history.present.clef,
+                staffLine: Number(event.target.value),
+              };
+              if (isValidClef(clef)) dispatch({ type: 'change-clef', clef });
+            }}
+          >
+            {[1, 2, 3, 4].map((line) => (
+              <option key={line} value={line}>
+                {line}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p>
+          Clef changes preserve the melody by moving all notes. In Select mode,
+          focus the first clef and use ↑/↓ to change its line. Later systems
+          repeat this clef.
+        </p>
+      </fieldset>
       <fieldset
         className="division-controls"
         disabled={Boolean(session.lyricMove) || Boolean(session.pendingHistory)}
@@ -657,7 +703,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           <kbd>Esc</kbd> Select. In the palette, arrows browse and Enter/Space
           activates. In Select, Enter/Space selects a focused note, ↑/↓ changes
           pitch, and Shift+Enter/Space selects its neume. I/T apply only in
-          notation controls.
+          notation controls. On the initial clef, Enter/Space selects and ↑/↓
+          moves one staff line while preserving melody.
         </p>
       </details>
       <div className="score-workspace">
@@ -668,6 +715,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
         >
           <ScoreSvg
+            onSelectClef={() =>
+              dispatch({ type: 'select', selection: { kind: 'clef' } })
+            }
+            onChangeClef={(clef) => dispatch({ type: 'change-clef', clef })}
             layout={layout}
             divisionPreview={divisionPreview}
             onSelectDivision={(divisionId) => {

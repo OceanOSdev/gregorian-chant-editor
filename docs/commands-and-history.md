@@ -172,3 +172,19 @@ See the [domain model](domain-model.md#semantic-divisions-stage-5a) for the
 boundary/order invariants and [Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md)
 for alternatives. No new selection model or graphical division handling is
 implemented in Stage 5A.
+
+## Initial clef transaction (Stage 6A)
+
+`updateClef` validates both clefs and every neume/pitch before constructing a
+candidate. It changes the clef and translates all notes in one history entry,
+preserving relative diatonic melody using the mapping in
+[Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md).
+Unchanged/invalid clefs, malformed neumes and unsafe integer pitch results return
+the exact original document. Lyrics and divisions retain their references;
+notes and neumes retain their IDs and contours. Undo/redo restores exact snapshots.
+
+The session's `change-clef` action preserves selection, tools, remembered neume
+kind, focus requests and lyric drafts. It clears stale hover geometry and
+announces the new type/line and melody preservation. Pending history resolution
+and lyric reassignment block the action. Later history navigation still requires
+resolution of a dirty lyric draft. Clef edits never implicitly save that draft.

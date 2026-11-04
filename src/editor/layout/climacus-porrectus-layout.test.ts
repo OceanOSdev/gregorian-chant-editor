@@ -235,7 +235,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
           .map((n) => n.id),
       );
       expect(getScoreAccessibleDescription(before)).toBe(
-        'A Gregorian chant score with 4 four-line systems, 20 neumes, 60 notes, and 2 rendered lyric syllables.',
+        'A Gregorian chant score with 4 four-line systems, 20 neumes, 60 notes, and 2 rendered lyric syllables. Initial C (do) clef on staff line 3 from bottom, repeated on every system.',
       );
     });
   });

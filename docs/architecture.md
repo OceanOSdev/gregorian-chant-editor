@@ -42,16 +42,16 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 
 ## Responsibility boundaries
 
-| Layer                  | Owns                                                                                                          | Does not own                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Semantic domain        | Title, C clef, lyric syllables, ordered neumes, semantic divisions, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state   |
-| Pure commands          | Validation and immutable semantic transitions                                                                 | UI state, layout, browser events           |
-| Document history       | Past, present, and future semantic documents                                                                  | Selection, tools, focus, hover, drafts     |
-| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus                                 | Canonical notation or engraving geometry   |
-| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent                       | DOM event handling or semantic ID creation |
-| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions                            | Authoritative musical meaning              |
-| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces                        | Canonical score data                       |
-| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                                      | Persisted or undoable notation             |
+| Layer                  | Owns                                                                                                                    | Does not own                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Semantic domain        | Title, initial C/F clef, lyric syllables, ordered neumes, semantic divisions, nested notes, stable IDs, `StaffPosition` | Pixels, systems, rendering, editor state   |
+| Pure commands          | Validation and immutable semantic transitions                                                                           | UI state, layout, browser events           |
+| Document history       | Past, present, and future semantic documents                                                                            | Selection, tools, focus, hover, drafts     |
+| Transient editor state | Selection, tool, hover point, lyric mode/draft, history prompt, pending focus                                           | Canonical notation or engraving geometry   |
+| Interaction resolvers  | Pure conversion from semantic/layout context and input points to valid insertion intent                                 | DOM event handling or semantic ID creation |
+| Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions                                      | Authoritative musical meaning              |
+| SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces                                  | Canonical score data                       |
+| Browser state          | Actual DOM focus, pointer coordinates, event propagation                                                                | Persisted or undoable notation             |
 
 The semantic document deliberately excludes pixels, SVG geometry, systems,
 automatic wrapping assignments, React or DOM objects, selection, active tools,
@@ -170,3 +170,14 @@ remain outside semantic history. Stage 5A commands own insertion, deletion and
 kind replacement. [Accepted ADR 0013](adrs/0013-divisions-interrupt-word-compaction.md)
 adds the owner-approved exception to contextual compaction across divisions.
 Musical punctuation never changes semantic lyric relationships.
+
+## Initial clef (Stage 6A)
+
+The document owns one required clef value. `update-clef.ts` performs one
+melody-preserving semantic transaction; [Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md)
+records the implemented mapping for owner review. `clef-geometry.ts` supplies
+font-independent paths and occupied/padded bounds to layout and rendering.
+Only the first derived copy is an interactive singleton target. Transient clef
+selection/focus uses a `clef` tag without inventing a semantic ID. Mid-score
+events and their ordering are deferred; ADR 0012's division boundaries and
+ADR 0013's compaction rules are unchanged.

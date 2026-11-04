@@ -2,8 +2,9 @@ import { findSyllableForNeume } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
 
-/** Transient selection stores stable semantic IDs, never layout objects. */
+/** Transient semantic targets: stable entity IDs or the singleton clef tag. */
 export type EditorSelection =
+  | { kind: 'clef' }
   | { kind: 'division'; divisionId: string }
   | { kind: 'none' }
   | { kind: 'note'; noteId: string }
@@ -22,12 +23,12 @@ export function selectNeume(neumeId: string): EditorSelection {
   return { kind: 'neume', neumeId };
 }
 
-/** Clears selection only when its stable semantic target no longer exists. */
+/** Clears missing entity targets; the required singleton clef always survives. */
 export function reconcileSelection(
   document: ChantDocument,
   selection: EditorSelection,
 ): EditorSelection {
-  if (selection.kind === 'none') {
+  if (selection.kind === 'none' || selection.kind === 'clef') {
     return selection;
   }
 

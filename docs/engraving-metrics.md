@@ -420,3 +420,21 @@ pressed states, commands and pending-focus IDs remain owned by current code.
 Controls remain three semantic notes in musical order, including Porrectus's
 two ribbon pitches. Placement mode continues to disable committed targets and
 remove them from tab order.
+
+## Clefs (Stage 6A)
+
+Original font-independent contours use the same staff step s=12. The do clef
+has two opposed square jaws around the reference line: x=−0.5s…0.65s,
+y=−1.2s…1.2s. Each outer lip tapers toward its inner return; the left spine is
+0.22s thick. The fa clef adds a left virga (x=−1.55s…−0.85s), with an upper
+square head and thin descending stem ending at y=2s. Its right-hand jaws bracket
+the fa reference line. These are independently constructed simplified contours,
+not copied font assets. All extrema are included in occupied bounds; hit bounds
+add s/2 on each side. The reference line moves by 2s between legal staff lines.
+
+The forms were checked against the Editio Vaticana do/fa examples in
+[LilyPond's Gregorian clef reference](https://lilypond.org/doc/v2.25/Documentation/notation/typesetting-gregorian-chant#gregorian-clefs)
+and bottom-to-top C/F line conventions in
+[Gregorio's clef reference](https://gregorio-project.github.io/gabc/#the-clef).
+Proportions remain subject to owner visual review against printed chant before
+merge; numeric bounds tests do not establish publication-quality typography.

@@ -23,7 +23,7 @@ The editor currently supports:
 - immutable semantic edits with atomic undo and redo;
 - measured, whole-neume automatic wrapping across multiple systems;
 - stable semantic identity when notation reflows;
-- repeated four-line staffs and C clefs in a responsive SVG with dynamic height;
+- repeated four-line staffs and C/F clefs in a responsive SVG with dynamic height;
 - accessible note controls and score summaries.
 
 There is no explicit global semantic creation cap. That is not a performance
@@ -32,8 +32,8 @@ guarantee: practical browser and memory limits still apply.
 ## Current limitations
 
 - The seven initial neumes use the approved project square-notation engraving.
-  The C clef remains a placeholder; engraving is not complete publication-quality
-  chant typography.
+  Initial C/do and F/fa clefs have editable type/line and preserve melody.
+  Engraving is not complete publication-quality chant typography.
 - Only Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus are modeled.
 - Graphical placement uses fixed pitch contours for those seven kinds.
 - Lyrics use measured vowel/manual alignment, collision-aware spacing and
