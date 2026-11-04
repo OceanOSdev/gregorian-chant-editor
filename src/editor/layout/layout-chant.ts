@@ -141,42 +141,9 @@ export type GraphicalPlacementPreviewLayout = NeumeGeometry & {
   caret: { systemIndex: number; x: number; top: number; bottom: number };
 };
 
-export type GraphicalPlacementPreviewInput =
-  | {
-      kind: 'punctum';
-      staffPositions: readonly [StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'podatus';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'clivis';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'scandicus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'torculus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'climacus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      insertionIndex: number;
-    }
-  | {
-      kind: 'porrectus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-      insertionIndex: number;
-    };
+export type GraphicalPlacementPreviewInput = NeumeEntryPitches & {
+  insertionIndex: number;
+};
 
 export const scoreWidth = 720;
 export const systemWidth = scoreWidth;

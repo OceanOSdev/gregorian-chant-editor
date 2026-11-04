@@ -1,6 +1,6 @@
 import { resolveScoreSlot } from './resolve-score-slot';
 import type { ScoreInsertionBoundary } from '../domain/chant-document';
-import type { StaffPosition } from '../domain/chant-document';
+import type { NeumeEntryPitches } from '../neume-entry-pitches';
 import {
   canGraphicalNeumeFitNormalSystem,
   getSystemNeumePlacement,
@@ -16,35 +16,8 @@ interface ResolvedPlacementBase {
   preview: GraphicalPlacementPreviewLayout;
 }
 
-export type ResolvedGraphicalNeumePlacement =
-  | (ResolvedPlacementBase & {
-      kind: 'punctum';
-      staffPositions: readonly [StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'podatus';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'clivis';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'scandicus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'torculus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'climacus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    })
-  | (ResolvedPlacementBase & {
-      kind: 'porrectus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    });
+export type ResolvedGraphicalNeumePlacement = NeumeEntryPitches &
+  ResolvedPlacementBase;
 
 /**
  * Couples system hit testing, a global whole-neume boundary,

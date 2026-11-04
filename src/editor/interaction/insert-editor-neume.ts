@@ -136,6 +136,16 @@ export function insertEditorNeume(
   }
 }
 
+const toolbarFallbackPitches = {
+  punctum: 2,
+  podatus: 2,
+  clivis: 3,
+  scandicus: 2,
+  torculus: 2,
+  climacus: 3,
+  porrectus: 3,
+} satisfies Record<GraphicalNeumeKind, number>;
+
 /** Resolve toolbar pitches and contours from a musical selection. */
 export function resolveEditorToolbarInsertion(
   document: ChantDocument,
@@ -143,15 +153,12 @@ export function resolveEditorToolbarInsertion(
   kind: GraphicalNeumeKind,
   explicitBoundary?: ScoreInsertionBoundary,
 ): Insertion | null {
-  const fallback =
-    kind === 'clivis' || kind === 'climacus' || kind === 'porrectus' ? 3 : 2;
   const boundary = resolveToolbarNeumeInsertion(
     document,
     selection,
-    staffPosition(fallback),
+    staffPosition(toolbarFallbackPitches[kind]),
   );
   if (!boundary) return null;
-  const p = boundary.referenceStaffPosition;
   const insertionIndex = boundary.insertionIndex;
   const beforeNeumeId = document.neumes[insertionIndex]?.id ?? null;
   // Contextual I inserts immediately after its neume, before punctuation there.
@@ -164,7 +171,7 @@ export function resolveEditorToolbarInsertion(
       null,
   };
   return {
-    ...createNeumeEntryPitches(kind, p),
+    ...createNeumeEntryPitches(kind, boundary.referenceStaffPosition),
     boundary: scoreBoundary,
     insertionIndex,
   };

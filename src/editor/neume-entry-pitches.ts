@@ -9,11 +9,6 @@ export type GraphicalNeumeKind =
   | 'climacus'
   | 'porrectus';
 
-export type GraphicalStaffPositions =
-  | readonly [StaffPosition]
-  | readonly [StaffPosition, StaffPosition]
-  | readonly [StaffPosition, StaffPosition, StaffPosition];
-
 export type NeumeEntryPitches =
   | {
       kind: 'punctum';
@@ -43,6 +38,8 @@ export type NeumeEntryPitches =
       kind: 'porrectus';
       staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
     };
+
+export type GraphicalStaffPositions = NeumeEntryPitches['staffPositions'];
 
 /** Default entry contours, independent of validity, engraving and insertion policy. */
 export function createNeumeEntryPitches(
