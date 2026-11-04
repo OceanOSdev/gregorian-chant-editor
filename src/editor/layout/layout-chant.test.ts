@@ -663,12 +663,12 @@ describe('layoutChant', () => {
   it('wraps a long document without a semantic capacity limit', () => {
     const atCapacity = layoutChant(
       createDocument(
-        Array.from({ length: 10 }, (_, index) => punctum(`note-${index}`, 3)),
+        Array.from({ length: 12 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     );
     const overflow = layoutChant(
       createDocument(
-        Array.from({ length: 11 }, (_, index) => punctum(`note-${index}`, 3)),
+        Array.from({ length: 13 }, (_, index) => punctum(`note-${index}`, 3)),
       ),
     );
     const staffEndX = atCapacity.systems[0]?.staffLines[0]?.x2;
@@ -767,12 +767,12 @@ describe('layoutChant', () => {
     expect(layout.width).toBe(720);
     expect(layout.height).toBe(220);
     expect(firstNotes.map(({ x, y }) => ({ x, y }))).toEqual([
-      { x: 224, y: 94 },
-      { x: 224, y: 70 },
+      { x: 144, y: 94 },
+      { x: 144, y: 70 },
     ]);
-    expect(following.x).toBe(269);
+    expect(following.x).toBe(189);
     expect(layout.systems.flatMap((system) => system.lyrics)[0]).toMatchObject({
-      x: 230,
+      x: 150,
       y: 180,
       fontSize: 20,
     });

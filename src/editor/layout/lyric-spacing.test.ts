@@ -90,7 +90,7 @@ describe('combined music and lyric placement', () => {
       music.map((s) => s.startNeumeIndex),
     );
     layout.systems.forEach((s, i) => {
-      let left = 230 - firstHeadHalfWidth(music[i].neumes[0].kind);
+      let left = 150 - firstHeadHalfWidth(music[i].neumes[0].kind);
       s.neumes.forEach((n, j) => {
         const semantic = music[i].neumes[j];
         const geometry = buildNeumeGeometry(
@@ -160,7 +160,7 @@ describe('combined music and lyric placement', () => {
     const exact: MeasureLyricText = (text) =>
       text === 'a'
         ? { width: 10, boundaries: [0, 10] }
-        : { width: 416, boundaries: [0, 416] };
+        : { width: 496, boundaries: [0, 496] };
     const l = layoutChant(d, exact);
     expect(l.systems[0].lyrics.at(-1)?.right).toBe(staffEndX);
     expect(l.systems[0].neumes).toHaveLength(2);
@@ -198,7 +198,7 @@ describe('combined music and lyric placement', () => {
       expect(l.systems[1].neumes.length).toBeLessThan(24);
       expect(l.x).toBeLessThanOrEqual(Number(lyric.left) - 12);
       expect(l.x + l.width).toBeGreaterThanOrEqual(Number(lyric.right) + 12);
-      expect(l.systems[0].neumes[0].lyricAnchorX).toBe(230);
+      expect(l.systems[0].neumes[0].lyricAnchorX).toBe(150);
       expect(l.systems.every((s) => s.neumes.length > 0)).toBe(true);
     },
   );
@@ -263,7 +263,7 @@ describe('combined music and lyric placement', () => {
     }));
     const advances: MeasureLyricText = (text) => {
       const count = lyricGraphemes(text).length;
-      const width = text.length > 5 ? 415 : count * 10;
+      const width = text.length > 5 ? 495 : count * 10;
       return {
         width,
         boundaries: Array.from(

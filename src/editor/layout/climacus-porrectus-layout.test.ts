@@ -92,7 +92,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
       const system = layoutChant(document).systems[0];
       const neume = system.neumes[0];
       expect(neume.notes.map((n) => n.anchorX)).toEqual(
-        kind === 'climacus' ? [230, 248, 258.5] : [230, 264, 264],
+        kind === 'climacus' ? [150, 168, 178.5] : [150, 184, 184],
       );
       expect(neume.ink).toHaveLength(kind === 'climacus' ? 3 : 1);
       expect(neume.ink.every((part) => part.kind === 'path')).toBe(true);
@@ -235,7 +235,7 @@ for (const kind of ['climacus', 'porrectus'] as const) {
           .map((n) => n.id),
       );
       expect(getScoreAccessibleDescription(before)).toBe(
-        'A Gregorian chant score with 4 four-line systems, 20 neumes, 60 notes, and 2 rendered lyric syllables. Initial C (do) clef on staff line 3 from bottom, repeated on every system.',
+        `A Gregorian chant score with ${kind === 'climacus' ? 3 : 4} four-line systems, 20 neumes, 60 notes, and 2 rendered lyric syllables. Initial C (do) clef on staff line 3 from bottom, repeated on every system.`,
       );
     });
   });

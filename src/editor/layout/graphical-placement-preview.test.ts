@@ -50,7 +50,7 @@ describe('caret and local ghost insertion intent', () => {
   it.each(contours)(
     'shows the actual %s shape and snapped contour without IDs',
     (kind, positions) => {
-      const document = documentWith(10);
+      const document = documentWith(12);
       const original = structuredClone(document);
       const layout = layoutChant(document);
       const intent = resolve(document, 655, 100, kind);
@@ -97,7 +97,7 @@ describe('caret and local ghost insertion intent', () => {
   it.each(contours)(
     'keeps %s pitch feedback accurate on low, line, space and high positions',
     (kind, positions) => {
-      const document = documentWith(10);
+      const document = documentWith(12);
       for (const first of [-1, 0, 3, 7]) {
         const intent = resolve(document, 400, 124 - first * 12, kind);
         expect(
@@ -113,16 +113,16 @@ describe('caret and local ghost insertion intent', () => {
     const document = documentWith(2);
     expect(resolve(document, 64).preview.caret).toEqual({
       systemIndex: 0,
-      x: 207.5,
+      x: 127.5,
       top: 40,
       bottom: 136,
     });
-    expect(resolve(document, 240).preview.caret.x).toBe(252.5);
-    expect(resolve(document, 656).preview.caret.x).toBe(297.5);
-    expect(resolve(documentWith(), 300).preview.caret.x).toBe(230);
+    expect(resolve(document, 160).preview.caret.x).toBe(172.5);
+    expect(resolve(document, 656).preview.caret.x).toBe(217.5);
+    expect(resolve(documentWith(), 300).preview.caret.x).toBe(150);
   });
   it('moves the ghost inside a boundary without moving its caret or committed score', () => {
-    const document = documentWith(10);
+    const document = documentWith(12);
     const layout = layoutChant(document);
     const a = resolve(document, 399, 100, 'torculus');
     const b = resolve(document, 400, 100, 'torculus');
@@ -136,13 +136,13 @@ describe('caret and local ghost insertion intent', () => {
     const document = documentWith(20);
     const end = resolve(document, 655);
     const start = resolve(document, 64, 344);
-    expect(end.insertionIndex).toBe(10);
-    expect(start.insertionIndex).toBe(10);
+    expect(end.insertionIndex).toBe(12);
+    expect(start.insertionIndex).toBe(12);
     expect(end.preview.caret.systemIndex).toBe(0);
     expect(start.preview.caret.systemIndex).toBe(1);
   });
   it('does not open a gap for crowded ghosts or move existing notation', () => {
-    const document = documentWith(10);
+    const document = documentWith(12);
     const layout = layoutChant(document);
     for (const x of [64, 229, 231, 274, 276, 409, 411, 650, 655]) {
       const intent = resolve(document, x, 100, 'porrectus');
@@ -152,12 +152,12 @@ describe('caret and local ghost insertion intent', () => {
     }
   });
   it('moves existing notes and their lyrics only on commit', () => {
-    const document = documentWith(10);
+    const document = documentWith(12);
     document.syllables = [
       {
         id: 's2',
         text: 'ri',
-        startsAtNeumeId: document.neumes[9].id,
+        startsAtNeumeId: document.neumes[11].id,
         boundaryBefore: 'word',
       },
     ];

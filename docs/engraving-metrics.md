@@ -237,7 +237,7 @@ Complete bounds are x=0…z+12, y=u−6…max(6,v+6). Width is 36, 34.5 or 33;
 advance is 69, 67.5 or 66. The lower outer note determines the bottom bound.
 Changing either interval can change width and wrapping, while whole-neume
 transposition cannot change width. First-head half-width is 6 for both newly
-engraved kinds, preserving the system's first musical anchor at x=230.
+engraved kinds, preserving the system's first musical anchor at x=150.
 
 ## Reference basis for the three-note constructions
 
@@ -423,18 +423,40 @@ remove them from tab order.
 
 ## Clefs (Stage 6A)
 
-Original font-independent contours use the same staff step s=12. The do clef
-has two opposed square jaws around the reference line: x=−0.5s…0.65s,
-y=−1.2s…1.2s. Each outer lip tapers toward its inner return; the left spine is
-0.22s thick. The fa clef adds a left virga (x=−1.55s…−0.85s), with an upper
-square head and thin descending stem ending at y=2s. Its right-hand jaws bracket
-the fa reference line. These are independently constructed simplified contours,
-not copied font assets. All extrema are included in occupied bounds; hit bounds
-add s/2 on each side. The reference line moves by 2s between legal staff lines.
+Original, independently drawn C/do and F/fa contours use the same staff step
+s=12. The revised silhouettes follow printed Solesmes _Liber Usualis_ examples:
+a narrow, substantial do body with rounded shoulders and a small central
+aperture; a separately drawn fa body with its own curved lobes and left block
+at the reference line. Fa is not a do path with an appended virga. Both have
+fine connecting waists and squared right terminals, with slight asymmetry in
+their inner returns and lower heels. No scanned contour or font outline is
+shipped as an application glyph.
 
-The forms were checked against the Editio Vaticana do/fa examples in
-[LilyPond's Gregorian clef reference](https://lilypond.org/doc/v2.25/Documentation/notation/typesetting-gregorian-chant#gregorian-clefs)
-and bottom-to-top C/F line conventions in
-[Gregorio's clef reference](https://gregorio-project.github.io/gabc/#the-clef).
-Proportions remain subject to owner visual review against printed chant before
-merge; numeric bounds tests do not establish publication-quality typography.
+| Metric                                          | C/do              | F/fa              |
+| ----------------------------------------------- | ----------------- | ----------------- |
+| Horizontal ink extent, relative to anchor       | −0.48s…0.45s      | −1.30s…0.65s      |
+| Vertical ink extent, relative to reference line | −1.62s…1.62s      | −1.64s…1.68s      |
+| Occupied size at s=12                           | 11.16 × 38.88     | 23.40 × 39.84     |
+| Padded hit bounds                               | s/2 on every side | s/2 on every side |
+
+All Bézier controls lie inside the declared bounds, with extrema reached by
+path endpoints; browser `getBBox()` independently checks the actual curve ink.
+The small aperture straddles the reference staff line; translating between legal
+lines changes y by 2s without changing contour or weight.
+
+The clef anchor remains x=100. The first nominal note anchor is now x=150,
+with its six-unit bearing: the ordinary leading ink gap is 38.6 units for do
+and 36.2 for fa, down from 116.2. This puts it near the existing 33-unit gap
+between independent neumes. The walker reserves 33 units from the larger of
+the two clef right extents when considering leftward outgoing-reservation fits.
+Measured lyric bearings can still increase the first anchor. Neume internal
+geometry, inter-neume minima, lyric alignment and word-spacing rules are unchanged.
+The extra musical room can change automatic system assignment.
+
+The [refinement review](verification/clefs/refinement/review.md) includes the
+printed examples, measurements and actual-size C3/C4/F3/F4 comparisons. It
+supersedes the earlier flag-like silhouettes, whose original screenshots remain
+historical evidence. Visual fidelity is reviewed separately from bounds tests.
+The [Gregorio clef convention](https://gregorio-project.github.io/gabc/#the-clef)
+still supplies bottom-to-top line numbering; final owner visual acceptance
+remains separate from numeric verification.

@@ -9,9 +9,10 @@ export interface ClefGeometry extends Clef {
   hitBounds: { x: number; y: number; width: number; height: number };
 }
 
-/** Original square-clef contours: opposed do jaws; fa adds a left virga.
- * Coordinates are staff-step multiples, with y=0 on the reference line.
- * Filled contours avoid font fallback and stroke-dependent occupied bounds.
+/** Independently drawn do/fa contours after printed Solesmes examples.
+ * Coordinates are staff-step multiples; the small aperture straddles y=0.
+ * Curved shoulders, substantial lobes and a fine waist replace flag-like jaws.
+ * All Bézier controls lie inside the bounds, whose extrema are path endpoints.
  */
 export function buildClefGeometry(
   clef: Clef,
@@ -19,31 +20,48 @@ export function buildClefGeometry(
   y: number,
 ): ClefGeometry {
   const s = staffStep;
-  const point = (a: number, b: number) => `${x + a * s} ${y + b * s}`;
-  const jaw = (sign: number) =>
-    `M ${point(-0.5, 0)} L ${point(-0.5, sign * 1.05)} ` +
-    `L ${point(0.65, sign * 1.2)} L ${point(0.65, sign * 0.55)} ` +
-    `L ${point(-0.28, sign * 0.65)} L ${point(-0.28, 0)} Z`;
-  const virga =
-    clef.type === 'f'
-      ? ` M ${point(-1.55, -1.2)} L ${point(-0.85, -1.05)} ` +
-        `L ${point(-0.85, 2)} L ${point(-0.98, 2)} ` +
-        `L ${point(-0.98, -0.45)} L ${point(-1.55, -0.55)} Z`
-      : '';
-  const left = clef.type === 'f' ? -1.55 : -0.5;
-  const bottom = clef.type === 'f' ? 2 : 1.2;
+  const p = (a: number, b: number) => `${x + a * s} ${y + b * s}`;
+  // Do: narrow body, rounded upper shoulder, slightly fuller lower heel.
+  const doPath =
+    `M ${p(0.45, -1.62)} ` +
+    `C ${p(-0.2, -1.62)} ${p(-0.48, -1.31)} ${p(-0.48, -0.85)} ` +
+    `L ${p(-0.48, 0.96)} ` +
+    `C ${p(-0.48, 1.46)} ${p(-0.18, 1.62)} ${p(0.45, 1.62)} ` +
+    `L ${p(0.45, 0.4)} ` +
+    `C ${p(0.17, 0.48)} ${p(-0.12, 0.43)} ${p(-0.3, 0.25)} ` +
+    `L ${p(-0.3, -0.25)} ` +
+    `C ${p(-0.12, -0.44)} ${p(0.17, -0.48)} ${p(0.45, -0.4)} Z`;
+  // Fa: its own swollen right body and left reference-line block. No appended
+  // virga, shared do contour, or long descending stem.
+  const faPath =
+    `M ${p(0.65, -1.64)} ` +
+    `C ${p(-0.05, -1.64)} ${p(-0.39, -1.38)} ${p(-0.39, -0.86)} ` +
+    `L ${p(-0.39, -0.39)} ` +
+    `C ${p(-0.68, -0.63)} ${p(-1.0, -0.63)} ${p(-1.3, -0.47)} ` +
+    `L ${p(-1.3, 0.56)} ` +
+    `C ${p(-0.98, 0.42)} ${p(-0.65, 0.45)} ${p(-0.39, 0.64)} ` +
+    `L ${p(-0.39, 1.02)} ` +
+    `C ${p(-0.39, 1.51)} ${p(-0.02, 1.68)} ${p(0.65, 1.68)} ` +
+    `L ${p(0.65, 0.51)} ` +
+    `C ${p(0.3, 0.61)} ${p(0.07, 0.48)} ${p(-0.06, 0.24)} ` +
+    `L ${p(-0.06, -0.21)} ` +
+    `C ${p(0.1, -0.46)} ${p(0.32, -0.47)} ${p(0.65, -0.38)} Z`;
+  const left = clef.type === 'c' ? -0.48 : -1.3;
+  const right = clef.type === 'c' ? 0.45 : 0.65;
+  const top = clef.type === 'c' ? -1.62 : -1.64;
+  const bottom = clef.type === 'c' ? 1.62 : 1.68;
   const bounds = {
     x: x + left * s,
-    y: y - 1.2 * s,
-    width: (0.65 - left) * s,
-    height: (bottom + 1.2) * s,
+    y: y + top * s,
+    width: (right - left) * s,
+    height: (bottom - top) * s,
   };
   const padding = s / 2;
   return {
     ...clef,
     x,
     y,
-    path: jaw(-1) + ' ' + jaw(1) + virga,
+    path: clef.type === 'c' ? doPath : faPath,
     bounds,
     hitBounds: {
       x: bounds.x - padding,

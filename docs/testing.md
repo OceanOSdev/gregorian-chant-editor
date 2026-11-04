@@ -548,3 +548,10 @@ Continue running division, continuous-lyric, anchor-move, vowel-alignment,
 measured-spacing and word-composition browser regressions sequentially on the
 shared browser tab. Foreground focus/zoom/IME, spoken output and final clef
 contour acceptance remain owner checks; Stage 6B/6C are not implemented.
+
+The [clef refinement review](verification/clefs/refinement/review.md) separately
+checks visual fidelity against printed C/F examples at matched staff spacing.
+Bounds tests alone do not assess typography. Refinement fixtures now fill the
+larger musical region left by the reduced leading gap: exact-fit growth still
+crosses the actual x=656 edge, and the shared et-lux split-span fixture keeps
+its two same-syllable notes on opposite systems with a synthetic wider prefix.

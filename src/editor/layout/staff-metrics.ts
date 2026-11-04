@@ -3,7 +3,7 @@ import { engravingStaffStep } from './neume-geometry';
 
 export const staffStartX = 64;
 export const staffEndX = 656;
-export const firstNeumeCenterX = 230;
+export const firstNeumeCenterX = 150;
 export const firstSystemBottomStaffY = 124;
 export const staffStep = engravingStaffStep;
 

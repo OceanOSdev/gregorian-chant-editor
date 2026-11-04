@@ -113,7 +113,7 @@ whole-neume outlines. They exclude interaction padding and selection styling.
 Musical lyric anchors are explicit and never recomputed from the union of all
 ink. `advanceX` is the distance from one glyph's left ink edge to the following
 left ink edge: complete painted width plus the existing 33-unit edge gap.
-Each system's first nominal pitch anchor starts at x = 230; measured left
+Each system's first nominal pitch anchor starts at x = 150; measured left
 bearings can increase it. All seven kinds use a six-unit first bearing with
 the same minimum ink-gap rule.
 
@@ -485,7 +485,7 @@ True word boundaries still receive clearance without continuation marks.
 
 ## Initial clef engraving (Stage 6A)
 
-`buildClefGeometry` derives original filled SVG contours, exact occupied bounds
+`buildClefGeometry` derives independent, curved C/do and F/fa SVG contours, exact occupied bounds
 and separately padded hit bounds, scaled from `staffStep`. Both C/do and F/fa
 support lines 1–4. The y anchor is the reference line; all automatic systems
 repeat this geometry, including the empty-score system. Geometry contains no
@@ -495,9 +495,11 @@ the global type and line. See [drawing metrics](engraving-metrics.md#clefs-stage
 for the contours and reference sources.
 
 Clefs occupy the existing leading region at x=100, separated from the normal
-first-neume anchor at x=230. Leftward fitting of a first source unit for an
+first-neume anchor at x=150. Leftward fitting of a first source unit for an
 outgoing lyric/bar reservation retains the ordinary 33-unit musical clearance
-from clef ink. Normal music minima and lyric composition rules are unchanged.
+from the larger clef right extent. The ordinary leading ink gap is 38.6 units
+for C and 36.2 for F. Reclaiming the previous oversized gap changes available
+system capacity; normal inter-neume minima and lyric composition rules are unchanged.
 Melody-preserving edits change note heights before layout.
 The existing fixed vertical system bounds and absent ledger lines still limit
 extreme pitches; this stage adds no vertical collision or pagination engine.

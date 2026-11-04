@@ -1,5 +1,10 @@
 # Stage 6A initial clef verification
 
+The engraving was subsequently revised after owner review. See the
+[printed-reference and actual-size refinement comparison](refinement/review.md)
+for the current contours and leading spacing. The original screenshots and
+results below are retained as historical pre-review evidence.
+
 Date: 2026-11-03. Implementation evidence for the Stage 6A PR; owner graphical
 acceptance and Proposed ADR 0014 review remain pending. No Stage 6B/6C feature
 is claimed. Current contracts belong to the [domain](../../domain-model.md),

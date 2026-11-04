@@ -149,14 +149,15 @@ export const svgBottomPadding = 0;
 export const firstSystemTopY = svgTopPadding;
 export const firstSystemBottomY = firstSystemTopY + systemHeight;
 export const clefX = 100;
-// Both supported clefs share the same right edge. Reserve musical clearance
-// even when an outgoing lyric/bar reservation uses available leftward room.
-const clefBounds = buildClefGeometry(
-  { type: 'c', staffLine: 3 },
-  clefX,
-  0,
-).bounds;
-const minimumNeumeLeft = clefBounds.x + clefBounds.width + interNeumeInkGap;
+// Reserve clearance from the wider of the independently drawn clefs when an
+// outgoing lyric/bar reservation uses the remaining leftward musical room.
+const clefRight = Math.max(
+  ...(['c', 'f'] as const).map((type) => {
+    const bounds = buildClefGeometry({ type, staffLine: 3 }, clefX, 0).bounds;
+    return bounds.x + bounds.width;
+  }),
+);
+const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
 export const firstSystemLyricBaselineY = 180;
 

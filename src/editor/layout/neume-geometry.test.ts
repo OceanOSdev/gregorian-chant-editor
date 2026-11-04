@@ -369,18 +369,18 @@ describe('approved engraving geometry', () => {
     }
   });
 
-  it('retains ten Podatus per system and the existing following-neume gap', () => {
-    const neumes = Array.from({ length: 11 }, (_, i) =>
+  it('fits twelve Podatus per system and preserves the following-neume gap', () => {
+    const neumes = Array.from({ length: 13 }, (_, i) =>
       twoNote('podatus', (i % 5) + 1, `pes-${i}`),
     );
     const layout = layoutChant(documentWith(neumes));
-    expect(layout.systems.map((s) => s.neumes.length)).toEqual([10, 1]);
+    expect(layout.systems.map((s) => s.neumes.length)).toEqual([12, 1]);
     const first = layout.systems[0].neumes;
     for (let i = 1; i < first.length; i++)
       expect(
         first[i].bounds.x - first[i - 1].bounds.x - first[i - 1].bounds.width,
       ).toBe(33);
-    expect(first[9].bounds.x + first[9].bounds.width).toBe(641);
+    expect(first[11].bounds.x + first[11].bounds.width).toBe(651);
   });
 
   it('keeps musical anchors fixed when asymmetric ink bounds expand', () => {
@@ -451,10 +451,28 @@ describe('approved engraving geometry', () => {
       ],
     };
     // These widths place the final wide Clivis exactly at x=656.
-    const prefix = [
-      ...Array.from({ length: 6 }, (_, i) =>
+    const prefix: Neume[] = [
+      ...Array.from({ length: 5 }, (_, i) =>
         twoNote('clivis', 1, `adjacent-${i}`),
       ),
+      {
+        id: 'prefix-porrectus',
+        kind: 'porrectus',
+        notes: [
+          { id: 'pp0', staffPosition: staffPosition(2) },
+          { id: 'pp1', staffPosition: staffPosition(1) },
+          { id: 'pp2', staffPosition: staffPosition(2) },
+        ],
+      },
+      {
+        id: 'prefix-torculus',
+        kind: 'torculus',
+        notes: [
+          { id: 'pt0', staffPosition: staffPosition(2) },
+          { id: 'pt1', staffPosition: staffPosition(4) },
+          { id: 'pt2', staffPosition: staffPosition(2) },
+        ],
+      },
       compound,
     ];
     const original = documentWith([...prefix, twoNote('clivis', 2, 'tail')]);

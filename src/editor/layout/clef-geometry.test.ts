@@ -8,7 +8,7 @@ for (const type of ['c', 'f'] as const)
   for (const staffLine of [1, 2, 3, 4] as const) {
     describe(`${type}${staffLine} engraving`, () => {
       const clef = { type, staffLine };
-      it('anchors and measures all painted vertices including the fa virga', () => {
+      it('encloses Bézier controls with extrema reached by the contour', () => {
         const geometry = buildClefGeometry(
           clef,
           100,
@@ -48,6 +48,12 @@ for (const type of ['c', 'f'] as const)
           const line = system.staffLines[staffLine - 1];
           expect(system.clef.y).toBe(line.y);
           expect(system.clef.type).toBe(type);
+          const leadingGap =
+            system.neumes[0].bounds.x -
+            system.clef.bounds.x -
+            system.clef.bounds.width;
+          expect(leadingGap).toBeGreaterThanOrEqual(33);
+          expect(leadingGap).toBeLessThan(4 * staffStep);
           expect(system.neumes[0].bounds.x).toBeGreaterThan(
             system.clef.hitBounds.x + system.clef.hitBounds.width,
           );
