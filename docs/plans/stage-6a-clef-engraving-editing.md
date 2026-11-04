@@ -9,7 +9,8 @@ Status: **Active implementation handoff; Stage 6A only.** Stages 6B and 6C are f
 The editor currently stores a single `ChantDocument.clef` with `type: 'c'` and a line number, repeats that same clef on all automatically derived systems, and paints a placeholder text letter "C". Authors cannot edit its type or staff line in the editor. The owner wants conventional modern square-notation **C (do)** and **F (fa)** clefs, editable vertical placement, later insertable mid-score clef changes, and a score that resembles actual printed chant rather than text placeholders.
 
 Agreed Stage 6 direction:
-- **6A (this PR):** proper C/F glyph engraving; select and edit the *initial document clef* (type and line) with pitch-preserving transformations, undo/redo, and keyboard/controls access.
+
+- **6A (this PR):** proper C/F glyph engraving; select and edit the _initial document clef_ (type and line) with pitch-preserving transformations, undo/redo, and keyboard/controls access.
 - **6B (future PR after focused semantic/ADR review):** stable-ID clef changes inserted at explicit musical boundaries, integrated with divisions, note interpretation, derived system-initial clefs and wrapping.
 - **6C (future PR):** complete graphical clef-change insertion, horizontal repositioning, visual caret/ghost, drag-to-line interactions and cross-browser acceptance.
 
@@ -22,6 +23,7 @@ Follow `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`, `docs/domain-
 Inspect the current `src/editor/domain/chant-document.ts`, `src/editor/layout/layout-chant.ts`, `src/editor/rendering/ScoreSvg.tsx`, `src/editor/components/ChantEditor.tsx`, `src/editor/state/{selection,editor-session}.ts`, and focused command/history and SVG tests. The current clef is a value object, not a stable-ID item; `StaffPosition` measures line-or-space steps above the bottom staff line. Automatic systems currently all use the same global clef.
 
 Accepted constraints:
+
 - ADRs 0002/0003: canonical semantic data and stable identities distinct from derived geometry/interaction state.
 - ADR 0007: shared, pure engraving geometry patterns.
 - ADR 0008: lyrics anchor only to neumes.
@@ -29,6 +31,7 @@ Accepted constraints:
 - ADR 0012: ordered divisions at explicit semantic neume boundaries, not a unified persisted score-item stream. **Do not revise that model in 6A.**
 
 Reference modern square notation, rather than modern five-line treble/bass clefs or arbitrary text glyphs:
+
 - Gregorio GABC, clef syntax and staff-line numbering: https://gregorio-project.github.io/gabc/#the-clef
 - LilyPond, Editio Vaticana Gregorian clefs: https://lilypond.org/doc/v2.25/Documentation/notation/typesetting-gregorian-chant
 - Real modern chant examples and the project's existing `docs/engraving-metrics.md` and verification images. Use references to judge contours and scale, not as an instruction to copy potentially restricted glyph assets.
@@ -41,26 +44,27 @@ Reference modern square notation, rather than modern five-line treble/bass clefs
 - Use a pure geometry builder or equivalent measure/render contract; do not depend on fragile Unicode font availability, browser-specific font fallback or hard-coded DOM coordinates.
 - Clef geometry is anchored to its reference staff line and should appear correct on all four lines. Geometry and padding must be scaled to existing staff-step and stroke metrics. Provide correct occupied bounds and sufficient visual separation from the first neume on each system; keep the SVG layout/rendering/interaction picture consistent.
 - Support `type: 'c' | 'f'` and staff lines **1, 2, 3, 4**, numbered bottom-to-top, for both symbols. Avoid needlessly forbidding a legal line simply because it is uncommon in a particular edition.
-- Each automatic system repeats the effective global clef in 6A. Repetition is *derived engraving*, not an additional persisted clef event. The initial clef is always present, including empty scores. An unchanged C3 sample remains readable and musically identical.
+- Each automatic system repeats the effective global clef in 6A. Repetition is _derived engraving_, not an additional persisted clef event. The initial clef is always present, including empty scores. An unchanged C3 sample remains readable and musically identical.
 
 ### Editing the document's initial clef
 
 - Provide a discoverable way to select the initial clef in the score, plus accessible, explicitly labeled **C/F** and **staff line 1–4** controls. Prefer simple controls consistent with the current editor rather than a new floating panel framework.
 - Vertical movement must be possible without deleting/recreating the clef: while focused/selected in Select mode, Arrow Up/Down should move the reference line one legal line, or an equivalent clearly discoverable keyboard route if existing keys conflict. Include visible selection and focus feedback, but do not introduce a separate semantic ID for this singleton value object.
-- Repeated automatic clefs on later systems should not be misrepresented as separate, independently movable clefs. Decide a predictable focus policy (e.g., first-system initial clef is the interactive instance; later copies are decorative, with an always-available editing control). Ensure score summary and accessibility explain the current *type and line* instead of speaking only of C clefs.
+- Repeated automatic clefs on later systems should not be misrepresented as separate, independently movable clefs. Decide a predictable focus policy (e.g., first-system initial clef is the interactive instance; later copies are decorative, with an always-available editing control). Ensure score summary and accessibility explain the current _type and line_ instead of speaking only of C clefs.
 - Keep active neume/division placement tools, remembered neume kind, lyric draft lifecycle, keyboard shortcuts, pointer event ownership, and ordinary notation selection working. Escape exits/clears appropriately. Do not require pointer drag for 6A; that is deferred to 6C.
 
 ### Melody preservation on an initial-clef change
 
-**Owner-approved UX default:** Changing a clef's type or staff line should *preserve the melody*, rather than keep noteheads stationary while changing what pitches they mean. Editing the initial clef in 6A therefore repositions all existing note staff positions by a diatonic displacement. A pitch-changing/reinterpret-notation command is **not** part of this stage.
+**Owner-approved UX default:** Changing a clef's type or staff line should _preserve the melody_, rather than keep noteheads stationary while changing what pitches they mean. Editing the initial clef in 6A therefore repositions all existing note staff positions by a diatonic displacement. A pitch-changing/reinterpret-notation command is **not** part of this stage.
 
 Pure transform definition for 6A (consistent relative diatonic interpretation):
+
 - The clef's referenced staff position is `2 * (staffLine - 1)`.
 - A C clef indicates diatonic degree C = 0; an F clef indicates degree F = 3 (C, D, E, F), in one consistent relative register convention.
 - Relative note degree under a clef: `baseDegree(clef.type) + note.staffPosition - referenceStaffPosition(clef.staffLine)`.
 - On changing the global clef, calculate each note's new `StaffPosition` by preserving that degree: `newPosition = oldPosition + (oldBase - oldReference) - (newBase - newReference)`.
 
-Thus C3 -> C4 moves each written note up two staff steps; C3 -> F3 moves each written note down three steps. No chromatic/key-signature, playback, absolute-octave or note-name schema is being introduced; this represents staff-relative **diatonic** identity. Move *all notes of each neume* by the same offset, retaining its kind, internal intervals, nested note IDs, neume IDs, syllable anchors, division IDs/order and lyrics. The command and history update the clef and notes **atomically**.
+Thus C3 -> C4 moves each written note up two staff steps; C3 -> F3 moves each written note down three steps. No chromatic/key-signature, playback, absolute-octave or note-name schema is being introduced; this represents staff-relative **diatonic** identity. Move _all notes of each neume_ by the same offset, retaining its kind, internal intervals, nested note IDs, neume IDs, syllable anchors, division IDs/order and lyrics. The command and history update the clef and notes **atomically**.
 
 Positions outside the staff remain legal per the present domain model; do not silently clamp, delete, change note kind, or misreport preservation. Existing extreme-pitch/ledger-line rendering limitations are acknowledged; if the change produces illegible clipping requiring a large new layout/ledger-line system, stop and bring options rather than expanding 6A into that separate feature.
 
@@ -69,6 +73,7 @@ A no-op (same type/line) and invalid values must return the exact original docum
 ## Stage 6A exclusions and future architecture boundary
 
 Do **not** in this PR:
+
 - Add a persisted `clefChanges` array, stable-ID mid-score clefs, a second ordered event stream, or generalized pitch-storage model.
 - Allow clef insertion between neumes or relative to divisions, horizontal repositioning, or deletion of the required starting clef.
 - Add graphical insertion/drag previews, additional neumes, accidentals, custos, ledger lines, manual system breaks, PDF/GABC import/export, persistence, or audio/playback.
