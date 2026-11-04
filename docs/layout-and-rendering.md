@@ -310,7 +310,9 @@ provides its boundary; hyphens follow the Stage 4C branch policy.
 
 ## Rendering and accessibility
 
-`ScoreSvg` renders each system's staff, clef, notation, and lyrics.
+`ScoreSvg` renders each system's staff, clef, notation, and lyrics. It keeps
+neume/division paint ordering and ID-based focus restoration; `DivisionControl`
+owns each committed division's SVG control, accessible label, and event handlers.
 `NeumeInk` displays the same supplied ink for committed notation and previews;
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.

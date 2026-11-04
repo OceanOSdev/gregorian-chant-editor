@@ -1,3 +1,4 @@
+import { DivisionControl } from './DivisionControl';
 import { DivisionInk } from './DivisionInk';
 import type { DivisionLayout } from '../layout/division-geometry';
 import { lyricFontFamily, lyricFontSize } from '../layout/lyric-text-metrics';
@@ -378,9 +379,20 @@ export function ScoreSvg({
                   selection.kind === 'division' &&
                   selection.divisionId === division.divisionId;
                 return (
-                  <g
+                  <DivisionControl
                     key={division.divisionId}
-                    ref={(element) => {
+                    division={division}
+                    selected={selected}
+                    disabled={placementActive || Boolean(lyricMove)}
+                    ordinal={
+                      layout.systems
+                        .flatMap((s) => s.divisions)
+                        .findIndex(
+                          (d) => d.divisionId === division.divisionId,
+                        ) + 1
+                    }
+                    systemIndex={system.index}
+                    registerElement={(element) => {
                       if (element)
                         divisionElements.current.set(
                           division.divisionId,
@@ -388,63 +400,9 @@ export function ScoreSvg({
                         );
                       else divisionElements.current.delete(division.divisionId);
                     }}
-                    className={`score__division${selected ? ' score__division--selected' : ''}`}
-                    data-division-id={division.divisionId}
-                    data-division-kind={division.kind}
-                    role="button"
-                    tabIndex={placementActive || lyricMove ? -1 : 0}
-                    aria-pressed={selected}
-                    aria-disabled={placementActive || Boolean(lyricMove)}
-                    aria-label={`${division.kind} division ${layout.systems.flatMap((s) => s.divisions).findIndex((d) => d.divisionId === division.divisionId) + 1}, system ${system.index + 1}. Enter or Space selects; Delete or Backspace removes. Use division controls to change kind or insert before or after.`}
-                    pointerEvents={
-                      placementActive || lyricMove ? 'none' : 'all'
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (!placementActive && !lyricMove) {
-                        onSelectDivision(division.divisionId);
-                        focusAndReveal(event.currentTarget);
-                      }
-                    }}
-                    onKeyDown={(event) => {
-                      if (
-                        placementActive ||
-                        lyricMove ||
-                        event.nativeEvent.isComposing ||
-                        event.ctrlKey ||
-                        event.metaKey ||
-                        event.altKey ||
-                        event.repeat
-                      )
-                        return;
-                      if (
-                        event.key === 'Enter' ||
-                        event.key === ' ' ||
-                        event.key === 'Delete' ||
-                        event.key === 'Backspace'
-                      ) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (event.key === 'Delete' || event.key === 'Backspace')
-                          onDeleteDivision(division.divisionId);
-                        else onSelectDivision(division.divisionId);
-                      }
-                    }}
-                  >
-                    <rect
-                      className="score__division-target"
-                      {...division.hitBounds}
-                      fill="transparent"
-                    />
-                    <rect
-                      className="score__division-selection"
-                      {...division.hitBounds}
-                      rx={3}
-                      pointerEvents="none"
-                      aria-hidden="true"
-                    />
-                    <DivisionInk division={division} />
-                  </g>
+                    onSelectDivision={onSelectDivision}
+                    onDeleteDivision={onDeleteDivision}
+                  />
                 );
               }
               const neume = item.neume;
