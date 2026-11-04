@@ -7,7 +7,12 @@ import {
 import { deriveScoreOrder } from '../domain/divisions';
 import type {
   ChantDivision,
+  ChantDocument,
+  LyricSyllable,
+  Neume,
   ScoreInsertionBoundary,
+  StaffLine,
+  StaffPosition,
 } from '../domain/chant-document';
 import {
   buildDivisionGeometry,
@@ -22,13 +27,6 @@ import {
   lyricTextExtents,
   type MeasureLyricText,
 } from './lyric-text-metrics';
-import type {
-  ChantDocument,
-  LyricSyllable,
-  Neume,
-  StaffLine,
-  StaffPosition,
-} from '../domain/chant-document';
 import {
   buildNeumeGeometry,
   firstHeadHalfWidth,

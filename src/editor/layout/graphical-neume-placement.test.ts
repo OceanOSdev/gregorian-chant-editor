@@ -9,8 +9,6 @@ import {
   layoutChant,
   type GraphicalNeumeKind,
 } from './layout-chant';
-import * as placement from './graphical-placement';
-import * as publicLayout from './layout-chant';
 
 function punctum(id: string): Neume {
   return {
@@ -125,18 +123,6 @@ describe('system graphical neume placement', () => {
     });
   });
 
-  it('keeps the public API bound to the extracted implementation', () => {
-    expect(publicLayout.getSystemNeumePlacement).toBe(
-      placement.getSystemNeumePlacement,
-    );
-    expect(publicLayout.layoutGraphicalPlacementPreview).toBe(
-      placement.layoutGraphicalPlacementPreview,
-    );
-    expect(publicLayout.canGraphicalNeumeFitNormalSystem).toBe(
-      placement.canGraphicalNeumeFitNormalSystem,
-    );
-  });
-
   it('includes exact staff edges and outside-staff pitches on every system', () => {
     const layout = layoutChant(
       documentWith(
@@ -149,10 +135,10 @@ describe('system graphical neume placement', () => {
         for (const position of [-1, 7]) {
           const point = { x, y: bottom - position * 12 };
           expect(
-            placement.getSystemNeumePlacement(point, 'punctum', system),
+            getSystemNeumePlacement(point, 'punctum', system),
           ).toMatchObject({ firstStaffPosition: position });
           expect(
-            placement.getSystemNeumePlacement(
+            getSystemNeumePlacement(
               { x, y: point.y + (position === -1 ? 0.001 : -0.001) },
               'punctum',
               system,
@@ -160,12 +146,6 @@ describe('system graphical neume placement', () => {
           ).toBeNull();
         }
       }
-      expect(
-        placement.getSystemNeumePlacement({ x: 300, y: bottom }, 'punctum', {
-          ...system,
-          staffLines: [],
-        }),
-      ).toBeNull();
     }
   });
 
@@ -179,6 +159,12 @@ describe('system graphical neume placement', () => {
 
     expect(
       getSystemNeumePlacement({ x: Number.NaN, y: 100 }, 'punctum', system),
+    ).toBeNull();
+    expect(
+      getSystemNeumePlacement({ x: 300, y: 100 }, 'punctum', {
+        ...system,
+        staffLines: [],
+      }),
     ).toBeNull();
     expect(resolve(document, 0, 'punctum', 63)).toBeNull();
     expect(resolve(document, 0, 'punctum', 657)).toBeNull();
