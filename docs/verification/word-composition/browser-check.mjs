@@ -410,7 +410,8 @@ try {
         syllables: [
           {
             ...fixture.syllables[0],
-            text: 'a' + 'b'.repeat(42),
+            // Fill the wider region while retaining room for the outgoing mark.
+            text: 'a' + 'b'.repeat(49),
             startsAtNeumeId: 'n0',
           },
           { ...fixture.syllables[1], text: 'le', startsAtNeumeId: 'n1' },

@@ -272,7 +272,7 @@ describe('ordinary Scandicus and Torculus engraving', () => {
               notes: notes.map(({ noteId: _note, ...n }) => n),
             });
             expect(measureNeumeWidth(candidate)).toBe(committed.bounds.width);
-            expect(prospective.systems[0].lyrics[0].x).toBe(230);
+            expect(prospective.systems[0].lyrics[0].x).toBe(150);
             expect(
               prospective.systems.slice(1).every((s) => s.lyrics.length === 0),
             ).toBe(true);
@@ -342,13 +342,14 @@ describe('ordinary Scandicus and Torculus engraving', () => {
   it.each(kinds)(
     '%s keeps its local ghost on the committed staff until wrapping is committed',
     (kind) => {
-      // The complete prefix ends exactly at x=656.
+      // The prefix leaves only 12.5 units before x=656, so either candidate wraps.
       const prefix = [
         three('scandicus', 2, 1, 2, 'prefix-wide'),
         ...Array.from({ length: 5 }, (_, i) =>
           three('scandicus', 1, 1, 2, `prefix-${i}`),
         ),
         three('torculus', 1, 1, 2, 'prefix-torculus'),
+        three('torculus', 2, 1, 2, 'prefix-extra'),
         three('scandicus', 2, 1, 2, 'prefix-tail'),
       ];
       const before = layoutChant(documentWith(prefix));

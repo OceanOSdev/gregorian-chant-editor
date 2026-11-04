@@ -1,3 +1,5 @@
+import { ClefControl } from './ClefControl';
+import type { Clef } from '../domain/chant-document';
 import { DivisionControl } from './DivisionControl';
 import { DivisionInk } from './DivisionInk';
 import type { DivisionLayout } from '../layout/division-geometry';
@@ -36,6 +38,8 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  onSelectClef: () => void;
+  onChangeClef: (clef: Clef) => void;
   layout: ChantLayout;
   divisionPreview: {
     division: DivisionLayout;
@@ -78,6 +82,8 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  onSelectClef,
+  onChangeClef,
   layout,
   divisionPreview,
   onPlaceDivision,
@@ -106,6 +112,7 @@ export function ScoreSvg({
   onAdvanceLyric,
   onDeleteSyllable,
 }: ScoreSvgProps) {
+  const clefElement = useRef<SVGGElement>(null);
   const scoreElement = useRef<SVGSVGElement>(null);
   const lyricElements = useRef(new Map<string, SVGTextElement>());
   const divisionElements = useRef(new Map<string, SVGGElement>());
@@ -166,6 +173,12 @@ export function ScoreSvg({
       focusRequest.kind === 'lyrics'
     )
       return;
+    if (focusRequest.kind === 'clef') {
+      if (clefElement.current && !placementActive)
+        focusAndReveal(clefElement.current);
+      onFocusHandled(focusRequest);
+      return;
+    }
     if (focusRequest.kind === 'division') {
       const division = divisionElements.current.get(focusRequest.divisionId);
       if (division) {
@@ -358,6 +371,25 @@ export function ScoreSvg({
       {layout.systems.map((system) => (
         <g key={system.index} data-system-index={system.index}>
           <SystemStaff system={system} />
+          {system.index === 0 ? (
+            <ClefControl
+              clef={system.clef}
+              selected={selection.kind === 'clef'}
+              disabled={placementActive || Boolean(lyricMove)}
+              onSelect={onSelectClef}
+              onChange={onChangeClef}
+              registerElement={(element) => {
+                clefElement.current = element;
+              }}
+            />
+          ) : (
+            <path
+              className="score__clef-ink"
+              d={system.clef.path}
+              aria-hidden="true"
+              pointerEvents="none"
+            />
+          )}
 
           {[
             ...system.neumes.map((neume) => ({
@@ -798,11 +830,11 @@ export function ScoreSvg({
   );
 }
 
-/** Shared committed staff and clef rendering. */
+/** Committed four-line staff rendering. */
 function SystemStaff({
   system,
 }: {
-  system: Pick<ChantSystemLayout, 'index' | 'staffLines' | 'clef'>;
+  system: Pick<ChantSystemLayout, 'index' | 'staffLines'>;
 }) {
   return (
     <>
@@ -816,18 +848,6 @@ function SystemStaff({
           y2={line.y}
         />
       ))}
-
-      <text
-        className="score__clef"
-        x={system.clef.x}
-        y={system.clef.y}
-        fontSize={system.clef.fontSize}
-        textAnchor="middle"
-        dominantBaseline="central"
-        aria-hidden="true"
-      >
-        C
-      </text>
     </>
   );
 }

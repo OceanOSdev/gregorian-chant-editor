@@ -242,10 +242,13 @@ await ev(`document.documentElement.style.zoom='1'`);
 await viewport(1440);
 await pause();
 // A longer version must wrap normally, then an unbreakable version must isolate.
+// The suffix fills the room reclaimed by the tighter initial-clef spacing.
 await focus('.score__lyric[data-syllable-id="s1"]');
 await key('Enter');
 await key('a', 2);
-await send('Input.insertText', { text: 'lealsdkfjaasdfhasdf'.repeat(3) });
+await send('Input.insertText', {
+  text: 'lealsdkfjaasdfhasdf'.repeat(3) + 'mm',
+});
 await key('Enter');
 const wrapped = await geometry();
 assert(wrapped[1].lyrics.some((l) => l.id === 's1'));
@@ -301,7 +304,8 @@ await click('[aria-label="Redo last undone edit"]');
 assert.notDeepEqual(await geometry(), original);
 await click('[aria-label="Undo last edit"]');
 // Native boundary edits enlarge only the necessary incoming advance.
-await click('.score__lyric[data-syllable-id="s10"]');
+// s8 is an interior word boundary; s10 now starts a system and need not move.
+await click('.score__lyric[data-syllable-id="s8"]');
 await focus('[aria-label="Word boundary"]');
 await key('End');
 await key('Tab');
@@ -383,14 +387,15 @@ const place = async (doc, point) => {
 await place(fixture, { x: 300, y: 368 });
 // Font readiness can move a focused control between system groups. Force the
 // provisional layout for a frame, then restore metrics and retain the same ID.
+// s10 crosses the measured/provisional system boundary with the new capacity.
 await mount();
-await focus('.score__lyric[data-syllable-id="s9"]');
+await focus('.score__lyric[data-syllable-id="s10"]');
 const focusedSystem = await ev(
   `document.activeElement.closest('[data-system-index]').dataset.systemIndex`,
 );
 await ev(`document.fonts.dispatchEvent(new Event('loading'))`);
 await pause();
-assert.equal(await ev('document.activeElement.dataset.syllableId'), 's9');
+assert.equal(await ev('document.activeElement.dataset.syllableId'), 's10');
 assert.notEqual(
   await ev(
     `document.activeElement.closest('[data-system-index]').dataset.systemIndex`,
@@ -399,7 +404,7 @@ assert.notEqual(
 );
 await ev(`document.fonts.dispatchEvent(new Event('loadingdone'))`);
 await pause();
-assert.equal(await ev('document.activeElement.dataset.syllableId'), 's9');
+assert.equal(await ev('document.activeElement.dataset.syllableId'), 's10');
 assert.equal(
   await ev(
     `document.activeElement.closest('[data-system-index]').dataset.systemIndex`,

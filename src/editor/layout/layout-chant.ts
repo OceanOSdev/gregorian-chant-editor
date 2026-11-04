@@ -1,3 +1,4 @@
+import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
   staffStartX,
   staffEndX,
@@ -65,13 +66,7 @@ export interface StaffLineLayout {
   y: number;
 }
 
-export interface ClefLayout {
-  type: 'c';
-  staffLine: StaffLine;
-  x: number;
-  y: number;
-  fontSize: number;
-}
+export type ClefLayout = ClefGeometry;
 
 export interface NoteLayout extends NoteGeometry {
   noteId: string;
@@ -154,6 +149,15 @@ export const svgBottomPadding = 0;
 export const firstSystemTopY = svgTopPadding;
 export const firstSystemBottomY = firstSystemTopY + systemHeight;
 export const clefX = 100;
+// Reserve clearance from the wider clef (F adds an attachment to the shared
+// body) when an outgoing lyric/bar reservation uses the leftward musical room.
+const clefRight = Math.max(
+  ...(['c', 'f'] as const).map((type) => {
+    const bounds = buildClefGeometry({ type, staffLine: 3 }, clefX, 0).bounds;
+    return bounds.x + bounds.width;
+  }),
+);
+const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
 export const firstSystemLyricBaselineY = 180;
 
@@ -392,7 +396,11 @@ function placeNeumeSequence(
       );
       // Preserve internal music and vowel alignment. A combined unit which
       // cannot fit even using this room follows isolated oversized progress.
-      if (missing && left - missing >= staffStartX)
+      if (
+        missing &&
+        left - missing >= staffStartX &&
+        geometry.bounds.x - missing >= minimumNeumeLeft
+      )
         geometry = buildNeumeGeometry(
           input.kind,
           input.staffPositions,
@@ -571,13 +579,11 @@ export function layoutChant(
           ),
           y: staffLineY(line, bottomStaffY),
         })),
-        clef: {
-          type: document.clef.type,
-          staffLine: document.clef.staffLine,
-          x: clefX,
-          y: staffLineY(document.clef.staffLine, bottomStaffY),
-          fontSize: 38,
-        },
+        clef: buildClefGeometry(
+          document.clef,
+          clefX,
+          staffLineY(document.clef.staffLine, bottomStaffY),
+        ),
         neumes: geometries.map((geometry, offset) =>
           layoutCommittedNeume(
             document.neumes[startNeumeIndex + offset],

@@ -20,7 +20,7 @@ export function staffPosition(value: number): StaffPosition {
 export type StaffLine = 1 | 2 | 3 | 4;
 
 export interface Clef {
-  type: 'c';
+  type: 'c' | 'f';
   staffLine: StaffLine;
 }
 

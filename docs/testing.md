@@ -522,3 +522,36 @@ activation. Firefox headless HTML activation remains unverified, as recorded
 in the Stage 5C evidence. Run it sequentially with other
 drivers sharing its tab. Owner foreground results, actual browser zoom, OS
 popups, IME and spoken screen-reader testing remain separate from these checks.
+
+## Stage 6A initial clefs
+
+`update-clef.test.ts` covers all 64 C/F × line transitions across all seven neume
+kinds, relative diatonic preservation, IDs/intervals, round trips, outside-staff
+pitches, invalid/no-op exact references, malformed/unsafe pitch rejection and
+atomic snapshot history. `clef-editing.test.ts` covers singleton selection/focus,
+draft/tool/remembered-kind preservation and exclusive-mode guards.
+`clef-geometry.test.ts` covers all eight glyph/line combinations, reference-line
+anchors, occupied/padded bounds, empty/wrapped scores and musical clearance
+when an outgoing reservation uses leftward room. Accessibility suites name the
+current type and line.
+
+Run `node docs/verification/clefs/browser-check.mjs` with Vite on port 5173 and
+headless Chromium debugging on port 9230. The standalone driver mounts the real
+StrictMode editor and checks all eight forms at desktop/320px, actual SVG ink
+bounds, native pointer and keyboard line editing, selection versus Tab focus,
+exact rendered displacement, undo/redo, dirty lyric drafts, repeated decorative
+copies, empty scores and placement ownership. Native selects are changed with
+DOM change events; this does not verify OS dropdown operation. Screenshots go
+to temporary storage. The [Stage 6A record](verification/clefs/README.md) separates
+actual checks, selected visual review evidence and remaining owner acceptance.
+Continue running division, continuous-lyric, anchor-move, vowel-alignment,
+measured-spacing and word-composition browser regressions sequentially on the
+shared browser tab. Foreground focus/zoom/IME, spoken output and final clef
+contour acceptance remain owner checks; Stage 6B/6C are not implemented.
+
+The [clef refinement review](verification/clefs/refinement/review.md) separately
+checks visual fidelity against printed C/F examples at matched staff spacing.
+Bounds tests alone do not assess typography. Refinement fixtures now fill the
+larger musical region left by the reduced leading gap: exact-fit growth still
+crosses the actual x=656 edge, and the shared et-lux split-span fixture keeps
+its two same-syllable notes on opposite systems with a synthetic wider prefix.

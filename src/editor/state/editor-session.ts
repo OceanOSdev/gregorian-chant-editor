@@ -1,3 +1,4 @@
+import { updateClef } from '../commands/update-clef';
 import {
   insertDivision,
   updateDivisionKind,
@@ -5,6 +6,8 @@ import {
 } from '../commands/edit-division';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import type {
+  ChantDocument,
+  Clef,
   DivisionKind,
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
@@ -17,7 +20,6 @@ import {
   type LyricAction,
   type LyricEntry,
 } from './lyric-entry';
-import type { ChantDocument } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
@@ -48,6 +50,7 @@ import {
 } from './selection';
 
 export type EditorFocusRequest =
+  | { kind: 'clef' }
   | { kind: 'division'; divisionId: string }
   | { kind: 'lyrics' }
   | { kind: 'lyric'; syllableId: string }
@@ -113,6 +116,7 @@ export function lyricMoveTargets(
 }
 
 export type EditorAction =
+  | { type: 'change-clef'; clef: Clef }
   | {
       type: 'place-division';
       point: { x: number; y: number };
@@ -211,6 +215,7 @@ export function getSelectFocusRequest(
 ): EditorFocusRequest {
   const document = state.history.present;
   const selection = state.selection;
+  if (selection.kind === 'clef') return { kind: 'clef' };
   if (
     selection.kind === 'syllable' &&
     document.syllables.some((s) => s.id === selection.syllableId)
@@ -417,6 +422,18 @@ function reduceSessionAction(
             ? { kind: 'division', divisionId: action.id }
             : { kind: 'palette', tool: 'select' },
       });
+    }
+    case 'change-clef': {
+      if (state.pendingHistory || state.lyricMove) return state;
+      const history = applyDocumentEdit(state.history, (doc) =>
+        updateClef(doc, action.clef),
+      );
+      return history === state.history
+        ? state
+        : announce(
+            { ...state, history, hoveredPoint: null },
+            `Initial ${action.clef.type.toUpperCase()} clef, line ${action.clef.staffLine}. Melody preserved.`,
+          );
     }
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;

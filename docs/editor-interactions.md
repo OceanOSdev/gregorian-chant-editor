@@ -20,12 +20,14 @@ Music insertion is independent of lyric entry. Selection stores stable IDs;
 Lyrics mode owns one transient draft with explicit insert or edit intent.
 Selecting an occupied musical target never implies permission to replace text.
 
-Score selection is an ID-only union:
+Score selection uses stable IDs for entities and a singleton tag for the clef:
 
 - no selection;
 - one note ID;
 - one whole-neume ID;
-- one syllable ID.
+- one syllable ID;
+- one division ID;
+- the required initial clef (no semantic ID).
 
 Clicking a note or pressing Enter/Space on its focused control selects the
 note. Shift+click or Shift+Enter/Space promotes through the constituent note to
@@ -579,3 +581,29 @@ exclusive ownership. Division tools have no implicit lyric delimiter meaning.
 All four kinds can occur at any legal musical boundary, including within a
 single syllable's melisma. There is no word-splitting, placement warning or
 linguistic validation attached to a division kind.
+
+## Initial clef controls (Stage 6A)
+
+The always-visible **Initial clef** group offers explicitly labeled **Clef type**
+(C/do or F/fa) and **Staff line** (1–4, bottom to top) native selects.
+Each change preserves melody by translating all notes and records one semantic
+history entry. Controls keep native focus, preserve active placement tools and
+remembered neume kind, and leave dirty lyric drafts intact. They are disabled
+during pending history resolution and lyric reassignment.
+
+In Select mode only the first system's clef is a focusable button. Click or
+Enter/Space selects it. Tab focus alone does not select. Arrow Up/Down on the
+focused clef moves its reference line one legal line; at lines 1/4 the outward
+arrow makes no edit. Modifier chords, repeat and composition do not edit it.
+Blue selection and a purple dashed keyboard-focus cue are independent. Escape
+clears selection through the existing handler (or resolves the active lyric
+context first). Delete never removes the required clef. Later-system copies
+are decorative and repeat the same document clef; they are not independent
+editable entities. The score summary and control label name type and line.
+
+While placement is active the clef target is disabled, removed from Tab order
+and pointer-inert; the score surface retains placement ownership. Leaving
+placement can restore clef focus through the singleton focus request. The first
+clef stays in its first-system DOM group through musical reflow, so normal clef
+edits and history retain browser focus. Mid-score insertion and dragging belong
+to later stages.

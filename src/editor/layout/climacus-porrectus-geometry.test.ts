@@ -213,7 +213,7 @@ describe('approved Climacus and Porrectus engraving', () => {
               ...geometry,
               notes: notes.map(({ noteId: _note, ...n }) => n),
             });
-            expect(layout.systems[0].lyrics[0].x).toBe(230);
+            expect(layout.systems[0].lyrics[0].x).toBe(150);
             expect(
               layout.systems.slice(1).every((s) => s.lyrics.length === 0),
             ).toBe(true);
@@ -224,23 +224,25 @@ describe('approved Climacus and Porrectus engraving', () => {
   it.each(kinds)(
     '%s exact-fit interval growth preserves IDs, selection, surviving focus and undo/redo',
     (kind) => {
-      // Five prefix advances plus the tail's painted width exactly span
-      // x=224..656. Interval growth must therefore reparent the tail.
+      // Six prefix advances plus the tail's painted width exactly span
+      // x=144..656. Interval growth must therefore reparent the tail.
       const prefixRecipes: readonly (readonly [Kind, number, number])[] =
         kind === 'climacus'
           ? [
+              ['climacus', 1, 2],
               ['climacus', 1, 1],
-              ['climacus', 1, 1],
               ['climacus', 2, 1],
               ['climacus', 2, 1],
               ['climacus', 2, 1],
+              ['porrectus', 1, 1],
             ]
           : [
               ['porrectus', 2, 2],
               ['porrectus', 2, 1],
               ['porrectus', 2, 1],
+              ['climacus', 2, 2],
               ['climacus', 2, 1],
-              ['climacus', 2, 1],
+              ['porrectus', 1, 1],
             ];
       const prefix = prefixRecipes.map(([k, a, b], i) =>
         three(k, a, b, 3, `prefix-${i}`),
@@ -276,9 +278,9 @@ describe('approved Climacus and Porrectus engraving', () => {
         edited.present,
       );
       expect(
-        measureNeumeWidth(moveNeumeVertically(original, 'tail', 1).neumes[5]),
+        measureNeumeWidth(moveNeumeVertically(original, 'tail', 1).neumes[6]),
       ).toBe(measureNeumeWidth(tail));
-      const normalized = deleteNote(original, 'tail-0').neumes[5];
+      const normalized = deleteNote(original, 'tail-0').neumes[6];
       expect(normalized.kind).toBe(kind === 'climacus' ? 'clivis' : 'podatus');
       expect(normalized.notes.map((n) => n.id)).toEqual(['tail-1', 'tail-2']);
     },

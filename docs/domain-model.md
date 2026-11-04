@@ -19,7 +19,8 @@ identity, ordering, pitch representation, and neume invariants.
 `ChantDocument` is the canonical semantic representation:
 
 - `title` is the score title;
-- `clef` is currently a C clef placed on staff line 1, 2, 3, or 4;
+- `clef` is the required initial C (do) or F (fa) clef on staff line 1–4,
+  numbered bottom to top; this singleton value object has no ID;
 - `syllables` is the semantic lyric order;
 - `neumes` is the pitched semantic order;
 - `divisions` is a required collection of non-pitched punctuation.
@@ -201,3 +202,18 @@ Normalization preserving a neume ID preserves its division anchors.
 owner-approved semantic model and alternatives. Rendering, accessible division controls, and any effect
 on lyric compaction/hyphenation remain Stage 5B work; current layout ignores
 divisions and the accepted lyric contracts are unchanged.
+
+## Initial clef editing (Stage 6A)
+
+`domain/clef.ts` owns runtime `isValidClef` validation and the shared C (do) /
+F (fa) names used by accessible descriptions. Commands and UI boundaries consume
+these helpers; the semantic value remains defined in `chant-document.ts`.
+
+Changing the initial clef preserves relative diatonic melody by translating all
+stored note positions atomically. The implemented mapping and its limits are
+recorded in [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md),
+accepted by the owner on 2026-11-04. This introduces no absolute octave,
+chromatic pitch, playback or new pitch field. Neume kinds, internal intervals,
+IDs, lyric anchors and division order remain unchanged. Outside-staff positions
+remain legal. Automatic clef repetitions are derived graphics; there are no
+persisted mid-score clef events or insertion boundaries for clefs in Stage 6A.

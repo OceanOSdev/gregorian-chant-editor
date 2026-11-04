@@ -67,7 +67,11 @@ describe('anchored lyrics', () => {
     expect(
       layout.systems.flatMap((s) => s.lyrics).map((s) => s.syllableId),
     ).toEqual(['Al', 'le', 'lu']);
-    expect(layout.systems[2].lyrics[0].syllableId).toBe('lu');
+    expect(
+      layout.systems.find((system) =>
+        system.neumes.some((neume) => neume.neumeId === 'n20'),
+      )?.lyrics[0].syllableId,
+    ).toBe('lu');
     expect(hasValidLyricAnchors({ ...doc, syllables: [] })).toBe(true);
   });
   it.each([

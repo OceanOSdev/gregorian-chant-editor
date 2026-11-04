@@ -76,7 +76,7 @@ describe('word-aware composition', () => {
     }
   });
   it('reserves outgoing marks, never incoming marks or melisma-only breaks', () => {
-    const d = fixture([0, 11], 16);
+    const d = fixture([0, 13], 18);
     const l = layoutChant(d, measure);
     expect(l.systems[0].hyphens).toHaveLength(1);
     expect(l.systems[0].hyphens?.[0].outgoing).toBe(true);
@@ -209,7 +209,7 @@ describe('word-aware composition', () => {
 
 it('fits a first source lyric together with its outgoing reservation', () => {
   const d = fixture([0, 1], 2);
-  d.syllables[0] = { ...d.syllables[0], text: 'a' + 'b'.repeat(42) };
+  d.syllables[0] = { ...d.syllables[0], text: 'a' + 'b'.repeat(49) };
   const l = layoutChant(d, measure),
     s = l.systems[0],
     mark = s.hyphens[0];
