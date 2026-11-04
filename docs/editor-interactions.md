@@ -259,8 +259,9 @@ Climacus:  [p, p - 1, p - 2]
 Porrectus: [p, p - 2, p - 1]
 ```
 
-Toolbar insertion uses these same contours for Climacus and Porrectus, with
-position 3 as the first-pitch fallback for empty music.
+Toolbar insertion uses these same contours for all seven graphical kinds. For
+empty music, the first-pitch fallback is position 3 for Clivis, Climacus and
+Porrectus, and position 2 for Punctum, Podatus, Scandicus and Torculus.
 
 These fixed shapes are a current interaction limitation, not a comprehensive
 neume-entry system.
