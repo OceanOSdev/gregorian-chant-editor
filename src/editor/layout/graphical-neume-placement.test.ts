@@ -9,6 +9,8 @@ import {
   layoutChant,
   type GraphicalNeumeKind,
 } from './layout-chant';
+import * as placement from './graphical-placement';
+import * as publicLayout from './layout-chant';
 
 function punctum(id: string): Neume {
   return {
@@ -121,6 +123,50 @@ describe('system graphical neume placement', () => {
     expect(resolve(document, 1, 'punctum', 656)).toMatchObject({
       preferredNeumeInsertionIndex: later.startNeumeIndex + later.neumes.length,
     });
+  });
+
+  it('keeps the public API bound to the extracted implementation', () => {
+    expect(publicLayout.getSystemNeumePlacement).toBe(
+      placement.getSystemNeumePlacement,
+    );
+    expect(publicLayout.layoutGraphicalPlacementPreview).toBe(
+      placement.layoutGraphicalPlacementPreview,
+    );
+    expect(publicLayout.canGraphicalNeumeFitNormalSystem).toBe(
+      placement.canGraphicalNeumeFitNormalSystem,
+    );
+  });
+
+  it('includes exact staff edges and outside-staff pitches on every system', () => {
+    const layout = layoutChant(
+      documentWith(
+        Array.from({ length: 30 }, (_, index) => punctum(`${index}`)),
+      ),
+    );
+    for (const system of layout.systems) {
+      const bottom = Math.max(...system.staffLines.map((line) => line.y));
+      for (const x of [64, 656]) {
+        for (const position of [-1, 7]) {
+          const point = { x, y: bottom - position * 12 };
+          expect(
+            placement.getSystemNeumePlacement(point, 'punctum', system),
+          ).toMatchObject({ firstStaffPosition: position });
+          expect(
+            placement.getSystemNeumePlacement(
+              { x, y: point.y + (position === -1 ? 0.001 : -0.001) },
+              'punctum',
+              system,
+            ),
+          ).toBeNull();
+        }
+      }
+      expect(
+        placement.getSystemNeumePlacement({ x: 300, y: bottom }, 'punctum', {
+          ...system,
+          staffLines: [],
+        }),
+      ).toBeNull();
+    }
   });
 
   it('rejects invalid and out-of-region points', () => {

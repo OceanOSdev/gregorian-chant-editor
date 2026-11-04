@@ -259,6 +259,14 @@ Committed rendering and interaction still consume the same measured layout.
 
 ## Committed layout and previews
 
+`graphical-placement.ts` owns graphical fit, staff snapping, preferred neume
+indices and ghost/caret layout against the committed snapshot. The existing
+`layout-chant.ts` public API re-exports those functions and placement types.
+Both modules consume shared staff metrics from `staff-metrics.ts`; placement
+uses type-only imports for committed layout records. The combined music/lyric
+wrapping walker remains in `layout-chant.ts`, and division-aware semantic slot
+resolution remains in the interaction layer.
+
 Committed layout copies semantic neume and note IDs into `NeumeLayout` and
 `NoteLayout`. Rendering uses those IDs for React keys, selection, focus, and
 data attributes. Coordinates remain derived and carry no authority back into

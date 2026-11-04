@@ -106,6 +106,13 @@ and local caret/ghost preview layout. It also derives word-aware compact
 spacing and conditional/system-break hyphens under
 [Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md), which narrowly
 qualifies but does not replace [ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md).
+
+`layout-chant.ts` owns canonical score layout and wrapping;
+`graphical-placement.ts` owns transient fit, snapping and ghost/caret geometry.
+Their shared staff metrics live in `staff-metrics.ts`. The existing public layout
+API remains available through re-exports. This preserves the accepted ADRs;
+no new decision record is needed.
+
 See [layout and rendering](layout-and-rendering.md).
 
 ### `src/editor/rendering/`
