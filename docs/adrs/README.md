@@ -94,6 +94,6 @@ integration, remain deferred to a separate Stage 5B handoff.
 records the owner-approved division exception to contextual compaction. ADR 0011
 remains Accepted, narrowly qualified by ADR 0013.
 
-[Proposed ADR 0014: Preserve relative melody on initial clef edits](0014-preserve-melody-on-initial-clef-edit.md)
-records Stage 6A's implemented global-clef transform for owner review. It remains
-Proposed and does not decide Stage 6B event ordering or boundaries.
+[Accepted ADR 0014: Preserve relative melody on initial clef edits](0014-preserve-melody-on-initial-clef-edit.md)
+records Stage 6A's owner-accepted global-clef transform (accepted 2026-11-04).
+It does not decide Stage 6B event ordering or boundaries.

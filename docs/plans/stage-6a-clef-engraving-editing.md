@@ -16,10 +16,9 @@ current-head verification and the conventions follow-up. The owner relaxed the
 independent-glyph design constraint and approved the exact shared C contour plus
 a refined F attachment. Pitch semantics and editing remain as specified below.
 
-ADR 0014 remains **Proposed**, pending explicit owner acceptance. Before merge,
+ADR 0014 was explicitly **Accepted** by the owner on 2026-11-04. Before merge,
 the owner still decides whether to remove this one-off plan or retain it as a
-historical record. This update prepares closeout without declaring the ADR
-accepted or merging the PR. The original problem and instructions below describe
+historical record. This update prepares closeout without merging the PR. The original problem and instructions below describe
 the pre-Stage-6A state and agreed implementation scope.
 
 ## Problem and user-visible goal

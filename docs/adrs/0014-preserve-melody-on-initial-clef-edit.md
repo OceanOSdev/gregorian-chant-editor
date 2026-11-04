@@ -4,9 +4,9 @@ Date: 2026-11-03
 
 ## Status
 
-Proposed. Records the Stage 6A implementation for owner review; it does not
-accept or decide the future Stage 6B mid-score boundary model. No accepted ADR
-is superseded.
+Accepted by the owner on 2026-11-04. Records the Stage 6A initial-clef
+melody-preservation decision. It does not decide the future Stage 6B mid-score
+boundary model. No accepted ADR is superseded.
 
 ## Context
 

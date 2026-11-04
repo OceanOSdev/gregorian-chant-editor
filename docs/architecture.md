@@ -174,8 +174,8 @@ Musical punctuation never changes semantic lyric relationships.
 ## Initial clef (Stage 6A)
 
 The document owns one required clef value. `update-clef.ts` performs one
-melody-preserving semantic transaction; [Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md)
-records the implemented mapping for owner review. `clef-geometry.ts` supplies
+melody-preserving semantic transaction; [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md)
+records the owner-accepted mapping. `clef-geometry.ts` supplies
 font-independent paths and occupied/padded bounds to layout and rendering.
 Only the first derived copy is an interactive singleton target. Transient clef
 selection/focus uses a `clef` tag without inventing a semantic ID. Mid-score

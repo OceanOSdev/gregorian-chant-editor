@@ -178,7 +178,7 @@ implemented in Stage 5A.
 `updateClef` validates both clefs and every neume/pitch before constructing a
 candidate. It changes the clef and translates all notes in one history entry,
 preserving relative diatonic melody using the mapping in
-[Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md).
+[Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md).
 Unchanged/invalid clefs, malformed neumes and unsafe integer pitch results return
 the exact original document. Lyrics and divisions retain their references;
 notes and neumes retain their IDs and contours. Undo/redo restores exact snapshots.

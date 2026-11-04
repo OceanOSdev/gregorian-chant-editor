@@ -211,8 +211,8 @@ these helpers; the semantic value remains defined in `chant-document.ts`.
 
 Changing the initial clef preserves relative diatonic melody by translating all
 stored note positions atomically. The implemented mapping and its limits are
-recorded in [Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md),
-which remains subject to owner review. This introduces no absolute octave,
+recorded in [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md),
+accepted by the owner on 2026-11-04. This introduces no absolute octave,
 chromatic pitch, playback or new pitch field. Neume kinds, internal intervals,
 IDs, lyric anchors and division order remain unchanged. Outside-staff positions
 remain legal. Automatic clef repetitions are derived graphics; there are no

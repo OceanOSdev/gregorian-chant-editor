@@ -115,9 +115,9 @@ accessibility or publication-quality engraving. PR #49 has not been merged.
 
 Stage 6A implements initial C/F clef engraving and melody-preserving type/line
 editing, with selection, keyboard movement and atomic history.
-[Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md) records the
-implemented relative diatonic rule and awaits owner review. Glyph appearance
-also requires owner acceptance before merge. Extreme pitches retain the fixed
+[Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md) records the
+owner-accepted relative diatonic rule. The shared-C-body F engraving has also
+received owner acceptance. Extreme pitches retain the fixed
 vertical bounds and absent ledger-line limitations.
 
 Stage 6B remains deferred pending a separate proposed ADR and owner acceptance
