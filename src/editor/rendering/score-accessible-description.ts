@@ -1,3 +1,4 @@
+import { clefName } from '../domain/clef';
 import type { ChantLayout } from '../layout/layout-chant';
 
 function countLabel(count: number, singular: string, plural: string) {
@@ -27,6 +28,6 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.${clef ? ` Initial ${clef.type.toUpperCase()} (${clef.type === 'c' ? 'do' : 'fa'}) clef on staff line ${clef.staffLine} from bottom, repeated on every system.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
+    )}.${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom, repeated on every system.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
   );
 }

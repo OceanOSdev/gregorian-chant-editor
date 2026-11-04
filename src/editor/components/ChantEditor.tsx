@@ -1,4 +1,4 @@
-import { isValidClef } from '../commands/update-clef';
+import { isValidClef } from '../domain/clef';
 import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';

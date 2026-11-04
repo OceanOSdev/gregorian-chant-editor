@@ -1,5 +1,4 @@
 import { updateClef } from '../commands/update-clef';
-import type { Clef } from '../domain/chant-document';
 import {
   insertDivision,
   updateDivisionKind,
@@ -7,6 +6,8 @@ import {
 } from '../commands/edit-division';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import type {
+  ChantDocument,
+  Clef,
   DivisionKind,
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
@@ -19,7 +20,6 @@ import {
   type LyricAction,
   type LyricEntry,
 } from './lyric-entry';
-import type { ChantDocument } from '../domain/chant-document';
 import { findNeume, findNote } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {

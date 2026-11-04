@@ -48,47 +48,31 @@ export function moveNeumeVertically(
 
 /** Translate every note while retaining kind-correlated tuples and identities. */
 export function transposeNeume(neume: Neume, delta: number): Neume {
-  let movedNeume: Neume;
-
   switch (neume.kind) {
     case 'punctum': {
       const [note] = neume.notes;
 
-      movedNeume = {
+      return {
         ...neume,
         notes: [moveNote(note, delta)],
       };
-      break;
     }
     case 'podatus':
     case 'clivis': {
       const [firstNote, secondNote] = neume.notes;
 
-      movedNeume = {
+      return {
         ...neume,
         notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
       };
-      break;
     }
-    case 'scandicus': {
-      const [firstNote, secondNote, thirdNote] = neume.notes;
-
-      movedNeume = {
-        ...neume,
-        notes: [
-          moveNote(firstNote, delta),
-          moveNote(secondNote, delta),
-          moveNote(thirdNote, delta),
-        ],
-      };
-      break;
-    }
+    case 'scandicus':
     case 'climacus':
     case 'porrectus':
     case 'torculus': {
       const [firstNote, secondNote, thirdNote] = neume.notes;
 
-      movedNeume = {
+      return {
         ...neume,
         notes: [
           moveNote(firstNote, delta),
@@ -96,9 +80,6 @@ export function transposeNeume(neume: Neume, delta: number): Neume {
           moveNote(thirdNote, delta),
         ],
       };
-      break;
     }
   }
-
-  return movedNeume;
 }

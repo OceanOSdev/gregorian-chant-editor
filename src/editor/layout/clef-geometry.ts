@@ -1,13 +1,19 @@
 import type { Clef } from '../domain/chant-document';
+import type { LayoutBounds } from './neume-geometry';
 import { staffStep } from './staff-metrics';
 
 export interface ClefGeometry extends Clef {
   x: number;
   y: number;
   path: string;
-  bounds: { x: number; y: number; width: number; height: number };
-  hitBounds: { x: number; y: number; width: number; height: number };
+  bounds: LayoutBounds;
+  hitBounds: LayoutBounds;
 }
+
+const clefProfiles = {
+  c: { left: -0.48, right: 0.45 },
+  f: { left: -1.3, right: 0.65 },
+} satisfies Record<Clef['type'], { left: number; right: number }>;
 
 /** Shared do body with a fa-specific attachment after printed Solesmes examples.
  * Coordinates are staff-step multiples; the small aperture straddles y=0.
@@ -22,7 +28,9 @@ export function buildClefGeometry(
   const s = staffStep;
   const p = (a: number, b: number) => `${x + a * s} ${y + b * s}`;
   // Fa shares the approved do contour, shifted to keep its existing right face.
-  const bodyX = x + (clef.type === 'f' ? s / 5 : 0);
+  const profile = clefProfiles[clef.type];
+  const bodyOffsets = { c: 0, f: s / 5 } satisfies Record<Clef['type'], number>;
+  const bodyX = x + bodyOffsets[clef.type];
   const bodyPoint = (a: number, b: number) => `${bodyX + a * s} ${y + b * s}`;
   // Do: narrow body, rounded upper shoulder, slightly fuller lower heel.
   const doPath =
@@ -44,8 +52,7 @@ export function buildClefGeometry(
     `C ${p(-0.61, 0.86)} ${p(-0.56, 1.22)} ${p(-0.54, 1.49)} ` +
     `Q ${p(-0.53, 1.59)} ${p(-0.43, 1.54)} ` +
     `C ${p(-0.38, 1.38)} ${p(-0.32, 1.14)} ${p(-0.28, 0.96)} Z`;
-  const left = clef.type === 'c' ? -0.48 : -1.3;
-  const right = clef.type === 'c' ? 0.45 : 0.65;
+  const { left, right } = profile;
   const top = -1.62;
   const bottom = 1.62;
   const bounds = {
@@ -55,11 +62,15 @@ export function buildClefGeometry(
     height: (bottom - top) * s,
   };
   const padding = s / 2;
+  const paths = { c: doPath, f: `${doPath} ${faAttachment}` } satisfies Record<
+    Clef['type'],
+    string
+  >;
   return {
     ...clef,
     x,
     y,
-    path: clef.type === 'c' ? doPath : `${doPath} ${faAttachment}`,
+    path: paths[clef.type],
     bounds,
     hitBounds: {
       x: bounds.x - padding,

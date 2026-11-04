@@ -2,7 +2,25 @@
 
 Branch: `feat/stage-6a-clef-engraving-editing`
 Target: `master`
-Status: **Active implementation handoff; Stage 6A only.** Stages 6B and 6C are future separate PRs; this plan is not authority to implement them.
+Status: **Implemented; prepared for owner closeout in PR #54.** This retained
+plan is the historical Stage 6A handoff, not an active implementation request.
+Stages 6B and 6C remain future separate PRs; this plan is not authority to
+implement them.
+
+## Closeout readiness
+
+Stage 6A and the owner-approved shared-C-body F engraving are implemented.
+[Production engraving verification](../verification/clefs/shared-body-adoption.md)
+records the approved specimen and checks at adoption. The PR description records
+current-head verification and the conventions follow-up. The owner relaxed the
+independent-glyph design constraint and approved the exact shared C contour plus
+a refined F attachment. Pitch semantics and editing remain as specified below.
+
+ADR 0014 remains **Proposed**, pending explicit owner acceptance. Before merge,
+the owner still decides whether to remove this one-off plan or retain it as a
+historical record. This update prepares closeout without declaring the ADR
+accepted or merging the PR. The original problem and instructions below describe
+the pre-Stage-6A state and agreed implementation scope.
 
 ## Problem and user-visible goal
 

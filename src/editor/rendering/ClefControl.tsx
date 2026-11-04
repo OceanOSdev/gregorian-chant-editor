@@ -1,3 +1,4 @@
+import { clefName } from '../domain/clef';
 import type { Clef } from '../domain/chant-document';
 import type { ClefGeometry } from '../layout/clef-geometry';
 import { focusAndReveal } from './focus-visibility';
@@ -26,7 +27,7 @@ export function ClefControl({
       tabIndex={disabled ? -1 : 0}
       aria-pressed={selected}
       aria-disabled={disabled}
-      aria-label={`Initial ${clef.type.toUpperCase()} (${clef.type === 'c' ? 'do' : 'fa'}) clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down changes line and preserves melody. Use Initial clef controls to change type.`}
+      aria-label={`Initial ${clefName(clef)} clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down changes line and preserves melody. Use Initial clef controls to change type.`}
       pointerEvents={disabled ? 'none' : 'all'}
       onClick={(event) => {
         event.stopPropagation();

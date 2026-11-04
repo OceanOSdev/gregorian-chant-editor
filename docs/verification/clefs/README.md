@@ -1,11 +1,13 @@
 # Stage 6A initial clef verification
 
-Latest: [F-only silhouette follow-up and aligned F3/F4 comparisons](refinement/f-review.md).
+Latest production design: [owner-approved shared-C-body F adoption](shared-body-adoption.md).
+Latest checks: [conventions follow-up](conventions-follow-up.md).
 
-The engraving was subsequently revised after owner review. See the
-[printed-reference and actual-size refinement comparison](refinement/review.md)
-for the current contours and leading spacing. The original screenshots and
-results below are retained as historical pre-review evidence.
+The shared-body construction supersedes the independent F silhouette.
+[Earlier C/spacing refinement](refinement/review.md) and
+[F-only follow-up](refinement/f-review.md) remain historical evidence.
+The original screenshots and results below describe the initial pre-review
+implementation, not the current engraving or current owner acceptance.
 
 Date: 2026-11-03. Implementation evidence for the Stage 6A PR; owner graphical
 acceptance and Proposed ADR 0014 review remain pending. No Stage 6B/6C feature

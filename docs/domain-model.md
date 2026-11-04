@@ -205,6 +205,10 @@ divisions and the accepted lyric contracts are unchanged.
 
 ## Initial clef editing (Stage 6A)
 
+`domain/clef.ts` owns runtime `isValidClef` validation and the shared C (do) /
+F (fa) names used by accessible descriptions. Commands and UI boundaries consume
+these helpers; the semantic value remains defined in `chant-document.ts`.
+
 Changing the initial clef preserves relative diatonic melody by translating all
 stored note positions atomically. The implemented mapping and its limits are
 recorded in [Proposed ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md),

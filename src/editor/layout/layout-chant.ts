@@ -149,8 +149,8 @@ export const svgBottomPadding = 0;
 export const firstSystemTopY = svgTopPadding;
 export const firstSystemBottomY = firstSystemTopY + systemHeight;
 export const clefX = 100;
-// Reserve clearance from the wider of the independently drawn clefs when an
-// outgoing lyric/bar reservation uses the remaining leftward musical room.
+// Reserve clearance from the wider clef (F adds an attachment to the shared
+// body) when an outgoing lyric/bar reservation uses the leftward musical room.
 const clefRight = Math.max(
   ...(['c', 'f'] as const).map((type) => {
     const bounds = buildClefGeometry({ type, staffLine: 3 }, clefX, 0).bounds;
