@@ -121,7 +121,7 @@ received owner acceptance. Extreme pitches retain the fixed
 vertical bounds and absent ledger-line limitations.
 
 Stage 6B is specified by [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
-(owner-approved 2026-11-08), following the *Liber Usualis* investigation.
+(owner-approved 2026-11-08), following the _Liber Usualis_ investigation.
 Explicit clef changes may be inserted at whole-neume semantic boundaries
 **without a preceding bar**. Independent clefs and divisions use derived
 score order and an extended stable-ID insertion boundary; deleting a division
