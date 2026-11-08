@@ -5,9 +5,11 @@ import './App.css';
 function App() {
   return (
     <>
-      <p className="preview-notice">
-        Experimental preview — edits are lost on refresh.
-      </p>
+      <header>
+        <p className="preview-notice">
+          Experimental preview — edits are lost on refresh.
+        </p>
+      </header>
       <ChantEditor document={exampleDocument} />
     </>
   );

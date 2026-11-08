@@ -117,6 +117,14 @@ use it for the standard verification gate or CI.
 
 `npm run dev` is the normal manual-interaction environment.
 
+For a production check, run `npm run build`, then `npm run preview` and open
+`http://localhost:4173/gregorian-chant-editor/` (or the port Vite reports).
+Production builds and preview use `/gregorian-chant-editor/`; the development
+server continues to use `/`. Inspect `dist/index.html` and verify that the
+referenced JS, CSS and favicon load under the project subpath. Check the page
+title, experimental notice, basic editing and reset-on-refresh behavior in the
+real browser, including a narrow viewport.
+
 ## Formatting changes
 
 Prettier owns mechanical formatting, while Oxlint owns code-quality,
@@ -141,6 +149,28 @@ Reviewing the workflow structure or YAML locally does not prove hosted
 execution. After pushing, confirm the workflow runs successfully and that a
 newer push cancels an obsolete run for the same branch or pull request before
 requiring all four CI checks in branch protection.
+
+### GitHub Pages deployment
+
+The separate `Deploy to GitHub Pages` workflow runs on every push to `master`,
+including documentation-only changes, and supports manual dispatch on `master`.
+Other branches cannot build or deploy through this workflow; pull requests do
+not publish. Existing CI checks and branch protection are managed separately.
+
+`Verify and build Pages artifact` has only `contents: read` permission. It uses
+`.nvmrc` and `npm ci`, then runs formatting, lint, tests and the production build
+before uploading `dist/`. `Publish to GitHub Pages` depends on that job's success
+and has only `pages: write` and `id-token: write` permissions. It configures Pages
+and deploys the uploaded artifact through the `github-pages` environment without
+checking out source or running application build scripts. Deployments are
+serialized without canceling an in-progress run.
+
+Follow the [README setup steps](../README.md#public-preview-and-deployment) to
+enable Pages or manually rerun deployment. Local checks and a passing PR CI run
+do not prove hosted deployment. After deployment, verify the public project URL
+in Firefox and Chromium: all assets load without 404s, the title and preview
+notice appear, and a basic editor interaction works. Record these checks as
+pending owner deployment until the site can actually be tested.
 
 ## Climacus and Porrectus regressions
 

@@ -17,16 +17,19 @@ persistence: **edits are lost on refresh**.
 
 The owner must enable Pages once in repository **Settings → Pages → Build and
 deployment → Source: GitHub Actions**. The workflow commit alone does not make
-the site live. After this PR is merged, each push to `master` builds the locked
-dependencies using the Node version in `.nvmrc` and publishes `dist/` through
-the `github-pages` environment. Pull requests run the existing CI checks and
-do not publish. No `gh-pages` branch or deployment secrets are needed.
+the site live. Each push to `master` runs the Pages workflow, which installs
+locked dependencies using the Node version in `.nvmrc`, checks formatting,
+linting and tests, and builds `dist/`. A separate deployment job publishes the
+verified artifact through the `github-pages` environment. Eligible pull requests
+run the existing [CI checks](docs/testing.md#continuous-integration) and do not
+publish. No `gh-pages` branch or user-managed deployment secrets are needed.
 
-If Pages is enabled after merge, open **Actions → Deploy to GitHub Pages → Run
+To deploy after enabling Pages, open **Actions → Deploy to GitHub Pages → Run
 workflow**, select `master`, and run it (or rerun the failed deployment). Manual
 runs on other branches cannot deploy. Confirm the workflow succeeds, then check
 the public URL in Firefox and Chromium for asset errors and a basic editor edit.
-Live-site acceptance remains pending until the owner enables Pages and deploys.
+Availability depends on Pages being enabled and a successful deployment; this
+documentation does not establish that the site is live.
 
 For a local production check, run `npm run build` and `npm run preview`, then
 open `http://localhost:4173/gregorian-chant-editor/`. Production assets use this
