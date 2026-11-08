@@ -155,6 +155,7 @@ try {
       kind: 'punctum',
       notes: [{ id: `note${i}`, staffPosition: 2 }],
     })),
+    clefChanges: [],
     divisions: [
       { id: 'D', kind: 'minima', beforeNeumeId: count > 1 ? 'n1' : null },
     ],

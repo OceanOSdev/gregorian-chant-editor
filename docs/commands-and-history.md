@@ -161,7 +161,7 @@ music, lyric and division snapshot together.
 
 All seven neume insertion entrypoints delegate to `insertNeume`, accepting
 an explicit score boundary or a legacy number. Numeric boundaries containing
-divisions reject ambiguity. Explicit insertion reanchors the preceding subset
+divisions or clefs reject ambiguity. Explicit insertion reanchors the preceding subset
 of divisions to the new neume, preserving every division's derived order.
 Whole-neume and final-note deletion reanchor punctuation before the next
 surviving neume or end, preserving the pre-delete score order on convergence.
@@ -176,7 +176,7 @@ implemented in Stage 5A.
 ## Initial clef transaction (Stage 6A)
 
 `updateClef` validates both clefs and every neume/pitch before constructing a
-candidate. It changes the clef and translates all notes in one history entry,
+candidate. It changes the clef and translates the initial governing passage in one history entry,
 preserving relative diatonic melody using the mapping in
 [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md).
 Unchanged/invalid clefs, malformed neumes and unsafe integer pitch results return
@@ -188,3 +188,24 @@ kind, focus requests and lyric drafts. It clears stale hover geometry and
 announces the new type/line and melody preservation. Pending history resolution
 and lyric reassignment block the action. Later history navigation still requires
 resolution of a dirty lyric draft. Clef edits never implicitly save that draft.
+
+## Explicit clef transactions (Stage 6B)
+
+`insertClefChange`, `updateClefChange` and `deleteClefChange` construct validated
+semantic candidates without choosing a pitch policy. `effectiveOffsets` compares
+committed and candidate governing offsets by stable neume ID.
+`preserveClefMelody` prevalidates safe integer positions and neume invariants,
+then translates only affected surviving passages using the shared domain
+`clefOffset`. Preserve noteheads commits the candidate with unchanged positions.
+Redundant event identities do not constitute a pitch change.
+
+The session owns one `clefTransaction`: original snapshot, previous selection,
+authored ID, insertion boundary or existing target, draft value, and optional
+final candidate awaiting confirmation. Draft adjustments never enter history.
+Apply compares the final value with the original document, offers one pitch
+choice only when offsets change, and commits one snapshot. Cancel/no-op preserves
+the exact history and redo branch. Unsafe translations reject without partial
+mutation. Every other semantic action and history navigation is blocked until
+resolution; a stale original snapshot cancels instead of applying to newer music.
+There is no generic transaction framework. Undo/redo restores committed snapshots
+without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-controls-stage-6b).

@@ -54,8 +54,8 @@ which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
 system placement always retains its normal bounds, independently of canvas size.
 
-Every system repeats the same four staff-line x extents and the global C/F clef positioned
-on the semantic clef line. Their y coordinates advance by the system offset.
+Every system repeats the four staff lines and its effective incoming C/F clef
+(or a first authored leading clef), positioned on its semantic clef line. Their y coordinates advance by the system offset.
 
 Graphical placement previews contain an ID-free local ghost and a caret on
 committed systems. They do not assemble hypothetical systems or lyrics, or
@@ -490,7 +490,7 @@ and separately padded hit bounds, scaled from `staffStep`. Both C/do and F/fa
 support lines 1–4. The y anchor is the reference line; all automatic systems
 repeat this geometry, including the empty-score system. Geometry contains no
 semantic IDs or DOM/font dependencies. The first copy uses `ClefControl`;
-subsequent copies are aria-hidden, pointer-inert paths. The score summary names
+decorative subsequent copies are aria-hidden, pointer-inert paths. The score summary names
 the global type and line. See [drawing metrics](engraving-metrics.md#clefs-stage-6a)
 for the contours and reference sources.
 
@@ -503,3 +503,36 @@ system capacity; normal inter-neume minima and lyric composition rules are uncha
 Melody-preserving edits change note heights before layout.
 The existing fixed vertical system bounds and absent ledger lines still limit
 extreme pitches; this stage adds no vertical collision or pagination engine.
+
+## Measured clef events and custodes (Stage 6B)
+
+The existing `placeNeumeSequence` walker consumes mixed boundary events from
+`deriveScoreOrder`, carrying the effective clef through semantic placement.
+`ClefChangeLayout` retains the authored ID; `leadingClefChangeId` identifies a
+continuation system whose first semantic item supplies its leading clef at x=100.
+Only that first authored clef substitutes for the decorative repetition; every
+subsequent change remains visible. A leading division keeps the incoming
+repetition and its own place before later clefs. The first system always retains
+the required initial clef.
+
+The walker measures approved C/F geometry and pure `custos-geometry.ts` paths,
+reserves their widths before wrapping, and uses their bounds for incoming lyric,
+outgoing hyphen and insertion-slot clearance. Divisions preceding a clef can stay
+on the preceding system when they fit. Mixed oversized runs split after bounded
+progress without dropping events. Custodes may expose exceptional canvas overflow
+with an oversized source unit, following existing scrolling policy.
+
+A mid-staff guide anticipates the next committed note under the outgoing clef;
+a system-end guide uses that system's effective outgoing clef, even across an
+authored opening change. Pitch follows ADR 0015's offset formula. No-note tails,
+redundant offsets and per-unused-clef guide duplication are suppressed. A break
+replaces any mid-staff guide for the same pending note with one outgoing guide.
+Guide geometry is noninteractive and never semantic/history data.
+
+The guide's small rising head and shaft were inspected against the introductory
+[Liber Usualis p. xviii](https://gregobase.selapa.net/sources/3/17.png).
+This supports its appearance and anticipatory meaning, not the editor's particular
+wrapping policy or universal historical proportions. Approved C/F contours are
+unchanged. Clefs do not categorically block same-word compaction: measured event
+ink supplies clearance, while ADR 0013 remains the division-only exception.
+Lyrics, word boundaries and hyphen rules retain their existing semantics.

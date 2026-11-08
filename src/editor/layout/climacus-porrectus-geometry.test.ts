@@ -67,6 +67,7 @@ function three(
 }
 function documentWith(neumes: Neume[]): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Engraving review',

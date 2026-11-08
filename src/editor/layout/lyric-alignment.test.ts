@@ -1,3 +1,4 @@
+import type { PunctumNeume } from '../domain/chant-document';
 import { describe, expect, it } from 'vitest';
 import {
   automaticLyricSegment,
@@ -119,9 +120,16 @@ describe('language-specific lyric segments', () => {
   it('leaves multi-system music, anchors and wrapping unchanged', () => {
     const document = {
       ...exampleDocument,
-      neumes: Array.from({ length: 25 }, (_, i) => ({
+      neumes: Array.from({ length: 25 }, (_, i): PunctumNeume => ({
         ...exampleDocument.neumes[0],
+        kind: 'punctum',
         id: `n${i}`,
+        notes: [
+          {
+            id: `note${i}`,
+            staffPosition: exampleDocument.neumes[0].notes[0].staffPosition,
+          },
+        ],
       })),
       syllables: [syllable('qui')],
     };

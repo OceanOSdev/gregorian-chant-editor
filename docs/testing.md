@@ -577,7 +577,7 @@ actual checks, selected visual review evidence and remaining owner acceptance.
 Continue running division, continuous-lyric, anchor-move, vowel-alignment,
 measured-spacing and word-composition browser regressions sequentially on the
 shared browser tab. Foreground focus/zoom/IME, spoken output and final clef
-contour acceptance remain owner checks; Stage 6B/6C are not implemented.
+contour acceptance remain owner checks; see Stage 6B below for authored changes.
 
 The [clef refinement review](verification/clefs/refinement/review.md) separately
 checks visual fidelity against printed C/F examples at matched staff spacing.
@@ -585,3 +585,21 @@ Bounds tests alone do not assess typography. Refinement fixtures now fill the
 larger musical region left by the reduced leading gap: exact-fit growth still
 crosses the actual x=656 edge, and the shared et-lux split-span fixture keeps
 its two same-syllable notes on opposite systems with a synthetic wider prefix.
+
+## Stage 6B explicit clefs and custodes
+
+`clef-changes.test.ts` covers mixed boundary split/merge/reanchor invariants,
+non-global clef collection order, leading/trailing/empty/redundant events,
+legacy/stale intent rejection, all C/F offset pairs, initial-clef scope and unsafe
+positions. `clef-transactions.test.ts` covers transient final-value application,
+one-shot policy choice, exact history, dirty lyric preservation and exclusive
+pending ownership. `clef-changes-layout.test.ts` verifies outgoing-clef guide pitch,
+leading substitution, separated bars, deterministic long mixed runs and slot IDs.
+Existing exact-fit fixtures reserve the new system-end custos width.
+
+Run `node docs/verification/mid-score-clefs/browser-check.mjs` with the standard
+Vite/Chromium setup. `CHANT_FIREFOX_URL=ws://127.0.0.1:9234/session` selects Firefox
+BiDi. The [Stage 6B record](verification/mid-score-clefs/README.md) records actual
+results, source inspection, selected screenshots and manual owner checks.
+Run the existing clef, division, continuous-lyrics, lyric-move, vowel-alignment,
+lyric-spacing and word-composition drivers sequentially on each shared browser.

@@ -33,6 +33,7 @@ const contours = [
 ];
 function document(): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test',

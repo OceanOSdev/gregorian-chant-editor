@@ -120,7 +120,7 @@ owner-accepted relative diatonic rule. The shared-C-body F engraving has also
 received owner acceptance. Extreme pitches retain the fixed
 vertical bounds and absent ledger-line limitations.
 
-Stage 6B is specified by [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
+Stage 6B implements [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
 (owner-approved 2026-11-08), following the _Liber Usualis_ investigation.
 Explicit clef changes may be inserted at whole-neume semantic boundaries
 **without a preceding bar**. Independent clefs and divisions use derived
@@ -130,8 +130,10 @@ Preserve noteheads only when existing notes are affected; the initial clef
 remains automatically melody-preserving within its governing passage.
 Stage 6B includes automatically derived custos at mid-staff changes and
 staff endings, with effective-clef-aware guide pitches and measured wrapping.
-Implementation remains pending a separate Git-backed Codex handoff and PR;
-ADR acceptance is not feature completion. Stage 6C may improve graphical
+The explicit boundary controls, staged Apply/Cancel and pitch choice, scoped
+initial edits, measured clefs/custodes and atomic history are implemented.
+See [verification](verification/mid-score-clefs/README.md); final owner engraving,
+foreground keyboard and accessibility acceptance remain pending. Stage 6C may improve graphical
 insertion and vertical editing, but **free horizontal clef movement is not
-planned**. No persisted clef-change collection or guide rendering is
-implemented yet.
+planned**. There is no save/load format or migration, accidental support,
+playback, or ledger-line redesign.

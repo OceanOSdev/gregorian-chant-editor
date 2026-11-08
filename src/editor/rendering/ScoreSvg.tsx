@@ -38,6 +38,10 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  transactionBlocked: boolean;
+  onSelectClefChange: (id: string) => void;
+  onEditClefChange: (id: string, clef: Clef) => void;
+  onDeleteClefChange: (id: string) => void;
   onSelectClef: () => void;
   onChangeClef: (clef: Clef) => void;
   layout: ChantLayout;
@@ -82,6 +86,10 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  transactionBlocked,
+  onSelectClefChange,
+  onEditClefChange,
+  onDeleteClefChange,
   onSelectClef,
   onChangeClef,
   layout,
@@ -112,6 +120,7 @@ export function ScoreSvg({
   onAdvanceLyric,
   onDeleteSyllable,
 }: ScoreSvgProps) {
+  const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
   const scoreElement = useRef<SVGSVGElement>(null);
   const lyricElements = useRef(new Map<string, SVGTextElement>());
@@ -120,7 +129,7 @@ export function ScoreSvg({
   // Reflow can reparent keyed controls between system groups. Track browser
   // focus separately from selection so measurement changes can restore that ID.
   const focusedEntity = useRef<{
-    kind: 'note' | 'lyric' | 'division';
+    kind: 'note' | 'lyric' | 'division' | 'clef-change';
     id: string;
     element: Element;
   } | null>(null);
@@ -134,16 +143,19 @@ export function ScoreSvg({
         focusedEntity.current = null;
         return;
       }
+      const clefChangeId = target.getAttribute('data-clef-change-id');
       const divisionId = target.getAttribute('data-division-id');
       const noteId = target.getAttribute('data-note-id');
       const syllableId = target.getAttribute('data-syllable-id');
-      focusedEntity.current = divisionId
-        ? { kind: 'division', id: divisionId, element: target }
-        : noteId
-          ? { kind: 'note', id: noteId, element: target }
-          : syllableId
-            ? { kind: 'lyric', id: syllableId, element: target }
-            : null;
+      focusedEntity.current = clefChangeId
+        ? { kind: 'clef-change', id: clefChangeId, element: target }
+        : divisionId
+          ? { kind: 'division', id: divisionId, element: target }
+          : noteId
+            ? { kind: 'note', id: noteId, element: target }
+            : syllableId
+              ? { kind: 'lyric', id: syllableId, element: target }
+              : null;
     };
     document.addEventListener('focusin', track);
     return () => document.removeEventListener('focusin', track);
@@ -158,11 +170,13 @@ export function ScoreSvg({
     )
       return;
     const element =
-      target.kind === 'division'
-        ? divisionElements.current.get(target.id)
-        : target.kind === 'note'
-          ? noteElements.current.get(target.id)
-          : lyricElements.current.get(target.id);
+      target.kind === 'clef-change'
+        ? clefChangeElements.current.get(target.id)
+        : target.kind === 'division'
+          ? divisionElements.current.get(target.id)
+          : target.kind === 'note'
+            ? noteElements.current.get(target.id)
+            : lyricElements.current.get(target.id);
     if (element) focusAndReveal(element);
   });
   const placementActive = isPlacementTool(activeTool);
@@ -173,6 +187,12 @@ export function ScoreSvg({
       focusRequest.kind === 'lyrics'
     )
       return;
+    if (focusRequest.kind === 'clef-change') {
+      const element = clefChangeElements.current.get(focusRequest.clefChangeId);
+      if (element) focusAndReveal(element);
+      onFocusHandled(focusRequest);
+      return;
+    }
     if (focusRequest.kind === 'clef') {
       if (clefElement.current && !placementActive)
         focusAndReveal(clefElement.current);
@@ -215,7 +235,7 @@ export function ScoreSvg({
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
     event.stopPropagation();
-    if (placementActive) return;
+    if (placementActive || transactionBlocked) return;
     if (lyricMove) {
       const neumeId =
         event.currentTarget.closest<SVGGElement>('[data-neume-id]')?.dataset
@@ -375,23 +395,41 @@ export function ScoreSvg({
             <ClefControl
               clef={system.clef}
               selected={selection.kind === 'clef'}
-              disabled={placementActive || Boolean(lyricMove)}
+              disabled={
+                placementActive || Boolean(lyricMove) || transactionBlocked
+              }
               onSelect={onSelectClef}
               onChange={onChangeClef}
               registerElement={(element) => {
                 clefElement.current = element;
               }}
             />
-          ) : (
+          ) : !system.leadingClefChangeId ? (
             <path
               className="score__clef-ink"
               d={system.clef.path}
               aria-hidden="true"
               pointerEvents="none"
             />
-          )}
+          ) : null}
+          {system.custodes.map((guide, i) => (
+            <path
+              key={i}
+              className="score__custos"
+              d={guide.path}
+              data-custos-position={guide.staffPosition}
+              data-outgoing={guide.outgoing}
+              aria-hidden="true"
+              pointerEvents="none"
+            />
+          ))}
 
           {[
+            ...system.clefChanges.map((clef) => ({
+              type: 'clef' as const,
+              clef,
+              x: clef.bounds.x,
+            })),
             ...system.neumes.map((neume) => ({
               type: 'neume' as const,
               neume,
@@ -405,6 +443,30 @@ export function ScoreSvg({
           ]
             .sort((a, b) => a.x - b.x)
             .map((item) => {
+              if (item.type === 'clef') {
+                const id = item.clef.clefChangeId;
+                return (
+                  <ClefControl
+                    key={id}
+                    clef={item.clef}
+                    changeId={id}
+                    selected={
+                      selection.kind === 'clef-change' &&
+                      selection.clefChangeId === id
+                    }
+                    disabled={
+                      placementActive || !!lyricMove || transactionBlocked
+                    }
+                    onSelect={() => onSelectClefChange(id)}
+                    onChange={(clef) => onEditClefChange(id, clef)}
+                    onDelete={() => onDeleteClefChange(id)}
+                    registerElement={(element) => {
+                      if (element) clefChangeElements.current.set(id, element);
+                      else clefChangeElements.current.delete(id);
+                    }}
+                  />
+                );
+              }
               if (item.type === 'division') {
                 const division = item.division;
                 const selected =
@@ -415,7 +477,11 @@ export function ScoreSvg({
                     key={division.divisionId}
                     division={division}
                     selected={selected}
-                    disabled={placementActive || Boolean(lyricMove)}
+                    disabled={
+                      placementActive ||
+                      Boolean(lyricMove) ||
+                      transactionBlocked
+                    }
                     ordinal={
                       layout.systems
                         .flatMap((s) => s.divisions)
@@ -560,9 +626,13 @@ export function ScoreSvg({
                         }}
                         data-note-id={note.noteId}
                         role="button"
-                        tabIndex={placementActive ? -1 : 0}
+                        tabIndex={
+                          placementActive || transactionBlocked ? -1 : 0
+                        }
                         pointerEvents={
-                          placementActive || lyricMove ? 'none' : 'all'
+                          placementActive || lyricMove || transactionBlocked
+                            ? 'none'
+                            : 'all'
                         }
                         aria-label={
                           lyricMove
@@ -575,7 +645,7 @@ export function ScoreSvg({
                             : `whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
                         }
                         aria-pressed={isNoteSelected}
-                        aria-disabled={placementActive}
+                        aria-disabled={placementActive || transactionBlocked}
                         onClick={(event) => handleNoteClick(event, note.noteId)}
                         onKeyDown={(event) =>
                           handleNoteKeyDown(
@@ -697,26 +767,34 @@ export function ScoreSvg({
                   }}
                   role="button"
                   aria-describedby="lyric-focus-help"
-                  tabIndex={placementActive || lyricMove ? -1 : 0}
+                  tabIndex={
+                    placementActive || lyricMove || transactionBlocked ? -1 : 0
+                  }
                   aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
                   aria-pressed={
                     selection.kind === 'syllable' &&
                     selection.syllableId === lyric.syllableId
                   }
-                  aria-disabled={placementActive || Boolean(lyricMove)}
-                  pointerEvents={placementActive || lyricMove ? 'none' : 'all'}
+                  aria-disabled={
+                    placementActive || Boolean(lyricMove) || transactionBlocked
+                  }
+                  pointerEvents={
+                    placementActive || lyricMove || transactionBlocked
+                      ? 'none'
+                      : 'all'
+                  }
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (!placementActive && !lyricMove)
+                    if (!placementActive && !lyricMove && !transactionBlocked)
                       onSelectSyllable(lyric.syllableId);
                   }}
                   onDoubleClick={(event) => {
                     event.stopPropagation();
-                    if (!placementActive && !lyricMove)
+                    if (!placementActive && !lyricMove && !transactionBlocked)
                       onEditSyllable(lyric.syllableId);
                   }}
                   onKeyDown={(event) => {
-                    if (lyricMove) return;
+                    if (lyricMove || transactionBlocked) return;
                     const action = getSyllableKeyAction(
                       event.nativeEvent,
                       selection.kind === 'syllable' &&

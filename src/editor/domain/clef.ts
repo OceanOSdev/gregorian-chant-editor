@@ -22,3 +22,7 @@ const clefSyllable = { c: 'do', f: 'fa' } satisfies Record<
 export function clefName({ type }: Clef): string {
   return `${type.toUpperCase()} (${clefSyllable[type]})`;
 }
+
+export function clefOffset(clef: Clef): number {
+  return (clef.type === 'c' ? 0 : 3) - 2 * (clef.staffLine - 1);
+}

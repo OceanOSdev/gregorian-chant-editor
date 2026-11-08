@@ -54,10 +54,9 @@ References:
   authoring an initial clef remains a separate control.
 - Each explicit clef change stores, conceptually:
 
+  <!-- prettier-ignore -->
   ```ts
-  {
-    (id, clef, beforeNeumeId, beforeDivisionId);
-  }
+  { id, clef, beforeNeumeId, beforeDivisionId }
   ```
 
   `beforeNeumeId` is the neume following the containing boundary
@@ -71,10 +70,9 @@ References:
 
 - Extend the insertion intent to distinguish both sides of clefs:
 
+  <!-- prettier-ignore -->
   ```ts
-  {
-    (beforeNeumeId, beforeDivisionId, beforeClefId);
-  }
+  { beforeNeumeId, beforeDivisionId, beforeClefId }
   ```
 
   `beforeDivisionId` selects the division slot; `beforeClefId`

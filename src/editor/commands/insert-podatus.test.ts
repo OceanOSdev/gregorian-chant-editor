@@ -38,6 +38,7 @@ function podatus(
 
 function createDocument(): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',

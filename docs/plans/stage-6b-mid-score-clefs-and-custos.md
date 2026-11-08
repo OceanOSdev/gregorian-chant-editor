@@ -9,7 +9,7 @@ Status: Implementation handoff; **ADR 0015 Accepted (2026-11-08)**
 Authors can currently edit only the required initial C/F clef (Stage 6A).
 They need to insert, edit and remove **explicit mid-score C/F clef changes**
 at whole-neume score boundaries, with no required division/bar, and see
-faithful, readable guides (*custodes*) at clef changes and staff endings.
+faithful, readable guides (_custodes_) at clef changes and staff endings.
 The result must retain music and lyrics reliably across edits, wrapping,
 selection and undo/redo. Build a usable Stage 6B feature, not an architecture
 prototype or unfinished UX scaffold.
@@ -65,11 +65,13 @@ the current implementation.
    semantic order, **not system indexes**. A change has no linguistic effect.
 
 Examples demanding focused regressions:
+
 ```text
 A C1 C2 B + insert D between C1/C2 => A C1 D C2 B
 A C1 B D C2 E - delete B         => A C1 D C2 E
 C3(initial) A C4 B F3 C           => editing C4 must not move C
 ```
+
 Also exercise multiple divisions and clefs at one anchored neume,
 reversed/non-global collection order, boundary merges, end-of-score and
 empty-score placement, and invalid/stale references.
@@ -164,7 +166,7 @@ empty-score placement, and invalid/stale references.
    cancellation. Follow ADR 0013's division-specific compaction
    exception; clef/custos spacing is geometry-driven.
 6. Prefer existing approved C/F glyphs, staff metrics and pure geometry
-   builders. Inspect the *Liber Usualis* introductory guide examples
+   builders. Inspect the _Liber Usualis_ introductory guide examples
    for appearance/proportion; distinguish printed evidence from
    our accepted layout policy. Do not redesign approved C/F contours.
 
@@ -181,7 +183,7 @@ and test layers as appropriate. Examples to inspect:
 Names are pointers, not an imposed file-by-file design. Avoid a sweeping
 refactor or excessive facade files.
 
-Update authoritative guides when their *implemented behavior* changes,
+Update authoritative guides when their _implemented behavior_ changes,
 especially domain-model, editor-interactions, commands-and-history,
 layout-and-rendering and roadmap. Do not retroactively rewrite historical
 Stage 6A plans or accepted ADRs; ADR 0015 already records their narrow

@@ -61,7 +61,7 @@ const mount = async (
   ],
 ) => {
   await ev(
-    `mountChantFixture(${JSON.stringify({ title: 'Stage 2', divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
+    `mountChantFixture(${JSON.stringify({ title: 'Stage 2', clefChanges: [], divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables, neumes: Array.from({ length: count }, (_, i) => ({ id: `n${i}`, kind: 'punctum', notes: [{ id: `note${i}`, staffPosition: 2 }] })) })})`,
   );
   await pause();
 };

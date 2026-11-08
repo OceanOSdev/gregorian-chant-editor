@@ -431,3 +431,40 @@ kbd {
   stroke-width: 2;
   stroke-dasharray: 4 3;
 }
+
+.clef-dialog {
+  position: fixed;
+  z-index: 20;
+  inset: 20% auto auto 50%;
+  transform: translateX(-50%);
+  width: min(34rem, 90vw);
+  padding: 1.5rem;
+  border: 2px solid #44365c;
+  background: #fffdf8;
+  box-shadow: 0 0 0 100vmax #0006;
+  max-height: 70vh;
+  overflow: auto;
+}
+.score__custos {
+  fill: currentColor;
+}
+
+.clef-change-controls {
+  min-width: 0;
+}
+.clef-change-controls select {
+  max-width: 100%;
+  min-width: 0;
+  margin: 0.3rem 0;
+  font: inherit;
+}
+.clef-change-controls label {
+  display: block;
+}
+.clef-change-controls button {
+  margin-block: 0.2rem;
+}
+.clef-dialog select {
+  font: inherit;
+  min-height: 2.5rem;
+}

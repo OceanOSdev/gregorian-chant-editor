@@ -27,6 +27,7 @@ Score selection uses stable IDs for entities and a singleton tag for the clef:
 - one whole-neume ID;
 - one syllable ID;
 - one division ID;
+- one explicit clef-change ID;
 - the required initial clef (no semantic ID).
 
 Clicking a note or pressing Enter/Space on its focused control selects the
@@ -586,24 +587,52 @@ linguistic validation attached to a division kind.
 
 The always-visible **Initial clef** group offers explicitly labeled **Clef type**
 (C/do or F/fa) and **Staff line** (1–4, bottom to top) native selects.
-Each change preserves melody by translating all notes and records one semantic
+Each change preserves melody in the initial governing passage and records one semantic
 history entry. Controls keep native focus, preserve active placement tools and
 remembered neume kind, and leave dirty lyric drafts intact. They are disabled
-during pending history resolution and lyric reassignment.
+during pending history resolution, lyric reassignment and clef transactions.
 
-In Select mode only the first system's clef is a focusable button. Click or
+In Select mode the required first-system clef is a singleton focusable button. Click or
 Enter/Space selects it. Tab focus alone does not select. Arrow Up/Down on the
 focused clef moves its reference line one legal line; at lines 1/4 the outward
 arrow makes no edit. Modifier chords, repeat and composition do not edit it.
 Blue selection and a purple dashed keyboard-focus cue are independent. Escape
 clears selection through the existing handler (or resolves the active lyric
 context first). Delete never removes the required clef. Later-system copies
-are decorative and repeat the same document clef; they are not independent
-editable entities. The score summary and control label name type and line.
+are decorative repetitions of the effective incoming clef, unless an authored
+clef occupies the leading position; authored changes remain independent controls. The score summary and control label name type and line.
 
 While placement is active the clef target is disabled, removed from Tab order
 and pointer-inert; the score surface retains placement ownership. Leaving
 placement can restore clef focus through the singleton focus request. The first
 clef stays in its first-system DOM group through musical reflow, so normal clef
-edits and history retain browser focus. Mid-score insertion and dragging belong
-to later stages.
+edits and history retain browser focus. Horizontal clef dragging is excluded.
+
+## Mid-score clef controls (Stage 6B)
+
+The **Mid-score clefs** group exposes every derived event boundary in a native
+select, naming the preceding/following event. **Insert clef change** opens a
+C/F and staff-line draft with **Apply clef change** / **Cancel clef change**.
+The authored-target select or a click/Enter/Space on an engraved clef chooses
+its stable ID. **Edit clef change** opens the same draft; Up/Down on an authored
+glyph opens a staged one-line adjustment. **Delete clef change**, or focused
+Delete/Backspace, stages removal. Explicit remembered-neume before/after buttons
+also distinguish sides of a selected authored clef. Pointer clef ghosts are deferred;
+native controls provide the insertion path for pointer and keyboard users.
+
+Apply prompts only for changed effective pitches: **Preserve melody** receives
+initial focus and is the default; **Preserve noteheads** retains staff positions.
+No-op, trailing and redundant changes commit or close without a pitch prompt.
+The dialog traps Tab within its controls. Escape cancels the entire clef operation
+first, including from the pitch choice; outside a transaction the established
+lyric/placement/selection precedence applies. All conflicting semantic actions,
+including lyric commits and history, are blocked by the reducer while pending.
+Dirty lyric text remains exactly intact without implicit save or discard.
+
+Commit selects and reveals the surviving authored ID; deletion clears selection
+and focuses Select. Cancel/no-op retains the preceding selection and returns focus to the edited
+authored glyph; a canceled insertion returns to the preceding selection's score
+target, or Select if none. Engraved focus survives system reparenting by stable ID.
+Tab focus alone never selects a clef. Authored glyphs use the existing selection
+and focus cues; decorative repetitions and custodes are pointer-inert and absent
+from the tab order. Relocation requires deletion and reinsertion.

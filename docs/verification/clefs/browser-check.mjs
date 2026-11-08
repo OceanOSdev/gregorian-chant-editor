@@ -92,6 +92,7 @@ const fixture = (count) => ({
   title: 'Stage 6A clef review',
   clef: { type: 'c', staffLine: 3 },
   lyricLanguage: 'la',
+  clefChanges: [],
   divisions: count ? [{ id: 'D', kind: 'minor', beforeNeumeId: 'n1' }] : [],
   neumes: Array.from({ length: count }, (_, i) => ({
     id: 'n' + i,

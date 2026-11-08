@@ -1,3 +1,4 @@
+import { ClefChangeControls } from './ClefChangeControls';
 import { isValidClef } from '../domain/clef';
 import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
@@ -498,7 +499,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its palette button.
       </p>
-      <fieldset disabled={Boolean(session.pendingHistory || session.lyricMove)}>
+      <ClefChangeControls session={session} dispatch={dispatch} />
+      <fieldset
+        disabled={Boolean(
+          session.clefTransaction ||
+          session.pendingHistory ||
+          session.lyricMove,
+        )}
+      >
         <legend>Initial clef</legend>
         <label>
           Clef type{' '}
@@ -538,9 +546,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </select>
         </label>
         <p>
-          Clef changes preserve the melody by moving all notes. In Select mode,
-          focus the first clef and use ↑/↓ to change its line. Later systems
-          repeat this clef.
+          Initial clef changes preserve the melody in the initial passage. In
+          Select mode, focus the first clef and use ↑/↓ to change its line.
+          Later systems repeat the effective clef at their semantic start.
         </p>
       </fieldset>
       <fieldset
@@ -715,6 +723,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
         >
           <ScoreSvg
+            transactionBlocked={Boolean(session.clefTransaction)}
+            onSelectClefChange={(clefChangeId) =>
+              dispatch({
+                type: 'select',
+                selection: { kind: 'clef-change', clefChangeId },
+              })
+            }
+            onEditClefChange={(id, clef) => {
+              dispatch({ type: 'start-clef-change', id });
+              dispatch({ type: 'draft-clef-change', clef });
+            }}
+            onDeleteClefChange={(id) => {
+              dispatch({ type: 'start-clef-change', id });
+              dispatch({ type: 'apply-clef-change', remove: true });
+            }}
             onSelectClef={() =>
               dispatch({ type: 'select', selection: { kind: 'clef' } })
             }

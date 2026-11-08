@@ -4,6 +4,8 @@ import type { ClefGeometry } from '../layout/clef-geometry';
 import { focusAndReveal } from './focus-visibility';
 
 export function ClefControl({
+  changeId,
+  onDelete,
   clef,
   selected,
   disabled,
@@ -11,6 +13,8 @@ export function ClefControl({
   onChange,
   registerElement,
 }: {
+  changeId?: string;
+  onDelete?: () => void;
   clef: ClefGeometry;
   selected: boolean;
   disabled: boolean;
@@ -21,13 +25,14 @@ export function ClefControl({
   return (
     <g
       ref={registerElement}
-      data-initial-clef="true"
+      data-initial-clef={changeId ? undefined : 'true'}
+      data-clef-change-id={changeId}
       className={`score__clef-control${selected ? ' score__clef-control--selected' : ''}`}
       role="button"
       tabIndex={disabled ? -1 : 0}
       aria-pressed={selected}
       aria-disabled={disabled}
-      aria-label={`Initial ${clefName(clef)} clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down changes line and preserves melody. Use Initial clef controls to change type.`}
+      aria-label={`${changeId ? 'Authored' : 'Initial'} ${clefName(clef)} clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down ${changeId ? 'opens a staged line edit; Delete stages removal' : 'changes line and preserves melody'}. Use clef controls to change type.`}
       pointerEvents={disabled ? 'none' : 'all'}
       onClick={(event) => {
         event.stopPropagation();
@@ -47,6 +52,12 @@ export function ClefControl({
           event.shiftKey
         )
           return;
+        if (changeId && ['Delete', 'Backspace'].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          onDelete?.();
+          return;
+        }
         if (['Enter', ' ', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
           event.preventDefault();
           event.stopPropagation();

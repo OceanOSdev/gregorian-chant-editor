@@ -47,6 +47,7 @@ const neumes: Neume[] = [
 const document: ChantDocument = {
   ...exampleDocument,
   neumes,
+  clefChanges: [],
   divisions: [{ id: 'bar', kind: 'minor', beforeNeumeId: 'd' }],
   syllables: [
     { id: 'lyric', text: 'Ky', startsAtNeumeId: 'p', boundaryBefore: 'word' },

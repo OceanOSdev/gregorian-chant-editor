@@ -11,6 +11,7 @@ import { updateLyricSyllableText } from './update-lyric-syllable';
 
 function createDocument(): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',

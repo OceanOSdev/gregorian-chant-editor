@@ -87,6 +87,7 @@ function specimen(
 ): CompositionCase {
   const document: ChantDocument = {
     title: `Et lux perpetua — ${id}`,
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },

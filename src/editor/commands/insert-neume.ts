@@ -4,6 +4,8 @@ import type {
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
 import {
+  deriveScoreOrder,
+  reanchorScoreOrder,
   hasValidDivisions,
   resolveScoreBoundary,
   semanticIds,
@@ -25,7 +27,10 @@ export function insertNeume(
     )
       return document;
     const beforeNeumeId = document.neumes[boundary]?.id ?? null;
-    if (document.divisions.some((d) => d.beforeNeumeId === beforeNeumeId))
+    if (
+      document.divisions.some((d) => d.beforeNeumeId === beforeNeumeId) ||
+      document.clefChanges.some((c) => c.beforeNeumeId === beforeNeumeId)
+    )
       return document;
     intent = { beforeNeumeId, beforeDivisionId: null };
   } else intent = boundary;
@@ -43,18 +48,16 @@ export function insertNeume(
     new Set(ids).size !== ids.length
   )
     return document;
-  const preceding = new Set(resolved.precedingDivisions.map((d) => d.id));
+  const order = deriveScoreOrder(document);
+  if (!order) return document;
+  order.splice(resolved.scoreIndex, 0, { type: 'neume', entity: neume });
   return {
     ...document,
+    ...reanchorScoreOrder(order),
     neumes: [
       ...document.neumes.slice(0, resolved.neumeIndex),
       neume,
       ...document.neumes.slice(resolved.neumeIndex),
     ],
-    divisions: preceding.size
-      ? document.divisions.map((d) =>
-          preceding.has(d.id) ? { ...d, beforeNeumeId: neume.id } : d,
-        )
-      : document.divisions,
   };
 }

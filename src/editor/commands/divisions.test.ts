@@ -43,6 +43,7 @@ function fixture(): ChantDocument {
     clef: { type: 'c', staffLine: 4 },
     lyricLanguage: 'la',
     neumes: [note('A'), note('B')],
+    clefChanges: [],
     divisions: [division('D', 'B')],
     syllables: [
       { id: 'lyric', text: 'la', startsAtNeumeId: 'B', boundaryBefore: 'word' },

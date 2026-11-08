@@ -47,6 +47,7 @@ function twoNote(
 }
 function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Engraving',
@@ -369,18 +370,21 @@ describe('approved engraving geometry', () => {
     }
   });
 
-  it('fits twelve Podatus per system and preserves the following-neume gap', () => {
+  it('reserves a custos after eleven Podatus per system and preserves the following-neume gap', () => {
     const neumes = Array.from({ length: 13 }, (_, i) =>
       twoNote('podatus', (i % 5) + 1, `pes-${i}`),
     );
     const layout = layoutChant(documentWith(neumes));
-    expect(layout.systems.map((s) => s.neumes.length)).toEqual([12, 1]);
+    expect(layout.systems.map((s) => s.neumes.length)).toEqual([11, 2]);
     const first = layout.systems[0].neumes;
     for (let i = 1; i < first.length; i++)
       expect(
         first[i].bounds.x - first[i - 1].bounds.x - first[i - 1].bounds.width,
       ).toBe(33);
-    expect(first[11].bounds.x + first[11].bounds.width).toBe(651);
+    expect(first[10].bounds.x + first[10].bounds.width).toBe(606);
+    expect(layout.systems[0].custodes[0].bounds.x + 10).toBeLessThanOrEqual(
+      656,
+    );
   });
 
   it('keeps musical anchors fixed when asymmetric ink bounds expand', () => {

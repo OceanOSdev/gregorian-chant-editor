@@ -1,3 +1,12 @@
+import {
+  insertClefChange,
+  updateClefChange,
+  deleteClefChange,
+  hasChangedEffectivePitches,
+  preserveClefMelody,
+} from '../commands/edit-clef-change';
+import { isValidClef } from '../domain/clef';
+import { resolveScoreBoundary } from '../domain/divisions';
 import { updateClef } from '../commands/update-clef';
 import {
   insertDivision,
@@ -51,6 +60,7 @@ import {
 
 export type EditorFocusRequest =
   | { kind: 'clef' }
+  | { kind: 'clef-change'; clefChangeId: string }
   | { kind: 'division'; divisionId: string }
   | { kind: 'lyrics' }
   | { kind: 'lyric'; syllableId: string }
@@ -58,7 +68,17 @@ export type EditorFocusRequest =
   | { kind: 'placement'; noteId: string }
   | { kind: 'palette'; tool: 'select' | GraphicalNeumeKind };
 
+export interface ClefTransaction {
+  original: ChantDocument;
+  previousSelection: EditorSelection;
+  id: string;
+  boundary: ScoreInsertionBoundary | null;
+  clef: Clef;
+  candidate: ChantDocument | null;
+}
+
 export interface EditorSession {
+  clefTransaction: ClefTransaction | null;
   history: DocumentHistory;
   lyricMove: {
     syllableId: string;
@@ -116,6 +136,11 @@ export function lyricMoveTargets(
 }
 
 export type EditorAction =
+  | { type: 'start-clef-change'; id: string; boundary?: ScoreInsertionBoundary }
+  | { type: 'draft-clef-change'; clef: Clef }
+  | { type: 'apply-clef-change'; remove?: boolean }
+  | { type: 'cancel-clef-change' }
+  | { type: 'confirm-clef-change'; preserve: 'melody' | 'noteheads' }
   | { type: 'change-clef'; clef: Clef }
   | {
       type: 'place-division';
@@ -175,6 +200,7 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    clefTransaction: null,
     history: createDocumentHistory(document),
     lyricMove: null,
     lyrics: null,
@@ -215,6 +241,8 @@ export function getSelectFocusRequest(
 ): EditorFocusRequest {
   const document = state.history.present;
   const selection = state.selection;
+  if (selection.kind === 'clef-change')
+    return { kind: 'clef-change', clefChangeId: selection.clefChangeId };
   if (selection.kind === 'clef') return { kind: 'clef' };
   if (
     selection.kind === 'syllable' &&
@@ -248,6 +276,11 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'start-clef-change':
+    case 'draft-clef-change':
+    case 'apply-clef-change':
+    case 'cancel-clef-change':
+    case 'confirm-clef-change':
     case 'lyric-move':
     case 'start-lyrics-at-focus':
     case 'lyrics':
@@ -564,6 +597,124 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  const transaction = state.clefTransaction;
+  if (action.type === 'start-clef-change') {
+    if (transaction || state.pendingHistory || state.lyricMove) return state;
+    const document = state.history.present;
+    const existing = document.clefChanges.find((c) => c.id === action.id);
+    if (
+      action.boundary
+        ? !resolveScoreBoundary(document, action.boundary)
+        : !existing
+    )
+      return state;
+    // Preserve the exact lyric draft; the transaction owns all editing until resolved.
+    return {
+      ...state,
+      activeTool: selectTool(),
+      hoveredPoint: null,
+      focusRequest: null,
+      clefTransaction: {
+        original: document,
+        previousSelection: state.selection,
+        id: action.id,
+        boundary: action.boundary ?? null,
+        clef: existing?.clef ?? { type: 'c', staffLine: 3 },
+        candidate: null,
+      },
+    };
+  }
+  if (transaction) {
+    if (action.type === 'focus-handled')
+      return reduceSessionAction(state, action);
+    const restore = (): EditorSession => {
+      const selection = reconcileSelection(
+        state.history.present,
+        transaction.previousSelection,
+      );
+      return {
+        ...state,
+        clefTransaction: null,
+        selection,
+        focusRequest:
+          !transaction.boundary &&
+          state.history.present.clefChanges.some((c) => c.id === transaction.id)
+            ? { kind: 'clef-change', clefChangeId: transaction.id }
+            : getSelectFocusRequest({ ...state, selection }),
+      };
+    };
+    if (action.type === 'cancel-clef-change') return restore();
+    if (transaction.original !== state.history.present) return restore();
+    if (
+      action.type === 'draft-clef-change' &&
+      !transaction.candidate &&
+      isValidClef(action.clef)
+    )
+      return {
+        ...state,
+        clefTransaction: { ...transaction, clef: { ...action.clef } },
+      };
+    let candidate: ChantDocument | null = null;
+    if (action.type === 'apply-clef-change' && !transaction.candidate) {
+      candidate = action.remove
+        ? deleteClefChange(transaction.original, transaction.id)
+        : transaction.boundary
+          ? insertClefChange(
+              transaction.original,
+              {
+                id: transaction.id,
+                clef: transaction.clef,
+                beforeNeumeId: transaction.boundary.beforeNeumeId,
+                beforeDivisionId: transaction.boundary.beforeDivisionId,
+              },
+              transaction.boundary,
+            )
+          : updateClefChange(
+              transaction.original,
+              transaction.id,
+              transaction.clef,
+            );
+      if (candidate === transaction.original) return restore();
+      if (!preserveClefMelody(transaction.original, candidate))
+        return announce(
+          state,
+          'Clef change rejected: unsafe note positions. Cancel or revise the draft.',
+        );
+      if (hasChangedEffectivePitches(transaction.original, candidate)) {
+        return { ...state, clefTransaction: { ...transaction, candidate } };
+      }
+    } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
+      candidate =
+        action.preserve === 'melody'
+          ? preserveClefMelody(transaction.original, transaction.candidate)
+          : transaction.candidate;
+    }
+    if (!candidate) return state;
+    const surviving = candidate.clefChanges.some(
+      (c) => c.id === transaction.id,
+    );
+    return announce(
+      reconcile({
+        ...state,
+        clefTransaction: null,
+        history: applyDocumentEdit(state.history, () => candidate),
+        selection: surviving
+          ? { kind: 'clef-change', clefChangeId: transaction.id }
+          : clearSelection(),
+        focusRequest: surviving
+          ? { kind: 'clef-change', clefChangeId: transaction.id }
+          : { kind: 'palette', tool: 'select' },
+      }),
+      'Clef change applied.',
+    );
+  }
+  if (
+    action.type === 'draft-clef-change' ||
+    action.type === 'apply-clef-change' ||
+    action.type === 'confirm-clef-change' ||
+    action.type === 'cancel-clef-change'
+  )
+    return state;
   if (action.type === 'lyric-move') {
     const move = state.lyricMove;
     const intent = action.action;

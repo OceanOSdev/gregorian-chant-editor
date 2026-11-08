@@ -11,6 +11,7 @@ import {
 
 function documentWith(count = 0): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Intent',
@@ -136,8 +137,8 @@ describe('caret and local ghost insertion intent', () => {
     const document = documentWith(20);
     const end = resolve(document, 655);
     const start = resolve(document, 64, 344);
-    expect(end.insertionIndex).toBe(12);
-    expect(start.insertionIndex).toBe(12);
+    expect(end.insertionIndex).toBe(11);
+    expect(start.insertionIndex).toBe(11);
     expect(end.preview.caret.systemIndex).toBe(0);
     expect(start.preview.caret.systemIndex).toBe(1);
   });

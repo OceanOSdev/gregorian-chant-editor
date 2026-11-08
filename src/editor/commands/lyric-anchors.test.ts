@@ -41,6 +41,7 @@ function punctum(id: string): Neume & { kind: 'punctum' } {
 }
 function fixture(): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Anchors',

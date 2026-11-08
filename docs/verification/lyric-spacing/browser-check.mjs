@@ -124,6 +124,7 @@ const words = [
 ];
 const fixture = {
   title: 'Kyrie eleison — lyric spacing and wrapping',
+  clefChanges: [],
   divisions: [],
   lyricLanguage: 'la',
   clef: { type: 'c', staffLine: 3 },
@@ -493,7 +494,10 @@ for (const direction of ['left', 'right', 'both']) {
   await key('End', 2);
   await new Promise((r) => setTimeout(r, 300));
   // Native horizontal wheel reaches the complete right edge without page overflow.
-  await ev('window.scrollTo(0,0)');
+  await ev(
+    `document.querySelector('.score-viewport').scrollIntoView({block:'center'})`,
+  );
+  await pause();
   const wheelPoint = await ev(
     `(()=>{const r=document.querySelector('.score-viewport').getBoundingClientRect();return {x:r.left+20,y:Math.max(10,r.top+30)}})()`,
   );

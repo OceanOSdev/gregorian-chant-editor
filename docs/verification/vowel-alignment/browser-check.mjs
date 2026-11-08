@@ -56,6 +56,7 @@ for (let i = 0; i < 50; i++) {
 const words = ['Ky', 'ri', 'e', 'lé', 'son', 'au', 'qui', 'æ'];
 const fixture = {
   title: 'Stage 4A — vowel alignment',
+  clefChanges: [],
   divisions: [],
   lyricLanguage: 'la',
   clef: { type: 'c', staffLine: 3 },

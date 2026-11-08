@@ -17,6 +17,7 @@ function punctum(id: string): Neume {
 
 function documentWith(neumes: Neume[] = []): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test',

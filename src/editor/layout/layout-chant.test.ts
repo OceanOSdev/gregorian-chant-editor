@@ -111,6 +111,7 @@ function torculus(
 
 function createDocument(neumes: Neume[]): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',

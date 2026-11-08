@@ -14,6 +14,7 @@ const measure: MeasureLyricText = (text) => ({
 function fixture(anchors = [0, 3, 4, 5, 6], count = 8): ChantDocument {
   return {
     title: 'Alleluia',
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },
@@ -209,7 +210,8 @@ describe('word-aware composition', () => {
 
 it('fits a first source lyric together with its outgoing reservation', () => {
   const d = fixture([0, 1], 2);
-  d.syllables[0] = { ...d.syllables[0], text: 'a' + 'b'.repeat(49) };
+  d.syllables[0] = { ...d.syllables[0], text: 'a' + 'b'.repeat(46) };
+  d.syllables[1] = { ...d.syllables[1], text: 'bbbbb' };
   const l = layoutChant(d, measure),
     s = l.systems[0],
     mark = s.hyphens[0];
