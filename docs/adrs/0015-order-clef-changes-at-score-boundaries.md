@@ -21,19 +21,20 @@ insertion slots (Accepted ADR 0012). Divisions are not linguistic boundaries
 (ADR 0013).
 
 This ADR's first draft attached changes only to `finalis` double bars.
-That was too restrictive for the notation being targeted. The *Liber
-Usualis* introductory rules, p. xviii, describe mid-staff clef changes
-and identify *Cum appropinquaret* as an example. A separate GABC
-transcription contains three changes after *mihi*, *est*, and *eum* without
+That was too restrictive for the notation being targeted. The _Liber
+Usualis_ introductory rules, p. xviii, describe mid-staff clef changes
+and identify _Cum appropinquaret_ as an example. A separate GABC
+transcription contains three changes after _mihi_, _est_, and _eum_ without
 an intervening bar. **Source caveat:** the introduction's reference to
-"p. 584" does not match the *Cum appropinquaret* score on the inspected
-1961 facsimile's page 584 (that page contains *Occurrunt turbae*).
+"p. 584" does not match the _Cum appropinquaret_ score on the inspected
+1961 facsimile's page 584 (that page contains _Occurrunt turbae_).
 The GABC transcription's provenance is not a verification of that exact
 1961 printed page. The historical evidence supports permitting clef
 changes without bars; the detailed wrapping rules below are the editor's
 proposed engraving choices, not claims of universal printed practice.
 
 References:
+
 - [Liber Usualis introductory rules, p. xviii](https://gregobase.selapa.net/sources/3/17.png)
 - [1961 facsimile p. 584, for edition distinction](https://gregobase.selapa.net/sources/3/729.png)
 - [Cum appropinquaret transcription](https://github.com/bbloomf/jgabc/blob/master/gabc/8110.gabc)
@@ -54,31 +55,37 @@ References:
 - Each explicit clef change stores, conceptually:
 
   ```ts
-  { id, clef, beforeNeumeId, beforeDivisionId }
+  {
+    (id, clef, beforeNeumeId, beforeDivisionId);
+  }
   ```
 
   `beforeNeumeId` is the neume following the containing boundary
-  (or null for score end); `beforeDivisionId` is the *next* division
+  (or null for score end); `beforeDivisionId` is the _next_ division
   at that boundary (or null for after all divisions, before the neume/end).
   Both IDs must refer to the same boundary. Clef-array order is
   authoritative **only among clefs in the same division slot**;
   division-array order is authoritative among divisions at one
   neume boundary; neume-array order determines successive boundaries.
   No clef ever points to another clef.
+
 - Extend the insertion intent to distinguish both sides of clefs:
 
   ```ts
-  { beforeNeumeId, beforeDivisionId, beforeClefId }
+  {
+    (beforeNeumeId, beforeDivisionId, beforeClefId);
+  }
   ```
 
   `beforeDivisionId` selects the division slot; `beforeClefId`
-  selects the next clef in that slot; explicit null means *after* its
+  selects the next clef in that slot; explicit null means _after_ its
   clef run. Validate membership in exactly the specified slot.
   Preserve ADR 0012's two-field division-only semantics for a slot
   with no clefs; if clefs occupy the targeted slot and clef-side
   information is omitted, reject the ambiguous insertion rather than
   guessing. Likewise reject legacy numeric insertion at boundaries
   containing any division or explicit clef.
+
 - Derive score order by traversing neumes and their boundary divisions,
   emitting the ordered clef run before each following division, then
   the final clef run before the neume/end. This derived order, not
@@ -95,7 +102,7 @@ surviving semantic entities; reanchor only what is necessary to do so:
 - **Insert a clef:** insert it at the chosen position inside its clef
   run, with a unique ID; existing events retain their order.
 - **Insert a division:** split the containing clef run at the
-  selected slot. Preceding clefs reanchor to *before the new division*;
+  selected slot. Preceding clefs reanchor to _before the new division_;
   following clefs remain in the following slot. For example,
   `A C1 C2 B` inserting `D` between clefs yields
   `A C1 D C2 B`.
@@ -107,7 +114,7 @@ surviving semantic entities; reanchor only what is necessary to do so:
   immediately following clef run, in their former derived order.
   Deleting or retyping a division does not remove a nearby clef.
 - **Delete a neume:** merge the events from its boundary into the
-  next surviving neume's boundary or score end, *before* destination
+  next surviving neume's boundary or score end, _before_ destination
   events, using their previous derived order. Recalculate division
   references. For example, deleting `B` from
   `A C1 B D C2 E` must yield `A C1 D C2 E`, not
@@ -160,6 +167,7 @@ No persistent reference cycles are introduced.
   and contours, lyric associations and other semantic identities.
   If there are no affected existing notes, omit the pitch prompt,
   but retain an authored redundant or trailing clef event.
+
 - **Initial-clef edits always preserve melody**, as in Accepted
   ADR 0014. In documents with explicit changes, this transform
   applies only to notes governed by the initial clef, before the
@@ -214,9 +222,9 @@ No persistent reference cycles are introduced.
   insert/remove any semantic bar or clef; non-interactive
   clef repetitions are derived. The exact split is an
   editor layout policy, not asserted as a universal
-  *Liber Usualis* pagination rule.
+  _Liber Usualis_ pagination rule.
 - **Stage 6B includes automatically derived custos/guide
-  engraving**, following the *Liber Usualis* principle that
+  engraving**, following the _Liber Usualis_ principle that
   a guide anticipates the next pitched note. At a mid-staff
   clef change, use a guide before the change to show
   the next note's pitch under the clef in effect at the
@@ -238,6 +246,7 @@ No persistent reference cycles are introduced.
   The guide is pure, nonselectable geometry with reserved
   width and bounds; it is not a semantic neume, pitch
   event, or history entry.
+
 - Omit a guide if no following pitched note exists, if a
   proposed mid-staff guide would duplicate the normal
   end-of-system guide, or for a redundant change whose
@@ -252,7 +261,7 @@ No persistent reference cycles are introduced.
 - Clef and guide clearance must enter the measured
   compaction/hyphen/wrapping walk even within a word.
   Neither changes lyric word/syllable semantics, forces
-  hyphens, nor changes ADR 0013's *division-specific*
+  hyphens, nor changes ADR 0013's _division-specific_
   compaction exception. Separation is determined by
   actual geometry; do not silently broaden ADR 0011's
   categorical blockers. A clef does not by itself
@@ -294,7 +303,7 @@ merged, following `docs/ai-workflow.md`.
 ### Positive
 
 - Supports the mid-staff clef changes described by the
-  *Liber Usualis* without requiring an artificial bar.
+  _Liber Usualis_ without requiring an artificial bar.
 - Stable-ID ordering and reanchoring extend ADR 0012
   without another persistent event ordering authority.
 - Scopes pitch transformations and UI prompts to the
