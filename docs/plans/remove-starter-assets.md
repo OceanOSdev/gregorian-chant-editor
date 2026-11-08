@@ -14,7 +14,7 @@ Remove leftover starter/template artwork that no longer contributes to the Grego
    - `src/assets/vite.svg`
    - `src/assets/hero.png`
    - `public/icons.svg`
-   Delete only assets that are demonstrably unused. If a candidate is still used, retain it and report why.
+     Delete only assets that are demonstrably unused. If a candidate is still used, retain it and report why.
 2. Update the **Public preview and deployment** section of `README.md` to reflect the **successfully deployed** website at `https://oceanosdev.github.io/gregorian-chant-editor/`. Remove stale wording that describes it merely as an "intended" URL or suggests that publishing has not happened yet. Preserve accurate, useful setup/recovery instructions for future maintainers.
 3. Keep the explicit warning that the app is experimental and **edits are lost on refresh**. Keep the GitHub Pages deployment details correct: pushes to `master` deploy automatically after verification, eligible PRs run CI but do not publish, and local production preview uses the repository subpath.
 
