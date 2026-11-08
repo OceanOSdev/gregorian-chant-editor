@@ -3,7 +3,16 @@ import { exampleDocument } from './editor/domain/example-document';
 import './App.css';
 
 function App() {
-  return <ChantEditor document={exampleDocument} />;
+  return (
+    <>
+      <header>
+        <p className="preview-notice">
+          Experimental preview — edits are lost on refresh.
+        </p>
+      </header>
+      <ChantEditor document={exampleDocument} />
+    </>
+  );
 }
 
 export default App;

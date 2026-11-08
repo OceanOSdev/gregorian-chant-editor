@@ -1,3 +1,11 @@
+.preview-notice {
+  width: min(56rem, calc(100% - 2rem));
+  margin: 1rem auto 0;
+  color: #675f55;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .chant-editor {
   width: min(56rem, calc(100% - 2rem));
   margin: 0 auto;
