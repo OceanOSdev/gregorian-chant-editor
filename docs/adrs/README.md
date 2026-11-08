@@ -97,3 +97,7 @@ remains Accepted, narrowly qualified by ADR 0013.
 [Accepted ADR 0014: Preserve relative melody on initial clef edits](0014-preserve-melody-on-initial-clef-edit.md)
 records Stage 6A's owner-accepted global-clef transform (accepted 2026-11-04).
 It does not decide Stage 6B event ordering or boundaries.
+
+[Proposed ADR 0015: Anchor mid-score clef changes after finalis](0015-anchor-clef-changes-after-finalis.md)
+records the Stage 6B proposal, including the owner review gate on trailing and
+redundant changes. No Stage 6B implementation is authorized until acceptance.
