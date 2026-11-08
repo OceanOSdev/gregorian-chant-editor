@@ -121,13 +121,16 @@ received owner acceptance. Extreme pitches retain the fixed
 vertical bounds and absent ledger-line limitations.
 
 Stage 6B is under review in [Proposed ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md).
-After consulting the *Liber Usualis* and a transcription of *Cum appropinquaret*,
-the proposal permits explicit clef changes at whole-neume semantic boundaries,
-**without requiring any preceding bar**. Clefs and divisions remain independent.
-For affected existing notes, explicit-clef edits offer a choice to preserve
-melody or notehead positions; initial-clef editing retains Stage 6A's
-melody-preserving default. The remaining architecture review covers ordering,
-reanchoring, wrapping, and guide-note engraving before owner acceptance and
-implementation. Stage 6C may improve graphical insertion and vertical editing,
-but **free horizontal clef movement is not planned**. No persisted clef-change
-collection is implemented yet.
+Following the *Liber Usualis* investigation, explicit clef changes may be
+inserted at whole-neume semantic boundaries **without a preceding bar**.
+Independent clefs and divisions use a derived score order and an extended
+stable-ID insertion boundary; deleting a division does not delete its nearby
+clef. Explicit-clef edits offer Preserve melody / Preserve noteheads only
+when existing notes are affected; the initial clef remains automatically
+melody-preserving within its governing passage. Stage 6B also proposes
+automatically derived custos at mid-staff changes and staff endings, with
+effective-clef-aware guide pitches and measured wrapping. These design
+choices are documented for **owner acceptance before implementation**.
+Stage 6C may improve graphical insertion and vertical editing, but
+**free horizontal clef movement is not planned**. No persisted clef-change
+collection or guide rendering is implemented yet.

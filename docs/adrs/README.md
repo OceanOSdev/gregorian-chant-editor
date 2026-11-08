@@ -99,6 +99,7 @@ records Stage 6A's owner-accepted global-clef transform (accepted 2026-11-04).
 It does not decide Stage 6B event ordering or boundaries.
 
 [Proposed ADR 0015: Order explicit clef changes at score boundaries](0015-order-clef-changes-at-score-boundaries.md)
-records Stage 6B's revised, bar-independent clef-placement proposal and its
-boundary, reanchoring, wrapping, and custos review gates. No Stage 6B
-implementation is authorized until owner acceptance.
+records Stage 6B's bar-independent clef-placement proposal, explicit
+mixed-event boundary ordering, scoped pitch edits, and derived custos
+engraving. It remains Proposed pending owner acceptance and a separate
+implementation handoff.
