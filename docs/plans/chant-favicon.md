@@ -14,7 +14,7 @@ Use a **stylized Gregorian Torculus** for the Gregorian Chant Editor's browser-t
 - Favor a **dark, nearly black Torculus silhouette on a transparent background**. Remove the current rounded-square tile, frame, and C-clef.
 - Simplify proportions only enough to remain recognizable at **16×16 and 32×32**. Give the neume reasonable breathing room and avoid tiny details or text.
 - Evaluate legibility on both light and dark browser-tab backgrounds. If the black-on-transparent version is hard to see against dark tabs, explore a minimally invasive contrast treatment (without reverting to an opaque rounded phone-like tile), and explain the tradeoff for owner review.
-- This is *favicon artwork only*. Do not alter the editor's semantic notation or its approved Torculus engraving.
+- This is _favicon artwork only_. Do not alter the editor's semantic notation or its approved Torculus engraving.
 
 ## Implementation
 
