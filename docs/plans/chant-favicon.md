@@ -1,33 +1,35 @@
-# Plan: Replace the Vite favicon with a chant-themed favicon
+# Plan: Replace the Vite favicon with a chant-themed Torculus
 
 Branch: `chore/chant-favicon`
 Target: `master`
+Existing PR: #57
 
 ## Goal
 
-Replace the default purple Vite lightning-bolt favicon in the Gregorian Chant Editor browser tab with a distinctive chant-themed icon.
+Use a **stylized Gregorian Torculus** for the Gregorian Chant Editor's browser-tab favicon. The current C-clef proposal reads too much like a cell phone at small sizes, so the owner has chosen the Torculus instead.
 
-## Design direction
+## Agreed design
 
-- Prefer a **stylized Gregorian C-clef**, taking visual cues from the application's accepted C-clef engraving rather than inventing an unrelated modern treble clef.
-- Simplify or thicken the silhouette as needed for legibility at **16×16 and 32×32** favicon sizes. Do **not** alter the editor's actual C-clef engraving.
-- If the C-clef remains illegible at favicon size, a **single simple neume** is an acceptable alternative; briefly explain the choice in the PR.
-- Keep it recognizable, high contrast, and suited to both light and dark browser tab surfaces. No tiny text or distracting decorations.
+- Use the app's **existing Torculus engraving** as the reference: three square-notation noteheads forming a recognizable rise-and-fall neume, with the appropriate relationships/connectors. Do not substitute three generic floating boxes or a bar-chart-looking symbol.
+- Favor a **dark, nearly black Torculus silhouette on a transparent background**. Remove the current rounded-square tile, frame, and C-clef.
+- Simplify proportions only enough to remain recognizable at **16×16 and 32×32**. Give the neume reasonable breathing room and avoid tiny details or text.
+- Evaluate legibility on both light and dark browser-tab backgrounds. If the black-on-transparent version is hard to see against dark tabs, explore a minimally invasive contrast treatment (without reverting to an opaque rounded phone-like tile), and explain the tradeoff for owner review.
+- This is *favicon artwork only*. Do not alter the editor's semantic notation or its approved Torculus engraving.
 
 ## Implementation
 
-1. Inspect the current `public/favicon.svg`, `index.html`, `vite.config.ts`, and the existing C-clef engraving geometry to understand the current asset and approved notation shape.
-2. Replace `public/favicon.svg` with a self-contained SVG favicon. Preserve the existing favicon URL/reference and support the GitHub Pages `/gregorian-chant-editor/` base path.
-3. Keep the change narrowly scoped to favicon artwork and any necessary associated asset details. Do not redesign the app, add dependencies, or change notation behavior.
-4. Verify the favicon at actual 16px and 32px sizes, and inspect it against light and dark tab-like backgrounds if practical. Include visual evidence in the PR (embedded images or attached captures, not merely local `/tmp` paths).
+1. Inspect `public/favicon.svg`, `index.html`, `vite.config.ts`, and the existing Torculus engraving geometry and approved references.
+2. Replace `public/favicon.svg` with a self-contained SVG favicon. Keep its existing URL/reference working under GitHub Pages `/gregorian-chant-editor/`.
+3. Keep this an otherwise narrow change: no unrelated UI, architecture, notation behavior, or new dependencies.
+4. Render and visibly compare the icon at actual **16px and 32px**, on light and dark tab-like backgrounds. Provide viewable image evidence in **PR #57**; do not rely solely on local `/tmp` image paths.
 
 ## Verification and acceptance
 
-- Run the repository's normal checks (`npm run format:check`, `npm run lint`, `npm test`, `npm run build`).
-- Verify the production build's favicon URL resolves correctly beneath the project subpath; run a local preview/browser smoke check when practical.
-- Confirm no default Vite lightning-bolt graphic remains in the favicon.
-- State what was actually tested, along with any unverified conditions (such as live browser cache behavior after deployment).
+- Run `npm run format:check`, `npm run lint`, `npm test`, and `npm run build`.
+- Check the built favicon's project subpath and perform a production-preview browser smoke test if practical.
+- Confirm that the new favicon contains neither the default Vite glyph nor the old C-clef/rounded tile.
+- Report what was actually verified and what remains untested, including the browser's live favicon cache behavior.
 
 ## Delivery
 
-Read `AGENTS.md`, `docs/ai-workflow.md`, and relevant repository docs. Implement on this branch, commit, open a PR against `master`, and **do not merge**. Report the chosen glyph, small-size legibility, tests, and screenshots. The one-off task plan may be removed during PR closeout once the change is implemented and reviewed.
+Read `AGENTS.md`, `docs/ai-workflow.md`, and relevant repository guides. Implement on the **existing** `chore/chant-favicon` branch and update **PR #57**, rather than opening a second PR. Commit changes, update the PR description and screenshots, and **do not merge**. Stop for a material ambiguity or contract conflict. After review, remove this one-off task plan at PR closeout as agreed.
