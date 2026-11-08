@@ -49,6 +49,7 @@ Read `AGENTS.md`, `docs/ai-workflow.md`, `docs/testing.md`, and the existing `.g
 - Confirm the user-facing experimental/no-persistence notice and clear page title.
 
 Reference guidance:
+
 - https://vite.dev/guide/static-deploy
 - https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 

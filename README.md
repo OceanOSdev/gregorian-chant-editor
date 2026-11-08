@@ -8,6 +8,33 @@ The project is a working architectural and interaction foundation, not a
 replacement for mature chant engraving software. Its internal formats and
 interface may still change.
 
+## Public preview and deployment
+
+The intended public URL is
+[Gregorian Chant Editor](https://oceanosdev.github.io/gregorian-chant-editor/).
+This is an experimental preview starting from an example score. There is no
+persistence: **edits are lost on refresh**.
+
+The owner must enable Pages once in repository **Settings → Pages → Build and
+deployment → Source: GitHub Actions**. The workflow commit alone does not make
+the site live. After this PR is merged, each push to `master` builds the locked
+dependencies using the Node version in `.nvmrc` and publishes `dist/` through
+the `github-pages` environment. Pull requests run the existing CI checks and
+do not publish. No `gh-pages` branch or deployment secrets are needed.
+
+If Pages is enabled after merge, open **Actions → Deploy to GitHub Pages → Run
+workflow**, select `master`, and run it (or rerun the failed deployment). Manual
+runs on other branches cannot deploy. Confirm the workflow succeeds, then check
+the public URL in Firefox and Chromium for asset errors and a basic editor edit.
+Live-site acceptance remains pending until the owner enables Pages and deploys.
+
+For a local production check, run `npm run build` and `npm run preview`, then
+open `http://localhost:4173/gregorian-chant-editor/`. Production assets use this
+project subpath; ordinary `npm run dev` continues to serve at `/`.
+
+This setup follows the [Vite deployment guide](https://vite.dev/guide/static-deploy)
+and [GitHub Pages source instructions](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+
 ## Current capabilities
 
 The editor currently supports:
