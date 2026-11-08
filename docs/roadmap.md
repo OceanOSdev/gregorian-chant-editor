@@ -120,10 +120,14 @@ owner-accepted relative diatonic rule. The shared-C-body F engraving has also
 received owner acceptance. Extreme pitches retain the fixed
 vertical bounds and absent ledger-line limitations.
 
-Stage 6B is under review in [Proposed ADR 0015](adrs/0015-anchor-clef-changes-after-finalis.md):
-explicit clef changes after finalis divisions, with a scoped choice to preserve
-melody or notehead positions and confirmation before deleting an owning bar.
-The proposal requires owner acceptance, including its remaining edge cases,
-before implementation. Stage 6C may improve graphical insertion and vertical
-editing, but **horizontal clef movement is not planned**. No persisted
-clef-change collection is implemented yet.
+Stage 6B is under review in [Proposed ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md).
+After consulting the *Liber Usualis* and a transcription of *Cum appropinquaret*,
+the proposal permits explicit clef changes at whole-neume semantic boundaries,
+**without requiring any preceding bar**. Clefs and divisions remain independent.
+For affected existing notes, explicit-clef edits offer a choice to preserve
+melody or notehead positions; initial-clef editing retains Stage 6A's
+melody-preserving default. The remaining architecture review covers ordering,
+reanchoring, wrapping, and guide-note engraving before owner acceptance and
+implementation. Stage 6C may improve graphical insertion and vertical editing,
+but **free horizontal clef movement is not planned**. No persisted clef-change
+collection is implemented yet.
