@@ -98,8 +98,8 @@ remains Accepted, narrowly qualified by ADR 0013.
 records Stage 6A's owner-accepted global-clef transform (accepted 2026-11-04).
 It does not decide Stage 6B event ordering or boundaries.
 
-[Proposed ADR 0015: Order explicit clef changes at score boundaries](0015-order-clef-changes-at-score-boundaries.md)
-records Stage 6B's bar-independent clef-placement proposal, explicit
-mixed-event boundary ordering, scoped pitch edits, and derived custos
-engraving. It remains Proposed pending owner acceptance and a separate
-implementation handoff.
+[Accepted ADR 0015: Order explicit clef changes at score boundaries](0015-order-clef-changes-at-score-boundaries.md)
+records the owner-approved Stage 6B architecture (accepted 2026-11-08):
+bar-independent clef placement, mixed-event boundary ordering, scoped pitch
+edits, and derived custos engraving. It narrowly qualifies ADRs 0012 and 0014
+without superseding them. Implementation follows in a separate handoff.

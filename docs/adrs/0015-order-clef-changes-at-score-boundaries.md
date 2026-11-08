@@ -5,12 +5,12 @@ Revised: 2026-11-08
 
 ## Status
 
-**Proposed — owner review and explicit acceptance required before Stage 6B
-implementation.** This revised proposal incorporates the owner's approval
-of automatically derived custos engraving and the follow-up architecture
-review. It narrowly qualifies the boundary operations of Accepted ADR 0012
-and the affected range of initial-clef edits in Accepted ADR 0014; neither
-record is superseded. No code is implemented by this ADR.
+**Accepted by the owner on 2026-11-08.** This decision includes
+automatically derived custos engraving and the reviewed mixed-event boundary
+rules for Stage 6B. It narrowly qualifies the boundary operations of Accepted
+ADR 0012 and the affected range of initial-clef edits in Accepted ADR 0014;
+neither record is superseded. Acceptance authorizes a separate Stage 6B
+implementation handoff, not an implementation in this documentation PR.
 
 ## Context
 
@@ -38,7 +38,7 @@ References:
 - [1961 facsimile p. 584, for edition distinction](https://gregobase.selapa.net/sources/3/729.png)
 - [Cum appropinquaret transcription](https://github.com/bbloomf/jgabc/blob/master/gabc/8110.gabc)
 
-## Proposed decision
+## Decision
 
 ### Semantic entities and slots
 
@@ -274,19 +274,20 @@ new dependencies, or unrelated refactors.
 
 ## Review and implementation handoff
 
-This revision resolves the architecture-review recommendations
-on event ordering, opening clefs, guide derivation, and edge
-cases at the **proposal** level. The implementation plan
-must spell out accessible editing/placement controls, dirty
-lyric drafts, keyboard/Escape lifecycle, and focused verification
-of mixed-event ordering, same-slot insertion, merging anchors,
-consecutive/redundant clefs, guide positions and suppression,
-system-break replacement, small-width overflow, cancellation,
-and exact history restoration.
+The owner accepted this architecture on 2026-11-08, including
+mixed-event ordering, system-start clefs, derived custos, and
+the documented edge-case policies. A separate implementation
+plan must spell out accessible editing/placement controls,
+dirty lyric drafts, keyboard/Escape lifecycle, and focused
+verification of mixed-event ordering, same-slot insertion,
+merging anchors, consecutive/redundant clefs, guide positions
+and suppression, system-break replacement, small-width
+overflow, cancellation, and exact history restoration.
 
-The owner must explicitly accept this ADR before Codex
-implements Stage 6B. This draft PR is documentation-only;
-acceptance is separate from the later implementation PR.
+This documentation PR records the accepted decision but
+does not implement Stage 6B. The implementation should begin
+only from a separate Git-backed handoff after this ADR is
+merged, following `docs/ai-workflow.md`.
 
 ## Consequences
 
