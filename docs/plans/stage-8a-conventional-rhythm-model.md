@@ -1,11 +1,11 @@
 # Proposal: conventional rhythmic modifiers for Stage 8A
 
-PR #64, 2026-11-09. **Proposed; owner review required before implementation.**
-The owner rejected the three editorial ownership conventions. This proposal
-changes no application semantics, persisted format or engraving. ADR 0017
-remains the current accepted record until an explicit replacement/amendment
-is approved. The existing implementation must not be treated as accepted merely
-because its tests pass.
+PR #64, 2026-11-09. **Approved by the owner for implementation.** The owner
+approved the presence-plus-pattern model, exact table and draft-v2 finalization
+with original-source recovery. [Accepted ADR 0018](../adrs/0018-conventional-mora-patterns.md)
+now supersedes ADR 0017. The proposal below preserves the approved rationale;
+[implementation verification](../verification/note-modifiers/conventional/README.md)
+records actual results separately.
 
 ## Recommendation
 
@@ -205,10 +205,9 @@ Run standard automated checks and production Chromium/Firefox verification,
 including selected-note versus neume-scope labels, stable placement at 320px,
 focus/history and native file/cache behavior. Preserve the approved silhouettes.
 
-**Owner review checkpoint:** approve the presence-plus-pattern model, exact
-supported-pattern table and draft-v2 finalization (or choose v3) before changing
-production code. A/B/C editorial specimens remain rejected historical material.
-No semantics, codec, engraving or accepted ADR has changed in this investigation.
+**Owner approval recorded:** the presence-plus-pattern model, supported table
+and draft-v2 finalization were approved. A/B/C remain rejected historical material.
+The verification below concerns the earlier investigation only.
 
 ## Investigation verification
 

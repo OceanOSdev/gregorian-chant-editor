@@ -1,3 +1,7 @@
+> Historical investigation and earlier refinement. [ADR 0018](../../../adrs/0018-conventional-mora-patterns.md)
+> now replaces the arbitrary-count model; see [current implementation evidence](../conventional/README.md).
+> Statements about unchanged v2 semantics below describe that earlier refinement only.
+
 # Porrectus mora investigation and trailing-placement refinement
 
 PR #64 follow-up, 2026-11-09. The initial investigation below is retained as

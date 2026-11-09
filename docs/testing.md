@@ -687,21 +687,25 @@ for commands, scope and limits. Browser drivers remain outside CI/Vitest.
 
 ## Rhythmic note modifiers (Stage 8A)
 
-The command, layout and persistence `note-modifiers` suites cover per-note
-immutability, invalid/no-op identity, normalization/movement, exact history,
-all seven kinds and marked interval matrices, full measured ink, staff-line
-clearance, unchanged heads/anchors, wrapping, accessible descriptions, exact
-baseline v1 decoding and guarded same-key v2 cache upgrade. Native v1 rejection
-coverage remains in place; v2 adds strict optional modifier validation.
-`porrectus-mora.test.ts` additionally checks conventional trailing clearance,
-the adjacent-ascent second note's line/space exception, equal-pitch sign
-preservation and double mora/episema without changing v2 note ownership.
+The modifier command/persistence suites and `mora-scope.test.ts` cover the
+complete allowed/disallowed pattern matrix, exact identity rejection, stable
+IDs, surviving marks through deletion/movement, atomic scope history, exact v1,
+compatible v2, old strict syntax validation and protected incompatible-draft
+recovery. The layout matrix checks all supported scopes over intervals 1/2/3/5/12,
+line/space transpositions and all-note episemata: distinct allowed dot patterns,
+pair columns, full measured ink, clear staff/signs, unchanged heads/anchors,
+bounded advances and wrapping. Porrectus regressions check final-single/pair
+trailing clearance and adjacent lower-line exceptions.
 
 Run `node docs/verification/note-modifiers/browser-check.mjs` against the production
-repo-subpath preview with isolated Chromium/CDP on port 9230. Set
-`CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session` for isolated Firefox/BiDi.
-Run the existing local-persistence driver sequentially on each shared browser;
-Firefox exits when its session ends, so restart it between drivers. These drivers
-use native pointer/keyboard actions plus DOM select/file events, capture SVG
-bounds and screenshots, and remain outside CI. The [record and owner checklist](verification/note-modifiers/README.md)
-separate actual automated/visual evidence from foreground acceptance.
+preview and isolated Chromium/CDP on port 9230; `CHANT_CHROMIUM_URL` overrides
+its JSON discovery endpoint. `CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session`
+selects Firefox/BiDi, and `CHANT_PREVIEW_URL` overrides the production URL.
+The driver exercises all scope menus, separate episemata, native focus/pitch
+editing, atomic history, stable selection layout at desktop/320px, valid file/cache
+round trips, original-source recovery downloads, measured SVG bounds and matched
+Gregorio specimens. Native select/file events are dispatched through the DOM;
+keyboard/pointer checks use browser input. Run the existing local-persistence
+driver sequentially as a regression gate. See the
+[current record](verification/note-modifiers/conventional/README.md) for actual
+results and remaining foreground/visual owner acceptance.

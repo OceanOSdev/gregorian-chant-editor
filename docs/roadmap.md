@@ -149,11 +149,11 @@ playback, or general neume ledger-line support.
 
 ## Rhythmic note modifiers (Stage 8A)
 
-Stage 8A implements individual-note single/double punctum mora and automatic
-horizontal episema on all seven supported neumes, with atomic history,
+Stage 8A implements conventional mora (single-note and final-pair signs) plus
+automatic horizontal episema on all seven supported neumes, with atomic history,
 measured shared ink and native format v2. Exact v1 files and the existing v1
 browser autosave slot remain recoverable; new saves write v2. See
-[Accepted ADR 0017](adrs/0017-model-rhythmic-modifiers-on-notes.md),
+[Accepted ADR 0018](adrs/0018-conventional-mora-patterns.md),
 [persistence](persistence.md) and [verification](verification/note-modifiers/README.md).
 Vertical episema/ictus, accidentals, manual orientation/spacing, authored bridges,
 across-neume joins, new neume kinds and playback remain deferred.

@@ -8,7 +8,11 @@ const output = await mkdtemp(join(tmpdir(), 'chant-note-modifiers-'));
 const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 const pages = firefox
   ? []
-  : await (await fetch('http://127.0.0.1:9230/json')).json();
+  : await (
+      await fetch(
+        process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json',
+      )
+    ).json();
 const ws = new WebSocket(
   process.env.CHANT_FIREFOX_URL ??
     pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
@@ -109,7 +113,9 @@ const ev = async (expression) => {
   if (r.exceptionDetails) throw Error(JSON.stringify(r.exceptionDetails));
   return r.result.value;
 };
-const url = 'http://127.0.0.1:4173/gregorian-chant-editor/';
+const url =
+  process.env.CHANT_PREVIEW_URL ??
+  'http://127.0.0.1:4173/gregorian-chant-editor/';
 const storageKey = 'gregorian-chant-editor:active-document:v1';
 const raw = () => ev(`localStorage.getItem('${storageKey}')`);
 const status = () =>
@@ -266,7 +272,7 @@ async function checkSelectionPosition(width) {
   };
   assert.equal(
     await ev(
-      `document.querySelector('[aria-label="Mora"]').matches(':disabled')`,
+      `document.querySelector('[aria-label="Mora scope"]').matches(':disabled')`,
     ),
     true,
   );
@@ -280,7 +286,7 @@ async function checkSelectionPosition(width) {
   await check('pointer selection');
   assert.equal(
     await ev(
-      `document.querySelector('[aria-label="Mora"]').matches(':disabled')`,
+      `document.querySelector('[aria-label="Mora scope"]').matches(':disabled')`,
     ),
     false,
   );
@@ -325,6 +331,15 @@ async function snapshot(name) {
   await ev(
     `document.querySelector('.score-workspace').scrollIntoView({block:'start'})`,
   );
+  if (name === 'conventional-offset-0-1440') {
+    const rendered = await ev(
+      `({svg:document.querySelector('svg.score').outerHTML,css:[...document.styleSheets].flatMap(s=>[...s.cssRules].map(r=>r.cssText)).join('\\n')})`,
+    );
+    await writeFile(
+      join(output, 'rendered-score.json'),
+      JSON.stringify(rendered),
+    );
+  }
   const { data } = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile(
     join(output, `${name}-${firefox ? 'firefox' : 'chromium'}.png`),
@@ -394,10 +409,10 @@ try {
     );
     await pointer('[data-note-id="note-punctum-1"] .score__note-hit-target');
     assert.equal(
-      await ev(`document.querySelector('[aria-label="Mora"]').value`),
-      '0',
+      await ev(`document.querySelector('[aria-label="Mora scope"]').value`),
+      'none',
     );
-    const saved = await change('Mora', '1');
+    const saved = await change('Mora scope', 'sole');
     const expected = structuredClone(baseline.document);
     expected.neumes[0].notes[0].mora = 1;
     assert.deepEqual(saved, {
@@ -410,7 +425,7 @@ try {
       await ev(
         `document.querySelector('[data-note-id="note-punctum-1"]').getAttribute('aria-label')`,
       ),
-      /Single punctum mora/,
+      /Punctum mora/,
     );
     await ev('window.confirm=()=>true');
     await importText(text);
@@ -429,42 +444,86 @@ try {
     deviceScaleFactor: 1,
     mobile: false,
   });
-  for (const [i, [, pitches]] of kinds.entries())
+  for (const [i, [kind, pitches]] of kinds.entries()) {
     for (let j = 0; j < pitches.length; j++) {
       const id = `note-${i}-${j}`;
       await select(id);
-      await change('Mora', '2');
-      const saved = await change('Horizontal episema', 'on');
-      const target = saved.document.neumes[i].notes[j];
-      assert.equal(target.mora, 2);
-      assert.equal(target.episema, true);
-      assert.match(
+      const expectedOptions =
+        kind === 'punctum'
+          ? ['None', 'Sole note']
+          : pitches.length === 2
+            ? ['None', 'First note', 'Second note', 'Both notes']
+            : ['None', 'Final note', 'Final two notes'];
+      assert.deepEqual(
         await ev(
-          `document.querySelector(${JSON.stringify(selector(id))}).getAttribute('aria-label')`,
+          `[...document.querySelector('[aria-label="Mora scope"]').options].map(o=>o.textContent)`,
         ),
-        /Double punctum mora. Horizontal episema/,
+        expectedOptions,
       );
+      for (const value of kind === 'punctum'
+        ? ['none', 'sole']
+        : pitches.length === 2
+          ? ['none', 'first', 'second', 'both']
+          : ['none', 'final', 'final-two']) {
+        const saved = await change('Mora scope', value);
+        const expected =
+          value === 'none'
+            ? []
+            : value === 'sole' || value === 'first'
+              ? [0]
+              : value === 'second'
+                ? [1]
+                : value === 'both'
+                  ? [0, 1]
+                  : value === 'final'
+                    ? [2]
+                    : [1, 2];
+        assert.deepEqual(
+          saved.document.neumes[i].notes.flatMap((n, index) =>
+            n.mora ? [index] : [],
+          ),
+          expected,
+        );
+      }
+      const saved = await change('Horizontal episema', 'on');
+      assert.equal(saved.document.neumes[i].notes[j].episema, true);
       assert.equal(
         await ev(`document.activeElement.getAttribute('aria-label')`),
         'Horizontal episema',
-        'controls retain native focus',
       );
     }
+  }
+  // One native Undo reverses both members of a scope edit, preserving episemata.
+  await select('note-6-0');
+  await change('Mora scope', 'none');
+  const beforePair = await raw();
+  await change('Mora scope', 'final-two');
+  const afterPair = await raw();
+  assert.match(
+    await ev(
+      `document.querySelector('[data-note-id="note-6-1"]').getAttribute('aria-label')`,
+    ),
+    /part of auctum duplex affecting final two notes/,
+  );
+  await button('Undo');
+  assert.equal(await raw(), beforePair);
+  await button('Redo');
+  assert.equal(await raw(), afterPair);
   const marked = JSON.parse(await raw());
   const ordinary = structuredClone(specimen);
-  ordinary.document.neumes.forEach((n, i) =>
-    Object.assign(n.notes[i % n.notes.length], { mora: 1, episema: true }),
+  ordinary.document.neumes.forEach((n) =>
+    Object.assign(n.notes[n.notes.length - 1], { mora: 1, episema: true }),
   );
   await importText(JSON.stringify(ordinary));
   await select('note-1-1');
   await snapshot('individual-single-and-episema');
   await importText(JSON.stringify(marked));
-  await snapshot('all-seven-double-and-episema');
+  await snapshot('all-seven-final-pairs-and-episema');
   await navigate();
   assert.deepEqual(JSON.parse(await raw()), marked);
   await select('note-0-0');
-  await change('Mora', '0');
-  await change('Mora', '1');
+  await change('Mora scope', 'none');
+  await change('Mora scope', 'sole');
   const single = await raw();
   await button('Undo');
   assert.equal(
@@ -483,8 +542,23 @@ try {
     mora: 1,
     episema: true,
   });
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 320,
+    height: 1100,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await select('note-6-0');
+  await change('Mora scope', 'none');
+  const narrowBefore = await raw();
+  await change('Mora scope', 'final-two');
+  const narrowAfter = await raw();
+  await button('Undo');
+  assert.equal(await raw(), narrowBefore);
+  await button('Redo');
+  assert.equal(await raw(), narrowAfter);
   // Native Tab traversal into and within the contextual controls.
-  await ev(`document.querySelector('[aria-label="Mora"]').focus()`);
+  await ev(`document.querySelector('[aria-label="Mora scope"]').focus()`);
   await key('Tab');
   assert.equal(
     await ev(`document.activeElement.getAttribute('aria-label')`),
@@ -555,103 +629,75 @@ try {
     await select('wide-note-0-1-0');
     await snapshot('multisystem-' + width);
   }
-  // Porrectus owner-approved trailing placement: inspect actual SVG sign ink.
-  const porrectus = JSON.parse(
+  // Conventional singles/pairs, same semantic pitches as the retained GABC.
+  const comparison = JSON.parse(
     await readFile(
-      new URL('porrectus-mora/editor-cases.chant.json', import.meta.url),
+      new URL('conventional/editor-cases.chant.json', import.meta.url),
       'utf8',
     ),
   );
-  const inspectPorrectus = async (fixture) => {
-    assert.deepEqual(
-      JSON.parse(await raw()),
-      fixture,
-      'engraving must preserve exact v2 note data',
+  for (const offset of [0, 1]) {
+    const fixture = structuredClone(comparison);
+    fixture.document.neumes.forEach((n) =>
+      n.notes.forEach((note) => (note.staffPosition += offset)),
     );
-    const result = await ev(`(()=>{
-      const input=${JSON.stringify(fixture.document.neumes)};
-      const svg=document.querySelector('svg.score');const v=svg.viewBox.baseVal;
-      const overlap=(a,b)=>a.x<b.x+b.width-0.01&&a.x+a.width>b.x+0.01&&a.y<b.y+b.height-0.01&&a.y+a.height>b.y+0.01;
-      return input.map(n=>{
-        const group=document.querySelector('[data-neume-id="'+n.id+'"]');
-        const ink=group.querySelector('.score__ink');const body=ink.querySelector('path').getBBox();
-        const signs=[...ink.querySelectorAll('rect')];
-        const dots=signs.filter(e=>e.getAttribute('rx')==='2');
-        const lines=[...group.closest('[data-system-index]').querySelectorAll('.score__staff-line')].map(e=>Number(e.getAttribute('y1')));
-        const bottom=Math.max(...lines);
-        const singleSecond=n.notes[1].mora===1&&!n.notes[0].mora&&!n.notes[2].mora&&!n.notes.some(note=>note.episema);
-        const secondBounds=singleSecond?dots[0].getBBox():null;
-        return {
-          id:n.id, count:dots.length,
-          trailing:dots.every(e=>e.getBBox().x>=body.x+body.width+2.99),
-          clear:signs.every((e,i)=>[ink.querySelector('path'),...signs.slice(0,i)].every(other=>!overlap(e.getBBox(),other.getBBox()))),
-          staffClear:dots.every(e=>{const b=e.getBBox();return lines.every(y=>b.y+b.height<=y-0.5||b.y>=y+0.5)}),
-          contained:signs.every(e=>{const b=e.getBBox();return b.x>=v.x&&b.y>=v.y&&b.x+b.width<=v.x+v.width+0.1&&b.y+b.height<=v.y+v.height+0.1}),
-          secondY:secondBounds?secondBounds.y+2:null,
-          belowY:bottom-n.notes[1].staffPosition*12+12,
-          adjacentLine:singleSecond&&n.notes[1].staffPosition%2===0&&n.notes[2].staffPosition-n.notes[1].staffPosition===1,
-        };
+    await importText(JSON.stringify(fixture));
+    for (const width of [1440, 320]) {
+      await send('Emulation.setDeviceMetricsOverride', {
+        width,
+        height: 1100,
+        deviceScaleFactor: 1,
+        mobile: false,
       });
-    })()`);
-    for (const [index, r] of result.entries()) {
+      await pause();
+      assert.deepEqual(JSON.parse(await raw()), fixture);
       assert.equal(
-        r.count,
-        fixture.document.neumes[index].notes.reduce(
-          (sum, n) => sum + (n.mora ?? 0),
-          0,
-        ),
-        r.id + ' dot count',
+        await ev('document.documentElement.scrollWidth<=innerWidth'),
+        true,
       );
-      for (const flag of ['trailing', 'clear', 'staffClear', 'contained'])
-        assert.equal(r[flag], true, r.id + ' ' + flag);
-      if (r.adjacentLine)
-        assert.equal(r.secondY, r.belowY, r.id + ' second-note space below');
+      assert.equal(
+        await ev(
+          `(()=>{const svg=document.querySelector('svg.score');const v=svg.viewBox.baseVal;return [...svg.querySelectorAll('.score__ink')].every(e=>{const b=e.getBBox();return b.x>=v.x-.1&&b.y>=v.y-.1&&b.x+b.width<=v.x+v.width+.1&&b.y+b.height<=v.y+v.height+.1})})()`,
+        ),
+        true,
+      );
+      await snapshot('conventional-offset-' + offset + '-' + width);
     }
-  };
-  await importText(JSON.stringify(porrectus));
-  for (const width of [1440, 320]) {
-    await send('Emulation.setDeviceMetricsOverride', {
-      width,
-      height: 1100,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await pause();
-    await inspectPorrectus(porrectus);
-    await snapshot('porrectus-trailing-' + width);
   }
-  const porrectusSpace = structuredClone(porrectus);
-  porrectusSpace.document.neumes.forEach((n) =>
-    n.notes.forEach((note) => (note.staffPosition += 1)),
+  // Incompatible files preserve the active score/history and original file bytes.
+  await ev(`window.exported=null`);
+  const incompatible = structuredClone(comparison);
+  incompatible.document.neumes[0].notes[0].mora = 2;
+  const original = '\n' + JSON.stringify(incompatible, null, 3) + '\n';
+  const beforeImport = await raw();
+  await importText(original);
+  assert.equal(await raw(), beforeImport);
+  assert.match(
+    await ev(`document.querySelector('.document-header__error').textContent`),
+    /requires resolution/,
   );
-  await importText(JSON.stringify(porrectusSpace));
-  for (const width of [1440, 320]) {
-    await send('Emulation.setDeviceMetricsOverride', {
-      width,
-      height: 1100,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await pause();
-    await inspectPorrectus(porrectusSpace);
-    await snapshot('porrectus-trailing-transposed-' + width);
-  }
-  const porrectusDouble = structuredClone(porrectus);
-  porrectusDouble.document.neumes.forEach((n) =>
-    n.notes.forEach((note) => Object.assign(note, { mora: 2, episema: true })),
+  await button('Download original imported source');
+  assert.equal(await ev('window.exported.text()'), original);
+  // Incompatible cache is neither loaded nor overwritten, even after edits.
+  await ev(`localStorage.setItem('${storageKey}',${JSON.stringify(original)})`);
+  await navigate();
+  await pointer('[data-note-id="note-punctum-1"] .score__note-hit-target');
+  await change('Mora scope', 'sole');
+  assert.equal(await raw(), original);
+  assert.match(await status(), /requires resolution/);
+  await ev(
+    `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){}`,
   );
-  await importText(JSON.stringify(porrectusDouble));
-  for (const width of [1440, 320]) {
-    await send('Emulation.setDeviceMetricsOverride', {
-      width,
-      height: 1100,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await pause();
-    await inspectPorrectus(porrectusDouble);
-    await snapshot('porrectus-double-episema-' + width);
-  }
+  await button('Download original cached source');
+  assert.equal(await ev('window.exported.text()'), original);
+  await button('Export');
+  assert.notEqual(
+    await ev('window.exported.text()'),
+    original,
+    'current-score export is separate from source recovery',
+  );
+  assert.equal(await raw(), original);
+  await snapshot('incompatible-cache-recovery');
   // Corrupt/foreign v2 values do not destroy recoverable bytes.
   for (const invalid of [
     { ...marked, version: 99 },
@@ -675,7 +721,7 @@ try {
     await ev(`localStorage.setItem('${storageKey}',${JSON.stringify(text)})`);
     await navigate();
     await pointer('[data-note-id="note-punctum-1"] .score__note-hit-target');
-    await change('Mora', '1');
+    await change('Mora scope', 'sole');
     assert.equal(await raw(), text);
     assert.match(await status(), /Not saved/);
   }

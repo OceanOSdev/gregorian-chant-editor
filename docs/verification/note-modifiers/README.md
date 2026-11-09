@@ -1,3 +1,6 @@
+> Current implementation and verification: [conventional model / ADR 0018](conventional/README.md).
+> Earlier arbitrary-count behavior and screenshots below are historical PR evidence.
+
 # Stage 8A verification
 
 Implementation follows [Accepted ADR 0017](../../adrs/0017-model-rhythmic-modifiers-on-notes.md)

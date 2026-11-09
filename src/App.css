@@ -506,6 +506,9 @@ kbd {
   padding: 0.35rem 0.65rem 0.5rem;
 }
 .note-modifiers__target {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin: 0 0 0.25rem;
   font-size: 0.875rem;
 }
@@ -515,7 +518,14 @@ kbd {
   gap: 0.25rem 0.75rem;
 }
 .note-modifiers__controls label {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 17rem;
+  min-width: 0;
   align-items: center;
+  justify-content: space-between;
   gap: 0.25rem;
+}
+.note-modifiers__controls select {
+  width: 9rem;
+  min-width: 0;
 }

@@ -1,3 +1,5 @@
+import type { NoteModifiers } from '../domain/chant-document';
+import { moraChoices, moraIndexes } from '../domain/mora';
 import { describe, expect, it } from 'vitest';
 import { decodeDocument } from '../persistence/native-document';
 import { staffPosition } from '../domain/chant-document';
@@ -26,106 +28,103 @@ const intersects = (
 
 describe('measured rhythmic signs', () => {
   it.each(kinds)(
-    '%s: every constituent, simultaneous marks, pitches and head contours',
-    (kind, pitches) => {
-      for (const offset of [-2, 0, 1, 5]) {
-        const positions = pitches.map((n) => staffPosition(n + offset));
-        const plain = buildNeumeGeometry(kind, positions, 50, 140);
-        for (let index = 0; index < positions.length; index++) {
-          const marked = buildNeumeGeometry(
-            kind,
-            positions,
-            50,
-            140,
-            positions.map((_, i) =>
-              i === index ? { mora: 2, episema: true } : {},
-            ),
-          );
-          expect(
-            marked.notes.map(({ modifierBounds: _bounds, ...note }) => note),
-          ).toEqual(plain.notes);
-          expect(marked.lyricAnchorX).toBe(plain.lyricAnchorX);
-          expect(marked.ink.slice(0, plain.ink.length)).toEqual(plain.ink);
-          const signs = marked.ink.slice(plain.ink.length);
-          expect(signs).toHaveLength(3);
-          for (const [i, part] of marked.ink.entries()) {
-            expect(part.bounds.x).toBeGreaterThanOrEqual(marked.bounds.x);
-            expect(part.bounds.x + part.bounds.width).toBeLessThanOrEqual(
-              marked.bounds.x + marked.bounds.width,
-            );
-            expect(part.bounds.y).toBeGreaterThanOrEqual(marked.bounds.y);
-            expect(part.bounds.y + part.bounds.height).toBeLessThanOrEqual(
-              marked.bounds.y + marked.bounds.height,
-            );
-            if (i >= plain.ink.length) {
-              for (const other of marked.ink.slice(0, i))
-                expect(intersects(part.bounds, other.bounds)).toBe(false);
-              for (const pitch of [0, 2, 4, 6])
-                expect(
-                  intersects(part.bounds, {
-                    x: 0,
-                    y: 140 - pitch * 12 - 0.5,
-                    width: 1000,
-                    height: 1,
-                  }),
-                ).toBe(false);
-            }
-          }
-        }
-        const all = buildNeumeGeometry(
-          kind,
-          positions,
-          50,
-          140,
-          positions.map(() => ({ mora: 1, episema: true })),
-        );
-        expect(all.ink.length).toBe(plain.ink.length + 2 * positions.length);
-        for (let i = plain.ink.length; i < all.ink.length; i++)
-          for (const other of all.ink.slice(0, i))
-            expect(intersects(all.ink[i].bounds, other.bounds)).toBe(false);
-      }
-    },
-  );
-  it.each(kinds)(
-    '%s: marked interval matrix retains every sign with bounded horizontal growth',
+    '%s: all supported scopes across intervals and line/space positions',
     (kind) => {
       for (const a of [1, 2, 3, 5, 12])
-        for (const b of [1, 2, 3, 5, 12]) {
-          const pitches =
-            kind === 'punctum'
-              ? [2]
-              : kind === 'podatus'
-                ? [0, a]
-                : kind === 'clivis'
-                  ? [a, 0]
-                  : kind === 'scandicus'
-                    ? [0, a, a + b]
-                    : kind === 'torculus'
-                      ? [0, a, a - b]
-                      : kind === 'climacus'
-                        ? [a + b, b, 0]
-                        : [a, 0, b];
-          const positions = pitches.map(staffPosition);
-          const plain = buildNeumeGeometry(kind, positions, 0, 140);
-          const marked = buildNeumeGeometry(
-            kind,
-            positions,
-            0,
-            140,
-            positions.map(() => ({ mora: 2, episema: true })),
-          );
-          expect(marked.ink.length).toBe(
-            plain.ink.length + 3 * positions.length,
-          );
-          expect(marked.bounds.width).toBeLessThanOrEqual(
-            plain.bounds.width + 30,
-          );
-          for (let i = plain.ink.length; i < marked.ink.length; i++)
-            for (const other of marked.ink.slice(0, i))
-              expect(intersects(marked.ink[i].bounds, other.bounds)).toBe(
-                false,
-              );
-        }
+        for (const b of [1, 2, 3, 5, 12])
+          for (const offset of [-2, 0, 1, 5]) {
+            const pitches =
+              kind === 'punctum'
+                ? [2]
+                : kind === 'podatus'
+                  ? [0, a]
+                  : kind === 'clivis'
+                    ? [a, 0]
+                    : kind === 'scandicus'
+                      ? [0, a, a + b]
+                      : kind === 'torculus'
+                        ? [0, a, a - b]
+                        : kind === 'climacus'
+                          ? [a + b, b, 0]
+                          : [a, 0, b];
+            const positions = pitches.map((p) => staffPosition(p + offset));
+            const plain = buildNeumeGeometry(kind, positions, 50, 140);
+            for (const episema of [false, true]) {
+              const signatures = new Set<string>();
+              for (const choice of moraChoices(kind)) {
+                const indexes = moraIndexes(choice.value);
+                const modifiers = positions.map((_, i): NoteModifiers => ({
+                  ...(indexes.includes(i) ? { mora: 1 } : {}),
+                  ...(episema ? { episema: true } : {}),
+                }));
+                const marked = buildNeumeGeometry(
+                  kind,
+                  positions,
+                  50,
+                  140,
+                  modifiers,
+                );
+                const signs = marked.ink.slice(plain.ink.length);
+                const dots = signs.filter(
+                  (s) => s.kind === 'rect' && s.radius === 2,
+                );
+                expect(dots).toHaveLength(indexes.length);
+                expect(signs).toHaveLength(
+                  indexes.length + (episema ? positions.length : 0),
+                );
+                const signature = JSON.stringify(dots.map((d) => d.bounds));
+                expect(signatures.has(signature)).toBe(false);
+                signatures.add(signature);
+                expect(
+                  marked.notes.map(
+                    ({ modifierBounds: _bounds, ...note }) => note,
+                  ),
+                ).toEqual(plain.notes);
+                expect(marked.lyricAnchorX).toBe(plain.lyricAnchorX);
+                expect(marked.ink.slice(0, plain.ink.length)).toEqual(
+                  plain.ink,
+                );
+                expect(marked.bounds.width).toBeLessThanOrEqual(
+                  plain.bounds.width + 21,
+                );
+                expect(marked.advanceX - marked.bounds.width).toBe(
+                  plain.advanceX - plain.bounds.width,
+                );
+                for (const [i, sign] of signs.entries()) {
+                  // Clivis first mora occupies the actual empty area right of its
+                  // upper head, inside the whole compound path's bounding rectangle.
+                  const body =
+                    kind === 'clivis' &&
+                    choice.value === 'first' &&
+                    sign.kind === 'rect' &&
+                    sign.radius === 2
+                      ? plain.notes.map((n) => n.head)
+                      : plain.ink;
+                  for (const other of [...body, ...signs.slice(0, i)])
+                    expect(intersects(sign.bounds, other.bounds)).toBe(false);
+                  for (const p of [0, 2, 4, 6])
+                    expect(
+                      intersects(sign.bounds, {
+                        x: 0,
+                        y: 140 - p * 12 - 0.5,
+                        width: 1000,
+                        height: 1,
+                      }),
+                    ).toBe(false);
+                  expect(sign.bounds.x).toBeGreaterThanOrEqual(marked.bounds.x);
+                  expect(sign.bounds.y).toBeGreaterThanOrEqual(marked.bounds.y);
+                  expect(sign.bounds.x + sign.bounds.width).toBeLessThanOrEqual(
+                    marked.bounds.x + marked.bounds.width,
+                  );
+                  expect(
+                    sign.bounds.y + sign.bounds.height,
+                  ).toBeLessThanOrEqual(marked.bounds.y + marked.bounds.height);
+                }
+                if (dots.length === 2)
+                  expect(dots[0].bounds.x).toBe(dots[1].bounds.x);
+              }
+            }
+          }
     },
   );
   it('keeps ordinary single dots compact and preserves all unmarked geometry', () => {
@@ -199,7 +198,7 @@ describe('measured rhythmic signs', () => {
       }
     expect(measureNeumeWidth(document.neumes[0])).toBe(21);
     expect(getNoteModifierDescription(document.neumes[0].notes[0])).toBe(
-      '. Single punctum mora. Horizontal episema',
+      '. Punctum mora. Horizontal episema',
     );
     expect(getScoreAccessibleDescription(layout)).toContain(
       '40 notes with rhythmic modifiers',

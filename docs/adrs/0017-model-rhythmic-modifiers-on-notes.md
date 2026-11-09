@@ -4,7 +4,8 @@ Date: 2026-11-08
 
 ## Status
 
-Accepted (owner-approved 2026-11-09)
+Superseded by [ADR 0018](0018-conventional-mora-patterns.md) (owner-approved 2026-11-09).
+The decision and follow-up below are retained as historical records.
 
 ## Context
 

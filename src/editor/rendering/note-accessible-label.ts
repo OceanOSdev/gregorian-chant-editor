@@ -73,10 +73,15 @@ export function getSelectedNeumeDescription(
   return `Whole ${kind} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
 }
 
-export function getNoteModifierDescription(note: NoteModifiers): string {
+export function getNoteModifierDescription(
+  note: NoteModifiers,
+  paired = false,
+): string {
   return (
     (note.mora
-      ? '. ' + (note.mora === 1 ? 'Single' : 'Double') + ' punctum mora'
+      ? paired
+        ? '. Punctum mora, part of auctum duplex affecting final two notes'
+        : '. Punctum mora'
       : '') + (note.episema ? '. Horizontal episema' : '')
   );
 }

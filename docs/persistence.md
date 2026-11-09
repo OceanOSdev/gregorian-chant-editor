@@ -12,7 +12,7 @@ The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
 `version: 2`, and `document: ChantDocument`. The reader accepts v1 and v2. All seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
 arrays. Optional syllable alignment is supported in both versions. V2 additionally accepts
-optional note fields `mora: 1 | 2` and `episema: true`; absence means off.
+optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
 Unknown fields at every object level, invalid enums, missing fields, invalid
@@ -138,3 +138,23 @@ Storage is origin/profile-specific, may be cleared, restricted or exhausted,
 and provides neither a document library nor cross-device backup. Export files
 for long-term retention. See [verification](verification/local-persistence/README.md)
 for automated evidence and foreground acceptance steps.
+
+## Finalized Stage 8A v2 and withdrawn draft recovery
+
+[ADR 0018](adrs/0018-conventional-mora-patterns.md) finalizes the unmerged v2:
+only mora presence (`1`) in the supported neume patterns is canonical. V1
+remains exact; compatible draft-v2 scores load normally. Old strict v2 syntax
+is validated separately before incompatible counts/patterns receive a
+resolution-required error naming affected notes. Malformed data is still
+rejected; permissive legacy syntax never enters canonical state.
+
+No value is clamped, discarded or assigned to another note. Failed imports
+leave score/history intact and offer the original File bytes for download.
+Cached strings remain untouched under the existing key and block automatic
+saving. **Download original cached source** preserves the original source,
+including whitespace, independently of the fallback score's **Export**.
+Existing confirmed reload/replacement, pending-workflow and cross-tab guards
+remain. Source download does not commit edits or require resolving pending work.
+Explicit replacement warns users to retain source and current work separately.
+There is no automatic converter; revise unsupported intent in a compatible
+editor or retain the original for later resolution.

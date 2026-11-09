@@ -12,6 +12,7 @@ import {
   isValidClefChange,
 } from '../domain/divisions';
 import { hasValidLyricAnchors } from '../domain/lyrics';
+import { resolveMoraScope } from '../domain/mora';
 import { isValidNeume } from '../domain/neume';
 
 export const maximumDocumentBytes = 1024 * 1024;
@@ -57,8 +58,8 @@ function note(value: unknown, version: 1 | 2): ChantNote {
     ['id', 'staffPosition'],
     version === 2 ? ['mora', 'episema'] : [],
   );
-  if (Object.hasOwn(n, 'mora') && n.mora !== 1 && n.mora !== 2)
-    fail('Mora must be 1 or 2, or omitted.');
+  if (Object.hasOwn(n, 'mora') && n.mora !== 1)
+    fail('Mora must be 1 or omitted.');
   if (Object.hasOwn(n, 'episema') && n.episema !== true)
     fail('Horizontal episema must be true or omitted.');
   if (
@@ -69,7 +70,7 @@ function note(value: unknown, version: 1 | 2): ChantNote {
   return {
     id: id(n.id),
     staffPosition: staffPosition(n.staffPosition),
-    ...(n.mora === 1 || n.mora === 2 ? { mora: n.mora } : {}),
+    ...(n.mora === 1 ? { mora: n.mora } : {}),
     ...(n.episema === true ? { episema: true } : {}),
   };
 }
@@ -172,6 +173,52 @@ export function validateDocument(
     fail('Duplicate IDs or invalid division/clef slot anchors.');
   return document;
 }
+export class IncompatibleDraftDocumentError extends Error {
+  readonly noteIds: readonly string[];
+  constructor(noteIds: readonly string[]) {
+    super(
+      `This draft-v2 score requires resolution: unsupported mora assignments on ${noteIds.join(', ')}. Its original data has not been converted. Retain the original file or download the cached source, then explicitly revise its notation in a compatible editor.`,
+    );
+    this.name = 'IncompatibleDraftDocumentError';
+    this.noteIds = noteIds;
+  }
+}
+
+/** Validate the complete old strict shape before classifying it as recoverable. */
+function checkDraftModifiers(value: unknown): void {
+  const document = record(value);
+  const draftMarks: { id: string; mora: unknown }[][] = [];
+  const neumes = array(document.neumes).map((value) => {
+    const n = shape(value, ['id', 'kind', 'notes']);
+    const rawNotes = array(n.notes);
+    const marks: { id: string; mora: unknown }[] = [];
+    const notes = rawNotes.map((value) => {
+      const note = shape(value, ['id', 'staffPosition'], ['mora', 'episema']);
+      if ('mora' in note && note.mora !== 1 && note.mora !== 2)
+        fail('Mora must be 1 or 2 in the legacy draft, or omitted.');
+      if ('episema' in note && note.episema !== true)
+        fail('Horizontal episema must be true or omitted.');
+      marks.push({ id: id(note.id), mora: note.mora });
+      return { id: note.id, staffPosition: note.staffPosition };
+    });
+    draftMarks.push(marks);
+    return { ...n, notes };
+  });
+  // This validates IDs, contour, anchors, unknown fields and every non-modifier
+  // property under the exact original v1 contract, without discarding input.
+  const base = validateDocument({ ...document, neumes }, 1);
+  const issues = base.neumes.flatMap((neume, index) => {
+    const marks = draftMarks[index];
+    return resolveMoraScope(
+      neume.kind,
+      marks.map((note) => note.mora),
+    ) === null
+      ? marks.filter((note) => note.mora !== undefined).map((note) => note.id)
+      : [];
+  });
+  if (issues.length) throw new IncompatibleDraftDocumentError(issues);
+}
+
 export function decodeDocument(text: string): ChantDocument {
   if (
     text.length > maximumDocumentBytes ||
@@ -189,6 +236,7 @@ export function decodeDocument(text: string): ChantDocument {
     fail('This is not a Gregorian Chant Editor file.');
   if (envelope.version !== 1 && envelope.version !== 2)
     fail('Unsupported schema version. This editor reads versions 1 and 2.');
+  if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {

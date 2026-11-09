@@ -17,6 +17,7 @@ interface DocumentControlsProps {
   status: string;
   savedLocally: boolean;
   needsRecovery: boolean;
+  recoverySource: string | null;
   updateTitle: (title: string) => void;
   replace: (document: ChantDocument) => void;
   reload: () => void;
@@ -28,6 +29,7 @@ export function DocumentControls({
   status,
   savedLocally,
   needsRecovery,
+  recoverySource,
   updateTitle,
   replace,
   reload,
@@ -47,6 +49,7 @@ export function DocumentControls({
   const [announcement, setAnnouncement] = useState('');
   const [error, setError] = useState('');
   const [reading, setReading] = useState(false);
+  const [importSource, setImportSource] = useState<File | null>(null);
   const disabled = blocked || reading;
   // Check the current pending workflow after asynchronous file reads.
   const latest = useRef({ blocked });
@@ -75,10 +78,13 @@ export function DocumentControls({
   async function importFile(file: File) {
     setReading(true);
     setError('');
+    setImportSource(null);
     try {
+      setImportSource(file);
       if (file.size > maximumDocumentBytes)
         throw new Error('File exceeds the 1 MiB limit.');
-      const imported = decodeDocument(await file.text());
+      const text = await file.text();
+      const imported = decodeDocument(text);
       if (latest.current.blocked)
         throw new Error('Finish or cancel pending edits, then import again.');
       if (
@@ -87,6 +93,7 @@ export function DocumentControls({
         )
       ) {
         replace(imported);
+        setImportSource(null);
         setAnnouncement('Imported score.');
       }
     } catch (error) {
@@ -94,6 +101,19 @@ export function DocumentControls({
     } finally {
       setReading(false);
     }
+  }
+  function downloadSource(source: string | Blob, filename: string) {
+    const url = URL.createObjectURL(
+      typeof source === 'string'
+        ? new Blob([source], { type: 'application/json;charset=utf-8' })
+        : source,
+    );
+    const link = globalThis.document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setAnnouncement('Downloaded original source without conversion.');
   }
   function exportFile() {
     setError('');
@@ -261,6 +281,17 @@ export function DocumentControls({
           role="group"
           aria-label="Document recovery"
         >
+          {recoverySource !== null && (
+            <button
+              type="button"
+              disabled={reading}
+              onClick={() =>
+                downloadSource(recoverySource, 'recovered-original.chant.json')
+              }
+            >
+              Download original cached source
+            </button>
+          )}
           <button
             type="button"
             disabled={disabled}
@@ -283,7 +314,7 @@ export function DocumentControls({
               finishTitle(true);
               if (
                 window.confirm(
-                  'Replace the cached bytes with this tab’s committed score? Export any work you want to keep first.',
+                  'Replace the cached bytes with this tab’s committed score? Download the original cached source and export current work separately before replacing it.',
                 )
               )
                 replaceCache();
@@ -292,6 +323,16 @@ export function DocumentControls({
             Replace cache with this score / Retry save
           </button>
         </div>
+      )}
+      {importSource !== null && error && (
+        <button
+          type="button"
+          onClick={() =>
+            downloadSource(importSource, 'original-import.chant.json')
+          }
+        >
+          Download original imported source
+        </button>
       )}
       <p className="document-header__error" role="alert" hidden={!error}>
         {error}

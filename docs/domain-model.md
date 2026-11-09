@@ -100,17 +100,15 @@ ordering defensively.
 
 ## Note rhythmic modifiers (Stage 8A)
 
-Each stable-ID note optionally owns `mora: 1 | 2` and `episema: true`.
-Omitting a property means no mark; explicit zero/false is not stored. Both
-may coexist on any constituent of all seven supported kinds. Runtime neume
-validation rejects invalid modifier values. Movement and normalization retain
-properties on surviving notes; deletion removes only the deleted notes' signs.
-No timing or performance duration is implied. Coordinates and orientation remain
-derived under [Accepted ADR 0017](adrs/0017-model-rhythmic-modifiers-on-notes.md).
-See [persistence](persistence.md) for strict v2 fields and exact v1 compatibility.
-Note-level `mora: 2` remains distinct from Gregorio's conventional last-two-note
-double sign; [ADR 0017's follow-up question](adrs/0017-model-rhythmic-modifiers-on-notes.md#follow-up-design-question-conventional-double-signs)
-records the unresolved design issue without changing existing data.
+Each stable-ID note optionally owns `mora: 1` and `episema: true`; omission
+means off. Mora is presence, not a count or duration. Punctum allows none/sole;
+Podatus and Clivis none/first/second/both; Scandicus, Torculus, Climacus and
+Porrectus none/final/final two. The shared pure pattern validator governs
+commands and native decoding. A final pair marks two distinct note IDs and
+derives an auctum duplex; no second persisted sign object exists. Episema stays
+independent. Movement and normalization retain marks on surviving note IDs.
+See [ADR 0018](adrs/0018-conventional-mora-patterns.md) and
+[persistence](persistence.md) for protected recovery of incompatible draft v2.
 
 ## Lookup and identity
 

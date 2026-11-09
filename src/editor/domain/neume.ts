@@ -1,3 +1,4 @@
+import { getMoraScope } from './mora';
 import type {
   ChantDocument,
   ChantNote,
@@ -58,11 +59,12 @@ export function isValidNeume(neume: Neume): boolean {
     neume.notes.some(
       (note) =>
         !note ||
-        ('mora' in note && note.mora !== 1 && note.mora !== 2) ||
+        ('mora' in note && note.mora !== 1) ||
         ('episema' in note && note.episema !== true),
     )
   )
     return false;
+  if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
     case 'punctum':
       return neume.notes.length === 1 && Boolean(neume.notes[0]);

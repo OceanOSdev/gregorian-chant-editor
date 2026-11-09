@@ -1,4 +1,7 @@
-# Rhythmic-model evidence — proposal only
+# Rhythmic-model investigation — historical proposal evidence
+
+The owner subsequently approved [ADR 0018](../../../adrs/0018-conventional-mora-patterns.md);
+see [current implementation evidence](../conventional/README.md).
 
 The owner rejected the ownership glyphs/indexes/strings in the earlier review.
 The [new model proposal](../../../plans/stage-8a-conventional-rhythm-model.md)

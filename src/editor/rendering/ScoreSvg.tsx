@@ -729,7 +729,10 @@ export function ScoreSvg({
                       selection.noteId === note.noteId;
                     const accessibleLabel =
                       getNoteAccessibleLabel(neume.kind, noteIndex) +
-                      getNoteModifierDescription(note);
+                      getNoteModifierDescription(
+                        note,
+                        neume.notes.filter((n) => n.mora).length === 2,
+                      );
 
                     return (
                       <g

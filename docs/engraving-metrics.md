@@ -473,43 +473,30 @@ supply qualitative note ownership, dots beside heads and contextual episema
 placement. These are independently constructed project metrics, not GregorioTeX
 optical rules or a promise of identical output.
 
-Mora dots are circles of diameter 4. Start their left edge 5 units right of
-the nominal 12-unit head cell, except for the trailing Porrectus rule below.
-A space note uses its pitch row; a line note tries the space above then below.
-Double mora uses two dots vertically separated by 24 units. Candidate columns
-include the initial column and occupied ink's right edges plus 3 units; choose
-the first collision-free column, with a 2-unit ink clearance. The bounded
-candidate search handles large intervals without a pixel-by-pixel loop.
-An ordinary single dotted Punctum adds only 9 units to measured width.
+Mora dots are circles of diameter 4. A space note uses its pitch row; a
+line note uses the space above, with contextual exceptions. Singles start
+5 units beyond the head cell; Porrectus singles trail the whole glyph by
+3 units. A lower Podatus single on a line uses the space below for a one-step
+ascent. Final Torculus and Climacus line singles use the space below, following
+Gregorio's qualitative placement. A Clivis first-note single stays near its
+upper head: heads and the left stem/connector partition the compound path's
+empty right-hand area instead of treating its entire bounding box as filled.
+This preserves the difference between first-only and second-only markings.
 
-Horizontal episemata are 12 × 2 rules centred on the nominal note anchor.
-Try 16, 22, 28, 34, 40 units above/below the pitch, preferring above at equal
-distance. A conservative fallback uses the full glyph exterior. All candidates
-clear actual staff lines, occupied glyph rectangles and earlier signs. Separate
-strokes avoid misleading bridges on the current ascending/descending compounds;
-there is no authored bridge state or connection across neumes. Both signs may
-coexist. Approved head silhouettes, internal positions and lyric anchors are
-unchanged. Conservative full-ribbon bounds can displace signs beyond where a
-contour-aware engraver would place them; manual orientation and optical joining
-are deferred. See [verification](verification/note-modifiers/README.md) for
-rendered evidence and owner acceptance steps.
+A supported pair is resolved together in one trailing column, starting 3 units
+past the complete glyph. Sort its pitches: the lower line dot uses the space
+below when the pitches are adjacent; other line dots use the space above.
+Both dots retain their distinct affected-note modifier bounds. This follows
+Gregorio's auctum-duplex writer and TeX pair composition rather than rendering
+independent counts. Pair columns move together only for clearance from earlier
+signs. Candidate columns are occupied right edges plus 3 units, with 2-unit
+ink clearance. Single Punctum adds 9 units; ordinary Porrectus and pairs add
+7 units. All signs enter shared bounds, advance and wrapping.
 
-### Porrectus trailing mora refinement
-
-Porrectus dots start 3 units after the complete glyph's right bound, so an
-ordinary single dot adds only 7 units to its measured width. No dot is moved
-along the descending ribbon. Space-level dots stay at their pitch; line-level
-dots prefer the space above, except for the **second note with a one-step final
-ascent**, which uses the space below. This follows the qualitative distinction
-in Gregorio's writer and its separate line/space Porrectus mora macros; it does
-not copy TeX font offsets into project units. The source and rendered comparison
-are in the [Porrectus investigation](verification/note-modifiers/porrectus-mora/README.md).
-
-Porrectus dots retain their chosen row instead of changing pitch association to
-avoid another dot. Colliding authored signs take subsequent trailing columns,
-with 3 units between the preceding sign's right edge and the next dot's left.
-All authored dots remain measured and visible, including equal-pitch outer
-notes and note-level double mora. Those unusual combinations may look crowded
-and cannot always communicate unique note ownership through position alone.
-We do not copy Gregorio's coincident-dot overpainting or merge semantic signs.
-Horizontal episema placement and the approved Porrectus contour are unchanged.
+Horizontal episemata remain 12 × 2 rules centred on nominal note anchors.
+Try 16, 22, 28, 34, 40 units above/below, preferring above at equal distance;
+a conservative exterior fallback clears staff lines, occupied rectangles and
+earlier signs. Separate strokes avoid unsafe bridges. Approved head silhouettes,
+pitches and lyric anchors remain unchanged. Manual orientation and optical
+joining remain deferred. See the [current comparison](verification/note-modifiers/conventional/README.md)
+and [reference probes](verification/note-modifiers/rhythm-model/README.md).

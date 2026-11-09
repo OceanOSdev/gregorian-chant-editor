@@ -19,19 +19,19 @@ import {
   reduceEditorSession,
 } from '../state/editor-session';
 
-const target = 'note-torculus-1';
+const target = 'note-torculus-3';
 describe('note modifier edits', () => {
   it('changes exactly one note, shares unrelated data and keeps the other modifier', () => {
     const marked = updateNoteModifiers(exampleDocument, target, {
       kind: 'mora',
-      value: 2,
+      value: 1,
     });
     const both = updateNoteModifiers(marked, target, {
       kind: 'episema',
       value: true,
     });
     expect(findNote(both, target)?.note).toMatchObject({
-      mora: 2,
+      mora: 1,
       episema: true,
     });
     expect(both.neumes[0]).toBe(exampleDocument.neumes[0]);
@@ -68,6 +68,7 @@ describe('note modifier edits', () => {
       { kind: 'mora', value: -1 },
       { kind: 'mora', value: 1.5 },
       { kind: 'mora', value: 3 },
+      { kind: 'mora', value: 2 },
       { kind: 'episema', value: 1 },
       { kind: 'unknown', value: 1 },
     ])
@@ -77,16 +78,20 @@ describe('note modifier edits', () => {
   });
   it('preserves exact marks through note/neume moves, normalization and history', () => {
     const marked = updateNoteModifiers(
-      updateNoteModifiers(exampleDocument, target, { kind: 'mora', value: 2 }),
+      updateNoteModifiers(exampleDocument, target, { kind: 'mora', value: 1 }),
       target,
       { kind: 'episema', value: true },
     );
-    const moved = moveNoteVertically(marked, target, -1);
+    const moved = moveNoteVertically(
+      moveNoteVertically(marked, target, -1),
+      target,
+      -1,
+    );
     const whole = moveNeumeVertically(moved, 'neume-torculus-1', 1);
     const normalized = deleteNote(whole, 'note-torculus-2');
-    expect(normalized.neumes[1].kind).toBe('podatus');
+    expect(normalized.neumes[1].kind).toBe('clivis');
     expect(findNote(normalized, target)?.note).toMatchObject({
-      mora: 2,
+      mora: 1,
       episema: true,
     });
     expect(findNote(deleteNote(normalized, target), target)).toBeNull();

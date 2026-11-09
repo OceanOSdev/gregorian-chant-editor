@@ -265,10 +265,11 @@ before acting. There is no additional semantic history authority.
 
 ## Rhythmic modifier edits (Stage 8A)
 
-`updateNoteModifiers` accepts a stable note ID and a discriminated mora
-(0/1/2) or episema (boolean) intent. Off removes the optional field. Missing IDs,
-invalid and unchanged values return exact document identity; the other modifier
-and unrelated notes retain their values/references. Existing movement and
-normalization preserve complete surviving note records. The session records
-one `engraving-edit` per control change, preserving selection, native control
-focus and lyric drafts; existing pending-workflow guards still apply.
+`updateMoraScope` targets a stable neume ID with the contextual choices from
+`moraChoices`. It changes both affected notes in one immutable snapshot and one
+undoable action. Missing, invalid, unsupported and unchanged requests retain
+exact document identity. `updateNoteModifiers` retains selected-note episema
+editing and validates any single-note mora edit against the same profile.
+Off removes optional fields; unrelated notes and the other modifier are shared.
+Movement and deletion retain marks on the same surviving note IDs; they never
+infer or retarget a pair. Pending workflows retain existing edit guards.

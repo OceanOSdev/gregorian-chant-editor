@@ -1,4 +1,8 @@
-import { updateNoteModifiers } from '../commands/update-note-modifiers';
+import { getMoraScope, moraChoices } from '../domain/mora';
+import {
+  updateMoraScope,
+  updateNoteModifiers,
+} from '../commands/update-note-modifiers';
 import { updateDocumentTitle } from '../commands/update-document-title';
 import { DocumentControls } from './DocumentControls';
 import { usePersistedSession } from '../persistence/use-persisted-session';
@@ -902,6 +906,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         }}
         replaceCache={persistence.replaceCache}
+        recoverySource={persistence.recoverySource}
       />
       <ClefChangeControls session={session} dispatch={dispatch} />
       <fieldset
@@ -919,33 +924,45 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <p id="note-modifier-target" className="note-modifiers__target">
           {selectedNoteLocation
             ? selectedNoteLocation.neume.kind +
-              ', note ' +
+              ' mora scope; episema on note ' +
               (selectedNoteLocation.noteIndex + 1)
             : 'Select a note to edit'}
         </p>
         <div className="note-modifiers__controls">
           <label>
-            Mora{' '}
+            Mora scope{' '}
             <select
-              aria-label="Mora"
-              value={selectedNote?.mora ?? 0}
+              aria-label="Mora scope"
+              aria-describedby="note-modifier-target"
+              value={
+                selectedNoteLocation
+                  ? (getMoraScope(selectedNoteLocation.neume) ?? 'none')
+                  : 'none'
+              }
               onChange={(event) => {
-                if (!selectedNote) return;
-                const value = Number(event.target.value);
-                if (value === 0 || value === 1 || value === 2)
+                if (!selectedNoteLocation) return;
+                const choice = moraChoices(
+                  selectedNoteLocation.neume.kind,
+                ).find((c) => c.value === event.target.value);
+                if (choice)
                   dispatch({
                     type: 'engraving-edit',
                     edit: (document) =>
-                      updateNoteModifiers(document, selectedNote.id, {
-                        kind: 'mora',
-                        value,
-                      }),
+                      updateMoraScope(
+                        document,
+                        selectedNoteLocation.neume.id,
+                        choice.value,
+                      ),
                   });
               }}
             >
-              <option value={0}>None</option>
-              <option value={1}>Single dot</option>
-              <option value={2}>Double dot</option>
+              {moraChoices(selectedNoteLocation?.neume.kind ?? 'punctum').map(
+                (choice) => (
+                  <option key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </option>
+                ),
+              )}
             </select>
           </label>{' '}
           <label>

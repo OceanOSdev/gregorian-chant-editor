@@ -590,23 +590,21 @@ actual examples and remaining silhouette differences.
 
 ## Rhythmic sign geometry (Stage 8A)
 
-`buildNeumeGeometry` optionally consumes note modifiers and delegates to
-`note-modifiers.ts` after constructing the approved unmodified glyph. Signs
-are ordinary shared ink: bounds, advances, compaction, wrapping, boundary
-reservations and whole-neume outlines include them. Unmodified geometry is
-unchanged; musical anchors and constituent head/hit contours never move.
-Derived per-note modifier bounds extend browser focus/reveal bounds without
-creating new semantic targets. New-neume previews have unmarked notes; they
-use the same builder and complete committed sign bounds when resolving slots.
+`buildNeumeGeometry` consumes note modifiers after constructing the approved
+unmodified glyph. `note-modifiers.ts` derives independent episemata and
+conventional single/paired mora signs without changing heads or lyric anchors.
+The collision search reserves episema ink before resolving mora columns.
+All signs participate in ink bounds, advances, wrapping and per-note focus/reveal
+bounds. Final-pair dots are resolved together, retaining each affected note's
+bounds; never infer a two-dot count on one note. Contextual line/space and
+Clivis first-single rules are specified in [engraving metrics](engraving-metrics.md).
+See [ADR 0018](adrs/0018-conventional-mora-patterns.md).
 
-Automatic placement uses conservative rectangles for shared silhouettes,
-stems and existing signs, plus explicit staff-line avoidance. This can leave
-more room than contour-specific optical placement, especially on ribbons. Porrectus mora uses the complete glyph's trailing edge
-and a conventional second-note line/space exception; coincident authored dots
-keep their row and use separate compact trailing columns (see engraving metrics).
-Episemata remain separate when pitches/heights or intervening occupied ink make
-a bridge ambiguous; no across-neume joining occurs. Exact metrics and source
-basis live in [engraving metrics](engraving-metrics.md#rhythmic-signs-stage-8a).
-The canvas includes signed neumes' complete vertical ink. Fixed system/lyric
-spacing and absent neume ledger lines remain limitations: extreme pitches can
-still overlap another system or lyrics; this adds no vertical collision engine.
+Unmodified geometry remains unchanged. New-neume previews have unmarked notes
+and use the same builder; slot reservations consume complete committed sign
+bounds. Both rhythmic signs remain inert ink with stable note targets; neume
+outlines include all signs. Episemata remain separate when joining would be
+ambiguous, with no across-neume bridge. The canvas includes complete vertical
+ink, but fixed system/lyric spacing and absent neume ledger lines remain
+limitations: extreme pitches can still overlap lyrics or another system. No
+vertical collision engine is added.

@@ -41,7 +41,7 @@ export interface LyricSyllable {
 }
 
 export interface NoteModifiers {
-  mora?: 1 | 2;
+  mora?: 1;
   episema?: true;
 }
 

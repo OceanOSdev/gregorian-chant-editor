@@ -727,19 +727,16 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 ## Selected note modifiers (Stage 8A)
 
-The compact **Selected note modifiers** group stays mounted above the score.
-With no selected note it shows “Select a note to edit” and disables its controls.
-Selecting or clearing a note, or switching constituents, updates the target
-caption and values without moving the notation surface. A fixed legend and
-separate target caption keep selection-dependent text out of the wrapping legend.
-Native **Mora** (None / Single dot / Double dot) and **Horizontal episema**
-(Off / On) selects show that exact note's current values. Native select arrows
-and Tab/Shift+Tab remain browser-owned; changing a value keeps control focus.
-Note pitch arrows and existing shortcuts retain their established scope.
-The controls are disabled while placing, moving lyrics, resolving history or
-editing a clef transaction. Modifier changes preserve dirty lyric drafts and
-use the existing draft-resolution policy on subsequent undo/redo.
-Accessible note labels name each present sign; the score description counts
-notes with modifiers. Signs are inert ink, selected through their owning
-notehead rather than independent controls. Derived sign bounds participate in
-focus reveal without enlarging overlapping constituent head targets.
+The compact **Selected note modifiers** group stays mounted above the score,
+including while no note is selected. Fixed control widths and a single-line
+target keep selection/deselection and switching neumes from moving the score.
+The target names the owning neume for mora and the selected note for episema.
+
+**Mora scope** choices are None/Sole note for Punctum; None/First note/Second
+note/Both notes for Podatus and Clivis; None/Final note/Final two notes for the
+four three-note kinds. Final two is one atomic undoable edit affecting two
+notes. No individual-note double option exists. **Horizontal episema** remains
+Off/On on the selected note, independent of mora scope. Native select keyboard
+behavior and focus are retained; pending workflow and placement guards apply.
+Selecting a note does not itself edit or save anything. Score note accessible
+labels describe mora presence, pair participation and horizontal episema.
