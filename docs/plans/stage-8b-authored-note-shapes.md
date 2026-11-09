@@ -3,8 +3,7 @@
 Branch: `feat/stage-8b-note-shapes`
 Target: `master`
 
-Status: **Planned — awaiting owner approval of proposed ADR 0019.**
-No implementation has been authorized on this branch.
+Status: **Planned — ADR 0019 accepted (owner-approved 2026-11-09); implementation authorized.**
 
 ## Goal
 
@@ -23,7 +22,7 @@ Read `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`,
 `docs/layout-and-rendering.md`, `docs/engraving-metrics.md`,
 `docs/editor-interactions.md`, `docs/persistence.md`,
 `docs/testing.md`, Accepted ADRs 0003, 0004, 0007, 0010, 0016, 0018 and
-[proposed ADR 0019](../adrs/0019-authored-note-forms-and-neume-contours.md).
+[Accepted ADR 0019](../adrs/0019-authored-note-forms-and-neume-contours.md).
 
 ## Musical research and design constraints
 
@@ -54,9 +53,9 @@ quilismatic Podatus and Scandicus, including close/wide adjacent intervals.
 If the proposed connected shapes differ materially from musical references,
 stop with alternatives before implementing guessed contours.
 
-## Proposed Stage 8B semantic contract
+## Approved Stage 8B semantic contract
 
-Subject to ADR 0019 owner approval:
+Under Accepted ADR 0019:
 
 - Keep the existing seven melodic `Neume['kind']` variants and their
   ordered note tuples. Add a small **optional explicit note form** on
@@ -222,17 +221,18 @@ strophicus, liquescences, flats/naturals, manual note-group splits,
 playback, GABC import/export, general glyph-font engine, or unrelated
 refactors.
 
-**ADR 0019 is Proposed.** Stop at the architectural gate until the owner
-accepts or revises it. The key owner choices are *optional note-form on an
-existing note rather than a new neume kind*, the above supported contexts,
-and native v3 compatibility. If actual Gregorio/typeset evidence contradicts
+**ADR 0019 is Accepted (owner-approved 2026-11-09).** The approval gate
+is cleared. The accepted choices are *optional note-form on an existing note
+rather than a new neume kind*, supported contexts, preselected one-click
+Quilisma figure insertion and native v3 compatibility. If actual
+Gregorio/typeset evidence contradicts
 the quilisma-pes or middle-Scandicus contour, or an allowed operation would
 silently destroy authored shapes, stop with examples and options before
 implementing an incompatible design.
 
 ## Delivery
 
-After the ADR is Accepted, implement on this branch per
+Implement on this branch under Accepted ADR 0019 per
 `docs/ai-workflow.md`, update owning docs/roadmap and ADR index,
 commit and open a PR targeting `master`. Report architectural deviations,
 tests, reference comparisons, and remaining foreground manual checks.
