@@ -6,6 +6,11 @@ disputed. Finding 6 is a preventive exhaustiveness defect, not a currently
 reachable wrong glyph among the three supported forms. Optional suggestions
 were limited to directly related correctness and verification wording.
 
+Owner closeout: **Stage 8B owner-accepted 2026-11-09**, including manual new-shape
+and localStorage recovery verification. The
+[two non-blocking follow-up items](../../roadmap.md#post-stage-8b-follow-ups-non-blocking)
+are separate from Stage 8B acceptance. ADR 0019 remains Accepted.
+
 ## Findings and evidence
 
 | Finding                        | Resolution                                                                                                                                                                         | Regression / evidence                                                                                                                                                                                 |
@@ -135,7 +140,9 @@ follow-up. The actual measurements are in the investigation JSON above.
 - Existing Stage 8A modifier browser regressions also passed in both browsers.
 
 Native select/file choices use DOM events; native pointer activation and I
-insertion are separately exercised. Foreground OS dialogs, browser-menu zoom,
-IME, spoken screen-reader behavior and owner contour acceptance remain pending
-as in the original [manual checklist](implementation.md#owner-manual-acceptance-checklist--pending).
-No hosted deployment or complete keyboard-only palette flow is claimed.
+insertion are separately exercised. These drivers do not verify foreground OS
+dialogs, browser-menu zoom, IME or spoken screen-reader behavior. The owner’s
+completed [manual acceptance](implementation.md#owner-manual-acceptance--accepted-2026-11-09)
+is recorded separately, without inferring itemized results that were not supplied.
+No hosted deployment or complete keyboard-only palette flow is established by
+these drivers.

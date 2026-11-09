@@ -163,11 +163,30 @@ across-neume joins, new neume kinds and playback remain deferred.
 
 ## Additional authored note shapes (Stage 8B)
 
-Implemented for review in [PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65); owner acceptance is pending. The
-[Stage 8B plan](plans/stage-8b-authored-note-shapes.md) and
-[Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
-outline one-click standalone Virga and Punctum inclinatum and preselected,
-one-click quilismatic Podatus/Scandicus, with contextual form editing. The
-architecture and native v3 compatibility were **owner-approved 2026-11-09**;
-the owner subsequently clarified independent quilisma-pes authoring and traditional connected Scandicus engraving. New saves write v3 while exact v1/v2 readers and protected draft recovery remain. See [verification and manual acceptance](verification/note-shapes/implementation.md). Forced orientation, generic fusion and other
-new forms remain deferred.
+**Completed (owner-accepted 2026-11-09)** in
+[PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65).
+The owner completed manual acceptance of the new note shapes and localStorage
+recovery verification. Merge remains with the owner after CI passes.
+
+Stage 8B provides one-click standalone Virga and Punctum inclinatum,
+preselected one-click quilismatic Podatus/Scandicus, and contextual form editing.
+Scandicus uses the traditional connected construction; independent quilisma-pes
+is an intentional authoring allowance. New saves write v3 while exact v1/v2
+readers and protected draft recovery remain. See the
+[completed plan](plans/stage-8b-authored-note-shapes.md),
+[Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md) and
+[verification and owner acceptance](verification/note-shapes/implementation.md).
+Forced orientation, generic fusion and other new forms remain deferred.
+
+## Post-Stage 8B follow-ups (non-blocking)
+
+These are separate follow-up items, not blockers for the completed Stage 8B:
+
+1. **Blocked-autosave warning visibility.** Improve the visibility of warnings
+   when incompatible cached documents block autosaving. Preserve original-source
+   recovery, strict version compatibility and confirmed replacement safeguards.
+2. **Extreme-pitch SVG viewBox investigation.** Continue investigating the
+   pre-existing extreme-pitch viewBox issue and a focused rendering policy.
+   [The reproduced cases](verification/note-shapes/review-follow-up.md#separate-extreme-pitch-finding)
+   preserve stored pitches and bytes; any later fix must retain semantic/native
+   compatibility.

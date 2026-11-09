@@ -1,7 +1,14 @@
 # Stage 8B implementation and acceptance record
 
-2026-11-09. Implemented for review in [PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65),
-not merged. Owner implementation acceptance remains pending.
+**Completed (owner-accepted 2026-11-09)** in
+[PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65).
+The owner reports completed manual acceptance, including the new note shapes
+and localStorage recovery verification. ADR 0019 remains Accepted.
+The PR is not merged; the owner will merge after CI passes.
+
+[Blocked-autosave warning visibility and the pre-existing extreme-pitch viewBox
+investigation](../../roadmap.md#post-stage-8b-follow-ups-non-blocking) are separate,
+non-blocking follow-up items.
 
 ## Behavior and architectural decisions
 
@@ -47,7 +54,8 @@ quilisma-pes intervals 1 and 4, and connected middle-quilisma Scandicus interval
 (1,1), (2,2), (3,2). The wider editor constructions extend the traditional
 connected silhouette procedurally; the scan is not claimed to supply an exact
 matching specimen for every interval. Paths are independently drawn. Contour
-quality remains an owner visual acceptance item, separate from numeric tests.
+quality was included in owner acceptance; numeric geometry tests remain separate
+from that manual signoff.
 
 Selected real-editor evidence:
 
@@ -143,25 +151,31 @@ its `rendered-score.json` and `rendered-defaults.json`:
 node docs/verification/note-shapes/render-comparison.mjs /tmp/DRIVER-OUTPUT/rendered-score.json /tmp/DRIVER-OUTPUT/rendered-defaults.json
 ```
 
-## Owner manual acceptance checklist — pending
+## Owner manual acceptance — accepted 2026-11-09
 
-- [ ] In foreground Chromium and Firefox, use pointer and keyboard to place
-      Virga, Inclinatum and both preselected Quilisma figures. Check ghost
-      fidelity and absence of a placement popup at line, space and boundary pitches.
-- [ ] Inspect the adjacent/wider connected Scandicus and quilisma-pes against
-      the comparison boards. Confirm pitch readability and the intended traditional
-      silhouette, especially the two thin rising shafts and jagged middle head.
-- [ ] Select each head and shaft, tab through targets, and change eligible Forms.
-      Check individual identity, focus/selection outlines and unchanged default Climacus.
-- [ ] Combine forms with mora scopes and episemata; move notes, remove supported
-      constituents and try rejected partner deletion. Undo/redo and refresh immediately.
-- [ ] Export an actual `.chant.json` download, import it through the OS picker,
-      and compare all forms, lyrics, signs, clefs and divisions. Exercise source
-      recovery and conflict confirmations in disposable browser profiles.
-- [ ] At desktop, 320px and actual browser zoom, inspect controls, selection
-      stability, wrapping, lyrics, clefs, divisions and custodes for clipping/collisions.
-- [ ] Check native select/dropdown operation, OS dialogs/file cancellation, IME,
-      and spoken screen-reader names/announcements in foreground browsers.
+The owner explicitly accepted Stage 8B after manual testing, including the new
+note shapes and localStorage recovery verification. No itemized browser/device,
+zoom, IME or spoken screen-reader results were supplied. Acceptance is complete;
+the retained review prompts below are not an assertion that each individual
+scenario was separately logged.
+
+- In foreground Chromium and Firefox, use pointer and keyboard to place
+  Virga, Inclinatum and both preselected Quilisma figures. Check ghost
+  fidelity and absence of a placement popup at line, space and boundary pitches.
+- Inspect the adjacent/wider connected Scandicus and quilisma-pes against
+  the comparison boards. Confirm pitch readability and the intended traditional
+  silhouette, especially the two thin rising shafts and jagged middle head.
+- Select each head and shaft, tab through targets, and change eligible Forms.
+  Check individual identity, focus/selection outlines and unchanged default Climacus.
+- Combine forms with mora scopes and episemata; move notes, remove supported
+  constituents and try rejected partner deletion. Undo/redo and refresh immediately.
+- Export an actual `.chant.json` download, import it through the OS picker,
+  and compare all forms, lyrics, signs, clefs and divisions. Exercise source
+  recovery and conflict confirmations in disposable browser profiles.
+- At desktop, 320px and actual browser zoom, inspect controls, selection
+  stability, wrapping, lyrics, clefs, divisions and custodes for clipping/collisions.
+- Check native select/dropdown operation, OS dialogs/file cancellation, IME,
+  and spoken screen-reader names/announcements in foreground browsers.
 
 Headless native pointer/keyboard input was exercised. Select changes and file
 selection use DOM events; export bytes are captured before the OS download.
@@ -171,3 +185,14 @@ is a 3× specimen, not proof of browser zoom. Hosted deployment is not verified.
 Existing fixed vertical spacing, absent ordinary-note ledger lines and extreme
 pitch collisions remain limitations. No manual breaks, playback or interchange
 beyond native JSON were added.
+
+## Documentation closeout
+
+The plan and roadmap record Stage 8B as Completed (owner-accepted 2026-11-09).
+This closeout changes Markdown only; ADR 0019 and all implementation files are
+unchanged. Earlier automated/browser results above remain the implementation
+verification evidence. Closeout checks reran `npm run format:check`,
+`npm run lint`, `npm test` (72 files / 1,530 tests), `npm run build` and
+`git diff --check`; all passed. The 52 local documentation links/fragments in
+the changed files were checked successfully. No new browser run or hosted CI
+pass is inferred from the documentation closeout.

@@ -3,7 +3,16 @@
 Branch: `feat/stage-8b-note-shapes`
 Target: `master`
 
-Status: **Implemented for review in PR #65 — owner acceptance pending. ADR 0019 and the post-research engraving clarifications are accepted.**
+Status: **Completed (owner-accepted 2026-11-09)**.
+
+The owner completed manual acceptance, including the new note shapes and
+localStorage recovery verification. Implementation and evidence are delivered in
+[PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65). This plan
+is retained as historical scope and acceptance evidence; ADR 0019 remains Accepted.
+The PR is not merged; the owner will handle merge after CI passes.
+
+Separate [post-Stage 8B follow-ups](../roadmap.md#post-stage-8b-follow-ups-non-blocking)
+are recorded without blocking Stage 8B completion.
 
 ## Owner clarification after reference review (2026-11-09)
 
@@ -245,11 +254,13 @@ the quilisma-pes or middle-Scandicus contour, or an allowed operation would
 silently destroy authored shapes, stop with examples and options before
 implementing an incompatible design.
 
-## Delivery
+## Delivery and closeout
 
-Implement on this branch under Accepted ADR 0019 per
-`docs/ai-workflow.md`, update owning docs/roadmap and ADR index,
-commit and open a PR targeting `master`. Report architectural deviations,
-tests, reference comparisons, and remaining foreground manual checks.
-Do not merge. Retain the plan as review evidence and mark it Completed only
-upon owner acceptance before merge.
+Implemented on `feat/stage-8b-note-shapes` in PR #65, targeting `master`, under
+Accepted ADR 0019 and the owner’s engraving clarifications. Owning guides,
+roadmap, review resolutions and rendered comparisons are updated. The
+[verification record](../verification/note-shapes/implementation.md) distinguishes
+successful automated/browser checks from the owner’s manual acceptance.
+
+Owner-accepted 2026-11-09. Retain this completed plan as review evidence.
+Do not merge as part of this closeout; the owner will merge after CI passes.
