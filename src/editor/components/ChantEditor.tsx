@@ -578,17 +578,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </button>
         ))}
       </div>
-      {activeTool.kind === 'place-clef' ? (
+      {activeTool.kind === 'place-clef' ||
+      session.selection.kind === 'clef-change' ||
+      session.clefTransaction ? (
         <fieldset
           className="clef-insertion-behavior"
           disabled={Boolean(
-            session.clefTransaction ||
+            session.clefTransaction?.candidate ||
             session.pendingHistory ||
             session.lyricMove,
           )}
           aria-describedby="clef-insertion-description"
         >
-          <legend>Insertion behavior</legend>
+          <legend>Pitch handling</legend>
           <label>
             <input
               type="radio"
@@ -619,7 +621,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           <p id="clef-insertion-description">
             Keep pitches shifts existing noteheads to preserve their pitches.
             Keep note positions leaves noteheads in place and changes their
-            interpreted pitches. Each click inserts immediately.
+            interpreted pitches. Used for insertion and Apply when editing a
+            clef.
           </p>
           {session.clefInsertionError ? (
             <p role="status">{session.clefInsertionError}</p>

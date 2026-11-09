@@ -5,7 +5,7 @@ import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { isValidClef } from '../domain/clef';
 import type { EditorAction, EditorSession } from '../state/editor-session';
 
-/** Selection-specific editing and the shared, conditional pitch choice. No insertion form. */
+/** Staged authored-clef editing and the separate deletion confirmation. */
 export function ClefChangeControls({
   session,
   dispatch,
@@ -120,6 +120,9 @@ export function ClefChangeControls({
       ) : transaction ? (
         <>
           <strong>Edit selected clef</strong>
+          {transaction.policyError ? (
+            <p role="status">{transaction.policyError}</p>
+          ) : null}
           <ClefDraft
             clef={transaction.clef}
             onChange={(clef) => dispatch({ type: 'draft-clef-change', clef })}

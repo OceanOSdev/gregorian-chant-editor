@@ -433,12 +433,15 @@ it.each(['melody', 'noteheads'] as const)(
   },
 );
 
-it('keeps insertion options isolated from a pending existing-clef edit/removal', () => {
-  let s = createEditorSession(scene());
+it('allows shared policy during a draft but blocks it during deletion confirmation', () => {
+  let s = createEditorSession({ ...fixture(), clefChanges: [change('C1')] });
   s = reduce(s, { type: 'start-clef-change', id: 'C1' });
-  expect(
-    reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' }),
-  ).toBe(s);
+  s = reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' });
+  expect(s.clefInsertionPolicy).toBe('noteheads');
+  s = reduce(s, { type: 'apply-clef-change', remove: true });
+  expect(reduce(s, { type: 'clef-insertion-policy', preserve: 'melody' })).toBe(
+    s,
+  );
   expect(
     reduce(s, {
       type: 'place-clef',

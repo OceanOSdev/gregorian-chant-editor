@@ -548,12 +548,97 @@ try {
       true,
     );
     await select('Draft clef type', 'f');
+    await click('input[name="clef-insertion-policy"][value="noteheads"]');
+    await shot(`${width}-shared-edit-draft`, true);
     await clickButton('Apply clef change');
-    assert.equal(await dialog(), 'Choose pitch preservation');
-    await shot(`${width}-existing-edit-pitch-choice`, true);
-    await clickButton('Preserve noteheads');
+    assert.equal(await dialog(), null);
+    await shot(`${width}-shared-edit-applied`, true);
     assert.deepEqual(await ink(), committed);
     assert.equal(await ev(`document.activeElement.dataset.clefChangeId`), 'C');
+    // Existing edits use the shared selected mode once on Apply, scoped to the passage.
+    for (const preserve of ['melody', 'noteheads']) {
+      const d = fixture(5);
+      d.clefChanges = [
+        {
+          id: 'edit',
+          clef: { type: 'c', staffLine: 3 },
+          beforeNeumeId: 'n1',
+          beforeDivisionId: null,
+        },
+        {
+          id: 'later',
+          clef: { type: 'f', staffLine: 3 },
+          beforeNeumeId: 'n3',
+          beforeDivisionId: null,
+        },
+      ];
+      await mount(d);
+      const original = await ink();
+      await click('[data-clef-change-id="edit"]');
+      assert.equal(
+        await ev(`!!document.querySelector('.clef-insertion-behavior')`),
+        true,
+      );
+      await click(`input[name="clef-insertion-policy"][value="${preserve}"]`);
+      await key('Tab');
+      await ev(
+        `document.querySelector('[data-clef-change-id="edit"]').focus()`,
+      );
+      await key('ArrowDown');
+      await select('Draft clef type', 'f');
+      await select('Draft clef staff line', '2');
+      assert.deepEqual(await ink(), original);
+      assert.equal(
+        await ev(
+          `document.querySelector('input[name="clef-insertion-policy"]:checked').disabled`,
+        ),
+        false,
+      );
+      await shot(`${width}-shared-${preserve}-draft`, true);
+      await clickButton('Apply clef change');
+      assert.equal(await dialog(), null);
+      const after = await ink();
+      for (let i = 0; i < 5; i++)
+        assert.equal(
+          after[i].y,
+          original[i].y +
+            (preserve === 'melody' && (i === 1 || i === 2) ? 60 : 0),
+        );
+      await shot(`${width}-shared-${preserve}-applied`, true);
+      await key('z', 'KeyZ', 2);
+      assert.deepEqual(await ink(), original);
+      await key('z', 'KeyZ', 10);
+      assert.deepEqual(await ink(), after);
+      assert.equal(await dialog(), null);
+      // Final no-op returns without history; mode persists into placement.
+      await clickButton('Edit clef change');
+      await select('Draft clef type', 'c');
+      await select('Draft clef type', 'f');
+      await clickButton('Apply clef change');
+      await key('z', 'KeyZ', 2);
+      assert.deepEqual(await ink(), original);
+      await key('z', 'KeyZ', 10);
+      assert.deepEqual(await ink(), after);
+      await click('[data-tool="c-clef"]');
+      assert.equal(
+        await ev(
+          `document.querySelector('input[name="clef-insertion-policy"]:checked').value`,
+        ),
+        preserve,
+      );
+      // Deletion is still conditional, independent of the shared mode.
+      await key('Escape');
+      await click('[data-clef-change-id="edit"]');
+      await clickButton('Delete clef change');
+      assert.equal(await dialog(), 'Choose pitch preservation');
+      await shot(`${width}-deletion-choice`, true);
+      await clickButton('Cancel clef change');
+      assert.deepEqual(await ink(), after);
+      assert.equal(
+        await ev(`document.documentElement.scrollWidth<=innerWidth`),
+        true,
+      );
+    }
     // Out-of-band hover/click is inert; changing tools and Escape remove the ghost.
     await mount(fixture(3));
     await click('[data-tool="c-clef"]');
@@ -591,8 +676,7 @@ try {
     await click('[data-clef-change-id]');
     await clickButton('Edit clef change');
     await select('Draft clef staff line', '1');
-    await clickButton('Apply clef change');
-    assert.equal(await dialog(), 'Choose pitch preservation');
+    assert.equal(await dialog(), null);
     await ev(`document.querySelector('#lyric-input').focus()`);
     await key('Escape');
     assert.equal(await dialog(), null);
@@ -725,6 +809,48 @@ try {
   await key('Enter');
   assert.equal(await dialog(), null);
   assert.equal((await clefIds()).length, 1);
+  // Failed edit stays a nonmodal draft and accepts an explicit policy change/retry.
+  const unsafeEdit = fixture(2);
+  unsafeEdit.neumes[1].notes[0].staffPosition = Number.MAX_SAFE_INTEGER;
+  unsafeEdit.clefChanges = [
+    {
+      id: 'unsafe-edit',
+      clef: { type: 'c', staffLine: 3 },
+      beforeNeumeId: 'n1',
+      beforeDivisionId: null,
+    },
+  ];
+  await mount(unsafeEdit);
+  await click('[data-clef-change-id="unsafe-edit"]');
+  await key('ArrowUp');
+  await clickButton('Apply clef change');
+  assert.equal(await dialog(), null);
+  assert.equal(
+    await ev(`!!document.querySelector('[aria-label="Edit selected clef"]')`),
+    true,
+  );
+  assert.match(
+    await ev(
+      `document.querySelector('[aria-label="Edit selected clef"] [role="status"]').textContent`,
+    ),
+    /overflow/,
+  );
+  assert.match(
+    await ev(
+      `document.querySelector('[data-clef-change-id]').getAttribute('aria-label')`,
+    ),
+    /staff line 3/,
+  );
+  await shot('shared-edit-overflow', true);
+  await click('input[name="clef-insertion-policy"][value="noteheads"]');
+  await clickButton('Apply clef change');
+  assert.equal(await dialog(), null);
+  assert.match(
+    await ev(
+      `document.querySelector('[data-clef-change-id]').getAttribute('aria-label')`,
+    ),
+    /staff line 4/,
+  );
   for (const width of [1440, 320]) {
     await viewport(width);
     await mount(fixture(3));
@@ -751,7 +877,7 @@ try {
     await ev(`(()=>{document.querySelector('main').style.zoom='';})()`);
   }
   console.log(
-    `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, contextual staged edits, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
+    `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, shared-mode staged Apply without popup and separate deletion confirmation, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
   );
 } finally {
   if (ownsSession) await rawSend('session.end');

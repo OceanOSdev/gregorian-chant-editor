@@ -192,6 +192,7 @@ See the owning guides for ordering, transaction and engraving contracts.
 The owner-approved Stage 6B UX correction adds C/F tools to the existing palette
 and the shared pointer/keyboard clef-placement resolver. The existing session
 transaction commit path applies direct placement's preselected session policy
-synchronously; existing-clef editing retains its staged conditional confirmation.
+synchronously; existing-clef editing retains Apply/Cancel and uses that same
+option at Apply. Only deletion retains conditional confirmation.
 Keyboard boundaries, previews and persistent tool state
 are transient; no semantic fields, event model or new history authority are added.

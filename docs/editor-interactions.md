@@ -625,12 +625,15 @@ changes the document, lyrics, wrapping or history. Both hover and click use
 `resolveGraphicalClefPlacement`; click resolves again against the latest document
 and displayed font snapshot in the reducer.
 
-A compact **Insertion behavior** radio group appears near the C/F toolbar.
+A compact **Pitch handling** radio group appears near the toolbar while placing
+a clef, selecting an authored clef, or editing its draft.
 **Keep pitches (move existing notes)** is selected at initialization: existing
 noteheads shift to retain their interpreted pitches. **Keep note positions
 (change pitches)** leaves noteheads in place and changes their interpreted
 pitches. This session-only option persists across placements and C/F tool
-switches; it is outside the document and history and may reset on refresh.
+switches, Select mode and staged edits; it is outside the document and history
+and may reset on refresh. Changing it never edits music. It is available during
+a draft but disabled during deletion confirmation.
 
 Click applies the selected behavior immediately as one undoable edit, even when
 existing notes are affected. No insertion confirmation or Apply step appears.
@@ -657,8 +660,7 @@ insertion preserves the draft and starts a new history branch. Switching to a
 neume/division tool still follows their established commit-on-mode-change policy.
 Escape from an armed clef returns to Select before acting on a lyric draft.
 A document capture handler gives pending existing-clef cancellation precedence
-even if
-focus leaves the pitch prompt for an editable lyric field.
+even if focus leaves the draft or deletion prompt for an editable lyric field.
 
 In Select, click or Enter/Space selects an authored clef by stable ID. A compact
 **Selected clef** group beside the score offers Edit, Delete and explicit
@@ -672,12 +674,17 @@ change**. Repeated changes remain transient. Where the draft glyph fits safely
 between committed ink and staff bounds, an inert purple overlay previews it in
 place; the original geometry remains committed and its ink fades. No music or
 custos is provisionally transposed or reflowed. Apply compares the final draft
-with the original snapshot, asks at most one pitch choice, and commits one history
-entry. No-op/Cancel preserves exact history and redo. This retains ADR 0015's
-staged editing contract; insertion is the separate direct-click flow.
+with the original snapshot and uses the currently selected shared pitch mode
+immediately, committing one history entry without a preservation popup. Unsafe
+Keep pitches leaves the draft pending with an accessible nonmodal error beside
+the editor. Switch to Keep note positions or revise the draft and retry Apply;
+there is no silent fallback. No-op/Cancel preserves exact music, history, redo
+and lyric drafts. The chosen tool option persists even after Cancel. This
+retains amended ADR 0015's staged editing contract.
 
 Delete/Backspace or Delete removes an authored clef immediately when pitches are
-unaffected, otherwise using the same conditional pitch choice. Commit selects
+unaffected, otherwise asking its separate conditional Preserve melody / Preserve noteheads
+choice. The shared pitch mode does not decide deletion. Commit selects
 and reveals the surviving ID; deletion focuses Select. Edit cancellation retains
 the preceding selection and returns focus to the edited glyph. Placement returns
 focus to the score, revealing the actual inserted glyph after reflow. Tab focus

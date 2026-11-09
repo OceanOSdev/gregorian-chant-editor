@@ -125,14 +125,15 @@ Stage 6B implements [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-bo
 Explicit clef changes may be inserted at whole-neume semantic boundaries
 **without a preceding bar**. Independent clefs and divisions use derived
 score order and an extended stable-ID insertion boundary; deleting a division
-does not delete its nearby clef. Explicit-clef edits offer Preserve melody /
-Preserve noteheads only when existing notes are affected; the initial clef
+does not delete its nearby clef. Explicit-clef insertion and staged edits share
+a preselected pitch mode, with no preservation popup on insertion or Apply.
+Deletion retains its conditional pitch choice; the initial clef
 remains automatically melody-preserving within its governing passage.
 Stage 6B includes automatically derived custos at mid-staff changes and
 staff endings, with effective-clef-aware guide pitches and measured wrapping.
 The graphical C/F tools with snapped ghosts and direct clicks, keyboard slot
 placement with a remembered preselected pitch policy and no insertion prompt,
-contextual staged Apply/Cancel and pitch choice for existing clefs, scoped
+contextual staged Apply/Cancel using the shared mode, scoped
 initial edits, measured clefs/custodes and atomic history are implemented.
 See [verification](verification/mid-score-clefs/README.md); final owner engraving,
 foreground keyboard and accessibility acceptance remain pending. Graphical clef

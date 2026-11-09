@@ -203,13 +203,17 @@ For existing-clef edits/removals, the session owns one `clefTransaction`: origin
 snapshot, previous selection,
 authored ID, insertion boundary or existing target, draft value, and optional
 final candidate awaiting confirmation. Draft adjustments never enter history.
-Apply compares the final value with the original document, offers one pitch
-choice only when offsets change, and commits one snapshot. Cancel/no-op preserves
-the exact history and redo branch. Apply validates unchanged noteheads first;
-confirmation validates only the chosen preservation policy. An unsafe melody
-translation leaves history untouched and the prompt open; valid Preserve
-noteheads remains available. Every other semantic action and history navigation is blocked until
-resolution; a stale original snapshot cancels instead of applying to newer music.
+Apply compares the final edit with the original document and immediately uses
+`clefInsertionPolicy`, the single shared session option for insertion and edits.
+Policy changes during a draft never mutate music/history. Unsafe transformations
+leave the draft pending with a nonmodal error; changing policy or draft clears
+the error for retry. Cancel/no-op preserves the exact history and redo branch.
+Deletion alone creates a final candidate awaiting conditional confirmation;
+its policy is independent of the shared setting. Unsafe melody translation
+keeps deletion confirmation open, permitting Preserve noteheads or cancellation.
+Competing semantic actions and history navigation are blocked while a draft or
+confirmation is pending; a stale original snapshot cancels rather than applying
+to newer music.
 There is no generic transaction framework. Undo/redo restores committed snapshots
 without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-placement-and-contextual-editing-stage-6b).
 
@@ -218,12 +222,14 @@ without reopening pitch confirmation. See [interaction lifecycle](editor-interac
 `place-clef` uses `layoutChant` with the displayed measurement snapshot and the
 shared pointer/keyboard clef resolver, then reuses candidate validation and the
 existing atomic commit path. The session's `clefInsertionPolicy` defaults to
-`melody` and persists across C/F placements outside semantic history. Insertion
+`melody` and persists across C/F placements, Select and staged edits outside
+semantic history. Insertion
 applies that selected policy synchronously, never exposing a pending draft or
 confirmation. Unsafe arithmetic returns unchanged music/history and a nonmodal
 session error; it never falls back to the alternate mode. Each successful
 placement records one snapshot and returns to the armed tool. Pending
-existing-clef transactions still block competing placement and policy actions.
+existing-clef drafts block competing placement but allow changing the shared
+policy; deletion confirmation blocks both.
 
 `clef-keyboard` stores only an explicit semantic boundary and staff line in the
 transient session. Traversal derives mixed order anew; commit verifies its

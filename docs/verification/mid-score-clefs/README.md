@@ -5,7 +5,70 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
-## Owner-approved one-click insertion mode (current)
+## Owner-approved shared pitch mode (current)
+
+The existing `clefInsertionPolicy` is now the single **Pitch handling** option
+for insertion and authored-clef editing. It is visible while a clef is selected,
+while its draft is open, and during C/F placement. It defaults to Keep pitches
+and remains transient; there is no duplicate setting. Mode changes never edit
+music/history. Apply uses the current mode immediately with one undoable edit
+and no preservation popup. Staged Apply/Cancel, scoped transformations, selected
+IDs, lyric drafts and focus semantics remain intact. Unsafe Keep pitches keeps
+the draft open with an accessible nonmodal error, permitting an explicit mode
+change or draft revision/retry. No-op and Cancel preserve history/redo. The mode
+persists even after Cancel. Deletion's conditional choice and required initial
+clef's melody preservation are unchanged under amended Accepted ADR 0015.
+
+Current checks passed: formatting, lint, **60 files / 1,231 tests**, production
+build and diff checks. Focused unit coverage includes both type/line policies,
+unchanged later-clef passages, exact atomic undo/redo, final no-op, cancellation
+with redo/dirty drafts, shared mode across insertion → edit → insertion, overflow
+rejection without fallback, draft revision and policy-switch recovery, and
+blocking policy changes during deletion confirmation. The newly fetched plan
+needed only mechanical Prettier emphasis formatting; its intent is unchanged.
+
+The updated browser driver passed Chromium and Firefox at 1440px/320px:
+visible/enabled shared mode while selecting/editing, keyboard-arrow draft entry,
+contextual C/F and line changes, no-popup Apply under both modes, exact affected
+note displacement and unchanged later passages, single-entry undo/redo, final
+no-op, Cancel/Escape and dirty native lyrics, retained policy on returning to
+placement, and deletion's separate conditional prompt/cancellation. Both also
+passed edit overflow with a nearby status, unchanged committed glyph, mode switch
+and successful retry. Full graphical insertion regressions still passed,
+including mixed slots, wrapping, keyboard placement, 150% CSS zoom, remembered
+neume I and containment. Chromium passed full keyboard-only HTML activation;
+Firefox's two background HTML activation steps used pointer input, while native
+radio arrows, toolbar navigation, Tab and score keyboard input passed.
+
+Fresh actual UI evidence (reviewed, not golden images):
+
+- [Shared Keep pitches and transient draft](shared-pitches-draft.png)
+- [Keep pitches after Apply](shared-pitches-applied.png)
+- [Keep note positions after Apply](shared-positions-applied.png)
+- [Nonmodal overflow error with draft retained](shared-edit-overflow.png)
+- [Deletion still asks conditionally](shared-deletion-choice.png)
+- [Firefox 320px draft](shared-firefox-320-draft.png)
+
+Chromium initial-clef and division regression drivers passed; Firefox division
+regressions passed after restarting the isolated browser to clear an interrupted
+driver's orphaned BiDi session. Production
+Chromium smoke passed project-subpath assets, experimental notice, graphical
+insertion, 1440px/320px containment and refresh reset, with no observed runtime
+or asset-loading errors.
+
+Earlier results below describe historical UI and do not establish current edit
+behavior. Broader lyric/corpus checks listed there were not rerun for this
+transaction/presentation-only correction.
+
+Smallest owner test: select an authored clef → choose Keep pitches or Keep note
+positions → Edit/change C/F and line → Apply once (no popup) → undo/redo. Repeat
+with arrows, Cancel, and a later clef bounding the affected passage; switch back
+to C/F placement and check the same mode remains selected. Delete should still
+ask conditionally. Foreground Firefox HTML button activation, actual browser/OS
+zoom, native popups, spoken screen-reader output, IME and owner engraving/320px
+usability acceptance remain manual checks.
+
+## One-click insertion mode at 900e56c (historical; edit confirmation superseded)
 
 Insertion now uses a visible **Insertion behavior** radio group near the C/F
 palette. **Keep pitches (move existing notes)** is the session default;

@@ -639,3 +639,16 @@ Escape/dirty drafts, history and desktop/320px containment. Screenshots include
 visible insertion behavior, ghost, inserted result, selected-clef draft and
 existing-clef pitch confirmation. Historical
 form-driver results in the verification record do not describe the new UI.
+
+### Shared pitch handling for existing-clef edits
+
+`clef-transactions.test.ts` checks immediate Apply under both shared policies,
+scoped unaffected passages, exact history, no-op/cancel, session persistence
+across insertion/edit/insertion and overflow recovery by mode switch or draft
+revision. Deletion retains its separate conditional-choice regressions. The
+mid-score-clef browser driver exercises visible/enabled shared radios during
+selection/drafts, keyboard-arrow editing, contextual C/F and line changes,
+no-dialog Apply, both policies' measured displacement, later-clef scope,
+undo/redo, no-op/cancellation, overflow/retry and unchanged deletion confirmation
+in Chromium/Firefox at desktop/320px. Earlier edit-confirmation screenshots are
+historical; current evidence is in the Stage 6B verification record.

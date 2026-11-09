@@ -90,10 +90,19 @@ describe('staged clef transactions', () => {
       type: 'draft-clef-change',
       clef: { type: 'f', staffLine: 1 },
     });
+    s = reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' });
     s = reduce(s, { type: 'cancel-clef-change' });
     expect(s.history).toBe(history);
     expect(s.lyrics).toBe(lyrics);
     s = reduce(s, { type: 'start-clef-change', id: 'C' });
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'f', staffLine: 1 },
+    });
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'c', staffLine: 4 },
+    });
     s = reduce(s, { type: 'apply-clef-change' });
     expect(s.history).toBe(history);
     expect(s.clefTransaction).toBeNull();
@@ -162,5 +171,152 @@ describe('staged clef transactions', () => {
     expect(s.history.present.neumes).toBe(unsafe.neumes);
     expect(s.history.present.clefChanges).toHaveLength(1);
     expect(s.history.past).toHaveLength(1);
+  });
+});
+
+describe('shared pitch mode for existing-clef edits', () => {
+  it.each(['melody', 'noteheads'] as const)(
+    'applies a final type/line draft immediately under %s with scoped exact history',
+    (preserve) => {
+      const d = {
+        ...fixture(),
+        clefChanges: [
+          change('C'),
+          change('later', 'E', null, { type: 'f', staffLine: 3 }),
+        ],
+      };
+      let s = reduce(createEditorSession(d), {
+        type: 'start-clef-change',
+        id: 'C',
+      });
+      const history = s.history;
+      for (const clef of [
+        { type: 'c', staffLine: 1 },
+        { type: 'f', staffLine: 2 },
+      ] satisfies Clef[]) {
+        s = reduce(s, { type: 'draft-clef-change', clef });
+        expect(s.history).toBe(history);
+      }
+      s = reduce(s, { type: 'clef-insertion-policy', preserve });
+      expect(s.history).toBe(history);
+      s = reduce(s, { type: 'apply-clef-change' });
+      expect(s.clefTransaction).toBeNull();
+      expect(s.history.past).toEqual([d]);
+      expect(s.history.present.neumes[0]).toBe(d.neumes[0]);
+      expect(s.history.present.neumes[2]).toBe(d.neumes[2]);
+      expect(s.history.present.neumes[1].notes[0].staffPosition).toBe(
+        preserve === 'melody' ? -5 : 2,
+      );
+      expect(s.history.present.clefChanges[0].clef).toEqual({
+        type: 'f',
+        staffLine: 2,
+      });
+      const committed = s.history.present;
+      s = reduce(s, {
+        type: 'history',
+        direction: 'undo',
+        focusedNoteId: null,
+      });
+      expect(s.history.present).toBe(d);
+      s = reduce(s, {
+        type: 'history',
+        direction: 'redo',
+        focusedNoteId: null,
+      });
+      expect(s.history.present).toBe(committed);
+      expect(s.clefTransaction).toBeNull();
+    },
+  );
+  it('keeps an overflowing draft pending, supports mode switch or revision, and never falls back', () => {
+    const d = {
+      ...fixture(),
+      clefChanges: [change('C', 'B', null, { type: 'c', staffLine: 3 })],
+    };
+    d.neumes[1] = {
+      id: 'B',
+      kind: 'punctum',
+      notes: [
+        { id: 'note-B', staffPosition: staffPosition(Number.MAX_SAFE_INTEGER) },
+      ],
+    };
+    let s = reduce(createEditorSession(d), {
+      type: 'start-clef-change',
+      id: 'C',
+    });
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'c', staffLine: 4 },
+    });
+    const history = s.history;
+    s = reduce(s, { type: 'apply-clef-change' });
+    expect(s.history).toBe(history);
+    expect(s.clefTransaction?.candidate).toBeNull();
+    expect(s.clefTransaction?.policyError).toContain('overflow');
+    expect(s.clefInsertionPolicy).toBe('melody');
+    const failed = s;
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'c', staffLine: 2 },
+    });
+    expect(s.clefTransaction?.policyError).toBeUndefined();
+    s = reduce(s, { type: 'apply-clef-change' });
+    expect(s.clefTransaction).toBeNull();
+    expect(s.history.present.neumes[1].notes[0].staffPosition).toBe(
+      Number.MAX_SAFE_INTEGER - 2,
+    );
+    s = reduce(failed, {
+      type: 'clef-insertion-policy',
+      preserve: 'noteheads',
+    });
+    expect(s.clefTransaction?.policyError).toBeUndefined();
+    s = reduce(s, { type: 'apply-clef-change' });
+    expect(s.clefTransaction).toBeNull();
+    expect(s.history.present.neumes).toBe(d.neumes);
+    expect(s.history.past).toHaveLength(1);
+  });
+  it('shares one option across insertion → edit → insertion and keeps cancellation/no-op outside history', () => {
+    let s = reduce(createEditorSession(fixture()), {
+      type: 'arm',
+      tool: { kind: 'place-clef', clefType: 'f' },
+    });
+    s = reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' });
+    s = reduce(s, {
+      type: 'place-clef',
+      clefType: 'f',
+      id: 'C',
+      point: { x: 180, y: 52 },
+    });
+    s = reduce(s, { type: 'select-tool' });
+    s = reduce(s, { type: 'start-clef-change', id: 'C' });
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'f', staffLine: 2 },
+    });
+    s = reduce(s, { type: 'apply-clef-change' });
+    expect(s.clefInsertionPolicy).toBe('noteheads');
+    expect(s.clefTransaction).toBeNull();
+    s = reduce(s, { type: 'start-clef-change', id: 'C' });
+    const history = s.history;
+    s = reduce(s, { type: 'clef-insertion-policy', preserve: 'melody' });
+    s = reduce(s, {
+      type: 'draft-clef-change',
+      clef: { type: 'c', staffLine: 1 },
+    });
+    s = reduce(s, { type: 'cancel-clef-change' });
+    expect(s.history).toBe(history);
+    expect(s.clefInsertionPolicy).toBe('melody');
+    s = reduce(s, { type: 'start-clef-change', id: 'C' });
+    s = reduce(s, { type: 'apply-clef-change' });
+    expect(s.history).toBe(history);
+    s = reduce(s, { type: 'arm', tool: { kind: 'place-clef', clefType: 'c' } });
+    expect(s.clefInsertionPolicy).toBe('melody');
+    s = reduce(s, {
+      type: 'place-clef',
+      clefType: 'c',
+      id: 'tail',
+      point: { x: 650, y: 76 },
+    });
+    expect(s.clefTransaction).toBeNull();
+    expect(s.history.past).toHaveLength(3);
   });
 });

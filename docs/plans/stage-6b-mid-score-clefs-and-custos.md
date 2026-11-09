@@ -264,7 +264,7 @@ choice prompt. Existing-clef **deletion** retains conditional confirmation.
 ### Owner-approved shared pitch mode for existing-clef editing (2026-11-08)
 
 The owner wants **one consistent pitch-handling mode for insertion and
-editing**. This narrowly amends Accepted ADR 0015's *post-Apply*
+editing**. This narrowly amends Accepted ADR 0015's _post-Apply_
 confirmation requirement for edits. It does not alter the semantic
 representation, preserve-melody formula, or atomic history.
 
