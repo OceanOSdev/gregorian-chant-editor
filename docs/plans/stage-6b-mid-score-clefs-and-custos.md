@@ -86,8 +86,10 @@ empty-score placement, and invalid/stale references.
   clefs from pointer-inert system repetitions.
 - **No free horizontal dragging/moving of an existing clef**, in this stage
   or as an assumed Stage 6C feature. To relocate, remove and reinsert at
-  another boundary. Fine graphical insertion ghosts/drag aesthetics may be
-  deferred, but 6B must provide an understandable, accessible insertion path.
+  another boundary. **A first-class graphical clef placement tool is now
+  required for Stage 6B**, including measured insertion slots, a clef ghost,
+  staff-line snapping, and click-to-insert. See the owner-approved UX
+  correction below; only nonessential cosmetic polish may be deferred.
 - For insert/edit/remove of an explicit clef, compare **effective clef
   offsets** for existing surviving notes between the committed before state
   and the candidate final state. A change in governing event ID alone does
@@ -189,6 +191,147 @@ layout-and-rendering and roadmap. Do not retroactively rewrite historical
 Stage 6A plans or accepted ADRs; ADR 0015 already records their narrow
 qualification. Keep durable references accurate.
 
+## Owner-approved Stage 6B UX correction (2026-11-08; mandatory before PR #60 merge)
+
+**This section supersedes the original allowance to defer graphical clef
+insertion, and the temporary full-score event-index selector introduced in
+PR #60.** The owner manually tested the implementation and rejected the
+form-first workflow. Do not treat the underlying feature as complete until
+placing a clef feels like placing a neume or division. This is a UX scope
+correction within Accepted ADR 0015, **not** a new musical-domain decision:
+retain bar-independent boundaries, stable IDs, scoped pitch choices, automatic
+custodes, the measured layout model, and atomic history. Existing-clef type/
+line **editing** must still obey ADR 0015's transient draft + Apply/Cancel.
+
+### Primary interaction: direct in-score placement
+
+1. **First-class C and F placement tools.** Put visibly labeled `C clef`
+   and `F clef` choices alongside the existing neume placement tools in the
+   main notation toolbar (or a tightly integrated adjacent toolbar group,
+   not a big standalone clef form). They participate in the established
+   selection/pressed state, roving keyboard navigation and Escape-to-Select
+   patterns. The new mode is persistent like a neume/division tool. Switching
+   away or pressing Escape clears the uncommitted preview.
+2. **Pointer hover and snap.** While a clef tool is armed, hovering over a
+   valid four-line staff previews the **real approved C/F clef silhouette**,
+   translucent and pointer-inert, aligned to an existing semantic
+   `ScoreInsertionBoundary` horizontally. Show the existing caret/slot
+   indicator so the author can distinguish before versus after neighboring
+   neumes, divisions and clefs (including at starts/ends of systems).
+   Vertically snap to one of the **four staff lines**, derived from the
+   pointer Y coordinate and current displayed system geometry: line 1 is
+   bottom, line 4 is top. Never silently clamp an off-staff pointer to a
+   valid line: outside a reasonable staff hit band, hide the preview and
+   reject the click. Preserve precisely the previewed slot and line.
+3. **Click-to-insert.** Clicking a previewed location inserts that C/F
+   value and staff line at that semantic boundary, with no separate
+   insertion-boundary dropdown, line selector, or generic `Apply` dialog.
+   If the committed candidate changes the effective pitch of existing
+   notes, first offer a concise **Preserve melody** (default) /
+   **Preserve noteheads** choice. Until a choice, do not mutate document
+   or history; Cancel/Escape abandons placement without history. When
+   there are no affected notes (e.g., trailing or redundant clef), commit
+   directly as **one** ordinary undoable operation. The placement tool
+   remains armed after a completed click, as it does for neumes.
+4. **Reuse authoritative mechanics.** Resolve both preview and click using
+   the existing measured layout and stable score slots
+   (`resolveScoreSlot`, `layoutChant`, approved `buildClefGeometry`);
+   re-resolve the click against latest committed state using the pointer
+   coordinate plus measurement snapshot, as current neume/division
+   placement does. Staff line is derived from that same current system.
+   Do not use a numerical event index as semantic authority. Invalid,
+   stale or conflicting targets must not commit. No pixel coordinates,
+   caret X values or tool mode belong in persisted `ChantDocument`.
+5. **Simple, unobtrusive UI.** Remove the giant `Mid-score clefs` fieldset,
+   its full-score index dropdown, and its two-step insertion wizard
+   as the normal workflow. A visually compact selected-clef control
+   (if needed) and the existing initial-clef controls may remain.
+   Show concise instructional text and focus states, not domain internals
+   like `beforeNeumeId` or event numbers. The preservation prompt can
+   reuse the existing transaction infrastructure but should be narrowly
+   contextual and appear **only when necessary**. Keep the first-system
+   required initial clef a separate, always-present entity.
+
+### Selected-clef editing
+
+- Selecting an authored clef in Select mode (pointer or keyboard) should
+  expose a discoverable, compact way to change **C/F type** and staff line
+  without searching a global `Authored clef` dropdown. Arrow Up/Down on
+  the selected clef is an existing entry point; preserve it.
+- Per **Accepted ADR 0015**, repeated type/line adjustments of an existing
+  clef must remain a **transient draft** until explicit Apply/Cancel;
+  one final preservation choice and one undo entry. Use a compact
+  clef-specific contextual editor and (where safe) an in-score transient
+  preview instead of requiring the current large generic form.
+  Do not commit each arrow press; do not silently alter the accepted edit
+  lifecycle. Keep Delete/Backspace deletion accessible and ask the
+  pitch-policy question only if existing notes are affected.
+- A changed or deleted clef retains appropriate selection/focus; decorative
+  repeated system clefs and derived custodes are never selectable.
+  **No horizontal dragging/repositioning of an already authored clef.**
+
+### Keyboard, consistency and transaction rules
+
+- Provide a **keyboard-only route** to choose C/F, choose line 1–4 and an
+  explicit score slot (e.g. accessible in-score slot navigation or a compact
+  fallback only for keyboard insertion). The keyboard path must have the
+  **same boundary, note interpretation and history semantics** as the
+  pointer path; do not reintroduce a giant global event dropdown as the
+  primary interface. Roving toolbar arrows, Space/Enter, Escape, tab order,
+  focus return and accessible names must work with existing tools.
+- Respect pending lyric drafts and their navigation/recovery policy,
+  undo/redo prompts, pending clef transactions, graphical neume placement
+  and division placement. One armed tool at a time; disabling or switching
+  tools during a pending preservation choice must not allow racey edits.
+  A repeated pointer click while confirmation is open must not insert
+  a second clef. Cancelling must preserve the original history/redo branch
+  and lyric draft.
+- Do not regress keyboard `I` inserting the remembered **neume**, the
+  initial-clef editor, the division palette, existing pointer hit zones or
+  the screen-reader summary. Keep score cursor/render and pointer/keyboard
+  placement within measured bounds even on 320px viewport and at zoom.
+
+### Acceptance tests for this UX correction
+
+- Browser-demonstrate: choose C, hover between two neumes, see the correct
+  ghost and caret; move vertically across all four lines; click and verify
+  the authored clef appears **at the previewed line/slot** without a
+  preliminary modal. Repeat for F, before/after an existing clef,
+  before/after adjacent divisions, beginning/end of score, across
+  wrapping, and with multiple consecutive clefs.
+- Verify no-note-affected insertion commits immediately with one undo;
+  effective-pitch-changing insertion presents **one** preservation choice,
+  both policies yield expected note positions/pitches and exact undo/redo;
+  Esc/Cancel leaves document/history/redo unchanged. For an ordinary
+  edit of an existing clef, confirm transient draft, Apply/Cancel,
+  selection and keyboard arrows. Test stale/reflowing boundaries.
+- Unit-test pointer-to-staff-line snapping/tolerance, shared
+  preview/commit boundary resolution, guards against stale/out-of-band
+  clicks, transaction serialization, and conservation of authored IDs,
+  lyrics and derived custos. Browser-exercise native pointer behavior,
+  toolbar keyboard navigation, keyboard-only insertion, focus return,
+  320px containment, and Chromium/Firefox. Retain previous 1,202 test
+  regressions and the relevant legacy browser suites.
+- Capture **actual UI screenshots or a short recording** showing C/F
+  ghost, inserted result, selected-clef editing and conditional pitch
+  confirmation. Update `docs/editor-interactions.md`, tests/verification
+  record, accessibility instructions and any now-stale Stage 6B/6C
+  roadmap claims. Do not claim tested flows without running them.
+- Before merge, report the smallest manual owner test script:
+  choose C or F → hover → click → optional pitch choice → edit selected
+  clef → undo/redo.
+
+### Explicit exclusions and stop condition
+
+No generalized event stream, new pitch model, horizontal clef drag, manual
+system breaks, SVG path redesign, unrelated global UI redesign, new
+dependency or persistence migration. Keep this change within existing
+PR #60 on `feat/stage-6b-mid-score-clefs-custos`; **do not merge**.
+Stop for owner decision only if a material conflict with Accepted ADR 0015
+cannot be resolved without changing its contract. A **simple immediate
+graphical insertion** with conditional pitch choice does not waive the
+accepted **staged edit** lifecycle for modifying an existing clef.
+
 ## Acceptance criteria and verification
 
 - Unit-test domain validation, derived score order, insertion slots,
@@ -207,9 +350,11 @@ qualification. Keep durable references accurate.
   no duplicated/missing system-leading clefs, separated preceding bar,
   clearance among neumes/divisions/lyrics/hyphens, source IDs for hit
   targets, and multi-system selection/focus.
-- Browser-exercise the real insertion and selection UX, staged Apply/
-  Cancel, one-shot pitch-choice prompts, undo/redo, Escape, dirty lyric
-  drafts, keyboard-only use, narrow screens, and focus after reflow.
+- Browser-exercise the first-class graphical C/F insertion and selection
+  UX described in the owner-approved correction above; staged Apply/Cancel
+  for **existing-clef edits**, conditional pitch-choice prompts for
+  placement, undo/redo, Escape, dirty lyric drafts, keyboard-only use,
+  narrow screens, and focus after reflow.
   Capture screenshots/short recordings for mid-staff and break
   examples; allow owner to inspect engraving.
 - Run `npm run format:check`, `npm run lint`, `npm test`,
