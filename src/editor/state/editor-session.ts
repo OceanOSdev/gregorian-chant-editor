@@ -1,4 +1,10 @@
 import {
+  resolveGraphicalClefPlacement,
+  resolveKeyboardClefPlacement,
+  type ClefPlacementCursor,
+} from '../interaction/resolve-graphical-clef-placement';
+import type { PaletteTool } from '../interaction/palette-navigation';
+import {
   insertClefChange,
   updateClefChange,
   deleteClefChange,
@@ -7,7 +13,11 @@ import {
   hasValidClefCandidate,
 } from '../commands/edit-clef-change';
 import { isValidClef } from '../domain/clef';
-import { resolveScoreBoundary } from '../domain/divisions';
+import {
+  deriveScoreOrder,
+  scoreBoundaryAt,
+  resolveScoreBoundary,
+} from '../domain/divisions';
 import { updateClef } from '../commands/update-clef';
 import {
   insertDivision,
@@ -60,6 +70,7 @@ import {
 } from './selection';
 
 export type EditorFocusRequest =
+  | { kind: 'clef-placement'; clefChangeId?: string }
   | { kind: 'clef' }
   | { kind: 'clef-change'; clefChangeId: string }
   | { kind: 'division'; divisionId: string }
@@ -67,9 +78,10 @@ export type EditorFocusRequest =
   | { kind: 'lyric'; syllableId: string }
   | { kind: 'note'; noteId: string }
   | { kind: 'placement'; noteId: string }
-  | { kind: 'palette'; tool: 'select' | GraphicalNeumeKind };
+  | { kind: 'palette'; tool: PaletteTool };
 
 export interface ClefTransaction {
+  placementTool?: Extract<EditorTool, { kind: 'place-clef' }>;
   policyError?: string;
   original: ChantDocument;
   previousSelection: EditorSelection;
@@ -80,6 +92,7 @@ export interface ClefTransaction {
 }
 
 export interface EditorSession {
+  keyboardClefPlacement: ClefPlacementCursor | null;
   clefTransaction: ClefTransaction | null;
   history: DocumentHistory;
   lyricMove: {
@@ -137,7 +150,18 @@ export function lyricMoveTargets(
     .map((n) => n.id);
 }
 
+export type ClefKeyboardCommand =
+  'start' | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last';
+
 export type EditorAction =
+  | { type: 'clef-keyboard'; command: ClefKeyboardCommand }
+  | {
+      type: 'place-clef';
+      clefType: Clef['type'];
+      id: string;
+      point?: { x: number; y: number };
+      measureLyrics?: MeasureLyricText;
+    }
   | { type: 'start-clef-change'; id: string; boundary?: ScoreInsertionBoundary }
   | { type: 'draft-clef-change'; clef: Clef }
   | { type: 'apply-clef-change'; remove?: boolean }
@@ -202,6 +226,7 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    keyboardClefPlacement: null,
     clefTransaction: null,
     history: createDocumentHistory(document),
     lyricMove: null,
@@ -278,6 +303,8 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'place-clef':
+    case 'clef-keyboard':
     case 'start-clef-change':
     case 'draft-clef-change':
     case 'apply-clef-change':
@@ -295,18 +322,22 @@ function reduceSessionAction(
         (action.tool.kind === state.activeTool.kind &&
           (action.tool.kind !== 'place-division' ||
             (state.activeTool.kind === 'place-division' &&
-              action.tool.divisionKind === state.activeTool.divisionKind)))
+              action.tool.divisionKind === state.activeTool.divisionKind)) &&
+          (action.tool.kind !== 'place-clef' ||
+            (state.activeTool.kind === 'place-clef' &&
+              action.tool.clefType === state.activeTool.clefType)))
       )
         return state;
       return announce(
         {
           ...state,
           activeTool: action.tool,
+          keyboardClefPlacement: null,
           rememberedKind: kind ?? state.rememberedKind,
           hoveredPoint: null,
           focusRequest: null,
         },
-        `Placing ${kind ? neumeName(kind) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : ''}.`,
+        `Placing ${kind ? neumeName(kind) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
       );
     }
     case 'focus-palette':
@@ -315,7 +346,13 @@ function reduceSessionAction(
         focusRequest: { kind: 'palette', tool: state.rememberedKind },
       };
     case 'hover':
-      return { ...state, hoveredPoint: placing ? action.point : null };
+      return {
+        ...state,
+        keyboardClefPlacement: action.point
+          ? null
+          : state.keyboardClefPlacement,
+        hoveredPoint: placing ? action.point : null,
+      };
     case 'select-tool':
       return !placing
         ? state
@@ -323,6 +360,7 @@ function reduceSessionAction(
             {
               ...state,
               activeTool: selectTool(),
+              keyboardClefPlacement: null,
               hoveredPoint: null,
               focusRequest: getSelectFocusRequest(state),
             },
@@ -376,7 +414,7 @@ function reduceSessionAction(
         return announce(
           state,
           state.selection.kind === 'clef-change'
-            ? 'Choose Insert before clef or Insert after clef in Mid-score clefs.'
+            ? 'Choose Insert before clef or Insert after clef in the selected clef controls.'
             : 'Choose Insert before division or Insert after division.',
         );
       if (!insertion)
@@ -390,6 +428,7 @@ function reduceSessionAction(
         history: applyDocumentEdit(state.history, () => nextDocument),
         selection: selectNote(noteId),
         activeTool: graphical ? state.activeTool : selectTool(),
+        keyboardClefPlacement: null,
         hoveredPoint: null,
         focusRequest: { kind: graphical ? 'placement' : 'note', noteId },
       };
@@ -647,9 +686,12 @@ export function reduceEditorSession(
         ...state,
         clefTransaction: null,
         selection,
-        focusRequest:
-          !transaction.boundary &&
-          state.history.present.clefChanges.some((c) => c.id === transaction.id)
+        focusRequest: transaction.placementTool
+          ? { kind: 'clef-placement' }
+          : !transaction.boundary &&
+              state.history.present.clefChanges.some(
+                (c) => c.id === transaction.id,
+              )
             ? { kind: 'clef-change', clefChangeId: transaction.id }
             : getSelectFocusRequest({ ...state, selection }),
       };
@@ -720,17 +762,28 @@ export function reduceEditorSession(
     const surviving = candidate.clefChanges.some(
       (c) => c.id === transaction.id,
     );
+    const committedOrder = deriveScoreOrder(candidate) ?? [];
+    const nextKeyboardBoundary = scoreBoundaryAt(
+      committedOrder,
+      committedOrder.findIndex((i) => i.entity.id === transaction.id) + 1,
+    );
     return announce(
       reconcile({
         ...state,
         clefTransaction: null,
         history: applyDocumentEdit(state.history, () => candidate),
+        keyboardClefPlacement:
+          transaction.placementTool && state.keyboardClefPlacement
+            ? { ...state.keyboardClefPlacement, boundary: nextKeyboardBoundary }
+            : state.keyboardClefPlacement,
         selection: surviving
           ? { kind: 'clef-change', clefChangeId: transaction.id }
           : clearSelection(),
-        focusRequest: surviving
-          ? { kind: 'clef-change', clefChangeId: transaction.id }
-          : { kind: 'palette', tool: 'select' },
+        focusRequest: transaction.placementTool
+          ? { kind: 'clef-placement', clefChangeId: transaction.id }
+          : surviving
+            ? { kind: 'clef-change', clefChangeId: transaction.id }
+            : { kind: 'palette', tool: 'select' },
       }),
       surviving ? 'Clef change applied.' : 'Clef change removed.',
     );
@@ -742,6 +795,100 @@ export function reduceEditorSession(
     action.type === 'cancel-clef-change'
   )
     return state;
+  if (action.type === 'clef-keyboard') {
+    if (
+      state.activeTool.kind !== 'place-clef' ||
+      state.pendingHistory ||
+      state.lyricMove
+    )
+      return state;
+    const order = deriveScoreOrder(state.history.present);
+    if (!order) return state;
+    const cursor = state.keyboardClefPlacement ?? {
+      boundary: scoreBoundaryAt(order, 0),
+      staffLine: 3 as const,
+    };
+    const resolved = resolveScoreBoundary(
+      state.history.present,
+      cursor.boundary,
+    );
+    if (!resolved)
+      return announce(
+        { ...state, keyboardClefPlacement: null },
+        'Placement target changed. Start keyboard placement again.',
+      );
+    let index = resolved.scoreIndex;
+    if (action.command === 'previous') index = Math.max(0, index - 1);
+    if (action.command === 'next') index = Math.min(order.length, index + 1);
+    if (action.command === 'first') index = 0;
+    if (action.command === 'last') index = order.length;
+    const line =
+      cursor.staffLine +
+      (action.command === 'up' ? 1 : action.command === 'down' ? -1 : 0);
+    const staffLine =
+      line === 1 || line === 2 || line === 3 || line === 4
+        ? line
+        : cursor.staffLine;
+    return announce(
+      {
+        ...state,
+        keyboardClefPlacement: {
+          boundary: scoreBoundaryAt(order, index),
+          staffLine,
+        },
+        hoveredPoint: null,
+        focusRequest: { kind: 'clef-placement' },
+      },
+      `${state.activeTool.clefType.toUpperCase()} clef, line ${staffLine}. ${index === order.length ? 'End of score' : 'Before ' + (order[index].type === 'clef' ? 'an authored clef' : 'a ' + order[index].type)}. Left/Right chooses a slot; Up/Down chooses a line; Enter inserts.`,
+    );
+  }
+  if (action.type === 'place-clef') {
+    if (
+      state.activeTool.kind !== 'place-clef' ||
+      state.activeTool.clefType !== action.clefType ||
+      state.pendingHistory ||
+      state.lyricMove
+    )
+      return state;
+    const layout = layoutChant(state.history.present, action.measureLyrics);
+    const placement = action.point
+      ? resolveGraphicalClefPlacement(layout, action.clefType, action.point)
+      : state.keyboardClefPlacement
+        ? resolveKeyboardClefPlacement(
+            layout,
+            action.clefType,
+            state.keyboardClefPlacement,
+          )
+        : null;
+    if (
+      !placement ||
+      insertClefChange(
+        state.history.present,
+        {
+          id: action.id,
+          clef: placement.clef,
+          beforeNeumeId: placement.boundary.beforeNeumeId,
+          beforeDivisionId: placement.boundary.beforeDivisionId,
+        },
+        placement.boundary,
+      ) === state.history.present
+    )
+      return state;
+    const pending: EditorSession = {
+      ...state,
+      hoveredPoint: null,
+      clefTransaction: {
+        original: state.history.present,
+        previousSelection: state.selection,
+        id: action.id,
+        boundary: placement.boundary,
+        clef: placement.clef,
+        candidate: null,
+        placementTool: state.activeTool,
+      },
+    };
+    return reduceEditorSession(pending, { type: 'apply-clef-change' });
+  }
   if (action.type === 'lyric-move') {
     const move = state.lyricMove;
     const intent = action.action;
@@ -933,7 +1080,7 @@ export function reduceEditorSession(
       focusRequest: null,
     };
   if (
-    (action.type === 'arm' ||
+    ((action.type === 'arm' && action.tool.kind !== 'place-clef') ||
       (action.type === 'insert' && state.lyrics?.kind !== 'end')) &&
     state.lyrics
   ) {

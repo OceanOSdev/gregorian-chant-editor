@@ -130,10 +130,12 @@ Preserve noteheads only when existing notes are affected; the initial clef
 remains automatically melody-preserving within its governing passage.
 Stage 6B includes automatically derived custos at mid-staff changes and
 staff endings, with effective-clef-aware guide pitches and measured wrapping.
-The explicit boundary controls, staged Apply/Cancel and pitch choice, scoped
+The graphical C/F tools with snapped ghosts and direct clicks, keyboard slot
+placement, contextual staged Apply/Cancel and pitch choice, scoped
 initial edits, measured clefs/custodes and atomic history are implemented.
 See [verification](verification/mid-score-clefs/README.md); final owner engraving,
-foreground keyboard and accessibility acceptance remain pending. Stage 6C may improve graphical
-insertion and vertical editing, but **free horizontal clef movement is not
+foreground keyboard and accessibility acceptance remain pending. Graphical clef
+insertion is implemented in Stage 6B under the owner-approved UX correction.
+Stage 6C may refine cosmetic polish and vertical editing, but **free horizontal clef movement is not
 planned**. There is no save/load format or migration, accidental support,
 playback, or ledger-line redesign.

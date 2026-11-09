@@ -1,14 +1,11 @@
-import { useLayoutEffect, useRef, useState, type Dispatch } from 'react';
+import { useLayoutEffect, useRef, type Dispatch } from 'react';
 import { isPlacementTool } from '../state/editor-tool';
-import type { Clef, ScoreInsertionBoundary } from '../domain/chant-document';
-import {
-  deriveScoreOrder,
-  scoreBoundaryAt,
-  resolveScoreBoundary,
-} from '../domain/divisions';
+import type { Clef } from '../domain/chant-document';
+import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { isValidClef } from '../domain/clef';
 import type { EditorAction, EditorSession } from '../state/editor-session';
 
+/** Selection-specific editing and the shared, conditional pitch choice. No insertion form. */
 export function ClefChangeControls({
   session,
   dispatch,
@@ -16,37 +13,32 @@ export function ClefChangeControls({
   session: EditorSession;
   dispatch: Dispatch<EditorAction>;
 }) {
-  const document = session.history.present;
-  const order = deriveScoreOrder(document) ?? [];
-  const [insertionBoundary, setInsertionBoundary] =
-    useState<ScoreInsertionBoundary>(() => scoreBoundaryAt(order, 0));
-  const boundaries = Array.from({ length: order.length + 1 }, (_, index) =>
-    scoreBoundaryAt(order, index),
-  );
-  const insertionKey = JSON.stringify(insertionBoundary);
-  const validInsertion =
-    resolveScoreBoundary(document, insertionBoundary) !== null;
-  const placing = isPlacementTool(session.activeTool);
   const selection = session.selection;
-  const selectedId =
-    selection.kind === 'clef-change' ? selection.clefChangeId : '';
-  const target = document.clefChanges.find((c) => c.id === selectedId);
+  const target =
+    selection.kind === 'clef-change'
+      ? session.history.present.clefChanges.find(
+          (c) => c.id === selection.clefChangeId,
+        )
+      : null;
   const transaction = session.clefTransaction;
-  const dialog = useRef<HTMLDivElement>(null);
-  const transactionId = transaction?.id;
-  const candidate = transaction?.candidate;
+  const panel = useRef<HTMLDivElement>(null);
+  const transactionId = transaction?.id,
+    candidate = transaction?.candidate;
   useLayoutEffect(() => {
     if (transactionId)
-      dialog.current
-        ?.querySelector<HTMLButtonElement | HTMLSelectElement>('button, select')
+      panel.current
+        ?.querySelector<HTMLSelectElement | HTMLButtonElement>('select,button')
         ?.focus();
   }, [transactionId, candidate]);
-  const insertNeumeAtClef = (after: boolean) => {
+  const insertNeume = (after: boolean) => {
     if (!target) return;
-    const index = order.findIndex((item) => item.entity.id === target.id);
+    const order = deriveScoreOrder(session.history.present) ?? [];
     dispatch({
       type: 'insert',
-      boundary: scoreBoundaryAt(order, index + (after ? 1 : 0)),
+      boundary: scoreBoundaryAt(
+        order,
+        order.findIndex((i) => i.entity.id === target.id) + Number(after),
+      ),
       ids: {
         neumeId: crypto.randomUUID(),
         noteIds: [
@@ -58,250 +50,132 @@ export function ClefChangeControls({
       lyricCommitId: crypto.randomUUID(),
     });
   };
-  const eventName = (index: number) => {
-    const item = order[index];
-    if (!item) return 'score end';
-    if (item.type === 'clef')
-      return `${item.entity.clef.type.toUpperCase()}${item.entity.clef.staffLine} clef (${index + 1})`;
-    if (item.type === 'division')
-      return `${item.entity.kind} division (${index + 1})`;
-    return `neume ${document.neumes.findIndex((n) => n.id === item.entity.id) + 1}`;
-  };
-  const start = () => {
-    if (!validInsertion || placing) return;
-    dispatch({
-      type: 'start-clef-change',
-      id: crypto.randomUUID(),
-      boundary: insertionBoundary,
-    });
-  };
+  if (!transaction && (!target || isPlacementTool(session.activeTool)))
+    return null;
+  const confirming = !!candidate;
   return (
-    <>
-      <fieldset
-        className="clef-change-controls"
-        disabled={
-          !!(
-            transaction ||
-            session.pendingHistory ||
-            session.lyricMove ||
-            placing
-          )
+    <div
+      ref={panel}
+      className={confirming ? 'clef-dialog' : 'clef-context'}
+      role={confirming ? 'dialog' : 'group'}
+      aria-modal={confirming ? true : undefined}
+      aria-label={
+        confirming
+          ? 'Choose pitch preservation'
+          : transaction
+            ? 'Edit selected clef'
+            : 'Selected clef'
+      }
+      onKeyDown={(e) => {
+        if (e.key === 'Tab' && confirming) {
+          const controls = [
+            ...(panel.current?.querySelectorAll<HTMLButtonElement>('button') ??
+              []),
+          ];
+          const first = controls[0],
+            last = controls.at(-1);
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+          }
         }
-      >
-        <legend>Mid-score clefs</legend>
-        <label>
-          Insertion boundary{' '}
-          <select
-            aria-label="Clef insertion boundary"
-            value={validInsertion ? insertionKey : ''}
-            onChange={(e) => {
-              const boundary = boundaries.find(
-                (b) => JSON.stringify(b) === e.currentTarget.value,
-              );
-              if (boundary) setInsertionBoundary(boundary);
-            }}
+      }}
+    >
+      {confirming && transaction ? (
+        <>
+          <p>
+            {candidate.clefChanges.some((c) => c.id === transaction.id)
+              ? 'This clef changes the pitch interpretation of existing notes.'
+              : 'Remove this clef and choose how to interpret the following notes.'}
+          </p>
+          {transaction.policyError ? (
+            <p role="status">{transaction.policyError}</p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() =>
+              dispatch({ type: 'confirm-clef-change', preserve: 'melody' })
+            }
           >
-            {!validInsertion ? (
-              <option value="">
-                Boundary no longer exists — choose another
-              </option>
-            ) : null}
-            {boundaries.map((boundary, i) => (
-              <option
-                key={JSON.stringify(boundary)}
-                value={JSON.stringify(boundary)}
-              >
-                {i + 1}.{' '}
-                {i
-                  ? `After ${eventName(i - 1)} / before ${eventName(i)}`
-                  : `Before ${eventName(i)}`}
-              </option>
-            ))}
-          </select>
-        </label>{' '}
-        <button type="button" disabled={!validInsertion} onClick={start}>
-          Insert clef change
-        </button>{' '}
-        <label>
-          Authored clef{' '}
-          <select
-            aria-label="Authored clef target"
-            value={target?.id ?? ''}
-            onChange={(e) => {
-              if (e.currentTarget.value)
-                dispatch({
-                  type: 'select',
-                  selection: {
-                    kind: 'clef-change',
-                    clefChangeId: e.currentTarget.value,
-                  },
-                });
-              else dispatch({ type: 'select', selection: { kind: 'none' } });
-            }}
+            Preserve melody
+          </button>{' '}
+          <button
+            type="button"
+            onClick={() =>
+              dispatch({ type: 'confirm-clef-change', preserve: 'noteheads' })
+            }
           >
-            <option value="">Choose clef</option>
-            {order.flatMap((item) =>
-              item.type === 'clef'
-                ? [
-                    <option key={item.entity.id} value={item.entity.id}>
-                      {item.entity.clef.type.toUpperCase()}
-                      {item.entity.clef.staffLine} — event{' '}
-                      {order.findIndex((i) => i.entity.id === item.entity.id) +
-                        1}
-                    </option>,
-                  ]
-                : [],
-            )}
-          </select>
-        </label>{' '}
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() =>
-            target && dispatch({ type: 'start-clef-change', id: target.id })
-          }
-        >
-          Edit clef change
-        </button>{' '}
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() => {
-            if (target) {
-              dispatch({ type: 'start-clef-change', id: target.id });
-              dispatch({ type: 'apply-clef-change', remove: true });
-            }
-          }}
-        >
-          Delete clef change
-        </button>
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() => insertNeumeAtClef(false)}
-        >
-          Insert {session.rememberedKind} before clef
-        </button>{' '}
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() => insertNeumeAtClef(true)}
-        >
-          Insert {session.rememberedKind} after clef
-        </button>
-        <p>
-          Choose a whole-neume boundary, including either side of a bar or clef.
-          Edits use Apply/Cancel. To relocate a clef, delete it and insert
-          another.
-        </p>
-      </fieldset>
-      {transaction ? (
-        <div
-          ref={dialog}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            transaction.candidate
-              ? 'Choose pitch preservation'
-              : 'Clef change draft'
-          }
-          className="clef-dialog"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              e.stopPropagation();
-              dispatch({ type: 'cancel-clef-change' });
-            }
-            if (e.key === 'Tab') {
-              const controls = [
-                ...(dialog.current?.querySelectorAll<
-                  HTMLButtonElement | HTMLSelectElement
-                >('button,select') ?? []),
-              ];
-              const first = controls[0],
-                last = controls.at(-1);
-              if (e.shiftKey && globalThis.document.activeElement === first) {
-                e.preventDefault();
-                last?.focus();
-              } else if (
-                !e.shiftKey &&
-                globalThis.document.activeElement === last
-              ) {
-                e.preventDefault();
-                first?.focus();
-              }
-            }
-          }}
-        >
-          {transaction.candidate ? (
-            <>
-              <p>
-                {transaction.candidate.clefChanges.some(
-                  (c) => c.id === transaction.id,
-                )
-                  ? 'Apply this clef change.'
-                  : 'Remove this clef change.'}{' '}
-                This changes how existing notes are interpreted. Choose once for
-                the final change.
-              </p>
-              {transaction.policyError ? (
-                <p role="status">{transaction.policyError}</p>
-              ) : null}
-              <button
-                type="button"
-                onClick={() =>
-                  dispatch({ type: 'confirm-clef-change', preserve: 'melody' })
-                }
-              >
-                Preserve melody
-              </button>{' '}
-              <button
-                type="button"
-                onClick={() =>
-                  dispatch({
-                    type: 'confirm-clef-change',
-                    preserve: 'noteheads',
-                  })
-                }
-              >
-                Preserve noteheads
-              </button>{' '}
-            </>
-          ) : (
-            <>
-              <p>
-                {transaction.boundary ? 'Insert' : 'Edit'} clef change. The
-                score remains committed until Apply.
-              </p>
-              <ClefDraft
-                clef={transaction.clef}
-                onChange={(clef) =>
-                  dispatch({ type: 'draft-clef-change', clef })
-                }
-              />{' '}
-              <button
-                type="button"
-                onClick={() => dispatch({ type: 'apply-clef-change' })}
-              >
-                Apply clef change
-              </button>{' '}
-            </>
-          )}
+            Preserve noteheads
+          </button>{' '}
           <button
             type="button"
             onClick={() => dispatch({ type: 'cancel-clef-change' })}
           >
             Cancel clef change
           </button>
-          <p>
-            Escape cancels this entire operation. Any lyric draft is retained.
-          </p>
-        </div>
+        </>
+      ) : transaction ? (
+        <>
+          <strong>Edit selected clef</strong>
+          <ClefDraft
+            clef={transaction.clef}
+            onChange={(clef) => dispatch({ type: 'draft-clef-change', clef })}
+          />
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'apply-clef-change' })}
+          >
+            Apply clef change
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'cancel-clef-change' })}
+          >
+            Cancel clef change
+          </button>
+          <span className="clef-context__hint">
+            Draft only. Apply commits; Escape cancels.
+          </span>
+        </>
+      ) : target ? (
+        <>
+          <strong>
+            Selected {target.clef.type.toUpperCase()} clef · line{' '}
+            {target.clef.staffLine}
+          </strong>
+          <button
+            type="button"
+            disabled={!!(session.pendingHistory || session.lyricMove)}
+            onClick={() =>
+              dispatch({ type: 'start-clef-change', id: target.id })
+            }
+          >
+            Edit clef change
+          </button>
+          <button
+            type="button"
+            disabled={!!(session.pendingHistory || session.lyricMove)}
+            onClick={() => {
+              dispatch({ type: 'start-clef-change', id: target.id });
+              dispatch({ type: 'apply-clef-change', remove: true });
+            }}
+          >
+            Delete clef change
+          </button>
+          <button type="button" onClick={() => insertNeume(false)}>
+            Insert {session.rememberedKind} before clef
+          </button>
+          <button type="button" onClick={() => insertNeume(true)}>
+            Insert {session.rememberedKind} after clef
+          </button>
+        </>
       ) : null}
-    </>
+    </div>
   );
 }
-
 function ClefDraft({
   clef,
   onChange,
@@ -324,9 +198,9 @@ function ClefDraft({
           <option value="c">C</option>
           <option value="f">F</option>
         </select>
-      </label>{' '}
+      </label>
       <label>
-        Staff line{' '}
+        Line{' '}
         <select
           aria-label="Draft clef staff line"
           value={clef.staffLine}

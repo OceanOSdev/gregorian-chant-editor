@@ -5,6 +5,80 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
+## Owner-approved graphical UX correction (current)
+
+The C/F placement tools now live beside neumes in the main palette. A translucent
+approved glyph snaps to a measured semantic slot and one of four staff lines;
+click commits immediately unless existing notes need a pitch-policy choice.
+There is no insertion form, event dropdown, global authored-clef picker or
+preliminary Apply dialog. Tools remain armed after a click. Existing-clef edits
+use a compact selected-clef panel and safe in-score draft overlay, retaining
+ADR 0015's explicit Apply/Cancel and one final pitch choice.
+
+No semantic model, approved glyph path, dependency or wrapping policy changed.
+The implementation reuses the measured slots, clef geometry, session transaction,
+focus and history mechanisms. Pointer clicks resolve again against the latest
+committed document and font snapshot. Keyboard placement stores only a stable
+boundary and staff line in transient state; I still inserts the remembered neume.
+Clef arming and placement cancellation preserve dirty lyric drafts and redo.
+
+Current automated checks pass: `npm run format:check`, `npm run lint`, `npm test`
+(**60 files / 1,221 tests**), `npm run build`, and `git diff --check`.
+The prior 1,202 semantic/layout regressions remain; the toolbar End expectation
+now correctly names F clef. New pure coverage includes all C/F line snaps, hit-band
+rejection/ties, exact mixed-slot preview/commit, latest measured state, empty and
+division-only scores, invalid/stale tools/IDs/cursors, direct redundant/trailing
+commits, both pitch policies, exact history, transaction serialization, preserved
+lyrics, keyboard placement and safe existing-clef overlays.
+
+The replacement `browser-check.mjs` passed in Chromium and Firefox at 1440/320px:
+real pointer ghosts and all four lines; click at the previewed slot/line; direct
+and conditional commits; exact note displacement under both pitch policies;
+undo/redo; before/after adjacent clefs and divisions, score edges and wrapping;
+contextual draft/Cancel/Apply, keyboard arrows and focus return; invalid hover/
+click, switching, Escape, dirty native input, persistent tools, remembered-neume
+I and page containment. Both browsers also passed pointer placement at 150% CSS
+zoom at both widths. The full keyboard-only route passed in Chromium.
+Firefox passed native toolbar navigation, Tab, and score slot/line/Enter handling;
+its two HTML activation steps use native pointer input in the background test.
+
+Legacy Chromium regressions also passed: initial clefs, divisions, continuous
+lyrics, lyric moves, vowel alignment, measured lyric spacing and word composition.
+Firefox division and word-composition regressions passed. Both 47-case measured
+corpora completed with no invariant errors. The production Chromium smoke passed
+project-subpath assets, experimental notice, desktop/320px containment, graphical
+clef insertion and refresh reset, with no observed runtime or asset-loading errors.
+
+**Firefox automation limit:** trusted Enter/Space events reach native HTML buttons
+in this headless/background session without their default click action. The
+same test separately tried Enter, Space and Return with no prevented events.
+This is the already documented background HTML activation limit, not a new app
+keyboard workaround. Foreground Firefox full keyboard-only activation, actual
+browser/OS zoom, native select popups, spoken screen-reader output and IME remain
+manual checks. Do not treat headless DOM assertions as spoken accessibility tests.
+
+Actual UI evidence (reviewed, not golden images):
+
+- [C tool and snapped ghost](ux-c-ghost.png)
+- [F tool and snapped ghost](ux-f-ghost.png)
+- [Inserted clef](ux-inserted.png)
+- [Conditional pitch choice](ux-pitch-choice.png)
+- [Compact contextual staged edit](ux-selected-clef-draft.png)
+- [320px F ghost](ux-320-f-ghost.png)
+- [Firefox F ghost](ux-firefox-f-ghost.png)
+
+Smallest manual owner script:
+
+1. Choose C clef or F clef; hover between notes and move across all four lines.
+2. Click. Choose a pitch policy only if asked; trailing/redundant clefs insert directly.
+3. Escape to Select, select the authored clef, and choose Edit clef change.
+4. Adjust type/line; verify the draft, then Apply (or Cancel) and any pitch choice.
+5. Undo/Redo each accepted operation; repeat at a staff break and a narrow viewport.
+
+The following sections retain earlier verification evidence and describe the
+**historical form-first UI**, superseded by this correction. Their old insertion
+controls are not present in the current application or replacement browser driver.
+
 ## Initial implementation checks (`4a4d159`)
 
 The initial implementation passed `npm run format:check`, `npm run lint`, `npm test`
@@ -86,11 +160,12 @@ example. The GABC and edition caveat in ADR 0015 remains unchanged.
 
 Small responsive notation, fixed system height and absent ledger lines remain
 existing limitations. Horizontal clef relocation requires delete/reinsert;
-graphical clef insertion ghosts, accidentals, playback, save/load and ledger-line
-redesign are outside Stage 6B. Headless assertions do not establish comprehensive
+at that historical checkpoint graphical clef insertion ghosts were deferred.
+The current owner-approved correction above implements them. Accidentals, playback,
+save/load and ledger-line redesign remain outside Stage 6B. Headless assertions do not establish comprehensive
 accessibility or publication-quality engraving acceptance.
 
-## PR #60 review follow-up
+## Earlier PR #60 review follow-up (`83832f2`; historical interface)
 
 All seven required correctness findings are fixed:
 

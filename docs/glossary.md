@@ -98,8 +98,9 @@ partition, not entity identity or order.
 
 ### Graphical placement
 
-Pointer-based insertion that resolves a score point to a valid semantic neume
-and boundary. See [editor interactions](editor-interactions.md#graphical-placement-and-preview).
+Pointer-based insertion that resolves a score point to a valid whole-neume
+semantic boundary and the selected tool's staff-relative value. Neume, division
+and C/F clef tools share measured score slots. See [editor interactions](editor-interactions.md#graphical-placement-and-preview).
 
 ### Committed notation
 

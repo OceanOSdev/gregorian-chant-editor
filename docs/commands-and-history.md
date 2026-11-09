@@ -211,3 +211,19 @@ noteheads remains available. Every other semantic action and history navigation 
 resolution; a stale original snapshot cancels instead of applying to newer music.
 There is no generic transaction framework. Undo/redo restores committed snapshots
 without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-controls-stage-6b).
+
+## Direct graphical clef insertion
+
+`place-clef` uses `layoutChant` with the displayed measurement snapshot and the
+shared pointer/keyboard clef resolver, then reuses the existing candidate and
+pitch-confirmation path. It never exposes the edit draft for a new insertion.
+A pitch-unaffected candidate commits directly; a pending choice stores the
+original snapshot and placement tool so Cancel preserves history and commit
+returns to persistent placement. Repeated clicks and competing actions are
+serialized by the existing exclusive clef transaction guard.
+
+`clef-keyboard` stores only an explicit semantic boundary and staff line in the
+transient session. Traversal derives mixed order anew; commit verifies its
+current slot. The cursor advances after an inserted clef and never moves an
+existing authored clef. Hover, keyboard cursor and the remembered neume tool
+remain outside semantic history. Existing-clef edits still use draft/Apply/Cancel.

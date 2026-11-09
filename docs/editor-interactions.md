@@ -608,45 +608,71 @@ placement can restore clef focus through the singleton focus request. The first
 clef stays in its first-system DOM group through musical reflow, so normal clef
 edits and history retain browser focus. Horizontal clef dragging is excluded.
 
-## Mid-score clef controls (Stage 6B)
+## Mid-score clef placement and contextual editing (Stage 6B)
 
-The **Mid-score clefs** group exposes every derived event boundary in a native
-select, naming the preceding/following event. **Insert clef change** opens a
-C/F and staff-line draft with **Apply clef change** / **Cancel clef change**.
-The authored-target select or a click/Enter/Space on an engraved clef chooses
-its stable ID. **Edit clef change** opens the same draft; Up/Down on an authored
-glyph opens a staged one-line adjustment. **Delete clef change**, or focused
-Delete/Backspace, removes the clef immediately when pitches are unaffected;
-otherwise it opens the one-shot pitch choice, whose Cancel retains the clef. Explicit remembered-neume before/after buttons
-also distinguish sides of a selected authored clef. Pointer clef ghosts are deferred;
-native controls provide the insertion path for pointer and keyboard users.
+**C clef** and **F clef** are persistent placement tools in the main notation
+palette. They share pressed states, roving Arrow/Home/End navigation and native
+Enter/Space activation with neume tools. They do not change the remembered
+neume kind: I continues to insert that neume. The required initial clef remains
+a separate control.
 
-Apply prompts only for changed effective pitches: **Preserve melody** receives
-initial focus and is the default; **Preserve noteheads** retains staff positions.
-No-op, trailing and redundant changes commit or close without a pitch prompt.
-Each chosen policy is validated independently: an overflowing melody translation
-leaves the prompt open with an explanation, while valid Preserve noteheads
-remains available.
-The dialog traps Tab within its controls. A document capture handler makes
-Escape cancel the entire clef operation first, including when focus has left the
-dialog for an editable lyric field; outside a transaction the established
-lyric/placement/selection precedence applies. All conflicting semantic actions,
-including lyric commits and history, are blocked by the reducer while pending.
-Dirty lyric text remains exactly intact without implicit save or discard.
+Hovering a valid staff shows the approved translucent C/F silhouette at a
+measured score slot, with the existing caret. Height snaps to the nearest staff
+line, bottom 1 through top 4; exact half-line ties go upward. The hit band extends
+half a staff space beyond the outer lines. Outside that band (or the extended
+staff's horizontal bounds), neither preview nor click is accepted. Hover never
+changes the document, lyrics, wrapping or history. Both hover and click use
+`resolveGraphicalClefPlacement`; click resolves again against the latest document
+and displayed font snapshot in the reducer.
 
-Commit selects and reveals the surviving authored ID; deletion clears selection
-and focuses Select. Cancel/no-op retains the preceding selection and returns focus to the edited
-authored glyph; a canceled insertion returns to the preceding selection's score
-target, or Select if none. Engraved focus survives system reparenting by stable ID.
-Tab focus alone never selects a clef. Authored glyphs use the existing selection
-and focus cues; decorative repetitions and custodes are pointer-inert and absent
-from the tab order. Relocation requires deletion and reinsertion.
+Click inserts directly, without an insertion form or Apply step. A trailing,
+redundant or otherwise pitch-unaffected clef commits immediately as one ordinary
+undoable operation. Only changed effective pitches open **Preserve melody**
+(default focus) / **Preserve noteheads**. The document remains committed until
+that choice; invalid melody arithmetic leaves the prompt open while valid
+notehead preservation remains available. Competing tools, repeated clicks,
+semantic edits and history are blocked while confirmation is pending. The tool
+remains armed after commit or cancellation. Confirmation Escape cancels only
+the pending click; another Escape returns to Select and clears the preview.
 
-The clef insertion dropdown stores a semantic boundary, not a list index. Edits
-elsewhere retain its target; if its references become stale, insertion is disabled
-until another boundary is chosen. It never silently retargets a numeric position.
-Clef controls are disabled during persistent neume/division placement; return to
-Select to use them. **Choose clef** clears the authored target/selection. I on a
-focused or selected authored clef announces its explicit before/after buttons;
-I without a musical selection inserts after all trailing score events. Graphical
-neume placement always resolves the measured mixed-event slots on either clef side.
+For keyboard-only insertion, choose C/F in the palette, then Tab to **Place clef
+with keyboard** and activate it (or focus the score and use an arrow). Left/Right
+visits explicit semantic boundaries; Home/End visits the score edges; Up/Down
+chooses lines 1–4; Enter/Space inserts with exactly the same pitch/history rules.
+The live announcement describes the line and neighboring item; the caret and
+ghost reveal the current target. A shared break boundary uses its continuation
+system copy. A stale keyboard target rejects rather than silently retargeting.
+Pointer motion takes over from keyboard placement; switching tools clears both
+preview sources. Keyboard cursor, hover and tools live only in session state.
+
+Clef arming retains a lyric draft without saving or discarding it. Placement and
+its cancellation preserve that draft, anchor and redo branch. Switching to a
+neume/division tool still follows their established commit-on-mode-change policy.
+Escape from an armed clef returns to Select before acting on a lyric draft.
+A document capture handler gives pending clef cancellation precedence even if
+focus leaves the pitch prompt for an editable lyric field.
+
+In Select, click or Enter/Space selects an authored clef by stable ID. A compact
+**Selected clef** group beside the score offers Edit, Delete and explicit
+remembered-neume insertion on either side; there is no global clef picker or
+full-score boundary dropdown. I on a focused/selected clef announces those side
+controls. Selecting does not itself start an edit.
+
+**Edit clef change**, or Up/Down on a focused authored clef, opens a compact
+contextual C/F + line draft with explicit **Apply clef change** / **Cancel clef
+change**. Repeated changes remain transient. Where the draft glyph fits safely
+between committed ink and staff bounds, an inert purple overlay previews it in
+place; the original geometry remains committed and its ink fades. No music or
+custos is provisionally transposed or reflowed. Apply compares the final draft
+with the original snapshot, asks at most one pitch choice, and commits one history
+entry. No-op/Cancel preserves exact history and redo. This retains ADR 0015's
+staged editing contract; insertion is the separate direct-click flow.
+
+Delete/Backspace or Delete removes an authored clef immediately when pitches are
+unaffected, otherwise using the same conditional pitch choice. Commit selects
+and reveals the surviving ID; deletion focuses Select. Edit cancellation retains
+the preceding selection and returns focus to the edited glyph. Placement returns
+focus to the score, revealing the actual inserted glyph after reflow. Tab focus
+alone never selects. Decorative system repetitions, ghosts, draft overlays and
+custodes remain noninteractive. Relocation requires delete/reinsert; no existing
+clef has horizontal dragging or slot movement.

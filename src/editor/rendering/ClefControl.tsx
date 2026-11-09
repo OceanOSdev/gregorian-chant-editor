@@ -4,6 +4,7 @@ import type { ClefGeometry } from '../layout/clef-geometry';
 import { focusAndReveal } from './focus-visibility';
 
 export function ClefControl({
+  draft = false,
   changeId,
   onDelete,
   clef,
@@ -13,6 +14,7 @@ export function ClefControl({
   onChange,
   registerElement,
 }: {
+  draft?: boolean;
   changeId?: string;
   onDelete?: () => void;
   clef: ClefGeometry;
@@ -76,6 +78,7 @@ export function ClefControl({
         fill="transparent"
       />
       <path
+        opacity={draft ? 0.2 : undefined}
         className="score__clef-ink"
         d={clef.path}
         aria-hidden="true"

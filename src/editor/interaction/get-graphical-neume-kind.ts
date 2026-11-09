@@ -9,6 +9,7 @@ export function getGraphicalNeumeKind(
   tool: EditorTool,
 ): GraphicalNeumeKind | null {
   switch (tool.kind) {
+    case 'place-clef':
     case 'place-division':
     case 'select':
       return null;

@@ -1,3 +1,8 @@
+import {
+  resolveGraphicalClefPlacement,
+  resolveKeyboardClefPlacement,
+  layoutClefDraftPreview,
+} from '../interaction/resolve-graphical-clef-placement';
 import { ClefChangeControls } from './ClefChangeControls';
 import { isValidClef } from '../domain/clef';
 import { isPlacementTool } from '../state/editor-tool';
@@ -172,11 +177,40 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           session.hoveredPoint,
         )?.preview ?? null)
       : null;
+  const clefPlacement =
+    activeTool.kind === 'place-clef' && !session.clefTransaction
+      ? session.hoveredPoint
+        ? resolveGraphicalClefPlacement(
+            layout,
+            activeTool.clefType,
+            session.hoveredPoint,
+          )
+        : session.keyboardClefPlacement
+          ? resolveKeyboardClefPlacement(
+              layout,
+              activeTool.clefType,
+              session.keyboardClefPlacement,
+            )
+          : null
+      : null;
+  const draftTransaction = session.clefTransaction;
+  const clefDraftPreview =
+    draftTransaction &&
+    !draftTransaction.boundary &&
+    !draftTransaction.candidate
+      ? layoutClefDraftPreview(
+          layout,
+          draftTransaction.id,
+          draftTransaction.clef,
+        )
+      : null;
   const placementDescription = placementKind
     ? `${neumeName(placementKind)}. Escape selects the editing tool.`
     : activeTool.kind === 'place-division'
       ? `${activeTool.divisionKind} division. Click a caret slot to insert. Escape selects the editing tool.`
-      : '';
+      : activeTool.kind === 'place-clef'
+        ? `${activeTool.clefType.toUpperCase()} clef. Hover and click a score slot; height snaps to a staff line. For keyboard placement, Left/Right chooses a slot, Up/Down a line, Enter inserts. Escape returns to Select.`
+        : '';
   // Some background Firefox sessions expose activeElement changes without
   // focus events. Reconcile presentation after our focus requests and keyup too.
   function syncNotationFocus() {
@@ -312,6 +346,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         !event.altKey
       ) {
         event.preventDefault();
+        if (activeTool.kind === 'place-clef') {
+          dispatch({ type: 'select-tool' });
+          return;
+        }
         if (session.lyrics) {
           lyricAction({ type: 'cancel' });
           return;
@@ -360,6 +398,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     };
   }, [
     placementKind,
+    activeTool.kind,
     navigateHistory,
     placing,
     canUndo,
@@ -459,7 +498,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <div
         className="neume-palette"
         role="toolbar"
-        aria-label="Neume tools"
+        aria-label="Notation tools"
         aria-describedby="palette-instructions"
         data-notation-shortcuts
         onKeyDown={(event) => {
@@ -487,16 +526,35 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             key={tool}
             type="button"
             data-tool={tool}
-            disabled={Boolean(session.lyricMove)}
+            disabled={Boolean(
+              session.lyricMove ||
+              session.pendingHistory ||
+              session.clefTransaction,
+            )}
             ref={(button) => {
               if (button) paletteButtons.current.set(tool, button);
               else paletteButtons.current.delete(tool);
             }}
             tabIndex={rovingTool === tool ? 0 : -1}
-            aria-pressed={tool === 'select' ? !placing : placementKind === tool}
+            aria-pressed={
+              tool === 'select'
+                ? !placing
+                : tool === 'c-clef' || tool === 'f-clef'
+                  ? activeTool.kind === 'place-clef' &&
+                    activeTool.clefType === tool[0]
+                  : placementKind === tool
+            }
             onFocus={() => setRovingTool(tool)}
             onClick={() => {
               if (tool === 'select') dispatch({ type: 'select-tool' });
+              else if (tool === 'c-clef' || tool === 'f-clef')
+                dispatch({
+                  type: 'arm',
+                  tool: {
+                    kind: 'place-clef',
+                    clefType: tool === 'c-clef' ? 'c' : 'f',
+                  },
+                });
               else {
                 const choice = neumeTools.find(
                   (choice) => choice.kind === tool,
@@ -510,7 +568,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               }
             }}
           >
-            {tool === 'select' ? 'Select' : neumeName(tool)}
+            {tool === 'select'
+              ? 'Select'
+              : tool === 'c-clef'
+                ? 'C clef'
+                : tool === 'f-clef'
+                  ? 'F clef'
+                  : neumeName(tool)}
           </button>
         ))}
       </div>
@@ -518,7 +582,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its palette button.
       </p>
-      <ClefChangeControls session={session} dispatch={dispatch} />
       <fieldset
         disabled={Boolean(
           session.clefTransaction ||
@@ -572,7 +635,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       </fieldset>
       <fieldset
         className="division-controls"
-        disabled={Boolean(session.lyricMove) || Boolean(session.pendingHistory)}
+        disabled={Boolean(
+          session.lyricMove ||
+          session.pendingHistory ||
+          session.clefTransaction,
+        )}
       >
         <legend>Divisions</legend>
         <label>
@@ -686,7 +753,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <button
           type="button"
           aria-pressed={Boolean(session.lyrics)}
-          disabled={Boolean(session.lyricMove)}
+          disabled={Boolean(
+            session.lyricMove ||
+            session.pendingHistory ||
+            session.clefTransaction,
+          )}
           aria-keyshortcuts="L"
           onClick={() =>
             lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null })
@@ -695,7 +766,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           Lyrics <kbd aria-hidden="true">L</kbd>
         </button>
         <button
-          disabled={Boolean(session.lyricMove)}
+          disabled={Boolean(
+            session.lyricMove ||
+            session.pendingHistory ||
+            session.clefTransaction,
+          )}
           className="editor-insert"
           type="button"
           data-notation-shortcuts
@@ -734,6 +809,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           moves one staff line while preserving melody.
         </p>
       </details>
+      <ClefChangeControls session={session} dispatch={dispatch} />
+      {activeTool.kind === 'place-clef' ? (
+        <div className="clef-placement-help">
+          <span>{placementDescription}</span>{' '}
+          <button
+            type="button"
+            disabled={!!session.clefTransaction}
+            onClick={() =>
+              dispatch({ type: 'clef-keyboard', command: 'start' })
+            }
+          >
+            Place clef with keyboard
+          </button>
+        </div>
+      ) : null}
       <div className="score-workspace">
         <div
           className="score-viewport"
@@ -742,6 +832,30 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
         >
           <ScoreSvg
+            clefPreview={clefPlacement?.preview ?? null}
+            clefDraftPreview={clefDraftPreview}
+            onPlaceClef={(point) => {
+              if (
+                activeTool.kind !== 'place-clef' ||
+                (point &&
+                  !resolveGraphicalClefPlacement(
+                    layout,
+                    activeTool.clefType,
+                    point,
+                  ))
+              )
+                return;
+              dispatch({
+                type: 'place-clef',
+                clefType: activeTool.clefType,
+                id: crypto.randomUUID(),
+                point,
+                measureLyrics,
+              });
+            }}
+            onClefKeyboard={(command) =>
+              dispatch({ type: 'clef-keyboard', command })
+            }
             transactionBlocked={Boolean(session.clefTransaction)}
             onSelectClefChange={(clefChangeId) =>
               dispatch({

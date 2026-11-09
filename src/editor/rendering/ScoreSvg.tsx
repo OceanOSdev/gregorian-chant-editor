@@ -1,3 +1,6 @@
+import type { ClefPlacementPreview } from '../interaction/resolve-graphical-clef-placement';
+import type { ClefGeometry } from '../layout/clef-geometry';
+import type { ClefKeyboardCommand } from '../state/editor-session';
 import { ClefControl } from './ClefControl';
 import type { Clef } from '../domain/chant-document';
 import { DivisionControl } from './DivisionControl';
@@ -38,6 +41,10 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  clefPreview: ClefPlacementPreview | null;
+  clefDraftPreview: { id: string; clef: ClefGeometry } | null;
+  onPlaceClef: (point?: SvgPoint) => void;
+  onClefKeyboard: (command: ClefKeyboardCommand) => void;
   transactionBlocked: boolean;
   onSelectClefChange: (id: string) => void;
   onEditClefChange: (id: string, clef: Clef) => void;
@@ -86,6 +93,10 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  clefPreview,
+  clefDraftPreview,
+  onPlaceClef,
+  onClefKeyboard,
   transactionBlocked,
   onSelectClefChange,
   onEditClefChange,
@@ -120,6 +131,7 @@ export function ScoreSvg({
   onAdvanceLyric,
   onDeleteSyllable,
 }: ScoreSvgProps) {
+  const clefPreviewElement = useRef<SVGGElement>(null);
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
   const scoreElement = useRef<SVGSVGElement>(null);
@@ -187,6 +199,19 @@ export function ScoreSvg({
       focusRequest.kind === 'lyrics'
     )
       return;
+    if (focusRequest.kind === 'clef-placement') {
+      const target = focusRequest.clefChangeId
+        ? clefChangeElements.current.get(focusRequest.clefChangeId)
+        : clefPreviewElement.current;
+      if (scoreElement.current)
+        focusAndReveal(
+          scoreElement.current,
+          target ?? undefined,
+          target ?? undefined,
+        );
+      onFocusHandled(focusRequest);
+      return;
+    }
     if (focusRequest.kind === 'clef-change') {
       const element = clefChangeElements.current.get(focusRequest.clefChangeId);
       if (element) focusAndReveal(element);
@@ -267,6 +292,11 @@ export function ScoreSvg({
       return;
     }
 
+    if (transactionBlocked) return;
+    if (activeTool.kind === 'place-clef') {
+      onPlaceClef(localPoint);
+      return;
+    }
     if (activeTool.kind === 'place-division') {
       onPlaceDivision(localPoint);
       return;
@@ -359,7 +389,13 @@ export function ScoreSvg({
   return (
     <svg
       ref={scoreElement}
-      tabIndex={placementActive ? -1 : undefined}
+      tabIndex={
+        placementActive
+          ? activeTool.kind === 'place-clef'
+            ? 0
+            : -1
+          : undefined
+      }
       className={`score${placementActive ? ' score--placing' : ''}`}
       viewBox={`${layout.x} 0 ${layout.width} ${layout.height}`}
       style={
@@ -373,6 +409,39 @@ export function ScoreSvg({
         placementActive ? undefined : 'score-title score-description'
       }
       aria-describedby={placementActive ? 'placement-description' : undefined}
+      onKeyDown={(event) => {
+        if (
+          activeTool.kind !== 'place-clef' ||
+          transactionBlocked ||
+          event.nativeEvent.isComposing ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.altKey ||
+          event.shiftKey
+        )
+          return;
+        const commands: Record<string, ClefKeyboardCommand> = {
+          ArrowLeft: 'previous',
+          ArrowRight: 'next',
+          ArrowUp: 'up',
+          ArrowDown: 'down',
+          Home: 'first',
+          End: 'last',
+        };
+        const command = commands[event.key];
+        if (command) {
+          event.preventDefault();
+          event.stopPropagation();
+          onClefKeyboard(command);
+        } else if (
+          (event.key === 'Enter' || event.key === ' ') &&
+          !event.repeat
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          onPlaceClef();
+        }
+      }}
       onClick={handleScoreClick}
       onPointerMove={handlePointerMove}
       onPointerLeave={() => onPlacementPointerLeave()}
@@ -448,6 +517,7 @@ export function ScoreSvg({
                 return (
                   <ClefControl
                     key={id}
+                    draft={clefDraftPreview?.id === id}
                     clef={item.clef}
                     changeId={id}
                     selected={
@@ -850,6 +920,37 @@ export function ScoreSvg({
         </g>
       ))}
 
+      {clefPreview ? (
+        <g
+          ref={clefPreviewElement}
+          className="score__clef-placement-preview"
+          aria-hidden="true"
+          pointerEvents="none"
+          data-clef-type={clefPreview.clef.type}
+          data-staff-line={clefPreview.clef.staffLine}
+        >
+          <g className="score__placement-caret">
+            <line
+              x1={clefPreview.caret.x}
+              x2={clefPreview.caret.x}
+              y1={clefPreview.caret.top}
+              y2={clefPreview.caret.bottom}
+            />
+            <path
+              d={`M${clefPreview.caret.x - 4},${clefPreview.caret.top} h8`}
+            />
+          </g>
+          <path className="score__clef-ghost" d={clefPreview.clef.path} />
+        </g>
+      ) : null}
+      {clefDraftPreview ? (
+        <path
+          className="score__clef-draft-preview"
+          d={clefDraftPreview.clef.path}
+          aria-hidden="true"
+          pointerEvents="none"
+        />
+      ) : null}
       {divisionPreview ? (
         <g
           className="score__placement-preview"

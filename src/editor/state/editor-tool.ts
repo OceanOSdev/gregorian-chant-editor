@@ -1,5 +1,6 @@
-import type { DivisionKind } from '../domain/chant-document';
+import type { DivisionKind, Clef } from '../domain/chant-document';
 export type EditorTool =
+  | { kind: 'place-clef'; clefType: Clef['type'] }
   | { kind: 'place-division'; divisionKind: DivisionKind }
   | { kind: 'select' }
   | { kind: 'place-punctum' }
@@ -44,6 +45,7 @@ export function placePorrectusTool(): EditorTool {
 
 export function isPlacementTool(tool: EditorTool): boolean {
   return (
+    tool.kind === 'place-clef' ||
     tool.kind === 'place-division' ||
     tool.kind === 'place-punctum' ||
     tool.kind === 'place-podatus' ||

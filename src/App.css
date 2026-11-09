@@ -20,7 +20,7 @@
 }
 .neume-palette {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 0.35rem;
   margin-bottom: 0.75rem;
 }
@@ -449,22 +449,38 @@ kbd {
   fill: currentColor;
 }
 
-.clef-change-controls {
-  min-width: 0;
+.clef-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: #f3edf8;
+  border: 1px solid #b9a6ce;
+  border-radius: 0.3rem;
 }
-.clef-change-controls select {
-  max-width: 100%;
-  min-width: 0;
-  margin: 0.3rem 0;
-  font: inherit;
+.clef-context label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
-.clef-change-controls label {
-  display: block;
-}
-.clef-change-controls button {
-  margin-block: 0.2rem;
-}
-.clef-dialog select {
+.clef-context select {
   font: inherit;
   min-height: 2.5rem;
+}
+.clef-context__hint,
+.clef-placement-help {
+  font-size: 0.875rem;
+}
+.clef-placement-help {
+  margin: 0.5rem 0;
+}
+.score__clef-ghost {
+  fill: #286b9a;
+  opacity: 0.5;
+}
+.score__clef-draft-preview {
+  fill: #65348b;
+  opacity: 0.65;
 }

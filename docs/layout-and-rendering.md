@@ -550,3 +550,20 @@ When a mid-staff guide is replaced at a later break, the walker rebuilds followi
 boundary glyphs without its reserved advance before finalizing that system.
 This reclaims spacing within authoritative measured layout; no renderer-side
 translation or new placement engine is involved.
+
+## Graphical clef preview and edit overlay
+
+`interaction/resolve-graphical-clef-placement.ts` shares measured `ScoreSlotLayout`
+geometry and approved `buildClefGeometry` paths between hover and click. It snaps
+only inside the existing staff hit band, uses the selected slot's caret, and
+keeps the full ghost inside normal or extended staff bounds. The pointer does
+not manufacture a semantic index or prospective score. Keyboard placement looks
+up the same stable boundary in the current layout and prefers its continuation
+copy at a shared system edge.
+
+Safe existing-clef draft overlays are also pure geometry from that module. They
+use the committed glyph's x anchor and draft reference line, and are omitted if
+they would overlap other committed music/guide ink or leave the staff. They do
+not alter canonical layout, hit identities, interpreted pitches or derived
+custodes until Apply. Both placement and edit overlays are aria-hidden and
+pointer-inert. Approved C/F contours and measured wrapping are unchanged.
