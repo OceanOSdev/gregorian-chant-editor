@@ -199,7 +199,8 @@ then translates only affected surviving passages using the shared domain
 `clefOffset`. Preserve noteheads commits the candidate with unchanged positions.
 Redundant event identities do not constitute a pitch change.
 
-The session owns one `clefTransaction`: original snapshot, previous selection,
+For existing-clef edits/removals, the session owns one `clefTransaction`: original
+snapshot, previous selection,
 authored ID, insertion boundary or existing target, draft value, and optional
 final candidate awaiting confirmation. Draft adjustments never enter history.
 Apply compares the final value with the original document, offers one pitch
@@ -210,17 +211,19 @@ translation leaves history untouched and the prompt open; valid Preserve
 noteheads remains available. Every other semantic action and history navigation is blocked until
 resolution; a stale original snapshot cancels instead of applying to newer music.
 There is no generic transaction framework. Undo/redo restores committed snapshots
-without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-controls-stage-6b).
+without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-placement-and-contextual-editing-stage-6b).
 
 ## Direct graphical clef insertion
 
 `place-clef` uses `layoutChant` with the displayed measurement snapshot and the
-shared pointer/keyboard clef resolver, then reuses the existing candidate and
-pitch-confirmation path. It never exposes the edit draft for a new insertion.
-A pitch-unaffected candidate commits directly; a pending choice stores the
-original snapshot and placement tool so Cancel preserves history and commit
-returns to persistent placement. Repeated clicks and competing actions are
-serialized by the existing exclusive clef transaction guard.
+shared pointer/keyboard clef resolver, then reuses candidate validation and the
+existing atomic commit path. The session's `clefInsertionPolicy` defaults to
+`melody` and persists across C/F placements outside semantic history. Insertion
+applies that selected policy synchronously, never exposing a pending draft or
+confirmation. Unsafe arithmetic returns unchanged music/history and a nonmodal
+session error; it never falls back to the alternate mode. Each successful
+placement records one snapshot and returns to the armed tool. Pending
+existing-clef transactions still block competing placement and policy actions.
 
 `clef-keyboard` stores only an explicit semantic boundary and staff line in the
 transient session. Traversal derives mixed order anew; commit verifies its

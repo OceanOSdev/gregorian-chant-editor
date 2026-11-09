@@ -339,95 +339,113 @@ try {
   );
   for (const width of [1440, 320]) {
     await viewport(width);
-    for (const type of ['c', 'f'])
-      for (const line of [1, 2, 3, 4]) {
-        const d = fixture(3);
-        await mount(d);
-        assert.equal(
-          await ev(
-            `!!document.querySelector('[aria-label="Clef insertion boundary"]')`,
-          ),
-          false,
-        );
-        const original = await ink();
-        await click(`[data-tool="${type}-clef"]`);
-        const boundary = {
-          beforeNeumeId: 'n1',
-          beforeDivisionId: null,
-          beforeClefId: null,
-        };
-        const point = await hoverSlot(d, boundary, line);
-        assert.deepEqual(await ink(), original);
-        assert.equal((await clefIds()).length, 0);
-        assert.equal(
-          await ev(
-            `document.querySelector('.score__clef-placement-preview').dataset.clefType`,
-          ),
-          type,
-        );
-        if (line === 4) await shot(`${width}-${type}-ghost`, true);
-        await pointClick(point);
-        const delta = -4 - offset(type, line),
-          affected = delta !== 0;
-        assert.equal(
-          await dialog(),
-          affected ? 'Choose pitch preservation' : null,
-        );
-        if (affected) {
+    for (const preserve of ['melody', 'noteheads'])
+      for (const type of ['c', 'f'])
+        for (const line of [1, 2, 3, 4]) {
+          const d = fixture(3);
+          await mount(d);
+          assert.equal(
+            await ev(
+              `!!document.querySelector('[aria-label="Clef insertion boundary"]')`,
+            ),
+            false,
+          );
+          const original = await ink();
+          await click(`[data-tool="${type}-clef"]`);
+          assert.equal(
+            await ev(
+              `document.querySelector('input[name="clef-insertion-policy"]:checked').value`,
+            ),
+            'melody',
+          );
+          await click(
+            `input[name="clef-insertion-policy"][value="${preserve}"]`,
+          );
+          const boundary = {
+            beforeNeumeId: 'n1',
+            beforeDivisionId: null,
+            beforeClefId: null,
+          };
+          const point = await hoverSlot(d, boundary, line);
           assert.deepEqual(await ink(), original);
           assert.equal((await clefIds()).length, 0);
           assert.equal(
-            await ev(`document.activeElement.textContent.trim()`),
-            'Preserve melody',
+            await ev(
+              `document.querySelector('.score__clef-placement-preview').dataset.clefType`,
+            ),
+            type,
           );
+          if (line === 4)
+            await shot(`${width}-${type}-${preserve}-ghost`, true);
+          await pointClick(point);
+          const delta = -4 - offset(type, line);
+          assert.equal(await dialog(), null);
+          assert.equal((await clefIds()).length, 1);
+          const placed = await ev(
+            `(()=>{const e=document.querySelector('[data-clef-change-id]');return e.getAttribute('aria-label')})()`,
+          );
+          assert.ok(placed.includes(`staff line ${line}`));
+          assert.ok(placed.includes(type.toUpperCase()));
+          const after = await ink();
+          assert.equal(after[0].y, original[0].y);
+          for (let i = 1; i < 3; i++)
+            assert.equal(
+              after[i].y,
+              original[i].y - (preserve === 'noteheads' ? 0 : delta * 12),
+            );
           assert.equal(
-            await ev(`document.querySelector('[data-tool="f-clef"]').disabled`),
-            true,
+            await ev(
+              `document.querySelector('[data-tool="${type}-clef"]').getAttribute('aria-pressed')`,
+            ),
+            'true',
           );
-          if (type === 'c' && line === 4)
-            await shot(`${width}-pitch-choice`, true);
-          await pointClick(point); // serialized while the policy choice is open
-          await clickButton(
-            type === 'f' && line === 1
-              ? 'Preserve noteheads'
-              : 'Preserve melody',
+          if (line === 4) await shot(`${width}-${type}-${preserve}-inserted`);
+          await key('z', 'KeyZ', 2);
+          assert.equal((await clefIds()).length, 0);
+          assert.deepEqual(await ink(), original);
+          await key('z', 'KeyZ', 10);
+          assert.equal((await clefIds()).length, 1);
+          assert.deepEqual(await ink(), after);
+          assert.equal(await dialog(), null);
+          await key('Escape');
+          assert.equal(
+            await ev(
+              `document.querySelector('[data-tool="select"]').getAttribute('aria-pressed')`,
+            ),
+            'true',
           );
         }
-        assert.equal((await clefIds()).length, 1);
-        const placed = await ev(
-          `(()=>{const e=document.querySelector('[data-clef-change-id]');return e.getAttribute('aria-label')})()`,
-        );
-        assert.ok(placed.includes(`staff line ${line}`));
-        assert.ok(placed.includes(type.toUpperCase()));
-        const after = await ink();
-        assert.equal(after[0].y, original[0].y);
-        for (let i = 1; i < 3; i++)
-          assert.equal(
-            after[i].y,
-            original[i].y - (type === 'f' && line === 1 ? 0 : delta * 12),
-          );
-        assert.equal(
-          await ev(
-            `document.querySelector('[data-tool="${type}-clef"]').getAttribute('aria-pressed')`,
-          ),
-          'true',
-        );
-        if (line === 4) await shot(`${width}-${type}-inserted`);
-        await key('z', 'KeyZ', 2);
-        assert.equal((await clefIds()).length, 0);
-        assert.deepEqual(await ink(), original);
-        await key('z', 'KeyZ', 10);
-        assert.equal((await clefIds()).length, 1);
-        assert.deepEqual(await ink(), after);
-        assert.equal(await dialog(), null);
-        await key('Escape');
-        assert.equal(
-          await ev(
-            `document.querySelector('[data-tool="select"]').getAttribute('aria-pressed')`,
-          ),
-          'true',
-        );
-      }
+    // Retain the selected behavior across C/F and repeat affected insertions.
+    await mount(fixture(3));
+    await click('[data-tool="c-clef"]');
+    await click('input[name="clef-insertion-policy"][value="noteheads"]');
+    for (const [index, type] of ['c', 'f', 'c'].entries()) {
+      await click(`[data-tool="${type}-clef"]`);
+      assert.equal(
+        await ev(
+          `document.querySelector('input[name="clef-insertion-policy"]:checked').value`,
+        ),
+        'noteheads',
+      );
+      const ids = await clefIds();
+      const d = {
+        ...fixture(3),
+        clefChanges: ids.map((id, i) => ({
+          id,
+          clef: { type: i === 1 ? 'f' : 'c', staffLine: 4 },
+          beforeNeumeId: 'n1',
+          beforeDivisionId: null,
+        })),
+      };
+      const p = await hoverSlot(
+        d,
+        { beforeNeumeId: 'n1', beforeDivisionId: null, beforeClefId: null },
+        4,
+      );
+      await pointClick(p);
+      assert.equal(await dialog(), null);
+      assert.equal((await clefIds()).length, index + 1);
+    }
     // Exact before/after slots around consecutive authored changes and adjacent bars.
     const mixed = fixture(3);
     mixed.divisions = [
@@ -462,7 +480,7 @@ try {
       await click('[data-tool="f-clef"]');
       const point = await hoverSlot(mixed, boundary, 3);
       await pointClick(point);
-      if (await dialog()) await clickButton('Preserve noteheads');
+      assert.equal(await dialog(), null);
       const order = await scoreOrder(),
         id = order.find((id) => !walk.includes(id));
       assert.ok(id);
@@ -496,7 +514,7 @@ try {
     };
     const point = await hoverSlot(wrapped, boundary, 2);
     await pointClick(point);
-    if (await dialog()) await clickButton('Preserve melody');
+    assert.equal(await dialog(), null);
     assert.equal((await clefIds()).length, 2);
     const wrappedIds = await clefIds();
     assert.notEqual(wrappedIds[0], 'C');
@@ -523,16 +541,19 @@ try {
     await clickButton('Cancel clef change');
     assert.deepEqual(await ink(), committed);
     assert.equal(await ev(`document.activeElement.dataset.clefChangeId`), id);
-    await key('ArrowUp');
+    await click('[data-clef-change-id="C"]');
+    await key('ArrowDown');
     assert.equal(
       await ev(`!!document.querySelector('[aria-label="Edit selected clef"]')`),
       true,
     );
     await select('Draft clef type', 'f');
     await clickButton('Apply clef change');
-    if (await dialog()) await clickButton('Preserve noteheads');
+    assert.equal(await dialog(), 'Choose pitch preservation');
+    await shot(`${width}-existing-edit-pitch-choice`, true);
+    await clickButton('Preserve noteheads');
     assert.deepEqual(await ink(), committed);
-    assert.equal(await ev(`document.activeElement.dataset.clefChangeId`), id);
+    assert.equal(await ev(`document.activeElement.dataset.clefChangeId`), 'C');
     // Out-of-band hover/click is inert; changing tools and Escape remove the ghost.
     await mount(fixture(3));
     await click('[data-tool="c-clef"]');
@@ -564,6 +585,13 @@ try {
       4,
     );
     await pointClick(affectedPoint);
+    assert.equal(await dialog(), null);
+    assert.equal((await clefIds()).length, 1);
+    await key('Escape');
+    await click('[data-clef-change-id]');
+    await clickButton('Edit clef change');
+    await select('Draft clef staff line', '1');
+    await clickButton('Apply clef change');
     assert.equal(await dialog(), 'Choose pitch preservation');
     await ev(`document.querySelector('#lyric-input').focus()`);
     await key('Escape');
@@ -572,7 +600,8 @@ try {
       await ev(`document.querySelector('#lyric-input').value`),
       'Ky',
     );
-    assert.equal((await clefIds()).length, 0);
+    assert.equal((await clefIds()).length, 1);
+    await click('[data-tool="c-clef"]');
     await key('Escape');
     assert.equal(
       await ev(
@@ -643,20 +672,73 @@ try {
       true,
     );
   }
+  // Native radio arrows select the same policy used by score keyboard insertion.
+  await viewport(1440);
+  await mount(fixture(3));
+  const keyboardOriginal = await ink();
+  await click('[data-tool="c-clef"]');
+  await click('input[name="clef-insertion-policy"][value="melody"]');
+  await key('ArrowRight');
+  assert.equal(
+    await ev(
+      `document.querySelector('input[name="clef-insertion-policy"]:checked').value`,
+    ),
+    'noteheads',
+  );
+  await clickButton('Place clef with keyboard');
+  await key('ArrowRight');
+  await key('ArrowUp');
+  await key('Enter');
+  assert.equal(await dialog(), null);
+  assert.equal((await clefIds()).length, 1);
+  assert.deepEqual(await ink(), keyboardOriginal);
+  // A DOM double-click continuation must not insert a second authored event.
+  await ev(
+    `document.querySelector('.score').dispatchEvent(new MouseEvent('click', {bubbles:true,detail:2}))`,
+  );
+  assert.equal((await clefIds()).length, 1);
+  // An unsafe Keep pitches request rejects without a dialog or policy fallback.
+  await viewport(1440);
+  const unsafe = fixture(1);
+  unsafe.neumes[0].notes[0].staffPosition = Number.MAX_SAFE_INTEGER;
+  await mount(unsafe);
+  await click('[data-tool="c-clef"]');
+  await clickButton('Place clef with keyboard');
+  await key('ArrowUp');
+  await key('Enter');
+  assert.equal(await dialog(), null);
+  assert.equal((await clefIds()).length, 0);
+  assert.equal(
+    await ev(
+      `document.querySelector('input[name="clef-insertion-policy"]:checked').value`,
+    ),
+    'melody',
+  );
+  assert.match(
+    await ev(
+      `document.querySelector('.clef-insertion-behavior [role="status"]').textContent`,
+    ),
+    /overflow/,
+  );
+  await click('input[name="clef-insertion-policy"][value="noteheads"]');
+  await clickButton('Place clef with keyboard');
+  await key('Enter');
+  assert.equal(await dialog(), null);
+  assert.equal((await clefIds()).length, 1);
   for (const width of [1440, 320]) {
     await viewport(width);
     await mount(fixture(3));
     await ev(`(()=>{document.querySelector('main').style.zoom='1.5';})()`);
     await pause();
     await click('[data-tool="f-clef"]');
+    await click('input[name="clef-insertion-policy"][value="noteheads"]');
     const point = await hoverSlot(
       fixture(3),
       { beforeNeumeId: 'n1', beforeDivisionId: null, beforeClefId: null },
       4,
     );
     await pointClick(point);
-    assert.equal(await dialog(), 'Choose pitch preservation');
-    await clickButton('Preserve noteheads');
+    assert.equal(await dialog(), null);
     const ids = await clefIds();
     assert.equal(ids.length, 1);
     assert.deepEqual(await scoreOrder(), ['n0', ids[0], 'n1', 'n2']);
@@ -669,7 +751,7 @@ try {
     await ev(`(()=>{document.querySelector('main').style.zoom='';})()`);
   }
   console.log(
-    `PASS: graphical C/F hover/snap/click, conditional policies and exact history, mixed slots, wrapping, contextual staged edits, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
+    `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, contextual staged edits, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
   );
 } finally {
   if (ownsSession) await rawSend('session.end');

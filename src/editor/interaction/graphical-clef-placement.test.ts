@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { effectiveOffsets } from '../commands/edit-clef-change';
 import { fixture, change, punctum } from '../clef-change.test-cases';
 import { layoutChant } from '../layout/layout-chant';
 import { buildClefGeometry } from '../layout/clef-geometry';
@@ -105,11 +106,7 @@ describe('graphical C/F clef placement', () => {
             id: 'new',
             point,
           });
-          if (state.clefTransaction)
-            state = reduce(state, {
-              type: 'confirm-clef-change',
-              preserve: 'noteheads',
-            });
+          expect(state.clefTransaction).toBeNull();
           const expectedIndex = order.findIndex(
             (_, i) =>
               JSON.stringify(scoreBoundaryAt(order, i)) ===
@@ -159,16 +156,13 @@ describe('graphical C/F clef placement', () => {
       point,
       measureLyrics: measure,
     });
-    if (s.clefTransaction)
-      expect(s.clefTransaction.boundary).toEqual(expected?.boundary);
-    else {
-      const order = deriveScoreOrder(s.history.present) ?? [];
-      expect(order.findIndex((i) => i.entity.id === 'new')).toBe(
-        (deriveScoreOrder(d) ?? []).findIndex(
-          (i) => i.entity.id === expected?.boundary.beforeClefId,
-        ),
-      );
-    }
+    expect(s.clefTransaction).toBeNull();
+    const order = deriveScoreOrder(s.history.present) ?? [];
+    expect(order.findIndex((i) => i.entity.id === 'new')).toBe(
+      (deriveScoreOrder(d) ?? []).findIndex(
+        (i) => i.entity.id === expected?.boundary.beforeClefId,
+      ),
+    );
     const fresh = reduce(createEditorSession(d), arm());
     for (const action of [
       { type: 'place-clef', clefType: 'f', id: 'x', point },
@@ -210,29 +204,10 @@ describe('graphical C/F clef placement', () => {
     s = reduce(s, { type: 'hover', point: { x: 200, y: 52 } });
     expect(s.history).toBe(history);
     expect(s.lyrics).toBe(lyrics);
-    s = reduce(s, {
-      type: 'place-clef',
-      clefType: 'c',
-      id: 'new',
-      point: { x: 200, y: 52 },
-    });
-    expect(s.clefTransaction?.candidate).not.toBeNull();
-    const pending = s;
-    for (const action of [
-      arm('f'),
-      {
-        type: 'place-clef',
-        clefType: 'c',
-        id: 'second',
-        point: { x: 200, y: 52 },
-      },
-      { type: 'history', direction: 'undo', focusedNoteId: null },
-    ] satisfies EditorAction[])
-      expect(reduce(pending, action)).toBe(pending);
-    s = reduce(s, { type: 'cancel-clef-change' });
+    s = reduce(s, { type: 'select-tool' });
     expect(s.history).toBe(history);
     expect(s.lyrics).toBe(lyrics);
-    expect(s.activeTool.kind).toBe('place-clef');
+    s = reduce(s, arm());
     s = reduce(s, {
       type: 'place-clef',
       clefType: 'c',
@@ -241,6 +216,7 @@ describe('graphical C/F clef placement', () => {
     });
     expect(s.clefTransaction).toBeNull();
     expect(s.history.past).toHaveLength(1);
+    expect(s.lyrics).toBe(lyrics);
     const tail = reduce(reduce(createEditorSession(fixture()), arm('f')), {
       type: 'place-clef',
       clefType: 'f',
@@ -251,18 +227,26 @@ describe('graphical C/F clef placement', () => {
     expect(tail.history.past).toHaveLength(1);
   });
   it.each(['melody', 'noteheads'] as const)(
-    'asks once and restores exact snapshots with %s',
+    'inserts immediately and restores exact snapshots with %s',
     (preserve) => {
       const d = fixture();
-      let s = reduce(reduce(createEditorSession(d), arm()), {
-        type: 'place-clef',
-        clefType: 'c',
-        id: 'C',
-        point: { x: 180, y: 52 },
-      });
-      expect(s.history.present).toBe(d);
-      expect(s.clefTransaction?.clef.staffLine).toBe(4);
-      s = reduce(s, { type: 'confirm-clef-change', preserve });
+      let s = reduce(
+        reduce(
+          reduce(createEditorSession(d), {
+            type: 'clef-insertion-policy',
+            preserve,
+          }),
+          arm(),
+        ),
+        {
+          type: 'place-clef',
+          clefType: 'c',
+          id: 'C',
+          point: { x: 180, y: 52 },
+        },
+      );
+      expect(s.clefTransaction).toBeNull();
+      expect(s.history.present.clefChanges[0].clef.staffLine).toBe(4);
       const committed = s.history.present;
       expect(committed.neumes[1].notes[0].staffPosition).toBe(
         preserve === 'melody' ? 4 : 2,
@@ -366,4 +350,101 @@ it('rejects a keyboard cursor after its referenced clef is removed, without chan
   expect(
     reduce(s, { type: 'place-clef', clefType: 'c', id: 'stale' }).history,
   ).toBe(history);
+});
+
+it.each(['melody', 'noteheads'] as const)(
+  'remembers %s across consecutive C/F keyboard placements',
+  (preserve) => {
+    let s = createEditorSession(fixture());
+    expect(s.clefInsertionPolicy).toBe('melody');
+    s = reduce(s, { type: 'clef-insertion-policy', preserve });
+    for (const [index, type] of (['c', 'f', 'c'] as const).entries()) {
+      s = reduce(s, arm(type));
+      s = reduce(s, { type: 'clef-keyboard', command: 'first' });
+      s = reduce(s, { type: 'clef-keyboard', command: 'up' });
+      const before = s.history.present;
+      s = reduce(s, {
+        type: 'place-clef',
+        clefType: type,
+        id: `placed-${index}`,
+      });
+      expect(s.clefTransaction).toBeNull();
+      expect(s.clefInsertionPolicy).toBe(preserve);
+      expect(s.history.past).toHaveLength(index + 1);
+      if (preserve === 'noteheads')
+        expect(s.history.present.neumes).toBe(before.neumes);
+      if (preserve === 'melody')
+        for (const n of s.history.present.neumes) {
+          const previous = before.neumes.find((old) => old.id === n.id);
+          expect(
+            n.notes[0].staffPosition +
+              (effectiveOffsets(s.history.present)?.get(n.id) ?? 0),
+          ).toBe(
+            (previous?.notes[0].staffPosition ?? 0) +
+              (effectiveOffsets(before)?.get(n.id) ?? 0),
+          );
+        }
+      expect(s.activeTool).toEqual({ kind: 'place-clef', clefType: type });
+    }
+    expect(s.history.present.clefChanges).toHaveLength(3);
+  },
+);
+
+it('rejects an overflowing selected insertion policy without fallback, history mutation or a pending dialog; retries explicitly', () => {
+  const d = { ...fixture(), neumes: [punctum('A', Number.MAX_SAFE_INTEGER)] };
+  let s = reduce(createEditorSession(d), arm());
+  s = reduce(s, { type: 'clef-keyboard', command: 'first' });
+  s = reduce(s, { type: 'clef-keyboard', command: 'up' });
+  const history = s.history;
+  const selection = s.selection;
+  s = reduce(s, { type: 'place-clef', clefType: 'c', id: 'unsafe' });
+  expect(s.history).toBe(history);
+  expect(s.selection).toEqual(selection);
+  expect(s.clefTransaction).toBeNull();
+  expect(s.clefInsertionPolicy).toBe('melody');
+  expect(s.clefInsertionError).toContain('overflow');
+  expect(s.announcement.text).toBe(s.clefInsertionError);
+  s = reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' });
+  s = reduce(s, { type: 'place-clef', clefType: 'c', id: 'safe' });
+  expect(s.history.present.neumes).toBe(d.neumes);
+  expect(s.history.past).toHaveLength(1);
+  expect(s.clefInsertionError).toBeNull();
+  expect(s.clefTransaction).toBeNull();
+});
+
+it.each(['melody', 'noteheads'] as const)(
+  'commits unaffected trailing and redundant insertion under %s',
+  (preserve) => {
+    for (const point of [
+      { x: 650, y: 52 },
+      { x: 180, y: 76 },
+    ]) {
+      const d = fixture();
+      let s = reduce(createEditorSession(d), {
+        type: 'clef-insertion-policy',
+        preserve,
+      });
+      s = reduce(s, arm());
+      s = reduce(s, { type: 'place-clef', clefType: 'c', id: 'C', point });
+      expect(s.clefTransaction).toBeNull();
+      expect(s.history.past).toHaveLength(1);
+      expect(s.history.present.neumes).toEqual(d.neumes);
+    }
+  },
+);
+
+it('keeps insertion options isolated from a pending existing-clef edit/removal', () => {
+  let s = createEditorSession(scene());
+  s = reduce(s, { type: 'start-clef-change', id: 'C1' });
+  expect(
+    reduce(s, { type: 'clef-insertion-policy', preserve: 'noteheads' }),
+  ).toBe(s);
+  expect(
+    reduce(s, {
+      type: 'place-clef',
+      clefType: 'c',
+      id: 'blocked',
+      point: { x: 180, y: 52 },
+    }),
+  ).toBe(s);
 });

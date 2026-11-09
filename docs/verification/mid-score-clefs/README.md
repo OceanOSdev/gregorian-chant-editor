@@ -5,7 +5,75 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
-## Owner-approved graphical UX correction (current)
+## Owner-approved one-click insertion mode (current)
+
+Insertion now uses a visible **Insertion behavior** radio group near the C/F
+palette. **Keep pitches (move existing notes)** is the session default;
+**Keep note positions (change pitches)** retains noteheads and reinterprets
+pitches. The mode persists across C/F tools and consecutive placements, outside
+the document/history. Pointer and keyboard placement apply it immediately as one
+undoable edit, with no insertion preservation dialog. Unsafe selected-policy
+arithmetic leaves music/history unchanged and displays an accessible nonmodal
+explanation; it never falls back. Existing-clef draft/Apply/Cancel and conditional
+edit/removal confirmation remain separate, under amended Accepted ADR 0015.
+
+The existing geometry, snapped ghost/caret, latest measured slot resolution,
+focus/reveal, dirty lyric draft, ID and history mechanisms are retained. Native
+double-click continuation and keyboard repeat cannot duplicate an insertion.
+No new semantic model, dependency, wrapping policy or speculative note preview
+was introduced. Previewing shifted existing notes is the plan's optional polish;
+the approved clef ghost remains visible.
+
+The full pure suite passes **60 files / 1,227 tests**. Added/updated placement
+coverage checks both policies with affected and unaffected notes, exact snapshots,
+keyboard pitch conservation, C/F option persistence, safe-arithmetic rejection,
+explicit retry, dirty drafts and blocking during an existing-clef transaction.
+
+The replacement browser driver passed Chromium and Firefox at 1440px/320px:
+C/F × all four lines × both modes, actual glyph/caret and exact inserted slot,
+one-click affected-note commits with no dialog, measured displacement under each
+policy, exact undo/redo, consecutive C/F mode persistence, mixed clef/division
+boundaries, score edges, wrapping, existing-clef transient edits/conditional
+confirmation and cancellation, focus return, dirty native lyric input, keyboard
+placement, remembered-neume I and containment. Both also passed overflow rejection
+with a nearby accessible status, no silent fallback, explicit mode switch/retry,
+and 150% CSS-zoom placement at desktop/narrow widths. Chromium passed full
+keyboard-only HTML activation. Firefox used pointer activation for two native
+HTML buttons, while native toolbar navigation, Tab and score keyboard insertion
+passed; the foreground default-activation gap remains a manual check.
+
+Additional focused checks passed in both browsers: native radio ArrowRight
+selects Keep note positions before an affected score-keyboard insertion, which
+commits immediately with unchanged noteheads; a DOM double-click continuation
+is inert. Chromium initial-clef, division, continuous-lyric, lyric-move,
+vowel-alignment, measured-spacing and word-composition regression drivers passed.
+Firefox division and word-composition regression drivers passed. Production
+Chromium smoke passed project-subpath assets, experimental notice, 1440px/320px
+containment, graphical insertion and refresh reset, with no observed runtime or
+asset-loading errors. Formatting, lint, all 1,227 tests, build and diff checks
+passed. Prior measured-corpus results below are historical; the corpus driver
+was not rerun for this session-only insertion-policy change.
+
+Fresh actual UI evidence (reviewed, not golden images):
+
+- [Keep pitches: control and ghost](mode-keep-pitches-ghost.png)
+- [Keep pitches: one-click inserted result](mode-keep-pitches-inserted.png)
+- [Keep note positions: control and ghost](mode-keep-positions-ghost.png)
+- [Keep note positions: one-click inserted result](mode-keep-positions-inserted.png)
+- [Existing-clef edit still asks conditionally](mode-existing-edit-choice.png)
+- [Firefox 320px ghost](mode-firefox-320-ghost.png)
+
+The earlier graphical and form-first results are historical; their insertion
+prompt descriptions do not describe current behavior.
+
+Smallest owner test: choose C or F → choose Keep pitches or Keep note positions
+→ hover → click once → switch C/F and repeat → Escape to Select → edit the
+selected clef (Apply/Cancel, conditional choice) → undo/redo. Foreground Firefox
+native HTML Enter/Space activation, actual browser/OS zoom, native select popups,
+spoken screen-reader output, IME, narrow-screen usability and final owner
+engraving acceptance remain manual checks.
+
+## Graphical UX correction at b607089 (historical; insertion prompt superseded)
 
 The C/F placement tools now live beside neumes in the main palette. A translucent
 approved glyph snaps to a measured semantic slot and one of four staff lines;

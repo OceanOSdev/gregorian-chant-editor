@@ -209,7 +209,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     : activeTool.kind === 'place-division'
       ? `${activeTool.divisionKind} division. Click a caret slot to insert. Escape selects the editing tool.`
       : activeTool.kind === 'place-clef'
-        ? `${activeTool.clefType.toUpperCase()} clef. Hover and click a score slot; height snaps to a staff line. For keyboard placement, Left/Right chooses a slot, Up/Down a line, Enter inserts. Escape returns to Select.`
+        ? `${activeTool.clefType.toUpperCase()} clef. ${session.clefInsertionPolicy === 'melody' ? 'Keep pitches (move existing notes)' : 'Keep note positions (change pitches)'}. Hover and click a score slot; height snaps to a staff line. For keyboard placement, Left/Right chooses a slot, Up/Down a line, Enter inserts. Escape returns to Select.`
         : '';
   // Some background Firefox sessions expose activeElement changes without
   // focus events. Reconcile presentation after our focus requests and keyup too.
@@ -578,6 +578,54 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </button>
         ))}
       </div>
+      {activeTool.kind === 'place-clef' ? (
+        <fieldset
+          className="clef-insertion-behavior"
+          disabled={Boolean(
+            session.clefTransaction ||
+            session.pendingHistory ||
+            session.lyricMove,
+          )}
+          aria-describedby="clef-insertion-description"
+        >
+          <legend>Insertion behavior</legend>
+          <label>
+            <input
+              type="radio"
+              name="clef-insertion-policy"
+              value="melody"
+              checked={session.clefInsertionPolicy === 'melody'}
+              onChange={() =>
+                dispatch({ type: 'clef-insertion-policy', preserve: 'melody' })
+              }
+            />
+            Keep pitches (move existing notes)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="clef-insertion-policy"
+              value="noteheads"
+              checked={session.clefInsertionPolicy === 'noteheads'}
+              onChange={() =>
+                dispatch({
+                  type: 'clef-insertion-policy',
+                  preserve: 'noteheads',
+                })
+              }
+            />
+            Keep note positions (change pitches)
+          </label>
+          <p id="clef-insertion-description">
+            Keep pitches shifts existing noteheads to preserve their pitches.
+            Keep note positions leaves noteheads in place and changes their
+            interpreted pitches. Each click inserts immediately.
+          </p>
+          {session.clefInsertionError ? (
+            <p role="status">{session.clefInsertionError}</p>
+          ) : null}
+        </fieldset>
+      ) : null}
       <p id="palette-instructions" className="editor-sr-only">
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its palette button.

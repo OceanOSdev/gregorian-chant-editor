@@ -625,17 +625,23 @@ changes the document, lyrics, wrapping or history. Both hover and click use
 `resolveGraphicalClefPlacement`; click resolves again against the latest document
 and displayed font snapshot in the reducer.
 
-Click inserts directly, without an insertion form or Apply step. A trailing,
-redundant or otherwise pitch-unaffected clef commits immediately as one ordinary
-undoable operation. Only changed effective pitches open **Preserve melody**
-(default focus) / **Preserve noteheads**. The document remains committed until
-that choice; invalid melody arithmetic leaves the prompt open while valid
-notehead preservation remains available. Competing tools, repeated clicks,
-semantic edits and history are blocked while confirmation is pending. The tool
-remains armed after commit or cancellation. Confirmation Escape cancels only
-the pending click; another Escape returns to Select and clears the preview.
+A compact **Insertion behavior** radio group appears near the C/F toolbar.
+**Keep pitches (move existing notes)** is selected at initialization: existing
+noteheads shift to retain their interpreted pitches. **Keep note positions
+(change pitches)** leaves noteheads in place and changes their interpreted
+pitches. This session-only option persists across placements and C/F tool
+switches; it is outside the document and history and may reset on refresh.
 
-For keyboard-only insertion, choose C/F in the palette, then Tab to **Place clef
+Click applies the selected behavior immediately as one undoable edit, even when
+existing notes are affected. No insertion confirmation or Apply step appears.
+Trailing/redundant clefs commit under either choice. Unsafe arithmetic rejects
+without music/history mutation or fallback; a nearby accessible status explains
+how to choose another mode and retry. The tool stays armed, successful placement
+clears hover and returns focus to the score. Double-click continuation events
+and repeated keyboard activation are ignored. Escape returns to Select.
+
+For keyboard-only insertion, choose C/F in the palette, choose the insertion
+behavior, then Tab to **Place clef
 with keyboard** and activate it (or focus the score and use an arrow). Left/Right
 visits explicit semantic boundaries; Home/End visits the score edges; Up/Down
 chooses lines 1–4; Enter/Space inserts with exactly the same pitch/history rules.
@@ -645,11 +651,13 @@ system copy. A stale keyboard target rejects rather than silently retargeting.
 Pointer motion takes over from keyboard placement; switching tools clears both
 preview sources. Keyboard cursor, hover and tools live only in session state.
 
-Clef arming retains a lyric draft without saving or discarding it. Placement and
-its cancellation preserve that draft, anchor and redo branch. Switching to a
+Clef arming retains a lyric draft without saving or discarding it. Hover, rejected
+placement and Escape preserve that draft, anchor and redo branch; successful
+insertion preserves the draft and starts a new history branch. Switching to a
 neume/division tool still follows their established commit-on-mode-change policy.
 Escape from an armed clef returns to Select before acting on a lyric draft.
-A document capture handler gives pending clef cancellation precedence even if
+A document capture handler gives pending existing-clef cancellation precedence
+even if
 focus leaves the pitch prompt for an editable lyric field.
 
 In Select, click or Enter/Space selects an authored clef by stable ID. A compact

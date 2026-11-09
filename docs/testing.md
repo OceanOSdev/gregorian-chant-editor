@@ -625,15 +625,17 @@ overflow, and scrolled oversized insertion with a negative viewBox origin.
 `graphical-clef-placement.test.ts` covers C/F × four-line snapping and half-line
 tolerance, out-of-band rejection, approved ghost geometry, every mixed slot,
 empty/division-only placement, latest measured resolution, stale tools/IDs and
-keyboard targets, direct redundant/trailing commits, conditional pitch policies,
+keyboard targets, direct redundant/trailing commits, preselected insertion policies,
 exact undo/redo, transaction serialization, dirty drafts, remembered-neume I,
 keyboard traversal and safe contextual draft overlays. Palette tests include
 C/F roving navigation; the prior semantic/layout regression suites remain gates.
 
 The mid-score-clef browser driver now targets the graphical workflow instead of
 the removed insertion form: real C/F hover, all four lines, exact slot/line commit,
-conditional policy, persistent tools, wrapping, adjacent division/clef sides,
+one-click selected policy, persistence across C/F, unsafe-policy rejection,
+wrapping, adjacent division/clef sides,
 contextual staged edits, native roving toolbar and keyboard-only insertion,
 Escape/dirty drafts, history and desktop/320px containment. Screenshots include
-ghost, inserted result, selected-clef draft and pitch confirmation. Historical
+visible insertion behavior, ghost, inserted result, selected-clef draft and
+existing-clef pitch confirmation. Historical
 form-driver results in the verification record do not describe the new UI.

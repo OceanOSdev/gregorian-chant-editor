@@ -131,7 +131,8 @@ remains automatically melody-preserving within its governing passage.
 Stage 6B includes automatically derived custos at mid-staff changes and
 staff endings, with effective-clef-aware guide pitches and measured wrapping.
 The graphical C/F tools with snapped ghosts and direct clicks, keyboard slot
-placement, contextual staged Apply/Cancel and pitch choice, scoped
+placement with a remembered preselected pitch policy and no insertion prompt,
+contextual staged Apply/Cancel and pitch choice for existing clefs, scoped
 initial edits, measured clefs/custodes and atomic history are implemented.
 See [verification](verification/mid-score-clefs/README.md); final owner engraving,
 foreground keyboard and accessibility acceptance remain pending. Graphical clef

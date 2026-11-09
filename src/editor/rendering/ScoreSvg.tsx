@@ -294,6 +294,7 @@ export function ScoreSvg({
 
     if (transactionBlocked) return;
     if (activeTool.kind === 'place-clef') {
+      if (event.detail > 1) return;
       onPlaceClef(localPoint);
       return;
     }

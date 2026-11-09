@@ -92,6 +92,8 @@ export interface ClefTransaction {
 }
 
 export interface EditorSession {
+  clefInsertionPolicy: 'melody' | 'noteheads';
+  clefInsertionError: string | null;
   keyboardClefPlacement: ClefPlacementCursor | null;
   clefTransaction: ClefTransaction | null;
   history: DocumentHistory;
@@ -154,6 +156,7 @@ export type ClefKeyboardCommand =
   'start' | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last';
 
 export type EditorAction =
+  | { type: 'clef-insertion-policy'; preserve: 'melody' | 'noteheads' }
   | { type: 'clef-keyboard'; command: ClefKeyboardCommand }
   | {
       type: 'place-clef';
@@ -226,6 +229,8 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    clefInsertionPolicy: 'melody',
+    clefInsertionError: null,
     keyboardClefPlacement: null,
     clefTransaction: null,
     history: createDocumentHistory(document),
@@ -303,6 +308,7 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'clef-insertion-policy':
     case 'place-clef':
     case 'clef-keyboard':
     case 'start-clef-change':
@@ -728,12 +734,31 @@ export function reduceEditorSession(
               transaction.clef,
             );
       if (candidate === transaction.original) return restore();
+      if (!hasValidClefCandidate(candidate) && transaction.placementTool) {
+        const message =
+          'Cannot insert clef: existing note positions are unsafe. Correct the score and retry.';
+        return announce({ ...restore(), clefInsertionError: message }, message);
+      }
       if (!hasValidClefCandidate(candidate))
         return announce(
           state,
           'Clef change rejected: unsafe note positions. Cancel or revise the draft.',
         );
-      if (hasChangedEffectivePitches(transaction.original, candidate)) {
+      if (transaction.placementTool) {
+        const selected =
+          state.clefInsertionPolicy === 'melody'
+            ? preserveClefMelody(transaction.original, candidate)
+            : candidate;
+        if (!selected || !hasValidClefCandidate(selected)) {
+          const message =
+            'Cannot insert with Keep pitches: note positions would overflow. Choose Keep note positions or a different clef and retry.';
+          return announce(
+            { ...restore(), clefInsertionError: message },
+            message,
+          );
+        }
+        candidate = selected;
+      } else if (hasChangedEffectivePitches(transaction.original, candidate)) {
         return { ...state, clefTransaction: { ...transaction, candidate } };
       }
     } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
@@ -771,6 +796,7 @@ export function reduceEditorSession(
       reconcile({
         ...state,
         clefTransaction: null,
+        clefInsertionError: null,
         history: applyDocumentEdit(state.history, () => candidate),
         keyboardClefPlacement:
           transaction.placementTool && state.keyboardClefPlacement
@@ -795,6 +821,19 @@ export function reduceEditorSession(
     action.type === 'cancel-clef-change'
   )
     return state;
+  if (action.type === 'clef-insertion-policy') {
+    if (
+      state.pendingHistory ||
+      state.lyricMove ||
+      (action.preserve !== 'melody' && action.preserve !== 'noteheads')
+    )
+      return state;
+    return {
+      ...state,
+      clefInsertionPolicy: action.preserve,
+      clefInsertionError: null,
+    };
+  }
   if (action.type === 'clef-keyboard') {
     if (
       state.activeTool.kind !== 'place-clef' ||
