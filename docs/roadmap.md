@@ -120,7 +120,7 @@ owner-accepted relative diatonic rule. The shared-C-body F engraving has also
 received owner acceptance. Extreme pitches retain the fixed
 vertical spacing and absent neume ledger-line limitations.
 
-Stage 6B implements [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
+Stage 6B is **completed and merged via [PR #60](https://github.com/OceanOSdev/gregorian-chant-editor/pull/60)**. It implements [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
 (owner-approved 2026-11-08), following the _Liber Usualis_ investigation.
 Explicit clef changes may be inserted at whole-neume semantic boundaries
 **without a preceding bar**. Independent clefs and divisions use derived
@@ -136,11 +136,12 @@ can extend the canvas vertically. This does not add neume ledger support or
 vertical system collision handling.
 The graphical C/F tools with snapped ghosts and direct clicks, keyboard slot
 placement with a remembered preselected pitch policy and no insertion prompt,
-contextual staged Apply/Cancel using the shared mode, scoped
+existing-clef Up/Down arrow editing with staged Apply/Cancel using the shared mode, scoped
 initial edits, measured clefs/custodes and atomic history are implemented.
-See [verification](verification/mid-score-clefs/README.md); final owner engraving,
-foreground keyboard and accessibility acceptance remain pending. Graphical clef
-insertion is implemented in Stage 6B under the owner-approved UX correction.
+See the [completed historical plan](plans/stage-6b-mid-score-clefs-and-custos.md)
+and [verification record](verification/mid-score-clefs/README.md). Remaining
+foreground keyboard, engraving and accessibility checks are recorded separately
+from milestone completion; merge does not imply comprehensive manual verification.
 Stage 6C may refine cosmetic polish and vertical editing, but **free horizontal clef movement is not
 planned**. There is no save/load format or migration, accidental support,
 playback, or general neume ledger-line support.
