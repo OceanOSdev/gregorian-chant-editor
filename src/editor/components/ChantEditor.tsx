@@ -1,3 +1,8 @@
+import { getMoraScope, moraChoices } from '../domain/mora';
+import {
+  updateMoraScope,
+  updateNoteModifiers,
+} from '../commands/update-note-modifiers';
 import { updateDocumentTitle } from '../commands/update-document-title';
 import { DocumentControls } from './DocumentControls';
 import { usePersistedSession } from '../persistence/use-persisted-session';
@@ -131,6 +136,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         : selectedSyllable
           ? findNeume(history.present, selectedSyllable.startsAtNeumeId)?.neume
           : null;
+  const selectedNoteLocation =
+    selection.kind === 'note'
+      ? findNote(history.present, selection.noteId)
+      : null;
+  const selectedNote = selectedNoteLocation?.note;
   const selectedDivision =
     selection.kind === 'division'
       ? history.present.divisions.find((d) => d.id === selection.divisionId)
@@ -896,8 +906,89 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         }}
         replaceCache={persistence.replaceCache}
+        recoverySource={persistence.recoverySource}
       />
       <ClefChangeControls session={session} dispatch={dispatch} />
+      <fieldset
+        className="note-modifiers"
+        aria-describedby="note-modifier-target"
+        disabled={
+          !selectedNote ||
+          placing ||
+          !!session.pendingHistory ||
+          !!session.lyricMove ||
+          !!session.clefTransaction
+        }
+      >
+        <legend>Selected note modifiers</legend>
+        <p id="note-modifier-target" className="note-modifiers__target">
+          {selectedNoteLocation
+            ? selectedNoteLocation.neume.kind +
+              ' mora scope; episema on note ' +
+              (selectedNoteLocation.noteIndex + 1)
+            : 'Select a note to edit'}
+        </p>
+        <div className="note-modifiers__controls">
+          <label>
+            Mora scope{' '}
+            <select
+              aria-label="Mora scope"
+              aria-describedby="note-modifier-target"
+              value={
+                selectedNoteLocation
+                  ? (getMoraScope(selectedNoteLocation.neume) ?? 'none')
+                  : 'none'
+              }
+              onChange={(event) => {
+                if (!selectedNoteLocation) return;
+                const choice = moraChoices(
+                  selectedNoteLocation.neume.kind,
+                ).find((c) => c.value === event.target.value);
+                if (choice)
+                  dispatch({
+                    type: 'engraving-edit',
+                    edit: (document) =>
+                      updateMoraScope(
+                        document,
+                        selectedNoteLocation.neume.id,
+                        choice.value,
+                      ),
+                  });
+              }}
+            >
+              {moraChoices(selectedNoteLocation?.neume.kind ?? 'punctum').map(
+                (choice) => (
+                  <option key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </option>
+                ),
+              )}
+            </select>
+          </label>{' '}
+          <label>
+            Horizontal episema{' '}
+            <select
+              aria-label="Horizontal episema"
+              value={selectedNote?.episema ? 'on' : 'off'}
+              onChange={(event) => {
+                if (!selectedNote) return;
+                const value = event.target.value === 'on';
+                dispatch({
+                  type: 'engraving-edit',
+                  edit: (document) =>
+                    updateNoteModifiers(document, selectedNote.id, {
+                      kind: 'episema',
+                      value,
+                    }),
+                });
+              }}
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
       {activeTool.kind === 'place-clef' ? (
         <div className="clef-placement-help">
           <span>{placementDescription}</span>{' '}

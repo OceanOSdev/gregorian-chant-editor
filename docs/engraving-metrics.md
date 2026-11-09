@@ -464,3 +464,39 @@ historical evidence. Visual fidelity is reviewed separately from bounds tests.
 The [Gregorio clef convention](https://gregorio-project.github.io/gabc/#the-clef)
 still supplies bottom-to-top line numbering; final owner visual acceptance
 remains separate from numeric verification.
+
+## Rhythmic signs (Stage 8A)
+
+[Gregorio rhythmic signs](https://gregorio-project.github.io/gabc/details.html#rhythmic-signs)
+and its [worked tutorial](https://gregorio-project.github.io/tutorial/tutorial-gabc-01.html)
+supply qualitative note ownership, dots beside heads and contextual episema
+placement. These are independently constructed project metrics, not GregorioTeX
+optical rules or a promise of identical output.
+
+Mora dots are circles of diameter 4. A space note uses its pitch row; a
+line note uses the space above, with contextual exceptions. Singles start
+5 units beyond the head cell; Porrectus singles trail the whole glyph by
+3 units. A lower Podatus single on a line uses the space below for a one-step
+ascent. Final Torculus and Climacus line singles use the space below, following
+Gregorio's qualitative placement. A Clivis first-note single stays near its
+upper head: heads and the left stem/connector partition the compound path's
+empty right-hand area instead of treating its entire bounding box as filled.
+This preserves the difference between first-only and second-only markings.
+
+A supported pair is resolved together in one trailing column, starting 3 units
+past the complete glyph. Sort its pitches: the lower line dot uses the space
+below when the pitches are adjacent; other line dots use the space above.
+Both dots retain their distinct affected-note modifier bounds. This follows
+Gregorio's auctum-duplex writer and TeX pair composition rather than rendering
+independent counts. Pair columns move together only for clearance from earlier
+signs. Candidate columns are occupied right edges plus 3 units, with 2-unit
+ink clearance. Single Punctum adds 9 units; ordinary Porrectus and pairs add
+7 units. All signs enter shared bounds, advance and wrapping.
+
+Horizontal episemata remain 12 × 2 rules centred on nominal note anchors.
+Try 16, 22, 28, 34, 40 units above/below, preferring above at equal distance;
+a conservative exterior fallback clears staff lines, occupied rectangles and
+earlier signs. Separate strokes avoid unsafe bridges. Approved head silhouettes,
+pitches and lyric anchors remain unchanged. Manual orientation and optical
+joining remain deferred. See the [current comparison](verification/note-modifiers/conventional/README.md)
+and [reference probes](verification/note-modifiers/rhythm-model/README.md).

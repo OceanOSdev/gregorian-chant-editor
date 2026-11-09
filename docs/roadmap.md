@@ -31,7 +31,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
-- Stage 7A provides one browser-local active document and native v1 JSON
+- Stage 7A provides one browser-local active document and native JSON (v2 writes, v1/v2 reads)
   interchange. See [persistence](persistence.md). Storage is best-effort; export
   files for backups. No document library or cloud synchronization is provided.
 - There is no GABC import/export or other interchange adapter.
@@ -144,5 +144,19 @@ and [verification record](verification/mid-score-clefs/README.md). Remaining
 foreground keyboard, engraving and accessibility checks are recorded separately
 from milestone completion; merge does not imply comprehensive manual verification.
 Stage 6C may refine cosmetic polish and vertical editing, but **free horizontal clef movement is not
-planned**. Native v1 save/load is implemented in Stage 7A. There is no accidental support,
+planned**. Native save/load was introduced in Stage 7A; Stage 8A writes v2 with v1 compatibility. There is no accidental support,
 playback, or general neume ledger-line support.
+
+## Rhythmic note modifiers (Stage 8A)
+
+Completed (owner-accepted 2026-11-09). Implementation and engraving were accepted
+in PR #64; merge remains an owner action.
+
+Stage 8A implements conventional mora (single-note and final-pair signs) plus
+automatic horizontal episema on all seven supported neumes, with atomic history,
+measured shared ink and native format v2. Exact v1 files and the existing v1
+browser autosave slot remain recoverable; new saves write v2. See
+[Accepted ADR 0018](adrs/0018-conventional-mora-patterns.md),
+[persistence](persistence.md) and [verification](verification/note-modifiers/README.md).
+Vertical episema/ictus, accidentals, manual orientation/spacing, authored bridges,
+across-neume joins, new neume kinds and playback remain deferred.

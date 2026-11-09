@@ -1,0 +1,17 @@
+name: Conventional mora comparisons;
+%%
+(c3)
+PodFirst(g.h)
+PodFinal(gh.)
+PodPair(gh..)
+PodWide(dh..) (z)
+ClivFirst(h.g)
+ClivFinal(hg.)
+ClivPair(hg..)
+ClivWide(hd..) (z)
+TorFinal(fhg.)
+TorPair(fhg..)
+TorWide(dhf..) (z)
+PorFinal(hgh.)
+PorPair(hgh..)
+PorWide(hdh..) (::)

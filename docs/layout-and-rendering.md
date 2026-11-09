@@ -587,3 +587,24 @@ Y origin, without moving staff/system coordinates or adding a vertical collision
 engine. Neume ledger lines remain absent. See the [Gregorio comparison and
 verification](verification/mid-score-clefs/custos-ledgers.md) for source, dimensions,
 actual examples and remaining silhouette differences.
+
+## Rhythmic sign geometry (Stage 8A)
+
+`buildNeumeGeometry` consumes note modifiers after constructing the approved
+unmodified glyph. `note-modifiers.ts` derives independent episemata and
+conventional single/paired mora signs without changing heads or lyric anchors.
+The collision search reserves episema ink before resolving mora columns.
+All signs participate in ink bounds, advances, wrapping and per-note focus/reveal
+bounds. Final-pair dots are resolved together, retaining each affected note's
+bounds; never infer a two-dot count on one note. Contextual line/space and
+Clivis first-single rules are specified in [engraving metrics](engraving-metrics.md).
+See [ADR 0018](adrs/0018-conventional-mora-patterns.md).
+
+Unmodified geometry remains unchanged. New-neume previews have unmarked notes
+and use the same builder; slot reservations consume complete committed sign
+bounds. Both rhythmic signs remain inert ink with stable note targets; neume
+outlines include all signs. Episemata remain separate when joining would be
+ambiguous, with no across-neume bridge. The canvas includes complete vertical
+ink, but fixed system/lyric spacing and absent neume ledger lines remain
+limitations: extreme pitches can still overlap lyrics or another system. No
+vertical collision engine is added.

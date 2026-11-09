@@ -1,11 +1,18 @@
 import type { ChantDocument } from '../domain/chant-document';
-import { decodeDocument, encodeDocument } from './native-document';
+import {
+  IncompatibleDraftDocumentError,
+  decodeDocument,
+  encodeDocument,
+} from './native-document';
 
+// Retain the original namespace: v1 bytes are read unchanged and upgraded to v2
+// only on the next successful save, under the same conflict/recovery guard.
 export const autosaveKey = 'gregorian-chant-editor:active-document:v1';
 export type DocumentStorage = Pick<Storage, 'getItem' | 'setItem'>;
 export class BrowserDocument {
   private expected: string | null = null;
   private blocked = false;
+  recoverySource: string | null = null;
   status = 'Not saved yet. Export a file for a portable backup.';
   needsRecovery = false;
   savedLocally = false;
@@ -19,6 +26,7 @@ export class BrowserDocument {
       this.expected = this.storage().getItem(autosaveKey);
       this.blocked = false;
       this.needsRecovery = false;
+      this.recoverySource = null;
       if (this.expected === null) {
         this.status = 'No cached score. Not saved yet.';
         return fallback;
@@ -30,13 +38,16 @@ export class BrowserDocument {
     } catch (error) {
       this.blocked = true;
       this.needsRecovery = true;
-      this.status = `Not saved: cached score is invalid or unavailable. ${errorMessage(error)} Export current work, then retry loading or explicitly replace the cache.`;
+      this.recoverySource = this.expected;
+      this.status = `Not saved: ${error instanceof IncompatibleDraftDocumentError ? 'cached draft-v2 score requires resolution' : 'cached score is invalid or unavailable'}. ${errorMessage(error)} Download the original cached source before any explicit replacement. Export current work separately.`;
       return fallback;
     }
   }
   check(): void {
     try {
-      if (this.storage().getItem(autosaveKey) !== this.expected) {
+      const actual = this.storage().getItem(autosaveKey);
+      if (actual !== this.expected) {
+        this.recoverySource ??= actual;
         this.savedLocally = false;
         this.blocked = true;
         this.needsRecovery = true;
@@ -57,6 +68,7 @@ export class BrowserDocument {
       this.blocked = false;
       this.needsRecovery = false;
       this.savedLocally = true;
+      this.recoverySource = null;
       this.status = 'Committed score saved in this browser.';
     } catch (error) {
       this.storageError(error);

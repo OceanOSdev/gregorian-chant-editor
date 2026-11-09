@@ -231,7 +231,7 @@ describe('native v1 codec', () => {
     for (const text of [
       '{',
       '{}',
-      envelope(blankDocument()).replace('"version":1', '"version":2'),
+      envelope(blankDocument()).replace('"version":1', '"version":3'),
       envelope(blankDocument()).replace('gregorian-chant-editor', 'foreign'),
       ' '.repeat(maximumDocumentBytes + 1),
       envelope({

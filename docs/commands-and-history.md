@@ -262,3 +262,14 @@ blur commits the final text through the existing semantic edit/history path as
 one undoable, redoable and autosaved change. Escape and unchanged text leave
 history and redo untouched. Document actions explicitly resolve an open title
 before acting. There is no additional semantic history authority.
+
+## Rhythmic modifier edits (Stage 8A)
+
+`updateMoraScope` targets a stable neume ID with the contextual choices from
+`moraChoices`. It changes both affected notes in one immutable snapshot and one
+undoable action. Missing, invalid, unsupported and unchanged requests retain
+exact document identity. `updateNoteModifiers` retains selected-note episema
+editing and validates any single-note mora edit against the same profile.
+Off removes optional fields; unrelated notes and the other modifier are shared.
+Movement and deletion retain marks on the same surviving note IDs; they never
+infer or retarget a pair. Pending workflows retain existing edit guards.

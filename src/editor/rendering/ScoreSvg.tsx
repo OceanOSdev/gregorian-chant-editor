@@ -1,3 +1,4 @@
+import { getNoteModifierDescription } from './note-accessible-label';
 import {
   custosLedgerThickness,
   custosLedgerSpacing,
@@ -726,10 +727,12 @@ export function ScoreSvg({
                     const isNoteSelected =
                       selection.kind === 'note' &&
                       selection.noteId === note.noteId;
-                    const accessibleLabel = getNoteAccessibleLabel(
-                      neume.kind,
-                      noteIndex,
-                    );
+                    const accessibleLabel =
+                      getNoteAccessibleLabel(neume.kind, noteIndex) +
+                      getNoteModifierDescription(
+                        note,
+                        neume.notes.filter((n) => n.mora).length === 2,
+                      );
 
                     return (
                       <g
@@ -802,6 +805,14 @@ export function ScoreSvg({
                             }
                           />
                         </g>
+                        {note.modifierBounds ? (
+                          <rect
+                            {...note.modifierBounds}
+                            fill="none"
+                            pointerEvents="none"
+                            aria-hidden="true"
+                          />
+                        ) : null}
                         {isNoteSelected ? (
                           <g pointerEvents="none" aria-hidden="true">
                             <InkShapeView

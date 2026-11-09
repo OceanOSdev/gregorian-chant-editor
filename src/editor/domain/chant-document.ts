@@ -40,7 +40,12 @@ export interface LyricSyllable {
   boundaryBefore: 'word' | 'continuation';
 }
 
-export interface ChantNote {
+export interface NoteModifiers {
+  mora?: 1;
+  episema?: true;
+}
+
+export interface ChantNote extends NoteModifiers {
   id: string;
   staffPosition: StaffPosition;
 }

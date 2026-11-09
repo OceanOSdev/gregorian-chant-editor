@@ -1,0 +1,344 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 2,
+  "document": {
+    "clefChanges": [],
+    "divisions": [],
+    "lyricLanguage": "la",
+    "title": "Conventional mora: singles and final pairs",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "syllables": [
+      {
+        "id": "s0",
+        "text": "PodFirst",
+        "startsAtNeumeId": "PodFirst",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s1",
+        "text": "PodFinal",
+        "startsAtNeumeId": "PodFinal",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s2",
+        "text": "PodPair",
+        "startsAtNeumeId": "PodPair",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s3",
+        "text": "PodWide",
+        "startsAtNeumeId": "PodWide",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s4",
+        "text": "ClivFirst",
+        "startsAtNeumeId": "ClivFirst",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s5",
+        "text": "ClivFinal",
+        "startsAtNeumeId": "ClivFinal",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s6",
+        "text": "ClivPair",
+        "startsAtNeumeId": "ClivPair",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s7",
+        "text": "ClivWide",
+        "startsAtNeumeId": "ClivWide",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s8",
+        "text": "TorFinal",
+        "startsAtNeumeId": "TorFinal",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s9",
+        "text": "TorPair",
+        "startsAtNeumeId": "TorPair",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s10",
+        "text": "TorWide",
+        "startsAtNeumeId": "TorWide",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s11",
+        "text": "PorFinal",
+        "startsAtNeumeId": "PorFinal",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s12",
+        "text": "PorPair",
+        "startsAtNeumeId": "PorPair",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s13",
+        "text": "PorWide",
+        "startsAtNeumeId": "PorWide",
+        "boundaryBefore": "word"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "PodFirst",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "PodFirst-0",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "PodFirst-1",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "PodFinal",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "PodFinal-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "PodFinal-1",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "PodPair",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "PodPair-0",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "PodPair-1",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "PodWide",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "PodWide-0",
+            "staffPosition": 1,
+            "mora": 1
+          },
+          {
+            "id": "PodWide-1",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "ClivFirst",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "ClivFirst-0",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "ClivFirst-1",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "ClivFinal",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "ClivFinal-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "ClivFinal-1",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "ClivPair",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "ClivPair-0",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "ClivPair-1",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "ClivWide",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "ClivWide-0",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "ClivWide-1",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "TorFinal",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "TorFinal-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "TorFinal-1",
+            "staffPosition": 5
+          },
+          {
+            "id": "TorFinal-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "TorPair",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "TorPair-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "TorPair-1",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "TorPair-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "TorWide",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "TorWide-0",
+            "staffPosition": 1
+          },
+          {
+            "id": "TorWide-1",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "TorWide-2",
+            "staffPosition": 3,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "PorFinal",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "PorFinal-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "PorFinal-1",
+            "staffPosition": 4
+          },
+          {
+            "id": "PorFinal-2",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "PorPair",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "PorPair-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "PorPair-1",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "PorPair-2",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "PorWide",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "PorWide-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "PorWide-1",
+            "staffPosition": 1,
+            "mora": 1
+          },
+          {
+            "id": "PorWide-2",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      }
+    ]
+  }
+}

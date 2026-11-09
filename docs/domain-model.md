@@ -98,6 +98,18 @@ TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
 ordering defensively.
 
+## Note rhythmic modifiers (Stage 8A)
+
+Each stable-ID note optionally owns `mora: 1` and `episema: true`; omission
+means off. Mora is presence, not a count or duration. Punctum allows none/sole;
+Podatus and Clivis none/first/second/both; Scandicus, Torculus, Climacus and
+Porrectus none/final/final two. The shared pure pattern validator governs
+commands and native decoding. A final pair marks two distinct note IDs and
+derives an auctum duplex; no second persisted sign object exists. Episema stays
+independent. Movement and normalization retain marks on surviving note IDs.
+See [ADR 0018](adrs/0018-conventional-mora-patterns.md) and
+[persistence](persistence.md) for protected recovery of incompatible draft v2.
+
 ## Lookup and identity
 
 `findNeume` resolves a neume ID and its current global semantic index.

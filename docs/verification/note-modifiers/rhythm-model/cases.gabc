@@ -1,0 +1,10 @@
+name: Rhythmic model evidence;
+%%
+(c3) Punctum(g.) Double(g..) (z)
+Podatus(fg.) Lower(f.g) Pair(f.g.) Duplex(fg..) (z)
+Clivis(hf.) Upper(h.f) Pair(h.f.) Duplex(hf..) (z)
+Scandicus(fgh.) Middle(fg.h) Pair(fg.h.) Duplex(fgh..) Early(f.gh) (z)
+Torculus(fhf.) Middle(fh.f) Pair(fh.f.) Duplex(fhf..) Early(f.hf) (z)
+Climacus(hvGF.) Middle(hvG.F) Pair(hvG.F.) Duplex(hvGF..) Early(hv.GF) (z)
+Porrectus(hfh.) Middle(hf.h) Pair(hf.h.) Duplex(hfh..) Early(h.fh) All(h.f.h.) (z)
+Adjacent(efg.) Middle(ef.g) Pair(ef.g.) Duplex(efg..) (::)

@@ -724,3 +724,19 @@ errors preserve the active session. Accepted replacement resets history,
 selection, tools and drafts. Export names the committed snapshot explicitly.
 Recovery and conflicting-cache operations also require explicit confirmation;
 see [persistence](persistence.md) for their authoritative workflow and limitations.
+
+## Selected note modifiers (Stage 8A)
+
+The compact **Selected note modifiers** group stays mounted above the score,
+including while no note is selected. Fixed control widths and a single-line
+target keep selection/deselection and switching neumes from moving the score.
+The target names the owning neume for mora and the selected note for episema.
+
+**Mora scope** choices are None/Sole note for Punctum; None/First note/Second
+note/Both notes for Podatus and Clivis; None/Final note/Final two notes for the
+four three-note kinds. Final two is one atomic undoable edit affecting two
+notes. No individual-note double option exists. **Horizontal episema** remains
+Off/On on the selected note, independent of mora scope. Native select keyboard
+behavior and focus are retained; pending workflow and placement guards apply.
+Selecting a note does not itself edit or save anything. Score note accessible
+labels describe mora presence, pair participation and horizontal episema.

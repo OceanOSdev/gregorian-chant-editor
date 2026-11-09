@@ -1,0 +1,324 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 2,
+  "document": {
+    "title": "Porrectus mora — current rendering",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "p-0-0",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-0-0-note-0",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "p-0-0-note-1",
+            "staffPosition": 2
+          },
+          {
+            "id": "p-0-0-note-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "p-0-1",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-0-1-note-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "p-0-1-note-1",
+            "staffPosition": 2,
+            "mora": 1
+          },
+          {
+            "id": "p-0-1-note-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "p-0-2",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-0-2-note-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "p-0-2-note-1",
+            "staffPosition": 2
+          },
+          {
+            "id": "p-0-2-note-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "p-0-3",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-0-3-note-0",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "p-0-3-note-1",
+            "staffPosition": 2,
+            "mora": 1
+          },
+          {
+            "id": "p-0-3-note-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "p-1-0",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-1-0-note-0",
+            "staffPosition": 3,
+            "mora": 1
+          },
+          {
+            "id": "p-1-0-note-1",
+            "staffPosition": 0
+          },
+          {
+            "id": "p-1-0-note-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "p-1-1",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-1-1-note-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "p-1-1-note-1",
+            "staffPosition": 0,
+            "mora": 1
+          },
+          {
+            "id": "p-1-1-note-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "p-1-2",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-1-2-note-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "p-1-2-note-1",
+            "staffPosition": 0
+          },
+          {
+            "id": "p-1-2-note-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "p-1-3",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-1-3-note-0",
+            "staffPosition": 3,
+            "mora": 1
+          },
+          {
+            "id": "p-1-3-note-1",
+            "staffPosition": 0,
+            "mora": 1
+          },
+          {
+            "id": "p-1-3-note-2",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "p-2-0",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-2-0-note-0",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "p-2-0-note-1",
+            "staffPosition": 4
+          },
+          {
+            "id": "p-2-0-note-2",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "p-2-1",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-2-1-note-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "p-2-1-note-1",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "p-2-1-note-2",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "p-2-2",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-2-2-note-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "p-2-2-note-1",
+            "staffPosition": 4
+          },
+          {
+            "id": "p-2-2-note-2",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "p-2-3",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "p-2-3-note-0",
+            "staffPosition": 5,
+            "mora": 1
+          },
+          {
+            "id": "p-2-3-note-1",
+            "staffPosition": 4,
+            "mora": 1
+          },
+          {
+            "id": "p-2-3-note-2",
+            "staffPosition": 5,
+            "mora": 1
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "s-p-0-0",
+        "text": "First",
+        "startsAtNeumeId": "p-0-0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-0-1",
+        "text": "Second",
+        "startsAtNeumeId": "p-0-1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-0-2",
+        "text": "Third",
+        "startsAtNeumeId": "p-0-2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-0-3",
+        "text": "All",
+        "startsAtNeumeId": "p-0-3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-1-0",
+        "text": "First",
+        "startsAtNeumeId": "p-1-0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-1-1",
+        "text": "Second",
+        "startsAtNeumeId": "p-1-1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-1-2",
+        "text": "Third",
+        "startsAtNeumeId": "p-1-2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-1-3",
+        "text": "All",
+        "startsAtNeumeId": "p-1-3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-2-0",
+        "text": "First",
+        "startsAtNeumeId": "p-2-0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-2-1",
+        "text": "Second",
+        "startsAtNeumeId": "p-2-1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-2-2",
+        "text": "Third",
+        "startsAtNeumeId": "p-2-2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-p-2-3",
+        "text": "All",
+        "startsAtNeumeId": "p-2-3",
+        "boundaryBefore": "word"
+      }
+    ],
+    "divisions": [],
+    "clefChanges": []
+  }
+}
