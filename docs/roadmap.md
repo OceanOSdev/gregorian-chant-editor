@@ -165,9 +165,9 @@ across-neume joins, new neume kinds and playback remain deferred.
 
 Planning is underway on `feat/stage-8b-note-shapes`. The
 [Stage 8B plan](plans/stage-8b-authored-note-shapes.md) and
-[Proposed ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
-outline standalone Virga and Punctum inclinatum, plus Quilisma within
-supported ascending figures. This is **not implemented or approved yet**;
-owner acceptance of the shape model and native v3 compatibility is required
-before implementation. Forced orientation, generic fusion and other new
-forms remain deferred.
+[Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
+outline one-click standalone Virga and Punctum inclinatum and preselected,
+one-click quilismatic Podatus/Scandicus, with contextual form editing. The
+architecture and native v3 compatibility were **owner-approved 2026-11-09**;
+implementation has not started. Forced orientation, generic fusion and other
+new forms remain deferred.
