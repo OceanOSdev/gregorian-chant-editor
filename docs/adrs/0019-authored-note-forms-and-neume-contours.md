@@ -66,21 +66,28 @@ Primary reference:
      Existing automatic virga and descending inclinata in Climacus remain
      derived with no newly persisted fields. This whitelist is a product
      boundary, not a claim that other historical figures cannot occur.
-4. A form edit applies to the selected stable note as one atomic semantic
+4. A quilismatic Podatus or Scandicus is directly authorable through a
+   **one-click placement tool**: choose the intended figure before the
+   click (e.g. a Quilisma tool with Podatus/Scandicus preselection), then
+   insert the complete pitched group with its intended authored form in
+   one atomic action. Do not require inserting an unmarked neume first,
+   nor show a per-click confirmation dialog. Existing eligible neumes may
+   also be converted contextually.
+5. A form edit applies to the selected stable note as one atomic semantic
    command. Valid conversions do not alter existing mora/episema state.
    Invalid form/contour combinations reject without changing history or
    autosave. If deleting or changing the pitch contour would invalidate a
    surviving explicit form, do not silently drop it, move it to another
    note, or reinterpret it; choose an explicit documented policy
    (reject such edits or require a separately confirmed user action).
-5. Continue using shared **measured derived geometry** for authored forms,
+6. Continue using shared **measured derived geometry** for authored forms,
    selection/hit contours, ghost previews, note modifier placement,
    advance, wrapping, staff/lyric clearance, and all systems. Reuse
    verified existing primitives where possible. A note's optional authored
    form is **not** a stored SVG path or pixel coordinate. Keep approved
    default forms and existing contours exactly stable unless an owner-reviewed
    reference demonstrates a necessary correction.
-6. Stage 8B adds **native version 3** for persisted explicit note forms.
+7. Stage 8B adds **native version 3** for persisted explicit note forms.
    Preserve exact version-1 and finalized version-2 readers, including
    ADR 0018's incompatible experimental draft-v2 protection. New saves and
    exports write v3. The same browser-local cache key and byte conflict
@@ -88,7 +95,7 @@ Primary reference:
    only upon a successful explicit committed document save. Reject unknown
    future versions and invalid/unknown form values. Do not mutate saved
    note IDs, modifier scope or pitches in migration.
-7. A visual note form is not a claim about measured duration or a playback
+8. A visual note form is not a claim about measured duration or a playback
    instruction. Stage 8B introduces no audio, rhythm arithmetic, automatic
    inflection, or generalized symbolic glyph framework.
 
