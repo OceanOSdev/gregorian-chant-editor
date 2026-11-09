@@ -10,8 +10,8 @@ No implementation has been authorized on this branch.
 
 Expand the vocabulary of **authored square-notation note shapes** without
 turning every decorated note into a new melodic neume kind. A user should be
-able to insert or select a standalone Virga or Punctum inclinatum, and author
-a Quilisma in an appropriate ascending figure, while retaining correct
+able to insert or select a standalone Virga or Punctum inclinatum, and **place
+a quilismatic ascending figure with one click**, while retaining correct
 selection, rhythmic modifiers, lyrics, document persistence and engraver
 geometry.
 
@@ -98,6 +98,16 @@ Subject to ADR 0019 owner approval:
   Existing placement, ghosts, keyboard shortcuts, selection/focus, and
   song-pitch snapping rules remain valid. At 320px, don't force the toolbar
   to overflow horizontally.
+- Offer **one-click insertion of a Quilisma figure** as well. A user
+  preselects Quilismatic Podatus or Quilismatic Scandicus through a compact
+  figure chooser associated with the Quilisma tool, then clicks the staff
+  once to insert the complete ascending figure with the correct note-form
+  field already attached. No per-placement popup, preliminary ordinary-neume
+  insertion, or follow-up modifier step. Reuse existing snapped multi-note
+  placement defaults and permit subsequent pitch editing. Keep this
+  preselection available before any click and remember it during placement.
+  Prefer one Quilisma tool plus a small figure selector to two additional
+  permanent toolbar buttons; ensure mobile/narrow layouts remain usable.
 - Offer a **selected-note Form** control for valid shape changes in existing
   one-note and ascending multi-note contexts. In a Scandicus, selecting its
   middle note exposes Quilisma versus default; in Podatus selecting the lower
@@ -168,9 +178,12 @@ Subject to ADR 0019 owner approval:
 1. Insert isolated square Punctum, Virga and Punctum inclinatum by pointer
    and keyboard; distinguish all three graphically at line, space and
    boundary pitches. Switch forms through selected-note controls. No
-   unexpected new note or syllable, no hit-target ambiguity.
-2. Place a Podatus and Scandicus with valid ascending pitches; author
-   the **first** Podatus note and **middle** Scandicus note as Quilisma.
+   unexpected new note or syllable, no hit-target ambiguity. Test Quilisma tool preselection before a
+   graphical click, ghost fidelity, and no per-click popup.
+2. Insert a quilismatic Podatus and quilismatic Scandicus **directly in
+   one click each**, choosing the figure beforehand; then place ordinary
+   versions of both and convert the **first** Podatus note and **middle**
+   Scandicus note to Quilisma using contextual controls.
    Verify correct connection, individual pitch identity, selected-note
    feedback and reference-like contour for close/wide intervals.
    Check at least one quilismatic ascending case where the followed note
