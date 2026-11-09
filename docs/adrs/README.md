@@ -109,7 +109,7 @@ records the owner-approved Stage 7A native JSON interchange and browser-local
 recovery contract (accepted 2026-11-08). Only committed semantic documents
 are persisted; editor transient state and history remain outside the format.
 
-[Proposed ADR 0017: Model rhythmic modifiers on individual chant notes](0017-model-rhythmic-modifiers-on-notes.md)
-proposes Stage 8A note-level puncta morae and horizontal episemata, including
-safe native v1-to-v2 compatibility. Owner approval is required before
-implementation; ADR 0016 remains Accepted.
+[Accepted ADR 0017: Model rhythmic modifiers on individual chant notes](0017-model-rhythmic-modifiers-on-notes.md)
+records the owner-approved Stage 8A note-level puncta morae and horizontal
+episemata (accepted 2026-11-09), including safe native v1-to-v2
+compatibility. ADR 0016 remains Accepted.
