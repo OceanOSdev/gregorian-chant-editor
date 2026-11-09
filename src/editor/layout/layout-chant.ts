@@ -8,7 +8,7 @@ import {
 import { clefOffset } from '../domain/clef';
 import {
   buildCustosGeometry,
-  custosWidth,
+  measureCustosWidth,
   custosGap,
   type CustosGeometry,
 } from './custos-geometry';
@@ -146,11 +146,12 @@ export interface ScoreSlotLayout {
   x: number;
 }
 
-/** Derived, score-absolute geometry with height determined by system count. */
+/** Derived, score-absolute geometry; canvas includes exceptional guide ink. */
 export interface ChantLayout {
   title: string;
   /** Derived canvas origin; logical system coordinates remain unchanged. */
   x: number;
+  y: number;
   width: number;
   height: number;
   systems: readonly ChantSystemLayout[];
@@ -246,7 +247,7 @@ function placeNeumeSequence(
     clefOffset(noteClefs[index]) -
     clefOffset(effectiveClef);
   const outgoingWidth = (index: number) =>
-    noteClefs[index] ? custosGap + custosWidth : 0;
+    noteClefs[index] ? custosGap + measureCustosWidth(guidePosition(index)) : 0;
   let divisions: DivisionLayout[] = [];
   let lastBoundaryEventRight: number | null = null;
   let startNeumeIndex = 0;
@@ -260,7 +261,7 @@ function placeNeumeSequence(
         (g) => g.nextNeumeIndex === nextIndex,
       );
       for (const guide of removedGuides) {
-        const shift = custosWidth + custosGap;
+        const shift = guide.bounds.width + custosGap;
         clefChanges = clefChanges.map((c) =>
           c.bounds.x > guide.bounds.x
             ? {
@@ -336,7 +337,9 @@ function placeNeumeSequence(
         !anticipated &&
         !!noteClefs[nextIndex] &&
         clefOffset(effectiveClef) !== clefOffset(noteClefs[nextIndex]);
-      let guideWidth = needsGuide() ? custosGap + custosWidth : 0;
+      let guideWidth = needsGuide()
+        ? custosGap + measureCustosWidth(guidePosition(nextIndex))
+        : 0;
       const width = eventWidth(item);
       const oversizedLyric =
         (previousLyricRight ?? -Infinity) > usableRightBoundary;
@@ -955,6 +958,11 @@ export function layoutChant(
 
   // Normal systems still wrap at staffEndX, irrespective of this canvas.
   const edges = ready ? systems.flatMap((system) => system.lyrics) : [];
+  let canvasTop = 0;
+  let canvasBottom =
+    firstSystemBottomY +
+    (systems.length - 1) * systemVerticalAdvance +
+    svgBottomPadding;
   let canvasLeft = 0;
   let canvasRight = scoreWidth;
   for (const lyric of edges) {
@@ -962,6 +970,13 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
+    for (const guide of system.custodes) {
+      canvasTop = Math.min(canvasTop, guide.bounds.y - 12);
+      canvasBottom = Math.max(
+        canvasBottom,
+        guide.bounds.y + guide.bounds.height + 12,
+      );
+    }
     for (const c of [...system.clefChanges, ...system.custodes])
       canvasRight = Math.max(canvasRight, c.bounds.x + c.bounds.width + 12);
     if (system.staffLines[0].x2 > staffEndX)
@@ -975,11 +990,9 @@ export function layoutChant(
   return {
     title: document.title,
     x: canvasLeft,
+    y: canvasTop,
     width: canvasRight - canvasLeft,
-    height:
-      firstSystemBottomY +
-      (systems.length - 1) * systemVerticalAdvance +
-      svgBottomPadding,
+    height: canvasBottom - canvasTop,
     systems,
   };
 }

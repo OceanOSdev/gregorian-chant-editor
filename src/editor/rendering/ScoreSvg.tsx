@@ -1,3 +1,7 @@
+import {
+  custosLedgerThickness,
+  custosLedgerSpacing,
+} from '../layout/custos-geometry';
 import type { ClefPlacementPreview } from '../interaction/resolve-graphical-clef-placement';
 import type { ClefGeometry } from '../layout/clef-geometry';
 import type { ClefKeyboardCommand } from '../state/editor-session';
@@ -9,6 +13,7 @@ import type { DivisionLayout } from '../layout/division-geometry';
 import { lyricFontFamily, lyricFontSize } from '../layout/lyric-text-metrics';
 import { getSyllableKeyAction } from '../interaction/lyric-entry-keyboard';
 import {
+  useId,
   useLayoutEffect,
   useRef,
   type KeyboardEvent,
@@ -131,6 +136,7 @@ export function ScoreSvg({
   onAdvanceLyric,
   onDeleteSyllable,
 }: ScoreSvgProps) {
+  const ledgerId = useId();
   const clefPreviewElement = useRef<SVGGElement>(null);
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
@@ -398,7 +404,7 @@ export function ScoreSvg({
           : undefined
       }
       className={`score${placementActive ? ' score--placing' : ''}`}
-      viewBox={`${layout.x} 0 ${layout.width} ${layout.height}`}
+      viewBox={`${layout.x} ${layout.y} ${layout.width} ${layout.height}`}
       style={
         layout.width > 720
           ? { width: layout.width, maxWidth: 'none' }
@@ -483,15 +489,49 @@ export function ScoreSvg({
             />
           ) : null}
           {system.custodes.map((guide, i) => (
-            <path
-              key={i}
-              className="score__custos"
-              d={guide.path}
-              data-custos-position={guide.staffPosition}
-              data-outgoing={guide.outgoing}
-              aria-hidden="true"
-              pointerEvents="none"
-            />
+            <g key={i} aria-hidden="true" pointerEvents="none">
+              {guide.ledgerLines ? (
+                <>
+                  <defs>
+                    {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
+                    <pattern
+                      id={`${ledgerId}-${system.index}-${i}`}
+                      patternUnits="userSpaceOnUse"
+                      viewBox={`0 0 ${guide.ledgerLines.x2 - guide.ledgerLines.x1} ${custosLedgerSpacing}`}
+                      x={guide.ledgerLines.x1}
+                      y={guide.ledgerLines.topY - custosLedgerThickness / 2}
+                      width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
+                      height={custosLedgerSpacing}
+                    >
+                      <rect
+                        width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
+                        height={custosLedgerThickness}
+                        fill="currentColor"
+                      />
+                    </pattern>
+                  </defs>
+                  <rect
+                    className="score__custos-ledgers"
+                    data-ledger-count={guide.ledgerLines.count}
+                    x={guide.ledgerLines.x1}
+                    y={guide.ledgerLines.topY - custosLedgerThickness / 2}
+                    width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
+                    height={
+                      guide.ledgerLines.bottomY -
+                      guide.ledgerLines.topY +
+                      custosLedgerThickness
+                    }
+                    fill={`url(#${ledgerId}-${system.index}-${i})`}
+                  />
+                </>
+              ) : null}
+              <path
+                className="score__custos"
+                d={guide.path}
+                data-custos-position={guide.staffPosition}
+                data-outgoing={guide.outgoing}
+              />
+            </g>
           ))}
 
           {[

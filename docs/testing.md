@@ -652,3 +652,14 @@ no-dialog Apply, both policies' measured displacement, later-clef scope,
 undo/redo, no-op/cancellation, overflow/retry and unchanged deletion confirmation
 in Chromium/Firefox at desktop/320px. Earlier edit-confirmation screenshots are
 historical; current evidence is in the Stage 6B verification record.
+
+### Custos ledger engraving
+
+`custos-geometry.test.ts` covers staff/adjacent-space omissions, exact one/multiple
+ledger positions above/below, glyph alignment, complete bounds and translation,
+compact extreme-pitch geometry, unchanged guide formulas and whole-neume order,
+oversized staff/canvas and reachable caret clearance. The mid-score-clef browser
+driver renders representative positions and the approximate GABC reference in
+the real editor at desktop/320px, checks SVG ink against derived geometry and
+canvas bounds, and retains screenshots. The [focused record](verification/mid-score-clefs/custos-ledgers.md)
+separates actual Gregorio output, editor evidence, and remaining owner review.

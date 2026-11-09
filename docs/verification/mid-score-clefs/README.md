@@ -5,6 +5,13 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
+## Custos ledger engraving follow-up
+
+See the [focused Gregorio comparison and verification](custos-ledgers.md) for the
+custos-only ledger rules, measured bounds/clearance, actual reference rendering,
+editor screenshots and remaining visual differences. The guide pitch formula,
+semantic model and clef workflows below remain unchanged.
+
 ## Owner-approved shared pitch mode (current)
 
 The existing `clefInsertionPolicy` is now the single **Pitch handling** option

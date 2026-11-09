@@ -876,6 +876,119 @@ try {
     );
     await ev(`(()=>{document.querySelector('main').style.zoom='';})()`);
   }
+  // Custos-only derived ledgers: no guide pitch changes or semantic entities.
+  for (const width of [1440, 320]) {
+    await viewport(width);
+    for (const position of [
+      -8, -5, -4, -3, -2, -1, 0, 3, 6, 7, 8, 9, 10, 11, 14,
+    ]) {
+      const d = fixture(2);
+      d.neumes[1].notes[0].staffPosition = position + 2;
+      d.clefChanges = [
+        {
+          id: 'C',
+          clef: { type: 'c', staffLine: 4 },
+          beforeNeumeId: 'n1',
+          beforeDivisionId: null,
+        },
+      ];
+      await mount(d);
+      const expected = (await layoutFor(d)).systems[0].custodes[0];
+      assert.equal(expected.staffPosition, position);
+      const actual = await ev(
+        `(()=>{const g=document.querySelector('.score__custos'),r=g.parentElement.querySelector('.score__custos-ledgers');const b=g.getBBox();return {position:Number(g.dataset.custosPosition),path:g.getAttribute('d'),ink:{x:b.x,y:b.y,width:b.width,height:b.height},ledger:r?{x:Number(r.getAttribute('x')),y:Number(r.getAttribute('y')),width:Number(r.getAttribute('width')),height:Number(r.getAttribute('height')),count:Number(r.dataset.ledgerCount)}:null}})()`,
+      );
+      assert.equal(actual.position, position);
+      assert.equal(actual.path, expected.path);
+      assert.ok(actual.ink.x >= expected.bounds.x - 0.001);
+      assert.ok(actual.ink.y >= expected.bounds.y - 0.001);
+      assert.ok(
+        actual.ink.x + actual.ink.width <=
+          expected.bounds.x + expected.bounds.width + 0.001,
+      );
+      assert.ok(
+        actual.ink.y + actual.ink.height <=
+          expected.bounds.y + expected.bounds.height + 0.001,
+      );
+      if (expected.ledgerLines) {
+        assert.equal(actual.ledger.count, expected.ledgerLines.count);
+        assert.equal(actual.ledger.x, expected.bounds.x);
+        assert.equal(actual.ledger.width, expected.bounds.width);
+        assert.equal(actual.ledger.y, expected.ledgerLines.topY - 0.75);
+        assert.equal(
+          actual.ledger.height,
+          expected.ledgerLines.bottomY - expected.ledgerLines.topY + 1.5,
+        );
+        assert.equal(
+          await ev(
+            `document.querySelector('.score__custos-ledgers').closest('[aria-hidden]').getAttribute('pointer-events')`,
+          ),
+          'none',
+        );
+      } else assert.equal(actual.ledger, null);
+      const l = await layoutFor(d);
+      assert.ok(l.y <= expected.bounds.y);
+      assert.ok(l.y + l.height >= expected.bounds.y + expected.bounds.height);
+      if ([7, 8, 10, -1, -2, -4].includes(position))
+        await shot(`${width}-custos-${position}`);
+    }
+    const excerpt = fixture(8);
+    excerpt.title = 'Approximate clef-change excerpt (visual reference)';
+    excerpt.neumes.forEach(
+      (n, i) => (n.notes[0].staffPosition = [3, 2, 4, 2, 5, 2, 3, 1][i]),
+    );
+    excerpt.neumes[1] = {
+      id: 'n1',
+      kind: 'torculus',
+      notes: [
+        { id: 'note1', staffPosition: 2 },
+        { id: 'note1b', staffPosition: 4 },
+        { id: 'note1c', staffPosition: 3 },
+      ],
+    };
+    excerpt.clefChanges = [
+      {
+        id: 'C4',
+        clef: { type: 'c', staffLine: 4 },
+        beforeNeumeId: 'n1',
+        beforeDivisionId: null,
+      },
+      {
+        id: 'C3',
+        clef: { type: 'c', staffLine: 3 },
+        beforeNeumeId: 'n4',
+        beforeDivisionId: null,
+      },
+      {
+        id: 'F2',
+        clef: { type: 'f', staffLine: 2 },
+        beforeNeumeId: 'n6',
+        beforeDivisionId: null,
+      },
+    ];
+    excerpt.syllables = [
+      { id: 'al', text: 'Al', startsAtNeumeId: 'n0', boundaryBefore: 'word' },
+    ];
+    await mount(excerpt);
+    assert.deepEqual(
+      await ev(
+        `[...document.querySelectorAll('.score__custos[data-outgoing="false"]')].map(g=>Number(g.dataset.custosPosition))`,
+      ),
+      [0, 7, 8],
+    );
+    assert.equal(
+      await ev(`document.querySelectorAll('.score__custos-ledgers').length`),
+      1,
+    );
+    await shot(`${width}-custos-excerpt`);
+    assert.equal(
+      await ev(`document.documentElement.scrollWidth<=innerWidth`),
+      true,
+    );
+  }
+  console.log(
+    'PASS: custos no-ledger/one/multiple ledgers above/below, actual SVG bounds, canvas containment and unchanged approximate-excerpt guide pitches 0/7/8 in desktop/320px.',
+  );
   console.log(
     `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, shared-mode staged Apply without popup and separate deletion confirmation, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
   );

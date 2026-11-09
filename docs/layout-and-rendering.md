@@ -28,7 +28,7 @@ Even an empty document produces one empty system.
 
 `layoutChant` converts `ChantDocument` to `ChantLayout`:
 
-- score `title`, derived canvas `x`, `width`, and `height`;
+- score `title`, derived canvas `x`, `y`, `width`, and `height`;
 - ordered `systems`;
 - each system's index, bounds, staff lines, opening clef, authored clefs, divisions,
   custodes, insertion slots, neumes, lyrics, and
@@ -49,7 +49,8 @@ This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
 Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
-Height grows with system count. Stage 4B's combined music-and-lyric layout
+Height grows with system count and exceptional guide ink; a negative canvas Y
+origin can include high custodes without moving systems. Stage 4B's combined music-and-lyric layout
 follows [accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
 which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
@@ -502,7 +503,7 @@ from the larger clef right extent. The ordinary leading ink gap is 38.6 units
 for C and 36.2 for F. Reclaiming the previous oversized gap changes available
 system capacity; normal inter-neume minima and lyric composition rules are unchanged.
 Melody-preserving edits change note heights before layout.
-The existing fixed vertical system bounds and absent ledger lines still limit
+The existing fixed vertical system spacing and absent neume ledger lines still limit
 extreme pitches; this stage adds no vertical collision or pagination engine.
 
 ## Measured clef events and custodes (Stage 6B)
@@ -567,3 +568,22 @@ they would overlap other committed music/guide ink or leave the staff. They do
 not alter canonical layout, hit identities, interpreted pitches or derived
 custodes until Apply. Both placement and edit overlays are aria-hidden and
 pointer-inert. Approved C/F contours and measured wrapping are unchanged.
+
+## Ledger lines for custodes
+
+Custodes alone have derived ledger runs: the four staff lines are at positions
+0/2/4/6; adjacent outside spaces -1/7 need none; more distant guides acquire
+short rules at -2/-4/… or 8/10/… through their last required line. Rules share
+the guide's horizontal allocation and staff lattice without moving its pitch.
+They are rendered behind the unchanged glyph, pointer-inert and nonsemantic.
+The compact regular run avoids enumerating an unbounded number of ledger nodes.
+
+Guide bounds and measured reservation include rule thickness and overhang.
+Outgoing reservation and reclaimed mid-staff guide spacing use the actual width;
+ledger-free guides retain their previous reservation. Existing staff extension,
+lyric/hyphen/caret clearance and horizontal canvas logic consume those bounds.
+The canvas also includes guide ink above/below its normal extent using a derived
+Y origin, without moving staff/system coordinates or adding a vertical collision
+engine. Neume ledger lines remain absent. See the [Gregorio comparison and
+verification](verification/mid-score-clefs/custos-ledgers.md) for source, dimensions,
+actual examples and remaining silhouette differences.
