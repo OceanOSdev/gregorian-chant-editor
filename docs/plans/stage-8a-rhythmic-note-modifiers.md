@@ -3,7 +3,7 @@
 Branch: `feat/stage-8a-note-modifiers`
 Target: `master`
 
-Status: Planned; proposed ADR 0017 requires owner approval before implementation.
+Status: Planned; ADR 0017 accepted by the owner on 2026-11-09. Implementation may proceed.
 
 ## Problem and user-visible goal
 
@@ -19,7 +19,7 @@ Consult `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`,
 `docs/layout-and-rendering.md`, `docs/engraving-metrics.md`,
 `docs/editor-interactions.md`, `docs/persistence.md`, `docs/testing.md`,
 Accepted ADRs 0002, 0003, 0004, 0007, 0010/0011, 0016 and
-[proposed ADR 0017](../adrs/0017-model-rhythmic-modifiers-on-notes.md).
+[Accepted ADR 0017](../adrs/0017-model-rhythmic-modifiers-on-notes.md).
 
 Notation sources for qualitative reference:
 - [Gregorio advanced GABC notation](https://gregorio-project.github.io/gabc/details.html)
@@ -153,11 +153,10 @@ event IDs, cloud storage, or unrelated UX/refactor work.
 
 ## Architectural gate, ambiguities and stop conditions
 
-**ADR 0017 is Proposed, not Accepted.** Before Codex implements the
-note-level semantic fields or native format v2, obtain explicit owner
-approval and update the ADR status in the same branch. The owner selected
-"straightforward note modifiers" as the Stage 8A direction; choosing
-this milestone is **not** implicit acceptance of all architectural details.
+**ADR 0017 is Accepted (owner-approved 2026-11-09).** The architectural
+approval gate is cleared. Implement the note-level semantic fields and
+native format v2 within this contract. Significant new design conflicts or
+scope changes still require the normal owner review.
 
 If inspection of actual reference notation shows that 1/2 mora counts
 cannot faithfully be modeled per note, that connected horizontal episemata
@@ -167,8 +166,8 @@ than quietly expanding scope or weakening persisted-format validation.
 
 ## Delivery
 
-Following `docs/ai-workflow.md`, implement on this branch only after the
-ADR gate is settled. Run applicable tests and independent visual review,
+Following `docs/ai-workflow.md`, implement on this branch. Run applicable
+tests and independent visual review,
 commit and open a PR against `master`. Do not merge. Explain architectural
 deviations, verification, documented limitations and remaining manual checks.
 Close out the one-off plan appropriately during PR review.
