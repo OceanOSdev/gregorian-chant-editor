@@ -79,6 +79,7 @@ export function usePersistedSession(initialDocument: ChantDocument) {
     reload,
     replaceCache,
     status: persistence.status,
+    savedLocally: persistence.savedLocally,
     needsRecovery: persistence.needsRecovery,
   };
 }

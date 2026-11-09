@@ -6,10 +6,7 @@ function App() {
   return (
     <>
       <header>
-        <p className="preview-notice">
-          Experimental preview — committed edits save in this browser. Export
-          files for backups.
-        </p>
+        <p className="preview-notice">Experimental preview.</p>
       </header>
       <ChantEditor document={exampleDocument} />
     </>

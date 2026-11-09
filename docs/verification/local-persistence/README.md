@@ -107,7 +107,10 @@ localStorage platform limitation. Extreme semantic pitches retain existing
 engraving limits; persistence never changes them. No GABC, cloud, library,
 playback or history persistence was introduced.
 
-## PR #63 review follow-up
+## Initial title review follow-up (historical UI)
+
+The compact-header refinement below supersedes this section’s immediate-on-input
+title interaction; its original verification results are retained for context.
 
 The Document section now includes a labeled Title field. Each input change
 commits through the existing semantic history/autosave path, with no separate
@@ -144,3 +147,58 @@ Add to foreground acceptance: name a new chant using native typing/paste/IME,
 use Undo/Redo, refresh, and export/import an actual downloaded file. Check that
 its filename follows the chosen title, including the blank-title fallback.
 Foreground and hosted Pages checks remain unrun as described above.
+
+## Compact document header refinement
+
+The fieldset and separate title display are replaced by one compact header above
+the score. Its editable heading is the sole visible title; New / Import / Export
+are compact secondary actions on the right, wrapping at narrow widths. Normal
+save/recovery feedback is just “Saved locally.” Storage errors, conflicts and
+pending/unsaved edits retain visible guidance and recovery buttons. The permanent
+storage disclaimer is now in **About local saving**, a native disclosure. Short
+file-success announcements remain available to assistive technology without
+permanent visual paragraphs. No dependencies or engraving changes were added.
+
+Title activation opens a focused local draft. Enter or blur commits one semantic
+history/autosave change; Escape discards it without altering history, redo or
+cache. Enter/Escape return focus to the heading. Document actions explicitly
+commit the title before acting, and Export uses the newly committed title even
+when browser focus events are delayed or absent. The shared semantic command,
+codec, recovery policy and confirmation dialogs remain in use.
+
+Verification: formatting, lint without warnings, all 64 files / 1,307 unit tests,
+production build and diff checks pass. Adapter tests additionally assert the
+explicit saved-state flag for initial, recovered, failed and conflicting storage.
+The expanded Chromium/CDP and Firefox/BiDi production drivers pass all prior
+Stage 7A scenarios and check:
+
+- Click-to-edit, native Enter/Escape, focus return, composition-Enter rejection,
+  no autosave while typing, one history entry per accepted title, canceled title
+  drafts preserving redo, and unchanged titles creating no entry.
+- Native blur commit in Chromium; explicit blur-handler invocation in Firefox.
+  This headless Firefox environment changes activeElement without emitting
+  focusout, even on input.blur(). Its driver injects focusout for that assertion;
+  **foreground Firefox native blur remains manual**. Native Firefox title keys
+  and pointer actions still run, and Export commits safely without relying on blur.
+- Click Export with an active title draft; the actual exported Blob contains the
+  accepted title. Refresh, undo/redo, file round trips and blank-title filenames
+  retain their existing behavior.
+- One visible heading, no Document fieldset, short normal saved feedback, and
+  actual pointer activation of the collapsed local-saving disclosure.
+- Containment at 1440px and 320px for normal, title-editing, conflicting-cache,
+  corrupt-cache, expanded-help, long-title and unbroken-title states.
+
+The implementation agent inspected the retained screenshots linked below.
+Foreground keyboard/IME/zoom, spoken screen-reader behavior, actual file dialogs
+and deployed Pages validation remain owner checks. In particular, verify native
+Firefox blur by editing the heading then tabbing or clicking outside it; also
+check that Escape keeps the old title and that one Undo restores an accepted
+multi-character edit.
+
+Fresh compact-header diagnostics: Chromium
+`/tmp/chant-local-persistence-CRPiX0`; Firefox
+`/tmp/chant-local-persistence-2G99cS`.
+Retained screenshots: [desktop Chromium](compact-header-chromium.png),
+[320px Firefox](compact-header-firefox-320.png),
+[320px title draft](compact-header-title-draft-chromium-320.png), and
+[320px actionable conflict](compact-header-conflict-firefox-320.png).

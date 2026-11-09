@@ -22,7 +22,9 @@ describe('browser recovery', () => {
     const adapter = new BrowserDocument(() => memory);
     const doc = adapter.load(blankDocument());
     expect(memory.getItem()).toBeNull();
+    expect(adapter.savedLocally).toBe(false);
     adapter.save(doc);
+    expect(adapter.savedLocally).toBe(true);
     expect(
       createEditorSession(
         new BrowserDocument(() => memory).load(blankDocument()),
@@ -36,9 +38,11 @@ describe('browser recovery', () => {
     adapter.save(doc);
     expect(memory.getItem()).toBe('{broken');
     expect(adapter.needsRecovery).toBe(true);
+    expect(adapter.savedLocally).toBe(false);
     adapter.save(doc, true);
     expect(memory.getItem()).toBe(encodeDocument(doc));
     expect(adapter.needsRecovery).toBe(false);
+    expect(adapter.savedLocally).toBe(true);
   });
   it('detects other tabs even before an event and requires an explicit choice', () => {
     const memory = storage();
@@ -51,8 +55,10 @@ describe('browser recovery', () => {
     b.save(blankDocument());
     expect(memory.getItem()).toBe(encodeDocument(other));
     expect(b.status).toContain('another tab');
+    expect(b.savedLocally).toBe(false);
     expect(b.load(blankDocument())).toEqual(other);
     expect(b.needsRecovery).toBe(false);
+    expect(b.savedLocally).toBe(true);
     b.save(blankDocument());
     expect(memory.getItem()).toBe(encodeDocument(blankDocument()));
   });
@@ -76,6 +82,7 @@ describe('browser recovery', () => {
       expect(doc).toEqual(blankDocument());
       expect(adapter.status).toContain('Not saved');
       expect(adapter.needsRecovery).toBe(true);
+      expect(adapter.savedLocally).toBe(false);
     }
   });
   it('saves exact committed undo and redo snapshots', () => {

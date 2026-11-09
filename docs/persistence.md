@@ -74,14 +74,37 @@ truly simultaneous writes remain a platform limitation.
 
 ## Document controls
 
-**Title** is a labeled text field bound directly to the committed semantic title.
-Each input change creates one ordinary history entry and synchronously attempts
-autosave; unchanged values create no history entry. There is no separate title
-draft or Apply step. Undo/Redo restores title changes along with the rest of the
-semantic document. The heading, recovered score, native export content and
-sanitized export filename all use that same title. Empty titles are allowed and
-export as `untitled.chant.json`. The field follows the same pending-workflow
-and file-reading guards as the other Document controls.
+The compact document header sits directly above the score. The title is the
+single visible heading, with secondary New / Import / Export actions aligned
+right; narrow viewports wrap these into another row.
+
+Activate the title by pointer or native button keyboard activation to edit it.
+The heading becomes a focused text input with an accessible name and keyboard
+instructions. Typing updates only a component-local draft. Enter or blur commits
+one semantic title edit and synchronously attempts autosave; Escape cancels
+without changing history, redo or cached bytes. Enter/Escape restore focus to
+the heading button; blur follows the user's next focus target. Composition
+Enter does not commit. Unchanged text creates no history entry. Document actions
+also explicitly commit an open title before acting, so Export includes its
+current text even if the browser did not deliver blur first. A canceled New or
+Import does not undo a title already accepted by leaving the title editor.
+
+Undo/Redo restores committed titles along with the rest of the document. Native
+files and title-derived filenames use the committed title. Empty titles display
+“Untitled chant” as an editing affordance and export as `untitled.chant.json`.
+The title follows the same pending-workflow and file-reading guards as the
+other Document controls. Refresh recovers the last committed title, not an
+unfinished title draft.
+
+Normal saved/recovered state is summarized as “✓ Saved locally.” The storage
+adapter exposes this as an explicit saved-state flag rather than having the UI
+parse status prose. Dirty title drafts, pending editor workflows and unsaved
+states remain visible. Storage errors and conflicts retain detailed messages and
+explicit recovery/retry actions. File errors remain in an alert; successful
+file operations announce short confirmations to assistive technology without
+adding permanent visual paragraphs. The storage limitations and backup advice
+are available through the native keyboard-accessible **About local saving**
+disclosure instead of a permanent disclaimer.
 
 **New** confirms replacing work and creates a blank Latin chant with C clef on
 line 3 and title “Untitled chant.” **Import** reads and validates the selected
@@ -98,8 +121,7 @@ An exported file is a portable snapshot, not an OS-linked file or cloud backup.
 Dirty/recovery lyric drafts, clef transactions, lyric moves and pending history
 prompts disable all document and cache-replacement operations. The adjacent
 status explains how to proceed: finish or explicitly cancel the existing workflow
-first. No draft is implicitly committed or discarded. Saved status always names
-the **committed** score and separately explains pending unsaved edits. A clean
+first. No draft is implicitly committed or discarded. Saved feedback distinguishes the **committed** score from pending unsaved edits. A clean
 lyric context or armed placement tool can be replaced; the new session resets it.
 
 Storage is origin/profile-specific, may be cleared, restricted or exhausted,

@@ -53,7 +53,12 @@ architecture.
    without misleadingly promising cloud backups. PR #63 review follow-up adds a
    simple editable title through semantic history/autosave, including refresh,
    undo/redo and native-file preservation. The same review tightens native staff
-   position validation to JavaScript safe integers.
+   position validation to JavaScript safe integers. The subsequent focused UI
+   refinement replaces the fieldset with a compact header above the score:
+   title activation edits a local draft, Enter/blur commits once, Escape cancels;
+   compact secondary actions sit right, normal save feedback is brief, and the
+   storage explanation is in an accessible disclosure. Error/recovery safety
+   remains visible and unchanged.
 
 ## Versioned interchange/validation contract
 

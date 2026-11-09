@@ -114,7 +114,7 @@ const storageKey = 'gregorian-chant-editor:active-document:v1';
 const raw = () => ev(`localStorage.getItem('${storageKey}')`);
 const status = () =>
   ev(
-    `document.querySelector('section[aria-label="Document"] [role="status"]').textContent`,
+    `document.querySelector('section[aria-label="Document"] .document-header__save-status').textContent`,
   );
 const button = async (text) => {
   const point = await ev(
@@ -153,10 +153,81 @@ const captureExports = () =>
   ev(
     `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){window.exportName=this.download;}`,
   );
-async function setTitle(title) {
-  return ev(
-    `(()=>{const e=document.querySelector('${titleInput}');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(title)});e.dispatchEvent(new Event('input',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}')).document.title;})()`,
+async function checkResponsiveHeader(name) {
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await pause();
+    await ev(
+      `document.querySelector('.document-header').scrollIntoView({block:'center'})`,
+    );
+    await pause();
+    assert.equal(
+      await ev(`document.documentElement.scrollWidth<=innerWidth`),
+      true,
+      `${name} at ${width}px`,
+    );
+    const { data } = await send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(
+      join(output, `${name}-${firefox ? 'firefox' : 'chromium'}-${width}.png`),
+      Buffer.from(data, 'base64'),
+    );
+  }
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 1100,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+}
+const displayedTitle = () =>
+  ev(
+    `document.querySelector('.document-header__title-button').firstChild.textContent`,
   );
+async function startTitle() {
+  const point = await ev(
+    `(()=>{const b=document.querySelector('.document-header__title-button');b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+  );
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+}
+async function titleKey(key) {
+  if (firefox)
+    await rawSend('input.performActions', {
+      context,
+      actions: [
+        {
+          type: 'key',
+          id: 'title-key',
+          actions: [
+            { type: 'keyDown', value: key === 'Enter' ? '\uE007' : '\uE00C' },
+            { type: 'keyUp', value: key === 'Enter' ? '\uE007' : '\uE00C' },
+          ],
+        },
+      ],
+    });
+  else
+    for (const type of ['keyDown', 'keyUp'])
+      await rawSend('Input.dispatchKeyEvent', { type, key, code: key });
+  await pause();
+}
+async function setTitle(title) {
+  if (!(await ev(`!!document.querySelector('${titleInput}')`)))
+    await startTitle();
+  await ev(
+    `(()=>{const e=document.querySelector('${titleInput}');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(title)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await pause();
 }
 const fixture = {
   format: 'gregorian-chant-editor',
@@ -210,6 +281,7 @@ try {
     await rawSend('session.new', { capabilities: {} });
     ownsSession = true;
     context = (await rawSend('browsingContext.getTree')).contexts[0].context;
+    await rawSend('browsingContext.activate', { context });
   }
   await navigate();
   await ev(`localStorage.clear()`);
@@ -225,7 +297,7 @@ try {
   );
   assert.equal(immediate, 'el');
   await navigate();
-  assert.match(await status(), /Recovered/);
+  assert.match(await status(), /Saved locally/);
   await ev(`window.confirm=()=>false`);
   const before = await raw();
   await button('New');
@@ -250,26 +322,69 @@ try {
   assert.equal(await ev('window.exportName'), 'Salve-Regina.chant.json');
   await button('New');
   assert.equal(JSON.parse(await raw()).document.neumes.length, 0);
-  // A new score can be named immediately; every title change uses semantic history/autosave.
+  // Title is a local draft until Enter/blur. Escape preserves both history and cache.
   const named = 'Sálve / Regina';
+  const blankRaw = await raw();
+  await setTitle('Sál');
+  await setTitle(named);
+  assert.equal(await raw(), blankRaw);
+  assert.match(await status(), /Title not saved/);
+  await checkResponsiveHeader('title-draft');
   assert.equal(
-    await setTitle(named),
-    named,
-    'title saves in the input event task',
+    await ev(
+      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+    ),
+    true,
   );
-  await pause();
-  assert.equal(await ev(`document.querySelector('h1').textContent`), named);
+  await titleKey('Escape');
+  assert.equal(await raw(), blankRaw);
+  assert.equal(
+    await ev(
+      `document.activeElement===document.querySelector('.document-header__title-button')`,
+    ),
+    true,
+  );
+  await setTitle('Sál');
+  await setTitle(named);
+  await ev(
+    `document.querySelector('${titleInput}').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true}))`,
+  );
+  assert.equal(await ev(`!!document.querySelector('${titleInput}')`), true);
+  assert.equal(await raw(), blankRaw);
+  await titleKey('Enter');
+  assert.equal(JSON.parse(await raw()).document.title, named);
+  assert.equal(await displayedTitle(), named);
+  assert.equal(
+    await ev(
+      `document.activeElement===document.querySelector('.document-header__title-button')`,
+    ),
+    true,
+  );
   await button('Undo');
   assert.equal(JSON.parse(await raw()).document.title, 'Untitled chant');
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+    ),
+    true,
+    'one title session is one history entry, even after input blur',
+  );
+  await setTitle('Canceled title');
+  await titleKey('Escape');
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Redo last undone edit"]').disabled`,
+    ),
+    false,
+  );
   await button('Redo');
   assert.equal(JSON.parse(await raw()).document.title, named);
   await navigate();
-  assert.equal(
-    await ev(`document.querySelector('${titleInput}').value`),
-    named,
-  );
+  assert.equal(await displayedTitle(), named);
+  assert.equal(await ev(`document.querySelectorAll('h1').length`), 1);
+  await startTitle();
   await ev(
-    `(()=>{const e=document.querySelector('${titleInput}');e.focus();e.setSelectionRange(e.value.length,e.value.length)})()`,
+    `(()=>{const e=document.querySelector('${titleInput}');e.setSelectionRange(e.value.length,e.value.length)})()`,
   );
   if (firefox)
     await rawSend('input.performActions', {
@@ -287,16 +402,46 @@ try {
     });
   else await rawSend('Input.insertText', { text: '!' });
   await pause();
-  assert.equal(JSON.parse(await raw()).document.title, named + '!');
   assert.equal(
-    await ev(
-      `document.activeElement === document.querySelector('${titleInput}')`,
-    ),
-    true,
+    JSON.parse(await raw()).document.title,
+    named,
+    'typing remains uncommitted',
+  );
+  await titleKey('Escape');
+  assert.equal(await displayedTitle(), named);
+  // This Firefox headless environment changes activeElement without focusout.
+  // Exercise the React blur path explicitly there; foreground native blur remains manual.
+  await setTitle('Blur title');
+  await ev(
+    `(()=>{const e=document.querySelector('${titleInput}');e.blur();${firefox ? "e.dispatchEvent(new FocusEvent('focusout',{bubbles:true}));" : ''}})()`,
+  );
+  await pause();
+  assert.equal(
+    JSON.parse(await raw()).document.title,
+    'Blur title',
+    'leaving the title commits',
   );
   await button('Undo');
   assert.equal(JSON.parse(await raw()).document.title, named);
+  // Leaving unchanged text must not clear a redo branch or add history.
+  await startTitle();
+  await titleKey('Enter');
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Redo last undone edit"]').disabled`,
+    ),
+    false,
+  );
   await captureExports();
+  await setTitle(named + '!');
+  await button('Export');
+  assert.equal(
+    JSON.parse(await ev(`window.exported.text()`)).document.title,
+    named + '!',
+    'blur commits before Export reads the score',
+  );
+  await button('Undo');
+  assert.equal(JSON.parse(await raw()).document.title, named);
   await button('Export');
   const namedExport = await ev(`window.exported.text()`);
   assert.equal(JSON.parse(namedExport).document.title, named);
@@ -304,13 +449,11 @@ try {
   await ev(`window.confirm=()=>true`);
   await button('New');
   await importText(namedExport);
-  assert.equal(
-    await ev(`document.querySelector('${titleInput}').value`),
-    named,
-  );
+  assert.equal(await displayedTitle(), named);
   assert.equal(JSON.parse(await raw()).document.neumes.length, 0);
-  assert.equal(await setTitle(''), '');
-  await pause();
+  await setTitle('');
+  await titleKey('Enter');
+  assert.equal(JSON.parse(await raw()).document.title, '');
   await button('Export');
   assert.equal(await ev('window.exportName'), 'untitled.chant.json');
 
@@ -391,7 +534,7 @@ try {
   await pause();
   assert.equal(
     await ev(
-      `document.querySelector('section[aria-label="Document"] fieldset').disabled`,
+      `[...document.querySelectorAll('.document-header__actions button,.document-header__title-button')].every(b=>b.disabled)`,
     ),
     true,
   );
@@ -406,7 +549,7 @@ try {
   await button('Edit clef change');
   assert.equal(
     await ev(
-      `document.querySelector('section[aria-label="Document"] fieldset').disabled`,
+      `[...document.querySelectorAll('.document-header__actions button,.document-header__title-button')].every(b=>b.disabled)`,
     ),
     true,
   );
@@ -414,7 +557,7 @@ try {
   await button('Cancel clef change');
   assert.equal(
     await ev(
-      `document.querySelector('section[aria-label="Document"] fieldset').disabled`,
+      `[...document.querySelectorAll('.document-header__actions button,.document-header__title-button')].every(b=>b.disabled)`,
     ),
     false,
   );
@@ -465,6 +608,7 @@ try {
   await pause();
   await pause();
   assert.match(await status(), /another tab/);
+  await checkResponsiveHeader('conflict');
   await ev(
     `(()=>{const e=document.querySelector('[aria-label="Lyric language"]');e.value='und';e.dispatchEvent(new Event('change',{bubbles:true}));})()`,
   );
@@ -472,14 +616,12 @@ try {
   assert.equal(await raw(), otherText);
   await ev(`window.confirm=()=>true`);
   await button('Load cached score');
-  assert.equal(
-    await ev(`document.querySelector('h1').textContent`),
-    'Other tab',
-  );
+  assert.equal(await displayedTitle(), 'Other tab');
   // Corrupt cache survives initial render and subsequent edits until explicit recovery.
   await ev(`localStorage.setItem('${storageKey}','{damaged')`);
   await navigate();
   assert.match(await status(), /invalid or unavailable/);
+  await checkResponsiveHeader('corrupt-cache');
   await ev(
     `(()=>{const e=document.querySelector('[aria-label="Lyric language"]');e.value='el';e.dispatchEvent(new Event('change',{bubbles:true}));})()`,
   );
@@ -504,6 +646,30 @@ try {
   await ev(`Storage.prototype.setItem=window.originalSet`);
   await button('Replace cache with this score / Retry save');
   assert.equal(JSON.parse(await raw()).document.lyricLanguage, 'en');
+  assert.equal(
+    await ev(`document.querySelector('.document-header__help').open`),
+    false,
+  );
+  const helpPoint = await ev(
+    `(()=>{const e=document.querySelector('.document-header__help summary');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+  );
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...helpPoint,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+  assert.equal(
+    await ev(`document.querySelector('.document-header__help').open`),
+    true,
+  );
+  await ev(`document.querySelector('.document-header__help').open=false`);
+  assert.equal(
+    await ev(`!!document.querySelector('.document-header fieldset')`),
+    false,
+  );
   for (const width of [1440, 320]) {
     await send('Emulation.setDeviceMetricsOverride', {
       width,
@@ -516,11 +682,40 @@ try {
       await ev(`document.documentElement.scrollWidth<=innerWidth`),
       true,
     );
+    await ev(
+      `document.querySelector('.document-header').scrollIntoView({block:'center'})`,
+    );
+    await pause();
     const { data } = await send('Page.captureScreenshot', { format: 'png' });
     await writeFile(
       join(output, `${firefox ? 'firefox' : 'chromium'}-${width}.png`),
       Buffer.from(data, 'base64'),
     );
+  }
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await setTitle('Long chant title '.repeat(25) + 'L'.repeat(180));
+    assert.equal(
+      await ev(`document.documentElement.scrollWidth<=innerWidth`),
+      true,
+    );
+    await titleKey('Enter');
+    assert.equal(
+      await ev(`document.documentElement.scrollWidth<=innerWidth`),
+      true,
+    );
+    await ev(`document.querySelector('.document-header__help').open=true`);
+    await pause();
+    assert.equal(
+      await ev(`document.documentElement.scrollWidth<=innerWidth`),
+      true,
+    );
+    await ev(`document.querySelector('.document-header__help').open=false`);
   }
   assert.equal(
     await ev(

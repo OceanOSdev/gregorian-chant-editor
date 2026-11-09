@@ -467,7 +467,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           setFocusedLyricId(null);
       }}
     >
-      <h1>{layout.title}</h1>
       <label>
         Lyric language{' '}
         <select
@@ -878,6 +877,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             edit: (document) => updateDocumentTitle(document, title),
           })
         }
+        savedLocally={persistence.savedLocally}
         status={persistence.status}
         needsRecovery={persistence.needsRecovery}
         replace={(document) => {

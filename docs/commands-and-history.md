@@ -257,6 +257,8 @@ the shared codec, recovery and conflict policy under Accepted ADR 0016.
 
 `updateDocumentTitle` changes only the semantic title, structurally sharing the
 rest of the score and returning the original document for unchanged text.
-The Document title field uses the existing semantic edit/history path; each
-input change commits immediately and is undoable, redoable and autosaved.
-There is no additional title draft or history authority.
+The editable document heading keeps its text draft outside history. Enter or
+blur commits the final text through the existing semantic edit/history path as
+one undoable, redoable and autosaved change. Escape and unchanged text leave
+history and redo untouched. Document actions explicitly resolve an open title
+before acting. There is no additional semantic history authority.

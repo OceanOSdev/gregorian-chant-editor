@@ -8,11 +8,13 @@ export class BrowserDocument {
   private blocked = false;
   status = 'Not saved yet. Export a file for a portable backup.';
   needsRecovery = false;
+  savedLocally = false;
   private readonly storage: () => DocumentStorage;
   constructor(storage: () => DocumentStorage) {
     this.storage = storage;
   }
   load(fallback: ChantDocument): ChantDocument {
+    this.savedLocally = false;
     try {
       this.expected = this.storage().getItem(autosaveKey);
       this.blocked = false;
@@ -22,6 +24,7 @@ export class BrowserDocument {
         return fallback;
       }
       const document = decodeDocument(this.expected);
+      this.savedLocally = true;
       this.status = 'Recovered committed score from this browser.';
       return document;
     } catch (error) {
@@ -34,6 +37,7 @@ export class BrowserDocument {
   check(): void {
     try {
       if (this.storage().getItem(autosaveKey) !== this.expected) {
+        this.savedLocally = false;
         this.blocked = true;
         this.needsRecovery = true;
         this.status =
@@ -52,12 +56,14 @@ export class BrowserDocument {
       this.expected = text;
       this.blocked = false;
       this.needsRecovery = false;
+      this.savedLocally = true;
       this.status = 'Committed score saved in this browser.';
     } catch (error) {
       this.storageError(error);
     }
   }
   private storageError(error: unknown) {
+    this.savedLocally = false;
     this.blocked = true;
     this.needsRecovery = true;
     this.status = `Not saved: ${errorMessage(error)}. In-memory edits remain available; export a file or retry saving.`;

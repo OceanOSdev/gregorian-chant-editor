@@ -705,11 +705,18 @@ clef has horizontal dragging or slot movement.
 
 ## Document controls (Stage 7A)
 
-A labeled Title field, New / Import / Export and the autosave status appear in
-the Document section. Title changes commit immediately through semantic history
-and autosave; no Apply step or separate draft is needed. Each input change is
-one undoable edit. Empty titles use the fallback export filename described in
-the persistence guide.
+A compact header above the score presents the chant title as its single visible
+heading, with New / Import / Export as secondary actions on the right. It wraps
+at narrow widths. Activate the title to edit; Enter or blur commits one semantic
+history/autosave change, Escape cancels. Enter/Escape return focus to the heading
+button, while blur keeps the user's next focus target. IME composition Enter
+never commits. A title draft is not saved until accepted, and its status says so.
+Document actions also commit a pending title before acting. Empty titles use a
+visible “Untitled chant” affordance and the fallback export filename.
+
+Normal feedback reads “Saved locally”; errors, conflicts and unsaved states
+remain visible and actionable. **About local saving** expands the permanent
+storage/backup explanation through a native accessible disclosure.
 Dirty/recovery lyric drafts, pending history prompts, lyric moves and staged
 clef transactions disable these controls with an explanation. Finish or cancel
 the existing edit first. New/import confirm replacement; cancellation and file
