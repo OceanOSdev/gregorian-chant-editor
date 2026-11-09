@@ -118,8 +118,8 @@ compatibility. ADR 0016 remains Accepted.
 supersedes ADR 0017 with single-note presence, supported scopes, derived paired
 signs and protected recovery of the withdrawn draft-v2 format.
 
-[Proposed ADR 0019: Represent authored note shapes separately from semantic neume contours](0019-authored-note-forms-and-neume-contours.md)
-proposes Stage 8B authorable Virga, Punctum inclinatum and Quilisma forms
-on stable notes, with a limited context whitelist and version-3 native-file
-migration. Owner approval is required before implementation. ADRs 0004, 0007,
-0016 and 0018 remain Accepted.
+[Accepted ADR 0019: Represent authored note shapes separately from semantic neume contours](0019-authored-note-forms-and-neume-contours.md)
+records the owner-approved Stage 8B authorable Virga, Punctum inclinatum
+and Quilisma forms on stable notes, including preselected one-click insertion,
+a limited context whitelist and version-3 native-file migration (accepted
+2026-11-09). ADRs 0004, 0007, 0016 and 0018 remain Accepted.
