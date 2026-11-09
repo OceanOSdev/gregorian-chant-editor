@@ -53,16 +53,20 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown, version: 1 | 2 | 3): ChantNote {
+function note(value: unknown, version: 1 | 2 | 3 | 4): ChantNote {
   const n = shape(
     value,
     ['id', 'staffPosition'],
-    version === 3
-      ? ['mora', 'episema', 'form']
-      : version === 2
-        ? ['mora', 'episema']
-        : [],
+    version === 4
+      ? ['mora', 'episema', 'form', 'verticalEpisema']
+      : version === 3
+        ? ['mora', 'episema', 'form']
+        : version === 2
+          ? ['mora', 'episema']
+          : [],
   );
+  if (Object.hasOwn(n, 'verticalEpisema') && n.verticalEpisema !== true)
+    fail('Vertical episema must be true or omitted.');
   if (Object.hasOwn(n, 'form') && !isNoteForm(n.form))
     fail('Unknown note form.');
   if (Object.hasOwn(n, 'mora') && n.mora !== 1)
@@ -80,9 +84,10 @@ function note(value: unknown, version: 1 | 2 | 3): ChantNote {
     staffPosition: staffPosition(n.staffPosition),
     ...(n.mora === 1 ? { mora: n.mora } : {}),
     ...(n.episema === true ? { episema: true } : {}),
+    ...(n.verticalEpisema === true ? { verticalEpisema: true } : {}),
   };
 }
-function neume(value: unknown, version: 1 | 2 | 3): Neume {
+function neume(value: unknown, version: 1 | 2 | 3 | 4): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
@@ -138,7 +143,7 @@ function syllable(value: unknown): LyricSyllable {
 }
 export function validateDocument(
   value: unknown,
-  version: 1 | 2 | 3 = 3,
+  version: 1 | 2 | 3 | 4 = 4,
 ): ChantDocument {
   const d = shape(value, [
     'title',
@@ -247,15 +252,18 @@ export function decodeDocument(text: string): ChantDocument {
   if (
     envelope.version !== 1 &&
     envelope.version !== 2 &&
-    envelope.version !== 3
+    envelope.version !== 3 &&
+    envelope.version !== 4
   )
-    fail('Unsupported schema version. This editor reads versions 1, 2 and 3.');
+    fail(
+      'Unsupported schema version. This editor reads versions 1, 2, 3 and 4.',
+    );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 3, document: validateDocument(document) },
+    { format, version: 4, document: validateDocument(document) },
     null,
     2,
   );

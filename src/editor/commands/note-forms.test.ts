@@ -272,7 +272,7 @@ describe('atomic direct insertion and matching ghost', () => {
 
 describe('exact versioned readers and guarded upgrade', () => {
   it.each([v1Source, v2Source])(
-    'loads actual old source unchanged, then saves v3 in the same key',
+    'loads actual old source unchanged, then saves v4 in the same key',
     (source) => {
       const originalKey = 'gregorian-chant-editor:active-document:v1';
       expect(autosaveKey).toBe(originalKey);
@@ -296,7 +296,7 @@ describe('exact versioned readers and guarded upgrade', () => {
       expect(edit).not.toBe(doc);
       expect(edit.neumes[0].notes[0].form).toBe(form);
       adapter.save(edit);
-      expect(JSON.parse(bytes).version).toBe(3);
+      expect(JSON.parse(bytes).version).toBe(4);
       expect(decodeDocument(bytes)).toEqual(edit);
       expect(doc.neumes.flatMap((n) => n.notes).some((n) => 'form' in n)).toBe(
         false,
@@ -328,7 +328,7 @@ describe('exact versioned readers and guarded upgrade', () => {
     const payload = JSON.parse(
       encodeDocument(updateNoteForm(document(), 'pes0', 'quilisma')),
     );
-    for (const version of [1, 2, 4])
+    for (const version of [1, 2, 5])
       expect(() =>
         decodeDocument(JSON.stringify({ ...payload, version })),
       ).toThrow();

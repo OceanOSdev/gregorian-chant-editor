@@ -187,7 +187,8 @@ async function change(label, value) {
     `(()=>{const e=document.querySelector('select[aria-label="${label}"]');e.focus();e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}'));})()`,
   );
 }
-const newUrl = url + '?build=v3';
+const currentVersion = Number(process.env.CHANT_CURRENT_VERSION ?? 3);
+const newUrl = url + '?build=v' + currentVersion;
 const oldUrl = url + '?build=v2';
 const fixture = {
   format: 'gregorian-chant-editor',
@@ -319,17 +320,17 @@ try {
   await go(oldUrl);
   assert.equal(await raw(), oldBytes);
   await go(newUrl);
-  assert.equal(await raw(), oldBytes, 'v3 hydration does not rewrite v2');
+  assert.equal(await raw(), oldBytes, 'current hydration does not rewrite v2');
   await select('note');
   const v3 = await change('Form', 'virga');
-  assert.equal(v3.version, 3);
+  assert.equal(v3.version, currentVersion);
   assert.equal(v3.document.neumes[0].notes[0].mora, 1);
   const newBytes = await raw();
   await go(newUrl);
   assert.equal(await raw(), newBytes);
   assert.match(await status(), /Saved locally/);
   report.checks.push(
-    'Actual v2 save -> unchanged v3 hydration -> committed v3 form -> immediate refresh, preserving mora/IDs',
+    'Actual v2 save -> unchanged current hydration -> committed current form -> immediate refresh, preserving mora/IDs',
   );
   await go(oldUrl);
   assert.equal(await raw(), newBytes);
@@ -338,7 +339,7 @@ try {
   await change('Mora scope', 'sole');
   assert.equal(await raw(), newBytes);
   report.checks.push(
-    'Actual v2 app rejects v3 with explicit recovery/unsaved feedback and blocks overwriting original bytes',
+    'Actual v2 app rejects current schema with explicit recovery/unsaved feedback and blocks overwriting original bytes',
   );
   await go(newUrl);
   const other = await otherTab();
@@ -438,7 +439,7 @@ try {
   // Separate pre-existing extreme-pitch rendering probe. Do not change semantics or clamp the score.
   for (const [build, version, appearance] of [
     ['v2', 2, { mora: 1 }],
-    ['v3', 3, { form: 'virga' }],
+    ['v' + currentVersion, currentVersion, { form: 'virga' }],
   ]) {
     const extreme = structuredClone(fixture);
     extreme.version = version;

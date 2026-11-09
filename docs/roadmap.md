@@ -158,7 +158,7 @@ measured shared ink and native format v2. Exact v1 files and the existing v1
 browser autosave slot remain recoverable; new saves write v2. See
 [Accepted ADR 0018](adrs/0018-conventional-mora-patterns.md),
 [persistence](persistence.md) and [verification](verification/note-modifiers/README.md).
-Vertical episema/ictus, accidentals, manual orientation/spacing, authored bridges,
+Accidentals, manual orientation/spacing, authored bridges,
 across-neume joins, new neume kinds and playback remain deferred.
 
 ## Additional authored note shapes (Stage 8B)
@@ -190,3 +190,15 @@ These are separate follow-up items, not blockers for the completed Stage 8B:
    [The reproduced cases](verification/note-shapes/review-follow-up.md#separate-extreme-pitch-finding)
    preserve stored pitches and bytes; any later fix must retain semantic/native
    compatibility.
+
+## Authored vertical episemata (Stage 8C)
+
+Implemented for review; **owner engraving acceptance and milestone closeout pending**.
+Selected-note Off/On authors independent ictus presence on all seven kinds and
+supported forms, with measured automatic local placement and native v4 writes.
+Exact v1/v2/v3 readers and protected recovery remain; the bundled v3 Pater Noster
+source is unchanged. See the [plan](plans/stage-8c-vertical-episemata.md),
+[Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
+and [reference/verification evidence](verification/vertical-episemata/README.md).
+No rhythmic inference or manual side override is included. ADR 0020 remains
+Proposed until explicit owner acceptance; this entry does not close Stage 8C.

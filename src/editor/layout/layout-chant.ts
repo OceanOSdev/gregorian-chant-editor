@@ -653,6 +653,9 @@ function layoutCommittedNeume(
       ...(neume.notes[index].form ? { form: neume.notes[index].form } : {}),
       ...(neume.notes[index].mora ? { mora: neume.notes[index].mora } : {}),
       ...(neume.notes[index].episema ? { episema: true as const } : {}),
+      ...(neume.notes[index].verticalEpisema
+        ? { verticalEpisema: true as const }
+        : {}),
     })),
   };
 }
@@ -981,7 +984,10 @@ export function layoutChant(
   }
   for (const system of systems) {
     for (const marked of system.neumes.filter((n) =>
-      n.notes.some((note) => note.mora || note.episema || note.form),
+      n.notes.some(
+        (note) =>
+          note.mora || note.episema || note.verticalEpisema || note.form,
+      ),
     )) {
       canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
       canvasBottom = Math.max(

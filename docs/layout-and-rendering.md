@@ -633,3 +633,17 @@ See [metrics](engraving-metrics.md) and [comparison/verification](verification/n
 Complete authored ink also participates in vertical canvas extents. Fixed system
 and lyric spacing, absent ordinary-note ledgers, and extreme-pitch vertical
 collisions remain existing limitations; this stage adds no vertical collision engine.
+
+## Vertical episema geometry (Stage 8C)
+
+`addNoteModifiers` derives vertical ticks after the existing horizontal episema
+and mora passes, keeping their ink exactly stable. It uses bounded local
+candidates, head/shaft collision partitions and staff/sign clearance. A tick
+cannot cross a fellow constituent in the same vertical column. All tick ink
+enters the existing measured bounds, advance, per-note modifier bounds, canvas
+and wrapping pipeline; rendering adds no positioning policy. Head silhouettes,
+hit targets and musical/lyric anchors remain unchanged. The builder's left-edge
+contract still holds. [Metrics](engraving-metrics.md#vertical-episema-stage-8c)
+own the recipe, and [comparisons](verification/vertical-episemata/README.md)
+distinguish Gregorio/Solesmes reference observations from project choices.
+New-neume ghosts remain unmarked and share the same appearance-aware builder.

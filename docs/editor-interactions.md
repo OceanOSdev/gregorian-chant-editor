@@ -757,3 +757,13 @@ default/Quilisma on lower Podatus or middle Scandicus, and a disabled default-on
 control elsewhere. Fixed widths keep selection from moving the score. Placement
 and pending-workflow guards apply. Accessible note names include authored forms.
 Undo/redo and immediate refresh preserve accepted edits and independent signs.
+
+## Selected vertical episema (Stage 8C)
+
+The same always-mounted group adds an independent native **Vertical episema**
+Off/On select for the selected note, on all seven neume kinds and supported
+forms. It shares the existing placement/pending-workflow guards and fixed
+control widths; selection changes do not mount or remove controls. Native Tab
+reaches it after Horizontal episema. Accessible note names announce the sign.
+This authors notation only; manual Above/Below and automatic rhythmic counting
+remain deferred. Each accepted change has one Undo/Redo step.

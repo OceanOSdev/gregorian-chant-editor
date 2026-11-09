@@ -755,3 +755,23 @@ trip. The [example browser record](verification/bundled-example/README.md)
 covers deliberate replacement, cancellation, keyboard focus, refresh/export,
 protected caches and responsive controls in Chromium/Firefox. Run its driver
 and the existing local-persistence driver sequentially on disposable profiles.
+
+## Authored vertical episemata (Stage 8C)
+
+`commands/vertical-episema.test.ts`, `persistence/vertical-episema.test.ts` and
+`layout/vertical-episema.test.ts` cover independent note presence, one-step
+history/no-op identity, surviving-note preservation, strict v4, exact legacy
+hydration, protected recovery, bounded all-kind/form/sign geometry, stacked-note
+ownership, signed ghost parity and whole-neume wrapping. Historical fixtures
+remain exact; the owner Pater Noster stays v3. Future-version rejection probes
+now use v5.
+
+Run `node docs/verification/vertical-episemata/browser-check.mjs` against production
+preview under `/gregorian-chant-editor/`, using disposable Chromium/CDP on 9230
+and Firefox/BiDi via `CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session`. Run existing
+note-shape, note-modifier, local-persistence and bundled-example drivers
+sequentially too. The [Stage 8C record](verification/vertical-episemata/README.md)
+contains reproducible reference comparisons, actual results, actual-build storage
+compatibility and remaining foreground/owner checks. The separate storage-review
+driver accepts `CHANT_CURRENT_VERSION=4` for the current build. ADR 0020 remains
+Proposed, and visual owner acceptance remains required before milestone closeout.

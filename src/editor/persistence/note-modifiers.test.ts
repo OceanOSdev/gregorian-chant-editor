@@ -36,7 +36,7 @@ describe('native v2 and exact v1 compatibility', () => {
         value: 1,
       });
       adapter.save(marked);
-      expect(JSON.parse(bytes).version).toBe(3);
+      expect(JSON.parse(bytes).version).toBe(4);
       expect(new BrowserDocument(() => storage).load(original)).toEqual(marked);
       expect(decodeDocument(encodeDocument(marked))).toEqual(marked);
     },
@@ -75,7 +75,7 @@ describe('native v2 and exact v1 compatibility', () => {
       decodeDocument(encodeDocument(decodeDocument(JSON.stringify(payload)))),
     ).toEqual(payload.document);
     for (const invalid of [
-      { ...payload, version: 4 },
+      { ...payload, version: 5 },
       { ...payload, format: 'foreign' },
     ]) {
       let bytes = JSON.stringify(invalid);

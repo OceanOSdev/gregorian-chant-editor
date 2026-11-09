@@ -293,3 +293,12 @@ pitch moves are rejected by the neume contour rules, independently of Form;
 removing a form does not permit crossing that contour. Any committed document
 mutation clears stale form-deletion feedback. Whole-neume
 deletion remains atomic. No preceding-neume condition is imposed.
+
+## Vertical episema edits (Stage 8C)
+
+`updateNoteModifiers` also accepts `kind: 'verticalEpisema'` with a boolean
+value. On stores `true`; Off removes the property. Only the requested stable
+note changes. Repeated values and invalid/stale intents return the exact input;
+one accepted `engraving-edit` records one snapshot. All other modifiers and
+forms remain independent, including through movement and surviving-note
+normalization. Existing pending-workflow guards still govern the transaction.

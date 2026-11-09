@@ -128,3 +128,8 @@ ADR 0019's owner clarification after PR #65 reference review allows independent
 quilisma-pes authoring without preceding-context validation and selects the
 traditional connected three-note Scandicus silhouette. No fusion flag or semantic
 kind is added; the original research remains available in the verification record.
+
+[Proposed ADR 0020: Author vertical episema presence; derive its engraving position](0020-vertical-episema-presence-and-derived-placement.md)
+records Stage 8C's independent note flag, local derived placement and strict
+native v4 compatibility. Implementation and comparisons are available for
+owner review; the decision remains **Proposed**, pending explicit acceptance.

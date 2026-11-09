@@ -1,0 +1,28 @@
+{
+  "browser": "Chromium",
+  "checks": [
+    "Actual v2 save -> unchanged current hydration -> committed current form -> immediate refresh, preserving mora/IDs",
+    "Actual v2 app rejects current schema with explicit recovery/unsaved feedback and blocks overwriting original bytes",
+    "Two actual app tabs: independent form commit triggers unsaved/conflict UI; blocked edits preserve remote bytes; reload recovers; reverse write conflicts too",
+    "12 successive same-task form saves followed immediately by navigation/refresh retain exact bytes and report Saved locally",
+    "Injected storage failure leaves prior cache untouched, shows Not saved, and refresh restores only the last successful commit"
+  ],
+  "extreme": [
+    {
+      "build": "v2",
+      "viewBox": "0 -108086391056891780 720 108086391056892000",
+      "height": 108086391056891900,
+      "cssHeight": 33554432,
+      "newEnabled": true,
+      "cachePreserved": true
+    },
+    {
+      "build": "v4",
+      "viewBox": "0 -108086391056891780 720 108086391056892000",
+      "height": 108086391056891900,
+      "cssHeight": 33554430,
+      "newEnabled": true,
+      "cachePreserved": true
+    }
+  ]
+}

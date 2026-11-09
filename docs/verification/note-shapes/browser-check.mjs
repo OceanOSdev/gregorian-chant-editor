@@ -372,7 +372,7 @@ try {
     mobile: false,
   });
   await navigate();
-  // Actual historical files: hydration never rewrites, first commit writes v3.
+  // Actual historical files: hydration never rewrites, first commit writes v4.
   for (const source of [baselineV1, baselineV2]) {
     await hydrate(source);
     assert.equal(await raw(), source);
@@ -381,7 +381,7 @@ try {
     await select(id);
     const form = original.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
     const saved = await change('Form', form);
-    assert.equal(saved.version, 3);
+    assert.equal(saved.version, 4);
     const expected = structuredClone(original);
     expected.neumes[0].notes[0].form = form;
     assert.deepEqual(saved.document, expected);
@@ -611,7 +611,7 @@ try {
   await ev('window.confirm=()=>true');
   const before = await raw();
   for (const invalid of [
-    { ...fixture, version: 4 },
+    { ...fixture, version: 5 },
     {
       ...fixture,
       document: {

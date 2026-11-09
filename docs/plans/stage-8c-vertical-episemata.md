@@ -2,7 +2,7 @@
 
 Branch: `feat/stage-8c-vertical-episema`
 Target: `master`
-Status: **Ready for Codex investigation and implementation; owner acceptance pending.**
+Status: **Implemented for review; owner visual acceptance and closeout pending.**
 
 ## Problem / intended experience
 
@@ -45,15 +45,15 @@ a space; a Punctum carrying vertical plus horizontal episema; vertical plus
 mora; a two-note compound; a three-note/connected or ribbon shape; nearby
 divisions, clefs and a system end. Include signed-neume and unmarked baseline
 screenshots. If a traditional tick cannot be faithfully and legibly drawn
-with context-derived placement under our current geometry, *stop that
-specific geometry decision* and present reference evidence and alternatives
+with context-derived placement under our current geometry, _stop that
+specific geometry decision_ and present reference evidence and alternatives
 to the owner before introducing a new field or artistic convention.
 
 ## Agreed initial scope / proposed ADR
 
 - **Authored presence, not inferred rhythm.** Add optional
   `verticalEpisema?: true` to the existing note-level modifier semantics.
-  Omitted = off. Existing `episema?: true` remains the *horizontal*
+  Omitted = off. Existing `episema?: true` remains the _horizontal_
   episema; do not rename or change it. `mora?: 1`, `form`, pitch,
   syllable relationships, neume kind and note IDs remain independent.
 - Support this marking on a constituent note of **all seven supported
@@ -143,7 +143,7 @@ existing horizontal `episema` field.
    and Clivis, Torculus, Climacus and Porrectus constituent notes. Test
    staff lines/spaces, range extremes normally supported by engraving,
    adjacent pitches, mixed signs, first/last neumes, divisions, clefs and
-   custodes. Verify *no* authored tick disappears or overlaps unrelated
+   custodes. Verify _no_ authored tick disappears or overlaps unrelated
    musical ink, and that shared measured bounds encompass all painted ink.
 3. Verify committed SVG, ghost preview, hit/focus bounds, lyric anchoring,
    system wrapping, responsive 320px widths and stability of score's screen
@@ -172,7 +172,7 @@ existing horizontal `episema` field.
 Update the authoritative domain, engraving, persistence and testing guides
 for the additional modifier and v4 compatibility; update roadmap and ADR log
 with a link to Proposed ADR 0020 (do not label it Accepted yet). Document that
-vertical episema is *authored notation*, not inferred rhythm, and that manual
+vertical episema is _authored notation_, not inferred rhythm, and that manual
 above/below override is deferred. Keep evidence in
 `docs/verification/vertical-episemata/`.
 

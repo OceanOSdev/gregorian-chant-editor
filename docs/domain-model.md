@@ -273,3 +273,15 @@ authoring allowance, not a claim of conventional unpreceded-quilisma usage;
 context may be added later. There is no cross-neume, lyric or division condition.
 Climacus's derived virga/inclinata remain implicit. No new semantic kind or
 fusion flag exists. See [Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md).
+
+## Authored vertical episema (Stage 8C)
+
+A note may additionally own `verticalEpisema?: true`; omission means off.
+It is independent of mora, horizontal `episema` and authored `form` on every
+constituent of all seven kinds. It records an authored ictus sign, never an
+inferred rhythmic count, accent, duration or playback instruction. The sign
+has no separate identity. Moves, clef translations, form edits and accepted
+normalization preserve it on the same surviving note ID; deleting that note
+removes it. Placement is derived, with no saved side or coordinates.
+See [Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
+and [native v4](persistence.md#vertical-episema-in-native-v4-stage-8c).

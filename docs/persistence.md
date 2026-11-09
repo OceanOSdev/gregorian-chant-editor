@@ -5,13 +5,13 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1, 2 and 3
+## Native versions 1, 2, 3 and 4
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 3`, and `document: ChantDocument`. The reader accepts exact v1, finalized v2 and v3. All seven document properties are
+`version: 4`, and `document: ChantDocument`. The reader accepts exact v1, finalized v2, v3 and v4. All seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in all three versions. V2 and v3 additionally accept
+arrays. Optional syllable alignment is supported in all four versions. V2, v3 and v4 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v3. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v4. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 8B: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1/v2 bytes untouched. The next
-successful committed save writes v3 into that same key, after comparing the
+retained for Stage 8C: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1/v2/v3 bytes untouched. The next
+successful committed save writes v4 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot be assumed to read a v3 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v4 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -161,7 +161,7 @@ editor or retain the original for later resolution.
 
 ## Authored forms in native v3 (Stage 8B)
 
-V3 alone additionally permits optional note `form` with exact values `virga`,
+V3 and v4 additionally permit optional note `form` with exact values `virga`,
 `inclinatum` and `quilisma`. The shared within-neume whitelist and strict pitch
 contour checks reject unsupported configurations. Explicit default/null/false,
 unknown strings/types and unknown fields reject before document replacement.
@@ -170,8 +170,8 @@ separate full old-syntax validation and withdrawn-draft recovery are retained.
 
 Importing/hydrating v1/v2 never synthesizes forms or changes note identities,
 marks, lyrics or event order. Hydration does not write; the next committed edit,
-including undo/redo, saves v3 through the same cache key and byte conflict guard.
-Exports and confirmed imports write v3. Failed imports and unreadable caches
+including undo/redo, saves v4 through the same cache key and byte conflict guard.
+Exports and confirmed imports write v4. Failed imports and unreadable caches
 retain their existing original-source download/replacement safeguards. Older
 app versions cannot be assumed to import v3. See the
 [migration and browser record](verification/note-shapes/implementation.md).
@@ -192,4 +192,23 @@ still uses the small fallback score and never seeds the cache with this example.
 The project owner transcribed the supported notation from
 [GregoBase Pater noster (A)](https://gregobase.selapa.net/chant.php?id=3326), whose
 transcriptions are [CC0/public domain](https://gregobase.selapa.net/?page_id=2).
-This is not a complete facsimile: source vertical episemata are not yet supported.
+This is not a complete facsimile: the bundled v3 source predates vertical episema authoring and remains unchanged.
+
+## Vertical episema in native v4 (Stage 8C)
+
+Writes now use **version 4**. Its note shape adds only optional
+`verticalEpisema: true`, independently of v3's fields. Explicit false, zero,
+null, strings, objects and unknown keys reject. V1, finalized v2 and v3 retain
+exact field whitelists and reject the v4-only field. Shared validation still
+rejects malformed nested objects, unsupported forms/contours, invalid IDs and
+anchors, unknown envelopes and payloads exceeding 1 MiB. Withdrawn draft-v2
+classification continues only after complete legacy-syntax validation.
+
+Hydration of an untouched v1/v2/v3 cache never rewrites its bytes. The next
+committed edit/undo/redo writes v4 through the same established storage key,
+byte conflict guard and synchronous save path. No conversion invents signs,
+forms or IDs. Failed imports, corrupt caches, storage failures and conflicts
+retain the original-source recovery and confirmed-replacement protections.
+The bundled owner-authored Pater Noster remains its exact committed **v3 source**;
+loading it and adding a sign produces a separate v4 score. Older builds reject
+v4 through their existing recovery path. See [compatibility evidence](verification/vertical-episemata/README.md).

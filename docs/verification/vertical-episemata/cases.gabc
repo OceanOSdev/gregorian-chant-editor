@@ -1,0 +1,7 @@
+name:Stage 8C placement probes;
+%%
+(c3) Line(h') Space(i') Both(h'_) All(h'._) Mora(i'.) Virga(hv') Incl(H') (z)
+PodLo(h'i) PodHi(hi') PodAll(h'i') CliHi(i'h) CliLo(ih') (z)
+Scan(gh'i) ScanAll(g'h'i') Quilt(ghw'i) QuiltAll(g'h'w'i') (z)
+Tor(hi'h) TorAll(h'i'h') Clim(j'I'H') Porr(j'h'j') (z)
+Edge(h') (,) Next(i') (c4) Last(h') (::)

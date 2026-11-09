@@ -1,0 +1,589 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 4,
+  "document": {
+    "clefChanges": [
+      {
+        "id": "changed-clef",
+        "clef": {
+          "type": "c",
+          "staffLine": 4
+        },
+        "beforeNeumeId": "n22",
+        "beforeDivisionId": null
+      }
+    ],
+    "divisions": [
+      {
+        "id": "bar",
+        "kind": "minima",
+        "beforeNeumeId": "n7"
+      },
+      {
+        "id": "edge-bar",
+        "kind": "minima",
+        "beforeNeumeId": "n21"
+      },
+      {
+        "id": "end",
+        "kind": "finalis",
+        "beforeNeumeId": null
+      }
+    ],
+    "lyricLanguage": "la",
+    "title": "Vertical episemata — reference comparisons",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "syllables": [
+      {
+        "id": "s0",
+        "text": "Line",
+        "startsAtNeumeId": "n0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s1",
+        "text": "Space",
+        "startsAtNeumeId": "n1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s2",
+        "text": "Both",
+        "startsAtNeumeId": "n2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s3",
+        "text": "All",
+        "startsAtNeumeId": "n3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s4",
+        "text": "Mora",
+        "startsAtNeumeId": "n4",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s5",
+        "text": "Virga",
+        "startsAtNeumeId": "n5",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s6",
+        "text": "Incl",
+        "startsAtNeumeId": "n6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s7",
+        "text": "PodLo",
+        "startsAtNeumeId": "n7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s8",
+        "text": "PodHi",
+        "startsAtNeumeId": "n8",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s9",
+        "text": "PodAll",
+        "startsAtNeumeId": "n9",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s10",
+        "text": "CliHi",
+        "startsAtNeumeId": "n10",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s11",
+        "text": "CliLo",
+        "startsAtNeumeId": "n11",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s12",
+        "text": "Scan",
+        "startsAtNeumeId": "n12",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s13",
+        "text": "ScanAll",
+        "startsAtNeumeId": "n13",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s14",
+        "text": "Quilt",
+        "startsAtNeumeId": "n14",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s15",
+        "text": "QuiltAll",
+        "startsAtNeumeId": "n15",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s16",
+        "text": "Tor",
+        "startsAtNeumeId": "n16",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s17",
+        "text": "TorAll",
+        "startsAtNeumeId": "n17",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s18",
+        "text": "Clim",
+        "startsAtNeumeId": "n18",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s19",
+        "text": "Porr",
+        "startsAtNeumeId": "n19",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s20",
+        "text": "Edge",
+        "startsAtNeumeId": "n20",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s21",
+        "text": "Next",
+        "startsAtNeumeId": "n21",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s22",
+        "text": "Last",
+        "startsAtNeumeId": "n22",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s23",
+        "text": "Wide",
+        "startsAtNeumeId": "n23",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s24",
+        "text": "Connected",
+        "startsAtNeumeId": "n24",
+        "boundaryBefore": "word"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "n0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-0-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-1-0",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-2-0",
+            "staffPosition": 4,
+            "episema": true,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-3-0",
+            "staffPosition": 4,
+            "episema": true,
+            "mora": 1,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n4",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-4-0",
+            "staffPosition": 5,
+            "mora": 1,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n5",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-5-0",
+            "staffPosition": 4,
+            "form": "virga",
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-6-0",
+            "staffPosition": 4,
+            "form": "inclinatum",
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n7",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-7-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-7-1",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "n8",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-8-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "note-8-1",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n9",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-9-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-9-1",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n10",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "note-10-0",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-10-1",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n11",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "note-11-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "note-11-1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n12",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-12-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "note-12-1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-12-2",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "n13",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-13-0",
+            "staffPosition": 3,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-13-1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-13-2",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n14",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-14-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "note-14-1",
+            "staffPosition": 4,
+            "form": "quilisma",
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-14-2",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "n15",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-15-0",
+            "staffPosition": 3,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-15-1",
+            "staffPosition": 4,
+            "form": "quilisma",
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-15-2",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n16",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "note-16-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "note-16-1",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-16-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n17",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "note-17-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-17-1",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-17-2",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n18",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "note-18-0",
+            "staffPosition": 6,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-18-1",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-18-2",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n19",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "note-19-0",
+            "staffPosition": 6,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-19-1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-19-2",
+            "staffPosition": 6,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n20",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-20-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n21",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-21-0",
+            "staffPosition": 5,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n22",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-22-0",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n23",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-23-0",
+            "staffPosition": 0,
+            "form": "quilisma",
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-23-1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "n24",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-24-0",
+            "staffPosition": 0,
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-24-1",
+            "staffPosition": 2,
+            "form": "quilisma",
+            "verticalEpisema": true
+          },
+          {
+            "id": "note-24-2",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          }
+        ]
+      }
+    ]
+  }
+}

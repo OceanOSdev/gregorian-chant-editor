@@ -1001,7 +1001,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             ? 'Edit rejected: preserve the form’s partners.'
             : selectedNoteLocation
               ? selectedNoteLocation.neume.kind +
-                ' mora scope; form and episema on note ' +
+                ' mora scope; form and episemata on note ' +
                 (selectedNoteLocation.noteIndex + 1)
               : 'Select a note to edit'}
         </p>
@@ -1096,6 +1096,28 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                   edit: (document) =>
                     updateNoteModifiers(document, selectedNote.id, {
                       kind: 'episema',
+                      value,
+                    }),
+                });
+              }}
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </label>
+          <label>
+            Vertical episema{' '}
+            <select
+              aria-label="Vertical episema"
+              value={selectedNote?.verticalEpisema ? 'on' : 'off'}
+              onChange={(event) => {
+                if (!selectedNote) return;
+                const value = event.target.value === 'on';
+                dispatch({
+                  type: 'engraving-edit',
+                  edit: (document) =>
+                    updateNoteModifiers(document, selectedNote.id, {
+                      kind: 'verticalEpisema',
                       value,
                     }),
                 });
