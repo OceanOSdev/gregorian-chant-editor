@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { change, fixture } from '../clef-change.test-cases';
+import { layoutChant } from '../layout/layout-chant';
+import { change, fixture, punctum } from '../clef-change.test-cases';
 import {
   createEditorSession,
   reduceEditorSession as reduce,
@@ -319,4 +320,159 @@ describe('shared pitch mode for existing-clef edits', () => {
     expect(s.clefTransaction).toBeNull();
     expect(s.history.past).toHaveLength(3);
   });
+});
+
+describe('in-score authored-clef arrow drafts', () => {
+  it.each(['melody', 'noteheads'] as const)(
+    'moves on the first press, continues through bounds, and applies once under %s',
+    (preserve) => {
+      const d = {
+        ...fixture(),
+        clefChanges: [
+          change('C', 'B', null, { type: 'c', staffLine: 3 }),
+          change('later', 'E'),
+        ],
+      };
+      let s = reduce(createEditorSession(d), {
+        type: 'clef-insertion-policy',
+        preserve,
+      });
+      const history = s.history;
+      s = reduce(s, { type: 'step-clef-change', id: 'C', direction: 1 });
+      expect(s.clefTransaction?.clef.staffLine).toBe(4);
+      expect(s.clefTransaction?.keepScoreFocus).toBe(true);
+      expect(s.history).toBe(history);
+      expect(
+        reduce(s, { type: 'step-clef-change', id: 'C', direction: 1 }),
+      ).toBe(s);
+      for (const staffLine of [3, 2, 1]) {
+        s = reduce(s, { type: 'step-clef-change', id: 'C', direction: -1 });
+        expect(s.clefTransaction?.clef.staffLine).toBe(staffLine);
+        expect(s.history).toBe(history);
+      }
+      expect(
+        reduce(s, { type: 'step-clef-change', id: 'C', direction: -1 }),
+      ).toBe(s);
+      s = reduce(s, { type: 'apply-clef-change' });
+      expect(s.clefTransaction).toBeNull();
+      expect(s.history.past).toEqual([d]);
+      expect(s.history.present.clefChanges[0].clef.staffLine).toBe(1);
+      expect(s.history.present.clefChanges[0].beforeNeumeId).toBe('B');
+      expect(s.history.present.neumes[1].notes[0].staffPosition).toBe(
+        preserve === 'melody' ? -2 : 2,
+      );
+      expect(s.history.present.neumes[2]).toBe(d.neumes[2]);
+      const committed = s.history.present;
+      s = reduce(s, {
+        type: 'history',
+        direction: 'undo',
+        focusedNoteId: null,
+      });
+      expect(s.history.present).toBe(d);
+      s = reduce(s, {
+        type: 'history',
+        direction: 'redo',
+        focusedNoteId: null,
+      });
+      expect(s.history.present).toBe(committed);
+    },
+  );
+  it('cancels an arrow sequence with exact redo/draft preservation and restores target focus', () => {
+    const d = { ...fixture(), clefChanges: [change('C')] };
+    let s = createEditorSession(d);
+    s = reduce(s, { type: 'change-clef', clef: { type: 'f', staffLine: 2 } });
+    s = reduce(s, { type: 'history', direction: 'undo', focusedNoteId: null });
+    s = reduce(s, {
+      type: 'lyrics',
+      action: { type: 'start', neumeId: 'A' },
+      newId: 'lyric',
+    });
+    s = reduce(s, {
+      type: 'lyrics',
+      action: { type: 'text', text: 'Ky' },
+      newId: 'lyric',
+    });
+    const history = s.history,
+      lyrics = s.lyrics;
+    s = reduce(s, { type: 'step-clef-change', id: 'C', direction: -1 });
+    s = reduce(s, { type: 'step-clef-change', id: 'C', direction: -1 });
+    s = reduce(s, { type: 'cancel-clef-change' });
+    expect(s.history).toBe(history);
+    expect(s.lyrics).toBe(lyrics);
+    expect(s.focusRequest).toEqual({ kind: 'clef-change', clefChangeId: 'C' });
+  });
+  it('rejects outward first presses, missing/stale/competing targets, placement and pending deletion', () => {
+    const d = { ...fixture(), clefChanges: [change('C')] };
+    const s = createEditorSession(d);
+    expect(reduce(s, { type: 'step-clef-change', id: 'C', direction: 1 })).toBe(
+      s,
+    );
+    expect(
+      reduce(s, { type: 'step-clef-change', id: 'gone', direction: -1 }),
+    ).toBe(s);
+    const armed = reduce(s, {
+      type: 'arm',
+      tool: { kind: 'place-clef', clefType: 'f' },
+    });
+    expect(
+      reduce(armed, { type: 'step-clef-change', id: 'C', direction: -1 }),
+    ).toBe(armed);
+    let pending = reduce(s, { type: 'start-clef-change', id: 'C' });
+    expect(
+      reduce(pending, { type: 'step-clef-change', id: 'other', direction: -1 }),
+    ).toBe(pending);
+    const stale = {
+      ...pending,
+      history: { ...pending.history, present: { ...d, title: 'New' } },
+    };
+    expect(
+      reduce(stale, { type: 'step-clef-change', id: 'C', direction: -1 }),
+    ).toBe(stale);
+    pending = reduce(pending, { type: 'apply-clef-change', remove: true });
+    expect(
+      reduce(pending, { type: 'step-clef-change', id: 'C', direction: -1 }),
+    ).toBe(pending);
+  });
+});
+
+it('keeps arrow changes uncommitted until the final Apply reflows complete neumes', () => {
+  const d = {
+    ...fixture(),
+    neumes: Array.from({ length: 25 }, (_, i) => punctum(`n${i}`, -2)),
+    clefChanges: [change('C', 'n1', null, { type: 'c', staffLine: 3 })],
+    divisions: [{ id: 'D', kind: 'minima' as const, beforeNeumeId: 'n1' }],
+  };
+  let s = reduce(createEditorSession(d), {
+    type: 'clef-insertion-policy',
+    preserve: 'noteheads',
+  });
+  s = reduce(s, { type: 'step-clef-change', id: 'C', direction: 1 });
+  expect(
+    layoutChant(s.history.present).systems.map(
+      (system) => system.startNeumeIndex,
+    ),
+  ).toEqual([0, 10, 21]);
+  s = reduce(s, { type: 'apply-clef-change' });
+  expect(
+    layoutChant(s.history.present).systems.map(
+      (system) => system.startNeumeIndex,
+    ),
+  ).toEqual([0, 9, 20]);
+  expect(s.history.past).toEqual([d]);
+  expect(s.focusRequest).toEqual({ kind: 'clef-change', clefChangeId: 'C' });
+});
+
+it('creates no history when an arrow draft returns to its committed line', () => {
+  const d = {
+    ...fixture(),
+    clefChanges: [change('C', 'B', null, { type: 'c', staffLine: 3 })],
+  };
+  let s = createEditorSession(d);
+  const history = s.history;
+  s = reduce(s, { type: 'step-clef-change', id: 'C', direction: 1 });
+  s = reduce(s, { type: 'step-clef-change', id: 'C', direction: -1 });
+  s = reduce(s, { type: 'apply-clef-change' });
+  expect(s.history).toBe(history);
+  expect(s.clefTransaction).toBeNull();
+  expect(s.focusRequest).toEqual({ kind: 'clef-change', clefChangeId: 'C' });
 });

@@ -81,6 +81,7 @@ export type EditorFocusRequest =
   | { kind: 'palette'; tool: PaletteTool };
 
 export interface ClefTransaction {
+  keepScoreFocus?: boolean;
   placementTool?: Extract<EditorTool, { kind: 'place-clef' }>;
   policyError?: string;
   original: ChantDocument;
@@ -165,7 +166,13 @@ export type EditorAction =
       point?: { x: number; y: number };
       measureLyrics?: MeasureLyricText;
     }
-  | { type: 'start-clef-change'; id: string; boundary?: ScoreInsertionBoundary }
+  | { type: 'step-clef-change'; id: string; direction: 1 | -1 }
+  | {
+      type: 'start-clef-change';
+      id: string;
+      boundary?: ScoreInsertionBoundary;
+      keepScoreFocus?: boolean;
+    }
   | { type: 'draft-clef-change'; clef: Clef }
   | { type: 'apply-clef-change'; remove?: boolean }
   | { type: 'cancel-clef-change' }
@@ -311,6 +318,7 @@ function reduceSessionAction(
     case 'clef-insertion-policy':
     case 'place-clef':
     case 'clef-keyboard':
+    case 'step-clef-change':
     case 'start-clef-change':
     case 'draft-clef-change':
     case 'apply-clef-change':
@@ -648,6 +656,46 @@ export function reduceEditorSession(
   action: EditorAction,
 ): EditorSession {
   const transaction = state.clefTransaction;
+  if (action.type === 'step-clef-change') {
+    if (
+      (action.direction !== 1 && action.direction !== -1) ||
+      isPlacementTool(state.activeTool) ||
+      state.pendingHistory ||
+      state.lyricMove ||
+      (transaction &&
+        (transaction.id !== action.id ||
+          transaction.boundary ||
+          transaction.candidate ||
+          transaction.original !== state.history.present))
+    )
+      return state;
+    const clef =
+      transaction?.clef ??
+      state.history.present.clefChanges.find((c) => c.id === action.id)?.clef;
+    if (!clef) return state;
+    const staffLine = clef.staffLine + action.direction;
+    if (
+      staffLine !== 1 &&
+      staffLine !== 2 &&
+      staffLine !== 3 &&
+      staffLine !== 4
+    )
+      return state;
+    const pending = transaction
+      ? state
+      : reduceEditorSession(state, {
+          type: 'start-clef-change',
+          id: action.id,
+          keepScoreFocus: true,
+        });
+    return announce(
+      reduceEditorSession(pending, {
+        type: 'draft-clef-change',
+        clef: { ...clef, staffLine },
+      }),
+      `Draft ${clef.type.toUpperCase()} clef, staff line ${staffLine}. Apply commits; Escape cancels.`,
+    );
+  }
   if (action.type === 'clef-insertion-policy') {
     if (
       transaction?.candidate ||
@@ -688,6 +736,7 @@ export function reduceEditorSession(
       hoveredPoint: null,
       focusRequest: null,
       clefTransaction: {
+        keepScoreFocus: action.keepScoreFocus,
         original: document,
         previousSelection: state.selection,
         id: action.id,

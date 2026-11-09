@@ -697,6 +697,160 @@ try {
       await ev(`document.querySelector('#lyric-input').value`),
       'Ky',
     );
+    // Repeated in-score arrows retain focus and use the same staged draft.
+    for (const preserve of ['melody', 'noteheads'])
+      for (const method of ['pointer', 'keyboard']) {
+        const d = fixture(3);
+        d.clefChanges = [
+          {
+            id: 'arrow',
+            clef: { type: 'c', staffLine: 3 },
+            beforeNeumeId: 'n1',
+            beforeDivisionId: null,
+          },
+          {
+            id: 'later',
+            clef: { type: 'f', staffLine: 3 },
+            beforeNeumeId: 'n2',
+            beforeDivisionId: null,
+          },
+        ];
+        await mount(d);
+        const original = await ink();
+        await click('[data-clef-change-id="arrow"]');
+        await click(`input[name="clef-insertion-policy"][value="${preserve}"]`);
+        if (method === 'pointer') await click('[data-clef-change-id="arrow"]');
+        else {
+          await ev(
+            `document.querySelector('[data-clef-change-id="arrow"]').focus()`,
+          );
+          await key('Enter');
+        }
+        assert.equal(
+          await ev(
+            `document.querySelector('[data-clef-change-id="arrow"]').getAttribute('aria-pressed')`,
+          ),
+          'true',
+        );
+        const originalY = await ev(
+          `document.querySelector('[data-clef-change-id="arrow"] .score__clef-ink').getBBox().y`,
+        );
+        for (const [keyName, line] of [
+          ['ArrowUp', 4],
+          ['ArrowUp', 4],
+          ['ArrowDown', 3],
+          ['ArrowDown', 2],
+          ['ArrowDown', 1],
+          ['ArrowDown', 1],
+        ]) {
+          await key(keyName);
+          assert.equal(
+            await ev(`document.activeElement.dataset.clefChangeId`),
+            'arrow',
+          );
+          assert.equal(
+            await ev(
+              `document.querySelector('[aria-label="Draft clef staff line"]').value`,
+            ),
+            String(line),
+          );
+          assert.ok(
+            Math.abs(
+              (await ev(
+                `document.querySelector('.score__clef-draft-preview').getBBox().y`,
+              )) -
+                (originalY - (line - 3) * 24),
+            ) < 0.001,
+            'Draft glyph follows the staff-line grid (SVG float precision)',
+          );
+          assert.deepEqual(await ink(), original);
+        }
+        const path = await ev(
+          `document.querySelector('.score__clef-draft-preview').getAttribute('d')`,
+        );
+        await key('ArrowLeft');
+        await key('ArrowRight');
+        assert.equal(
+          await ev(`document.activeElement.dataset.clefChangeId`),
+          'arrow',
+        );
+        assert.equal(
+          await ev(
+            `document.querySelector('.score__clef-draft-preview').getAttribute('d')`,
+          ),
+          path,
+        );
+        if (method === 'keyboard' && preserve === 'melody')
+          await shot(`${width}-arrow-draft-focus`, true);
+        await clickButton('Apply clef change');
+        assert.equal(await dialog(), null);
+        assert.equal(
+          await ev(`document.activeElement.dataset.clefChangeId`),
+          'arrow',
+        );
+        const after = await ink();
+        assert.equal(
+          after[1].y,
+          original[1].y + (preserve === 'melody' ? 48 : 0),
+        );
+        assert.equal(after[2].y, original[2].y);
+        await key('z', 'KeyZ', 2);
+        assert.deepEqual(await ink(), original);
+        await key('z', 'KeyZ', 10);
+        assert.deepEqual(await ink(), after);
+        await key('ArrowUp');
+        await key('ArrowUp');
+        await key('Escape');
+        assert.equal(
+          await ev(
+            `!!document.querySelector('[aria-label="Edit selected clef"]')`,
+          ),
+          false,
+        );
+        assert.equal(
+          await ev(`document.activeElement.dataset.clefChangeId`),
+          'arrow',
+        );
+        assert.deepEqual(await ink(), after);
+        await key('z', 'KeyZ', 2);
+        assert.deepEqual(await ink(), original);
+      }
+    // A line change that alters measured guide width reflows complete neumes on Apply.
+    const reflow = fixture(25);
+    reflow.neumes.forEach((n) => (n.notes[0].staffPosition = -2));
+    reflow.clefChanges = [
+      {
+        id: 'reflow',
+        clef: { type: 'c', staffLine: 3 },
+        beforeNeumeId: 'n1',
+        beforeDivisionId: null,
+      },
+    ];
+    reflow.divisions = [{ id: 'D', kind: 'minima', beforeNeumeId: 'n1' }];
+    await mount(reflow);
+    await click('[data-clef-change-id="reflow"]');
+    await click('input[name="clef-insertion-policy"][value="noteheads"]');
+    await click('[data-clef-change-id="reflow"]');
+    const systems = () =>
+      ev(
+        `[...document.querySelectorAll('[data-neume-id]')].map(n=>n.closest('[data-system-index]').dataset.systemIndex)`,
+      );
+    const beforeSystems = await systems();
+    await key('ArrowUp');
+    assert.deepEqual(await systems(), beforeSystems);
+    assert.equal(
+      await ev(`document.activeElement.dataset.clefChangeId`),
+      'reflow',
+    );
+    await clickButton('Apply clef change');
+    assert.notDeepEqual(await systems(), beforeSystems);
+    assert.equal(
+      await ev(`document.activeElement.dataset.clefChangeId`),
+      'reflow',
+    );
+    await shot(`${width}-arrow-applied-reflow`, true);
+    await key('z', 'KeyZ', 2);
+    assert.deepEqual(await systems(), beforeSystems);
     // Roving toolbar and a fully keyboard-operated slot/line route.
     await mount(fixture(3));
     await ev(`document.querySelector('[data-tool="select"]').focus()`);
@@ -822,6 +976,9 @@ try {
   ];
   await mount(unsafeEdit);
   await click('[data-clef-change-id="unsafe-edit"]');
+  const committedClefPath = await ev(
+    `document.querySelector('[data-clef-change-id] .score__clef-ink').getAttribute('d')`,
+  );
   await key('ArrowUp');
   await clickButton('Apply clef change');
   assert.equal(await dialog(), null);
@@ -839,7 +996,13 @@ try {
     await ev(
       `document.querySelector('[data-clef-change-id]').getAttribute('aria-label')`,
     ),
-    /staff line 3/,
+    /draft staff line 4/,
+  );
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-clef-change-id] .score__clef-ink').getAttribute('d')`,
+    ),
+    committedClefPath,
   );
   await shot('shared-edit-overflow', true);
   await click('input[name="clef-insertion-policy"][value="noteheads"]');
@@ -990,7 +1153,7 @@ try {
     'PASS: custos no-ledger/one/multiple ledgers above/below, actual SVG bounds, canvas containment and unchanged approximate-excerpt guide pitches 0/7/8 in desktop/320px.',
   );
   console.log(
-    `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, shared-mode staged Apply without popup and separate deletion confirmation, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
+    `PASS: graphical C/F hover/snap/click, preselected one-click policies and exact history, mixed slots, wrapping, consecutive in-score arrow drafts and focus, shared-mode staged Apply without popup and separate deletion confirmation, rejection/cancellation, dirty lyrics, native toolbar and keyboard-only insertion, I, desktop/320px and 150% CSS zoom. Browser: ${firefox ? 'Firefox (HTML activation via pointer; native score keyboard)' : 'Chromium (including keyboard-only HTML activation)'}. Screenshots: ${output}`,
   );
 } finally {
   if (ownsSession) await rawSend('session.end');

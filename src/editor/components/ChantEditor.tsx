@@ -857,7 +857,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           activates. In Select, Enter/Space selects a focused note, ↑/↓ changes
           pitch, and Shift+Enter/Space selects its neume. I/T apply only in
           notation controls. On the initial clef, Enter/Space selects and ↑/↓
-          moves one staff line while preserving melody.
+          moves one staff line while preserving melody. On an authored clef, ↑/↓
+          moves its draft one staff line per press, starting the draft on the
+          first press and keeping focus in the score. Tab/Shift+Tab reaches the
+          shared pitch mode and Apply/Cancel; Apply commits once, Escape
+          cancels. Left/Right never move an existing clef.
         </p>
       </details>
       <ClefChangeControls session={session} dispatch={dispatch} />
@@ -914,10 +918,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 selection: { kind: 'clef-change', clefChangeId },
               })
             }
-            onEditClefChange={(id, clef) => {
-              dispatch({ type: 'start-clef-change', id });
-              dispatch({ type: 'draft-clef-change', clef });
-            }}
+            clefEdit={
+              draftTransaction &&
+              !draftTransaction.boundary &&
+              !draftTransaction.candidate
+                ? { id: draftTransaction.id, clef: draftTransaction.clef }
+                : null
+            }
+            onStepClefChange={(id, direction) =>
+              dispatch({ type: 'step-clef-change', id, direction })
+            }
             onDeleteClefChange={(id) => {
               dispatch({ type: 'start-clef-change', id });
               dispatch({ type: 'apply-clef-change', remove: true });

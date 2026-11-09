@@ -52,7 +52,8 @@ interface ScoreSvgProps {
   onClefKeyboard: (command: ClefKeyboardCommand) => void;
   transactionBlocked: boolean;
   onSelectClefChange: (id: string) => void;
-  onEditClefChange: (id: string, clef: Clef) => void;
+  onStepClefChange: (id: string, direction: 1 | -1) => void;
+  clefEdit: { id: string; clef: Clef } | null;
   onDeleteClefChange: (id: string) => void;
   onSelectClef: () => void;
   onChangeClef: (clef: Clef) => void;
@@ -104,7 +105,8 @@ export function ScoreSvg({
   onClefKeyboard,
   transactionBlocked,
   onSelectClefChange,
-  onEditClefChange,
+  onStepClefChange,
+  clefEdit,
   onDeleteClefChange,
   onSelectClef,
   onChangeClef,
@@ -560,16 +562,21 @@ export function ScoreSvg({
                     key={id}
                     draft={clefDraftPreview?.id === id}
                     clef={item.clef}
+                    editingClef={
+                      clefEdit?.id === id ? clefEdit.clef : undefined
+                    }
                     changeId={id}
                     selected={
                       selection.kind === 'clef-change' &&
                       selection.clefChangeId === id
                     }
                     disabled={
-                      placementActive || !!lyricMove || transactionBlocked
+                      placementActive ||
+                      !!lyricMove ||
+                      (transactionBlocked && clefEdit?.id !== id)
                     }
                     onSelect={() => onSelectClefChange(id)}
-                    onChange={(clef) => onEditClefChange(id, clef)}
+                    onStep={(direction) => onStepClefChange(id, direction)}
                     onDelete={() => onDeleteClefChange(id)}
                     registerElement={(element) => {
                       if (element) clefChangeElements.current.set(id, element);

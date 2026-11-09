@@ -236,3 +236,12 @@ transient session. Traversal derives mixed order anew; commit verifies its
 current slot. The cursor advances after an inserted clef and never moves an
 existing authored clef. Hover, keyboard cursor and the remembered neume tool
 remain outside semantic history. Existing-clef edits still use draft/Apply/Cancel.
+
+`step-clef-change` is a narrow entry point into the existing authored-clef
+transaction. It validates Select mode, target/exclusivity and line bounds,
+starts the draft when needed, and computes each step from its current value.
+The first press stages its movement atomically without editing semantic history.
+A transient `keepScoreFocus` hint distinguishes arrow entry from the contextual
+Edit button; it adds no new transaction or semantic identity. Other targets,
+stale drafts, placement and pending deletion cannot be stepped. Apply/Cancel
+continue through the existing shared-policy and focus/history mechanisms.

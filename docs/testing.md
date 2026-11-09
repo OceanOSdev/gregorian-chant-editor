@@ -663,3 +663,15 @@ driver renders representative positions and the approximate GABC reference in
 the real editor at desktop/320px, checks SVG ink against derived geometry and
 canvas bounds, and retains screenshots. The [focused record](verification/mid-score-clefs/custos-ledgers.md)
 separates actual Gregorio output, editor evidence, and remaining owner review.
+
+### Selected authored-clef vertical arrows
+
+`clef-transactions.test.ts` covers first-press and consecutive draft steps, both
+bounds, shared pitch outcomes, exact Apply/undo/redo, Cancel with redo/lyric
+drafts, stale/exclusive targets and a measured reflow specimen. The real-editor
+mid-score-clef driver verifies pointer/keyboard selection, six consecutive native
+arrows without focus theft, current in-score preview/control line, unchanged
+committed ink, inert Left/Right, Apply/Cancel/Escape, both modes, exact history
+and focus after reflow in Chromium/Firefox at desktop/320px. Contextual-button
+entry still focuses its controls; initial-clef and insertion keyboard checks
+remain regression gates. See the Stage 6B verification record for actual runs.

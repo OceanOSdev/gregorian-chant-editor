@@ -22,14 +22,16 @@ export function ClefChangeControls({
       : null;
   const transaction = session.clefTransaction;
   const panel = useRef<HTMLDivElement>(null);
+  const keepScoreFocus = transaction?.keepScoreFocus;
   const transactionId = transaction?.id,
     candidate = transaction?.candidate;
   useLayoutEffect(() => {
-    if (transactionId)
+    // Arrow-started drafts keep their stable score target; button entry focuses the form.
+    if (transactionId && (!keepScoreFocus || candidate))
       panel.current
         ?.querySelector<HTMLSelectElement | HTMLButtonElement>('select,button')
         ?.focus();
-  }, [transactionId, candidate]);
+  }, [transactionId, candidate, keepScoreFocus]);
   const insertNeume = (after: boolean) => {
     if (!target) return;
     const order = deriveScoreOrder(session.history.present) ?? [];

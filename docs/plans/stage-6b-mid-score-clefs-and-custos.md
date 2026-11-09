@@ -378,7 +378,7 @@ clef, not the separate keyboard placement cursor or ordinary note
 navigation.
 
 - In **Select** mode, focus/select an authored clef in the score.
-  Press **ArrowUp** to shift its *draft* up one staff line or
+  Press **ArrowUp** to shift its _draft_ up one staff line or
   **ArrowDown** to shift it down one staff line (lines 1–4).
   If no draft is open, the first arrow press begins the draft **and
   applies that first one-line change**; it must not be swallowed.
@@ -396,7 +396,7 @@ navigation.
 - Reaching line 1 or 4 should stop movement; do not wrap around,
   change clef type, reanchor, or trigger a new history entry.
   **Left/Right do not move the clef**. Leave the initial-clef
-  shortcut and keyboard *insertion* slot navigation semantics intact.
+  shortcut and keyboard _insertion_ slot navigation semantics intact.
 - Add reducer and real-browser tests for first-press adjustment,
   **multiple consecutive** Up/Down presses while in a draft,
   focus retention, all bounds, Apply vs Escape, single atomic undo,

@@ -668,9 +668,20 @@ remembered-neume insertion on either side; there is no global clef picker or
 full-score boundary dropdown. I on a focused/selected clef announces those side
 controls. Selecting does not itself start an edit.
 
-**Edit clef change**, or Up/Down on a focused authored clef, opens a compact
-contextual C/F + line draft with explicit **Apply clef change** / **Cancel clef
-change**. Repeated changes remain transient. Where the draft glyph fits safely
+**Edit clef change** opens a compact contextual C/F + line draft and focuses its
+controls. In Select, Up/Down on a focused authored clef instead starts that same
+draft **and moves it one staff line on the first press**. Subsequent presses
+continue from the current draft, retaining focus on the stable in-score clef
+and updating the preview and contextual line control. The active target remains
+keyboard-enabled while competing score controls are disabled. Bounds 1/4 stop
+movement without wrapping; an outward first press does not open a draft.
+Left/Right neither move nor reanchor an existing clef. Keyboard insertion's
+separate slot navigation and initial-clef arrows remain unchanged.
+
+The draft has explicit **Apply clef change** / **Cancel clef change** controls;
+Tab/Shift+Tab reaches them and the shared pitch mode. Enter/Space on the in-score
+draft target does not Apply, and Delete cannot remove it during a pending edit.
+Repeated arrow/control changes remain transient. Where the draft glyph fits safely
 between committed ink and staff bounds, an inert purple overlay previews it in
 place; the original geometry remains committed and its ink fades. No music or
 custos is provisionally transposed or reflowed. Apply compares the final draft

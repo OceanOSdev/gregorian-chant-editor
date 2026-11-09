@@ -5,6 +5,71 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
+## Selected-clef vertical arrow clarification
+
+Up/Down now starts the existing draft and moves it on the first press, then
+continues from the current draft while keeping focus on the in-score authored
+clef. The stable hit/focus target remains at the committed anchor while the
+purple draft preview moves. Only that draft target remains enabled during the
+transaction. The
+contextual controls and safe preview reflect each step; outward arrows stop at
+lines 1/4. Left/Right never move/reanchor the clef. The initial-clef shortcut and
+keyboard insertion cursor are unchanged.
+
+A transient focus hint prevents the contextual editor from taking focus for
+arrow entry; the Edit button retains its native control-focus entry. No new
+transaction, semantic entity, horizontal movement or layout policy was added.
+Apply still uses the single shared mode, commits once and restores/reveals the
+clef; Cancel/Escape retains music/history/redo/lyric drafts and returns focus.
+Enter/Space and Delete cannot resolve/remove the active in-score draft.
+
+Current automated checks pass: formatting, lint, **61 files / 1,261 tests**,
+build and diff checks. New pure coverage checks first/consecutive movement,
+line bounds, unchanged committed history, both shared-mode outcomes, exact
+Apply/undo/redo, Cancel with redo/dirty lyrics, final no-op, invalid/stale/competing
+targets, and measured reflow only after Apply. The fixed reflow specimen changes
+system starts from 0/10/21 to 0/9/20 under Keep note positions, preserving IDs and
+returning focus to the authored clef.
+
+Focused real-editor runs passed Chromium and Firefox at 1440px/320px: both
+pointer-selected and keyboard-selected targets, six native arrow presses through
+both limits, focus retained on the clef at each step, preview and line selector
+matching the draft, unchanged committed note ink, inert Left/Right, both shared
+pitch outcomes, one atomic undo/redo, Escape cancellation and focus after reflow.
+Preview bounds use a 0.001-unit SVG floating-point tolerance; musical
+positions/history remain exact assertions. Both complete mid-score-clef drivers passed after these assertions, including
+the unchanged insertion cursor, shared-mode controls, conditional deletion,
+dirty drafts, overflow/retry, 150% CSS zoom, mixed wrapping and custos ledgers.
+Chromium includes full native HTML keyboard activation; Firefox uses pointer
+input for two background native HTML button activation steps, while native
+score/toolbar/radio keys pass. The clarification in the fetched plan received
+only mechanical Prettier emphasis formatting, without changed intent.
+
+The Chromium initial-clef driver also passed all 16 glyph/system/bounds specimens,
+including unchanged native arrows, focus, history and placement. Production
+Chromium smoke passed subpath assets, experimental notice, desktop/320px
+containment, clef insertion and refresh reset, with no observed runtime or
+asset-loading errors. Broader lyric/corpus suites were not rerun for this
+keyboard-entry correction; earlier results remain historical.
+
+Fresh actual UI screenshots (reviewed, not golden images):
+
+- [Retained score focus and moved draft](arrows-score-focus.png)
+- [Applied clef after measured reflow](arrows-applied-reflow.png)
+- [Firefox 320px arrow draft](arrows-firefox-320.png)
+
+The current draft line is exposed in the focused clef's accessible label and
+announced through the existing live region. Spoken screen-reader behavior is
+not inferred from DOM assertions. Earlier keyboard-entry checks below do not
+claim a consecutive in-score arrow sequence.
+
+Manual owner script: select or keyboard-focus/Enter an authored clef → press
+Up once, then Down repeatedly → check preview, line control and retained score
+focus → Shift+Tab to pitch mode/Apply or Escape → undo/redo. Repeat at both
+limits and with a line change that reflows the score. Left/Right must leave the
+clef's line and boundary unchanged. Foreground Firefox HTML activation, spoken
+screen-reader feedback and real browser/OS zoom remain manual checks.
+
 ## Custos ledger engraving follow-up
 
 See the [focused Gregorio comparison and verification](custos-ledgers.md) for the
