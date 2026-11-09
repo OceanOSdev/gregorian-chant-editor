@@ -727,7 +727,11 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 ## Selected note modifiers (Stage 8A)
 
-Selecting one note reveals **Selected note modifiers** beside the score.
+The compact **Selected note modifiers** group stays mounted above the score.
+With no selected note it shows “Select a note to edit” and disables its controls.
+Selecting or clearing a note, or switching constituents, updates the target
+caption and values without moving the notation surface. A fixed legend and
+separate target caption keep selection-dependent text out of the wrapping legend.
 Native **Mora** (None / Single dot / Double dot) and **Horizontal episema**
 (Off / On) selects show that exact note's current values. Native select arrows
 and Tab/Shift+Tab remain browser-owned; changing a value keeps control focus.

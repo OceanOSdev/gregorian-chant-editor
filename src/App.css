@@ -499,3 +499,23 @@ kbd {
   margin: 0.4rem 0 0;
   font-size: 0.875rem;
 }
+
+.note-modifiers {
+  min-width: 0;
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0.65rem 0.5rem;
+}
+.note-modifiers__target {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+}
+.note-modifiers__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+.note-modifiers__controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}

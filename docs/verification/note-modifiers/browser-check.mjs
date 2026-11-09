@@ -167,6 +167,7 @@ async function key(key, code = key) {
       {
         Enter: '\uE007',
         Tab: '\uE004',
+        Escape: '\uE00C',
         ArrowUp: '\uE013',
         ArrowDown: '\uE015',
       }[key] ?? key;
@@ -191,6 +192,7 @@ async function key(key, code = key) {
         code,
         windowsVirtualKeyCode: {
           Tab: 9,
+          Escape: 27,
           Enter: 13,
           ArrowUp: 38,
           ArrowDown: 40,
@@ -209,6 +211,110 @@ async function select(id) {
     ),
     'true',
   );
+}
+async function clearNote() {
+  const point = await ev(
+    `(()=>{const svg=document.querySelector('svg.score');svg.scrollIntoView({block:'center'});const r=svg.getBoundingClientRect();return {x:r.x+8,y:r.y+8}})()`,
+  );
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+  assert.equal(
+    await ev(
+      `document.querySelectorAll('[data-note-id][aria-pressed="true"]').length`,
+    ),
+    0,
+  );
+}
+async function checkSelectionPosition(width) {
+  await send('Emulation.setDeviceMetricsOverride', {
+    width,
+    height: 1100,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await clearNote();
+  const before = await raw();
+  const geometry = () =>
+    ev(`(()=>{
+    const svg=document.querySelector('svg.score');
+    const r=svg.getBoundingClientRect();
+    const target=document.querySelector('.score__note-hit-target').getBoundingClientRect();
+    return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,noteY:target.y+scrollY};
+  })()`);
+  const initial = await geometry();
+  const check = async (action) => {
+    const actual = await geometry();
+    for (const property of Object.keys(initial))
+      assert.ok(
+        Math.abs(actual[property] - initial[property]) < 0.1,
+        width +
+          'px ' +
+          action +
+          ' changed ' +
+          property +
+          ': ' +
+          initial[property] +
+          ' -> ' +
+          actual[property],
+      );
+  };
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Mora"]').matches(':disabled')`,
+    ),
+    true,
+  );
+  await pointer('[data-note-id="note-0-0"] .score__note-hit-target');
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-note-id="note-0-0"]').getAttribute('aria-pressed')`,
+    ),
+    'true',
+  );
+  await check('pointer selection');
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Mora"]').matches(':disabled')`,
+    ),
+    false,
+  );
+  for (const [i, [, pitches]] of kinds.entries())
+    for (let j = 0; j < pitches.length; j++) {
+      await select('note-' + i + '-' + j);
+      await check('switch to note-' + i + '-' + j);
+    }
+  await clearNote();
+  await check('pointer deselection');
+  await select('note-1-0');
+  await key('Escape');
+  assert.equal(
+    await ev(
+      `document.querySelectorAll('[data-note-id][aria-pressed="true"]').length`,
+    ),
+    0,
+  );
+  await check('Escape deselection');
+  assert.equal(await raw(), before, 'selection must not save or enter history');
+  assert.equal(
+    await ev(
+      `document.querySelector('[aria-label="Undo last edit"]').disabled`,
+    ),
+    true,
+  );
+  assert.equal(
+    await ev(`document.documentElement.scrollWidth<=innerWidth`),
+    true,
+  );
+  await snapshot('stable-modifiers-unselected-' + width);
+  await select('note-3-2');
+  await snapshot('stable-modifiers-selected-' + width);
+  await clearNote();
 }
 async function change(label, value) {
   return ev(
@@ -316,6 +422,13 @@ try {
   }
   await ev('window.confirm=()=>true');
   await importText(JSON.stringify(specimen));
+  for (const width of [1440, 320]) await checkSelectionPosition(width);
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 1100,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
   for (const [i, [, pitches]] of kinds.entries())
     for (let j = 0; j < pitches.length; j++) {
       const id = `note-${i}-${j}`;

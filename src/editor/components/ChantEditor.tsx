@@ -904,25 +904,33 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         replaceCache={persistence.replaceCache}
       />
       <ClefChangeControls session={session} dispatch={dispatch} />
-      {selectedNote ? (
-        <fieldset
-          disabled={
-            placing ||
-            !!session.pendingHistory ||
-            !!session.lyricMove ||
-            !!session.clefTransaction
-          }
-        >
-          <legend>
-            Selected note modifiers — {selectedNoteLocation?.neume.kind}, note{' '}
-            {(selectedNoteLocation?.noteIndex ?? 0) + 1}
-          </legend>
+      <fieldset
+        className="note-modifiers"
+        aria-describedby="note-modifier-target"
+        disabled={
+          !selectedNote ||
+          placing ||
+          !!session.pendingHistory ||
+          !!session.lyricMove ||
+          !!session.clefTransaction
+        }
+      >
+        <legend>Selected note modifiers</legend>
+        <p id="note-modifier-target" className="note-modifiers__target">
+          {selectedNoteLocation
+            ? selectedNoteLocation.neume.kind +
+              ', note ' +
+              (selectedNoteLocation.noteIndex + 1)
+            : 'Select a note to edit'}
+        </p>
+        <div className="note-modifiers__controls">
           <label>
             Mora{' '}
             <select
               aria-label="Mora"
-              value={selectedNote.mora ?? 0}
+              value={selectedNote?.mora ?? 0}
               onChange={(event) => {
+                if (!selectedNote) return;
                 const value = Number(event.target.value);
                 if (value === 0 || value === 1 || value === 2)
                   dispatch({
@@ -944,8 +952,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             Horizontal episema{' '}
             <select
               aria-label="Horizontal episema"
-              value={selectedNote.episema ? 'on' : 'off'}
+              value={selectedNote?.episema ? 'on' : 'off'}
               onChange={(event) => {
+                if (!selectedNote) return;
                 const value = event.target.value === 'on';
                 dispatch({
                   type: 'engraving-edit',
@@ -961,8 +970,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               <option value="on">On</option>
             </select>
           </label>
-        </fieldset>
-      ) : null}
+        </div>
+      </fieldset>
       {activeTool.kind === 'place-clef' ? (
         <div className="clef-placement-help">
           <span>{placementDescription}</span>{' '}

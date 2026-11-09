@@ -127,3 +127,33 @@ Firefox `/tmp/chant-note-modifiers-nEQKht`. Persistence regression diagnostics:
 Chromium `/tmp/chant-local-persistence-hX4jNW`; Firefox
 `/tmp/chant-local-persistence-D6lojA`. Earlier runs were repeated after the final
 context legend and ordinary single-sign screenshot case were added.
+
+## PR #64 review: stable modifier controls
+
+The modifier fieldset now stays mounted above the score, with a fixed legend,
+a separate target caption and compact wrapping controls. With no selected note,
+the same controls are disabled and the caption says “Select a note to edit.”
+This prevents selection from inserting/removing a panel or wrapping a variable
+legend above the notation. Existing command, history, native select and focus
+paths are unchanged; no engraving change is included.
+
+The expanded production browser driver passed in Chromium and Firefox at 1440px
+and 320px. It measures the score SVG's document position, width and height and
+the first note target's document Y coordinate before and after native pointer
+selection, switching through every constituent of all seven kinds, background
+click deselection and Escape. Every measurement stays equal within 0.1 CSS px.
+It also checks enabled/disabled controls, unchanged cache bytes and undo history,
+and page containment. The existing modifier/file/history/keyboard cases run in
+the same driver and still pass. Native focus scrolling is distinct from these
+document-coordinate layout assertions.
+
+Formatting, lint, all 67 test files / 1,343 tests, production build and diff
+checks passed again. Agent-inspected comparison images show the same notation
+position with [no selection](stable-unselected-firefox-320.png) and
+[a selected note](stable-selected-firefox-320.png) in Firefox at 320px; desktop
+Chromium and Firefox screenshots were inspected in the temporary output too.
+Diagnostics: Chromium `/tmp/chant-note-modifiers-SS6iJl`, Firefox
+`/tmp/chant-note-modifiers-F54nYR` (BiDi port 9243). Reproduce with the same driver
+commands above, setting `CHANT_FIREFOX_URL` to the active disposable session.
+Dense compound engraving remains an owner acceptance observation; this focused
+follow-up changes only the control location and its browser regression checks.
