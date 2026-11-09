@@ -256,3 +256,20 @@ Report visual reference comparisons, actual CI/local test results, semantics
 and compatibility evidence, open research questions and what remains for
 foreground owner inspection. **Do not merge.** The owner will visually
 accept the engraving and decide ADR status before merge.
+
+## Follow-up: uniform vertical-tick rasterization (owner review pending)
+
+The [latest owner feedback](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6741412693)
+reports one versus two dark pixel columns at the same zoom after the clearance
+correction. Separation alone does not satisfy optical consistency. Investigate
+vertical-tick-only rasterization hints, including scoped crisp edges, against
+unchanged antialiasing at varying horizontal phases, ordinary display sizes,
+320px, large scales and device pixel ratios in Firefox and Chromium. Retain
+native-size before/after long-score screenshots and quantitative raster checks.
+Choose a minimal evidence-supported approach that retains the shared vector
+geometry, measured bounds, relative size, preview parity and staff clearance.
+Do not apply global hints, change other ink, add persisted display state or
+redesign editing. If uniformity requires material geometry/bounds compromises,
+report alternatives before implementing that approach. Update the owning rendering
+guide and run affected regression checks. ADR 0020 remains Proposed; this is
+implementation for visual review, not acceptance or permission to merge.
