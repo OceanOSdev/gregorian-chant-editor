@@ -368,6 +368,45 @@ representation, preserve-melody formula, or atomic history.
   repeated system clefs and derived custodes are never selectable.
   **No horizontal dragging/repositioning of an already authored clef.**
 
+### Owner clarification: selected-clef vertical arrow editing (2026-11-08)
+
+**Only Up/Down move an existing clef.** Do **not** bind Left/Right to
+horizontal clef relocation, reanchoring, or score-boundary hopping.
+ADR 0015's prohibition on moving an authored clef horizontally remains
+unchanged. This clarification concerns editing an authored mid-score
+clef, not the separate keyboard placement cursor or ordinary note
+navigation.
+
+- In **Select** mode, focus/select an authored clef in the score.
+  Press **ArrowUp** to shift its *draft* up one staff line or
+  **ArrowDown** to shift it down one staff line (lines 1–4).
+  If no draft is open, the first arrow press begins the draft **and
+  applies that first one-line change**; it must not be swallowed.
+  Continued arrow presses adjust that **same** draft, including after
+  the first press, with an in-score preview at the currently drafted
+  staff line. Keep keyboard focus on the engraved clef (or a stable
+  in-score editing target) through the whole arrow sequence; **do not
+  steal focus into the contextual form on the first press**.
+- Arrow presses **must not change committed music or history**.
+  The existing compact contextual editor should reflect the current
+  draft line, and **Apply** commits the final draft once using the
+  shared Keep pitches / Keep note positions mode, with no extra modal.
+  **Escape/Cancel** discards all staged arrow changes. Focus and
+  selection should remain intuitive after Apply, Cancel and reflow.
+- Reaching line 1 or 4 should stop movement; do not wrap around,
+  change clef type, reanchor, or trigger a new history entry.
+  **Left/Right do not move the clef**. Leave the initial-clef
+  shortcut and keyboard *insertion* slot navigation semantics intact.
+- Add reducer and real-browser tests for first-press adjustment,
+  **multiple consecutive** Up/Down presses while in a draft,
+  focus retention, all bounds, Apply vs Escape, single atomic undo,
+  shared-mode pitch outcome, and unchanged Left/Right behavior.
+  Test both pointer-selected and keyboard-selected clefs, including
+  a change that reflows the staff. Update keyboard help to describe
+  the actual behavior rather than implying arrows merely open a form.
+  Do not introduce horizontal movement, dragging, a new editing
+  transaction mechanism, or a broad keyboard-navigation refactor.
+
 ### Keyboard, consistency and transaction rules
 
 - Provide a **keyboard-only route** to choose C/F, choose line 1–4 and an
