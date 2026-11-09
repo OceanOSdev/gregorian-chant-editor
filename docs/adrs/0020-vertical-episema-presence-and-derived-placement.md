@@ -15,7 +15,7 @@ Solesmes editions of Gregorian chant print short vertical episemata, often
 called ictus marks. These signs are authored notation: not every rhythmic
 ictus is explicitly marked, and marking a note does not by itself mean
 accenting or lengthening it. The project currently supports mora presence
-and independent *horizontal* episema `episema: true` on individual notes,
+and independent _horizontal_ episema `episema: true` on individual notes,
 but not vertical episemata. The owner encountered this gap while
 transcribing [Pater noster (A)](https://gregobase.selapa.net/chant.php?id=3326),
 which is now bundled as a native v3 example.
@@ -28,7 +28,7 @@ research references, not a request to implement GABC interchange.
 
 ## Proposed decision
 
-1. Model authored *presence* as an optional `verticalEpisema?: true` on
+1. Model authored _presence_ as an optional `verticalEpisema?: true` on
    the existing stable-ID `ChantNote`, independently of optional
    `mora?: 1`, horizontal `episema?: true` and authored `form`.
    Omitting the field means no authored vertical sign. The seven existing
@@ -40,7 +40,7 @@ research references, not a request to implement GABC interchange.
 3. Determine above/below position **in derived engraving geometry**, based
    on note/head/connector/staff/rhythmic-sign context. Prefer the conventional
    under-note tick where safely legible, with above-note fallback when needed.
-   Position is *not* persisted, and it must be visible and represented in
+   Position is _not_ persisted, and it must be visible and represented in
    shared measured ink, note modifier bounds and responsive wrapping. Never
    silently drop an authored sign when placement is difficult.
 4. Introduce **native v4** for writes. Exact v1, finalized v2 and v3 remain
