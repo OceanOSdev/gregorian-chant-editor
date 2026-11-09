@@ -4,7 +4,7 @@ Date: 2026-11-09
 
 ## Status
 
-Proposed — requires explicit owner acceptance before Stage 8B implementation.
+Accepted (owner-approved 2026-11-09). Includes preselected one-click placement for Virga, Punctum inclinatum and quilismatic Podatus/Scandicus.
 
 ## Context
 
@@ -37,7 +37,7 @@ Primary reference:
 - https://lilypond.org/doc/v2.24/Documentation/notation/typesetting-gregorian-chant
   (separately identified quilisma and notehead forms).
 
-## Proposed decision
+## Decision
 
 1. Model **explicitly authored non-default note forms** as a small optional
    semantic choice on the existing stable-ID `ChantNote`, e.g.
@@ -123,7 +123,7 @@ Primary reference:
   fusion and arbitrary form combinations will need separate decisions.
 - Older deployed editor versions will not read v3 exports.
 
-## Scope boundary and approval gate
+## Scope boundary and change control
 
 This ADR does not add oriscus, stropha, salicus, pressus, liquescence,
 accidentals, GABC interchange, arbitrary note groups, explicit neumatic
@@ -131,5 +131,6 @@ breaks, manual inclinatum orientation, or a full notation-font architecture.
 If the investigation reveals that a proposed shape requires a different
 semantic group (for example quilisma-pes vs attached Scandicus) or a model
 incompatible with this contract, stop with reference examples and alternatives
-before implementation. Owner choice to begin Stage 8B is **not** automatic
-approval of this proposed representation.
+before implementing conflicting changes. The owner explicitly accepted
+this note-form model, supported contexts, one-click insertion of
+quilismatic figures and native v3 compatibility on 2026-11-09.
