@@ -100,6 +100,43 @@ to the owner before introducing a new field or artistic convention.
   during implementation, and request explicit owner acceptance before
   changing it to Accepted at milestone closeout.
 
+## Owner-approved contextual editing follow-up (PR #67)
+
+Approved in the [owner review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
+Implementation of this addition and owner review remain pending; this approval
+is not engraving acceptance or permission to merge.
+
+- In Select mode, show a small contextual editing surface near the selected
+  note for **Mora scope**, **Horizontal episema** and **Vertical episema**.
+  Reuse `moraChoices`/`getMoraScope` and the existing `updateMoraScope` /
+  `updateNoteModifiers` dispatch, history and synchronous autosave paths.
+  No duplicate modifier state, new schema, validation or note-form rules.
+- Preserve the always-mounted comprehensive inspector, including Form. Both
+  editing surfaces derive their values from the same current semantic note /
+  neume and stay synchronized.
+- Use an overlay that consumes no score layout space. Follow the selected
+  note's current rendered bounds on reflow, score/window scrolling and resize;
+  flip/clamp to the visible viewport, remain outside SVG clipping and avoid
+  covering the selected note. At 320px or zoomed widths, a compact accessible
+  viewport-aware presentation may be used to preserve local editing.
+- Provide accessible names and equivalent native control state, visible focus,
+  native keyboard operation, Tab navigation and Escape dismissal. Opening or
+  using controls must not deselect the note, change pitch or invoke notation
+  shortcuts. Closing preserves already committed edits and returns focus
+  appropriately without trapping it. Respect placement and pending-workflow
+  guards; do not introduce a general toolbar redesign.
+- Verify several systems down in the bundled Pater Noster: receive/remove each
+  sign without returning to the inspector, mixed signs, legal compound mora
+  scopes, synchronized inspector values, atomic Undo/Redo, synchronous autosave
+  and immediate refresh. Check pointer/keyboard note focus, dismissal, scroll,
+  resize/reflow and 320px in Chromium and Firefox against production preview.
+  Retain before/after and narrow contextual screenshots and update the owning
+  interaction/testing guides and verification record.
+
+ADR 0020 remains Proposed pending separate owner acceptance. This is a transient
+interaction addition within the existing semantic/layout/rendering boundaries;
+report any material architectural conflict before implementing divergent behavior.
+
 ## Exclusions
 
 Do not introduce playback, implied tempo/accent/duration, automatically
