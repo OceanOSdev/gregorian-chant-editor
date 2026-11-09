@@ -6,3 +6,6 @@ coverage/
 .npm/
 .codex/
 *.tsbuildinfo
+
+# Preserve the canonical owner-authored example byte-for-byte.
+src/editor/examples/pater-noster.chant.json

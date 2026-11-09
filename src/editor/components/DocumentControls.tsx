@@ -9,6 +9,10 @@ import {
   maximumDocumentBytes,
 } from '../persistence/native-document';
 import { errorMessage } from '../persistence/browser-document';
+import {
+  bundledExamples,
+  loadBundledExample,
+} from '../examples/bundled-examples';
 import './DocumentControls.css';
 
 interface DocumentControlsProps {
@@ -224,6 +228,41 @@ export function DocumentControls({
           <button type="button" disabled={disabled} onClick={exportFile}>
             Export
           </button>
+          <select
+            aria-label="Load example"
+            disabled={disabled}
+            value=""
+            onChange={(event) => {
+              const id = event.target.value;
+              const example = bundledExamples.find((item) => item.id === id);
+              if (!example) return;
+              finishTitle(true);
+              if (
+                !window.confirm(
+                  `Load ${example.name} and replace the active score and undo/redo history? Export current work before discarding it.`,
+                )
+              )
+                return;
+              try {
+                replace(loadBundledExample(id));
+                setError('');
+                setAnnouncement(
+                  `Loaded ${example.name}. Check local saving status.`,
+                );
+              } catch (error) {
+                setError(`Example loading failed: ${errorMessage(error)}`);
+              }
+            }}
+          >
+            <option value="" disabled>
+              Load example…
+            </option>
+            {bundledExamples.map((example) => (
+              <option key={example.id} value={example.id}>
+                {example.name}
+              </option>
+            ))}
+          </select>
           <input
             ref={picker}
             type="file"
