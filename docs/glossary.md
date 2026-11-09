@@ -110,3 +110,11 @@ Layout derived from semantic entities already present in the current document.
 
 ID-free geometry for a hypothetical insertion that has not entered the
 semantic document or history.
+
+## Authored note form
+
+An optional explicit engraving choice on a stable note, distinct from its
+neume's melodic contour. Stage 8B supports standalone Virga (square head with
+right queue), neutral Punctum inclinatum (upright diamond), and Quilisma (a
+pitched jagged head in an approved ascending Podatus or Scandicus). Omission
+retains the context-derived default. See [the domain contract](domain-model.md#authored-note-forms-stage-8b).

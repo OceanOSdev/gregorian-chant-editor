@@ -3,6 +3,9 @@ import type { GraphicalNeumeKind } from '../layout/layout-chant';
 export const paletteTools = [
   'select',
   'punctum',
+  'virga',
+  'inclinatum',
+  'quilisma',
   'podatus',
   'clivis',
   'scandicus',
@@ -12,7 +15,14 @@ export const paletteTools = [
   'c-clef',
   'f-clef',
 ] as const;
-export type PaletteTool = 'select' | GraphicalNeumeKind | 'c-clef' | 'f-clef';
+export type PaletteTool =
+  | 'select'
+  | GraphicalNeumeKind
+  | 'c-clef'
+  | 'f-clef'
+  | 'virga'
+  | 'inclinatum'
+  | 'quilisma';
 
 /** Focus navigation only; activation remains native button Enter/Space/click. */
 export function nextPaletteTool(

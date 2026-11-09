@@ -5,7 +5,7 @@ import {
   encodeDocument,
 } from './native-document';
 
-// Retain the original namespace: v1 bytes are read unchanged and upgraded to v2
+// Retain the original namespace: v1/v2 bytes are read unchanged and upgraded to v3
 // only on the next successful save, under the same conflict/recovery guard.
 export const autosaveKey = 'gregorian-chant-editor:active-document:v1';
 export type DocumentStorage = Pick<Storage, 'getItem' | 'setItem'>;

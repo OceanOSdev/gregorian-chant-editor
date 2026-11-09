@@ -1,6 +1,7 @@
+import { buildAuthoredGeometry } from './neumes/authored-forms';
 import { addNoteModifiers } from './note-modifiers';
 import type {
-  NoteModifiers,
+  NoteAppearance,
   Neume,
   StaffPosition,
 } from '../domain/chant-document';
@@ -34,10 +35,11 @@ export function buildNeumeGeometry(
   positions: readonly StaffPosition[],
   leftX: number,
   bottomStaffY: number,
-  modifiers: readonly NoteModifiers[] = [],
+  modifiers: readonly NoteAppearance[] = [],
 ): NeumeGeometry {
   return addNoteModifiers(
-    buildUnmodifiedGeometry(kind, positions, leftX, bottomStaffY),
+    buildAuthoredGeometry(kind, positions, leftX, bottomStaffY, modifiers) ??
+      buildUnmodifiedGeometry(kind, positions, leftX, bottomStaffY),
     modifiers,
     bottomStaffY,
     kind,

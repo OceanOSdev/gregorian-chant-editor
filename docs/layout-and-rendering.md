@@ -608,3 +608,28 @@ ambiguous, with no across-neume bridge. The canvas includes complete vertical
 ink, but fixed system/lyric spacing and absent neume ledger lines remain
 limitations: extreme pitches can still overlap lyrics or another system. No
 vertical collision engine is added.
+
+## Authored form geometry (Stage 8B)
+
+`buildNeumeGeometry` accepts note appearance (optional form and rhythmic signs).
+`neumes/authored-forms.ts` derives original form ink before the existing modifier
+pass. Unmarked inputs still use the unchanged approved builders. The builder’s left
+input must equal its left ink edge: lyric-clearance and system-fit adjustments
+rebuild from measured `bounds.x`. The neutral diamond therefore uses a positive
+14-unit cell with its own 7-unit note/lyric centre, rather than a negative bearing. Previews and
+commits supply the same appearance; bounds, advance, lyric anchoring, wrapping,
+selection and focus all consume shared geometry. Unsupported forms throw rather
+than silently drawing a square.
+
+Quilismatic Scandicus traces one connected three-pitch silhouette based on the
+owner-selected traditional Liber Usualis example. Both rising joins are derived
+from kind/form/pitches, with no saved fusion flag. Three stable semantic notes
+keep their nominal pitch anchors and individual head selection contours. Targets
+partition the first versus upper column horizontally and the upper pair vertically,
+including exposed connecting shafts. Standalone Virga uses the approved Climacus
+head/queue proportions, while neutral Inclinatum is a separate upright diamond.
+See [metrics](engraving-metrics.md) and [comparison/verification](verification/note-shapes/implementation.md).
+
+Complete authored ink also participates in vertical canvas extents. Fixed system
+and lyric spacing, absent ordinary-note ledgers, and extreme-pitch vertical
+collisions remain existing limitations; this stage adds no vertical collision engine.

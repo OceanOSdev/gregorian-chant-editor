@@ -1,4 +1,4 @@
-import type { NoteModifiers } from '../domain/chant-document';
+import type { NoteAppearance } from '../domain/chant-document';
 import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
   staffStartX,
@@ -83,7 +83,7 @@ export interface ClefChangeLayout extends ClefGeometry {
   clefChangeId: string;
 }
 
-export interface NoteLayout extends NoteGeometry, NoteModifiers {
+export interface NoteLayout extends NoteGeometry, NoteAppearance {
   noteId: string;
 }
 
@@ -185,7 +185,7 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 }
 
 interface GeometryInput {
-  modifiers?: readonly NoteModifiers[];
+  modifiers?: readonly NoteAppearance[];
   kind: Neume['kind'];
   staffPositions: readonly StaffPosition[];
 }
@@ -650,6 +650,7 @@ function layoutCommittedNeume(
     notes: geometry.notes.map((note, index) => ({
       ...note,
       noteId: neume.notes[index].id,
+      ...(neume.notes[index].form ? { form: neume.notes[index].form } : {}),
       ...(neume.notes[index].mora ? { mora: neume.notes[index].mora } : {}),
       ...(neume.notes[index].episema ? { episema: true as const } : {}),
     })),
@@ -980,7 +981,7 @@ export function layoutChant(
   }
   for (const system of systems) {
     for (const marked of system.neumes.filter((n) =>
-      n.notes.some((note) => note.mora || note.episema),
+      n.notes.some((note) => note.mora || note.episema || note.form),
     )) {
       canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
       canvasBottom = Math.max(

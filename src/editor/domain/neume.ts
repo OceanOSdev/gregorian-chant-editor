@@ -1,3 +1,4 @@
+import { hasValidNoteForms } from './note-forms';
 import { getMoraScope } from './mora';
 import type {
   ChantDocument,
@@ -64,6 +65,7 @@ export function isValidNeume(neume: Neume): boolean {
     )
   )
     return false;
+  if (!hasValidNoteForms(neume)) return false;
   if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
     case 'punctum':
@@ -176,7 +178,7 @@ export function normalizeNeumeAfterNoteDeletion(
       notes: survivingNotes,
     };
 
-    return podatus;
+    return hasValidNoteForms(podatus) ? podatus : neume;
   }
 
   if (
@@ -207,7 +209,7 @@ export function normalizeNeumeAfterNoteDeletion(
         notes: survivingNotes,
       };
 
-      return podatus;
+      return hasValidNoteForms(podatus) ? podatus : neume;
     }
 
     const clivis: ClivisNeume = {
@@ -216,7 +218,7 @@ export function normalizeNeumeAfterNoteDeletion(
       notes: survivingNotes,
     };
 
-    return clivis;
+    return hasValidNoteForms(clivis) ? clivis : neume;
   }
 
   const [firstNote, secondNote] = neume.notes;
@@ -227,5 +229,5 @@ export function normalizeNeumeAfterNoteDeletion(
     notes: [survivingNote],
   };
 
-  return punctum;
+  return hasValidNoteForms(punctum) ? punctum : neume;
 }

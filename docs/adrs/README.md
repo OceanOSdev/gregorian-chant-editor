@@ -117,3 +117,14 @@ compatibility. ADR 0016 remains Accepted.
 [Accepted ADR 0018: Constrain mora presence to conventional rhythmic patterns](0018-conventional-mora-patterns.md)
 supersedes ADR 0017 with single-note presence, supported scopes, derived paired
 signs and protected recovery of the withdrawn draft-v2 format.
+
+[Accepted ADR 0019: Represent authored note shapes separately from semantic neume contours](0019-authored-note-forms-and-neume-contours.md)
+records the owner-approved Stage 8B authorable Virga, Punctum inclinatum
+and Quilisma forms on stable notes, including preselected one-click insertion,
+a limited context whitelist and version-3 native-file migration (accepted
+2026-11-09). ADRs 0004, 0007, 0016 and 0018 remain Accepted.
+
+ADR 0019's owner clarification after PR #65 reference review allows independent
+quilisma-pes authoring without preceding-context validation and selects the
+traditional connected three-note Scandicus silhouette. No fusion flag or semantic
+kind is added; the original research remains available in the verification record.

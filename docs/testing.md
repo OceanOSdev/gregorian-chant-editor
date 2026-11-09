@@ -709,3 +709,40 @@ keyboard/pointer checks use browser input. Run the existing local-persistence
 driver sequentially as a regression gate. See the
 [current record](verification/note-modifiers/conventional/README.md) for actual
 results and remaining foreground/visual owner acceptance.
+
+## Authored note forms (Stage 8B)
+
+`commands/note-forms.test.ts` covers the exact whitelist on all seven kinds,
+identity/no-op/rejection, form/sign preservation, normalization, one-step history,
+atomic shaped pointer/keyboard insertion and ghost parity, exact v1/v2 hydration,
+v3 round trips and protected malformed caches. `layout/authored-forms.test.ts`
+covers connected geometry across intervals 1/2/3/5/12 and line/space transpositions,
+partitioned upper-pair rectangular targets, five simultaneous signs, complete bounds/advances, ordinary
+Climacus virga parity and mixed wrapping. Existing strict codec/recovery suites
+remain regression gates; future-version fixtures now use v4.
+
+Run `node docs/verification/note-shapes/browser-check.mjs` against the production
+preview subpath and isolated Chromium/CDP on 9230. Set
+`CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session` for Firefox/BiDi. It exercises the
+real editor's one-click tools and ghosts, remembered keyboard insertion, Form
+choices, independent rhythmic signs, selection stability at desktop/320px,
+history/refresh, old native files, strict failed imports and guarded caches.
+Run the existing modifier and local-persistence drivers sequentially as regressions.
+See [actual runs, comparisons and manual checklist](verification/note-shapes/implementation.md)
+for limits; native select/file events are injected through DOM APIs, and foreground
+zoom, IME, OS dialogs and spoken output remain distinct owner checks.
+
+The PR #65 [review follow-up](verification/note-shapes/review-follow-up.md) adds
+actual lyric-clearance and width-sensitive system-membership regressions, shared
+entry-name announcements, and central stale-error clearing across note, lyric,
+clef, division and title mutations. Browser ghost verification compares real
+normalized path commands; native I insertion asserts kind and form after pointer
+tool selection, without claiming keyboard-only activation. SVG checks include x
+and a known-origin first-figure assertion. First-note polygon ownership is
+verified by browser painted-point sampling, not the upper-pair rectangle test.
+
+A separate disposable-profile driver tests actual baseline v2 and current v3
+builds at one test-only origin, 12 immediate-refresh commits, real two-app-tab
+conflicts, injected storage failure UI and extreme-pitch rendering. Its read-only
+comparison server never touches user profile data or production storage. See
+the follow-up record for reproduction and actual findings.

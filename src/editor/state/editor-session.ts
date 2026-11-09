@@ -1,3 +1,4 @@
+import { noteFormLabels } from '../domain/note-forms';
 import {
   resolveGraphicalClefPlacement,
   resolveKeyboardClefPlacement,
@@ -29,6 +30,7 @@ import type {
   ChantDocument,
   Clef,
   DivisionKind,
+  NoteForm,
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
 import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
@@ -59,7 +61,12 @@ import {
   type DocumentEdit,
   type DocumentHistory,
 } from './document-history';
-import { isPlacementTool, selectTool, type EditorTool } from './editor-tool';
+import {
+  toolNoteForm,
+  isPlacementTool,
+  selectTool,
+  type EditorTool,
+} from './editor-tool';
 import {
   clearSelection,
   reconcileSelection,
@@ -68,6 +75,9 @@ import {
   selectSyllable,
   type EditorSelection,
 } from './selection';
+
+const noteFormRejection =
+  'Edit rejected: preserve the ascending contour and supported context of the authored form. Change Form to default before removing its required partner.';
 
 export type EditorFocusRequest =
   | { kind: 'clef-placement'; clefChangeId?: string }
@@ -93,6 +103,7 @@ export interface ClefTransaction {
 }
 
 export interface EditorSession {
+  noteFormError: string | null;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
   keyboardClefPlacement: ClefPlacementCursor | null;
@@ -113,6 +124,8 @@ export interface EditorSession {
   selection: EditorSelection;
   activeTool: EditorTool;
   rememberedKind: GraphicalNeumeKind;
+  rememberedForm?: NoteForm;
+  quilismaFigure: 'podatus' | 'scandicus';
   hoveredPoint: { x: number; y: number } | null;
   focusRequest: EditorFocusRequest | null;
   announcement: { sequence: number; text: string };
@@ -222,6 +235,7 @@ export type EditorAction =
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | {
       type: 'edit';
+      formDeletionNoteId?: string;
       edit: DocumentEdit;
       focusNoteId?: string;
       clearSelection?: boolean;
@@ -236,6 +250,7 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    noteFormError: null,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
     keyboardClefPlacement: null,
@@ -247,6 +262,7 @@ export function createEditorSession(document: ChantDocument): EditorSession {
     selection: clearSelection(),
     activeTool: selectTool(),
     rememberedKind: 'punctum',
+    quilismaFigure: 'podatus',
     hoveredPoint: null,
     focusRequest: null,
     announcement: { sequence: 0, text: '' },
@@ -255,6 +271,13 @@ export function createEditorSession(document: ChantDocument): EditorSession {
 
 export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
   return kind[0].toUpperCase() + kind.slice(1);
+}
+
+/** One visual entry name for controls and live-region messages. */
+export function entryName(kind: GraphicalNeumeKind, form?: NoteForm): string {
+  return form
+    ? noteFormLabels[form] + (form === 'quilisma' ? ' ' + neumeName(kind) : '')
+    : neumeName(kind);
 }
 
 function announce(state: EditorSession, text: string): EditorSession {
@@ -334,6 +357,7 @@ function reduceSessionAction(
       if (
         action.tool.kind === 'select' ||
         (action.tool.kind === state.activeTool.kind &&
+          toolNoteForm(action.tool) === toolNoteForm(state.activeTool) &&
           (action.tool.kind !== 'place-division' ||
             (state.activeTool.kind === 'place-division' &&
               action.tool.divisionKind === state.activeTool.divisionKind)) &&
@@ -345,19 +369,38 @@ function reduceSessionAction(
       return announce(
         {
           ...state,
+          noteFormError: null,
           activeTool: action.tool,
           keyboardClefPlacement: null,
           rememberedKind: kind ?? state.rememberedKind,
+          rememberedForm: kind
+            ? toolNoteForm(action.tool)
+            : state.rememberedForm,
+          quilismaFigure:
+            kind &&
+            toolNoteForm(action.tool) === 'quilisma' &&
+            (kind === 'podatus' || kind === 'scandicus')
+              ? kind
+              : state.quilismaFigure,
           hoveredPoint: null,
           focusRequest: null,
         },
-        `Placing ${kind ? neumeName(kind) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
+        `Placing ${kind ? entryName(kind, toolNoteForm(action.tool)) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
       );
     }
     case 'focus-palette':
       return {
         ...state,
-        focusRequest: { kind: 'palette', tool: state.rememberedKind },
+        focusRequest: {
+          kind: 'palette',
+          tool:
+            state.rememberedForm === 'quilisma'
+              ? 'quilisma'
+              : state.rememberedForm === 'virga' ||
+                  state.rememberedForm === 'inclinatum'
+                ? state.rememberedForm
+                : state.rememberedKind,
+        },
       };
     case 'hover':
       return {
@@ -384,6 +427,7 @@ function reduceSessionAction(
       if (placing) return state;
       return {
         ...state,
+        noteFormError: null,
         selection: action.selection,
         focusRequest: action.focusNoteId
           ? { kind: 'note', noteId: action.focusNoteId }
@@ -433,7 +477,14 @@ function reduceSessionAction(
         );
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
-      const nextDocument = insertEditorNeume(document, insertion, action.ids);
+      const nextDocument = insertEditorNeume(
+        document,
+        insertion,
+        action.ids,
+        action.type === 'place'
+          ? toolNoteForm(state.activeTool)
+          : state.rememberedForm,
+      );
       if (nextDocument === document) return state;
       const graphical = action.type === 'place';
       const noteId = action.ids.noteIds[0];
@@ -455,7 +506,7 @@ function reduceSessionAction(
               ? { kind: 'lyrics' }
               : reconciled.focusRequest,
         },
-        `${neumeName(kind)} added.`,
+        `${entryName(kind, action.type === 'place' ? toolNoteForm(state.activeTool) : state.rememberedForm)} added.`,
       );
     }
     case 'place-division': {
@@ -533,7 +584,20 @@ function reduceSessionAction(
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);
-      if (history === state.history) return state;
+      if (history === state.history)
+        return action.formDeletionNoteId &&
+          findNote(
+            state.history.present,
+            action.formDeletionNoteId,
+          )?.neume.notes.some((n) => n.form)
+          ? announce(
+              {
+                ...state,
+                noteFormError: noteFormRejection,
+              },
+              noteFormRejection,
+            )
+          : state;
       const next = reconcile({
         ...state,
         history,
@@ -652,6 +716,17 @@ function applyLyrics(
 
 /** Coordinates semantic history and the single transient lyric draft. */
 export function reduceEditorSession(
+  state: EditorSession,
+  action: EditorAction,
+): EditorSession {
+  const next = transitionEditorSession(state, action);
+  return next.history.present !== state.history.present &&
+    next.noteFormError !== null
+    ? { ...next, noteFormError: null }
+    : next;
+}
+
+function transitionEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {

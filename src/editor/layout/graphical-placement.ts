@@ -1,4 +1,8 @@
-import { staffPosition, type StaffPosition } from '../domain/chant-document';
+import {
+  staffPosition,
+  type StaffPosition,
+  type NoteAppearance,
+} from '../domain/chant-document';
 import {
   createNeumeEntryPitches,
   type GraphicalNeumeKind,
@@ -35,6 +39,7 @@ export type GraphicalPlacementPreviewLayout = NeumeGeometry & {
 
 export type GraphicalPlacementPreviewInput = NeumeEntryPitches & {
   insertionIndex: number;
+  appearance?: readonly NoteAppearance[];
 };
 
 export function canGraphicalNeumeFitNormalSystem(
@@ -107,6 +112,7 @@ export function layoutGraphicalPlacementPreview(
     placement.staffPositions,
     0,
     bottomStaffY,
+    placement.appearance,
   );
   // Keep the actual shape visible at crowded ends without changing its pitch or scale.
   const left = Math.max(
@@ -122,6 +128,7 @@ export function layoutGraphicalPlacementPreview(
       placement.staffPositions,
       left,
       bottomStaffY,
+      placement.appearance,
     ),
     kind: placement.kind,
     pointerSystemIndex: source.index,

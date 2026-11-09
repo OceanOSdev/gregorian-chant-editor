@@ -3,7 +3,11 @@ import { isPlacementTool } from '../state/editor-tool';
 import type { Clef } from '../domain/chant-document';
 import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { isValidClef } from '../domain/clef';
-import type { EditorAction, EditorSession } from '../state/editor-session';
+import {
+  entryName,
+  type EditorAction,
+  type EditorSession,
+} from '../state/editor-session';
 
 /** Staged authored-clef editing and the separate deletion confirmation. */
 export function ClefChangeControls({
@@ -13,6 +17,10 @@ export function ClefChangeControls({
   session: EditorSession;
   dispatch: Dispatch<EditorAction>;
 }) {
+  const rememberedLabel = entryName(
+    session.rememberedKind,
+    session.rememberedForm,
+  );
   const selection = session.selection;
   const target =
     selection.kind === 'clef-change'
@@ -171,10 +179,10 @@ export function ClefChangeControls({
             Delete clef change
           </button>
           <button type="button" onClick={() => insertNeume(false)}>
-            Insert {session.rememberedKind} before clef
+            Insert {rememberedLabel} before clef
           </button>
           <button type="button" onClick={() => insertNeume(true)}>
-            Insert {session.rememberedKind} after clef
+            Insert {rememberedLabel} after clef
           </button>
         </>
       ) : null}

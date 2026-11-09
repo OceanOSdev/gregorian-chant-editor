@@ -529,3 +529,17 @@ kbd {
   width: 9rem;
   min-width: 0;
 }
+
+.quilisma-figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block: 0.5rem;
+}
+
+.note-form-error {
+  padding: 0.5rem;
+  border: 1px solid #8e341e;
+  color: #7b2615;
+}

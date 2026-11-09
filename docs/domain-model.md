@@ -258,3 +258,18 @@ objects before they enter the semantic model, preserving valid IDs and order.
 The semantic model itself still contains no schema, history or browser fields;
 the version belongs to the external envelope. Future schema evolution follows
 Accepted ADR 0016 and the persistence guide.
+
+## Authored note forms (Stage 8B)
+
+`ChantNote.form?: 'virga' | 'inclinatum' | 'quilisma'` stores an authored
+non-default form. Omission preserves the existing context-derived head.
+`domain/note-forms.ts` owns the whitelist shared by semantic validation,
+commands and native v3 decoding: Punctum accepts Virga/Inclinatum; Podatus
+accepts Quilisma on its lower note; Scandicus accepts Quilisma on its middle
+note. Strict ascending contours remain required. Other contexts reject.
+
+An independent quilismatic Podatus may begin a score. This is an intentional
+authoring allowance, not a claim of conventional unpreceded-quilisma usage;
+context may be added later. There is no cross-neume, lyric or division condition.
+Climacus's derived virga/inclinata remain implicit. No new semantic kind or
+fusion flag exists. See [Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md).

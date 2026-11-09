@@ -45,7 +45,13 @@ export interface NoteModifiers {
   episema?: true;
 }
 
-export interface ChantNote extends NoteModifiers {
+export type NoteForm = 'virga' | 'inclinatum' | 'quilisma';
+
+export interface NoteAppearance extends NoteModifiers {
+  form?: NoteForm;
+}
+
+export interface ChantNote extends NoteAppearance {
   id: string;
   staffPosition: StaffPosition;
 }
