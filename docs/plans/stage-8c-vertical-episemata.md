@@ -75,9 +75,10 @@ to the owner before introducing a new field or artistic convention.
   previews; preserve existing note hit contours, lyric anchors and head
   silhouettes. Do not implement a second positioning engine or SVG-only
   unmeasured decoration.
-- Extend the always-mounted selected-note modifier controls with an
-  independent “Vertical episema” field, keeping their existing layout
-  stable when selection changes. An Off→On/On→Off change is one undoable
+- Provide contextual selected-note properties with an independent
+  “Vertical episema” field, without consuming score layout space or shifting
+  the score on selection. The latest owner feedback below supersedes the
+  original always-mounted inspector design. An Off→On/On→Off change is one undoable
   semantic action; unchanged edits are referential no-ops. Respect pending
   workflow guards; controls remain navigable by keyboard, announced clearly
   by screen readers, and usable at 320px. Native controls are preferred.
@@ -103,7 +104,8 @@ to the owner before introducing a new field or artistic convention.
 ## Owner-approved contextual editing follow-up (PR #67)
 
 Approved in the [owner review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
-This addition is implemented for review; owner acceptance remains pending.
+The original convenience panel is implemented; the consolidation below is
+approved and pending implementation. Owner acceptance remains pending.
 The scope approval is not engraving acceptance or permission to merge.
 
 - In Select mode, show a small contextual editing surface near the selected
@@ -111,9 +113,9 @@ The scope approval is not engraving acceptance or permission to merge.
   Reuse `moraChoices`/`getMoraScope` and the existing `updateMoraScope` /
   `updateNoteModifiers` dispatch, history and synchronous autosave paths.
   No duplicate modifier state, new schema, validation or note-form rules.
-- Preserve the always-mounted comprehensive inspector, including Form. Both
-  editing surfaces derive their values from the same current semantic note /
-  neume and stay synchronized.
+- The original instruction to retain a comprehensive top inspector is
+  **superseded** by the later owner feedback below. All note-property controls
+  will derive from the same current semantic note/neume in the contextual panel.
 - Use an overlay that consumes no score layout space. Follow the selected
   note's current rendered bounds on reflow, score/window scrolling and resize;
   flip/clamp to the visible viewport, remain outside SVG clipping and avoid
@@ -127,7 +129,7 @@ The scope approval is not engraving acceptance or permission to merge.
   guards; do not introduce a general toolbar redesign.
 - Verify several systems down in the bundled Pater Noster: receive/remove each
   sign without returning to the inspector, mixed signs, legal compound mora
-  scopes, synchronized inspector values, atomic Undo/Redo, synchronous autosave
+  scopes, Form authoring, atomic Undo/Redo, synchronous autosave
   and immediate refresh. Check pointer/keyboard note focus, dismissal, scroll,
   resize/reflow and 320px in Chromium and Firefox against production preview.
   Retain before/after and narrow contextual screenshots and update the owning
@@ -136,6 +138,42 @@ The scope approval is not engraving acceptance or permission to merge.
 ADR 0020 remains Proposed pending separate owner acceptance. This is a transient
 interaction addition within the existing semantic/layout/rendering boundaries;
 report any material architectural conflict before implementing divergent behavior.
+
+## Owner feedback: consolidation and stroke weight (PR #67)
+
+Approved in the [latest owner comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740779436).
+This explicitly replaces the earlier request to keep the top inspector. Commit
+this scope update before implementation. It is not Stage 8C acceptance.
+
+- Make the contextual panel the sole primary note-property editor, adding
+  **Form** with the existing `allowedNoteForms`, default/disabled behavior and
+  `updateNoteForm` validation alongside the legal Mora scope and two episema
+  fields. Remove the redundant top Selected note form and modifiers fieldset.
+  Keep note ownership and disabled/rejected-edit feedback clear.
+- Preserve existing note-form/modifier commands, semantic state, one-step
+  history, autosave and native v4 behavior. No duplicate property state,
+  alternate validation, new form rules or toolbar framework. Selection must
+  not shift the score. Retain accessible pointer/keyboard opening and reopening
+  from the selected note after Escape/Close, including narrow/focus conditions.
+  All four controls must remain reachable at 320px and in short viewports.
+- Investigate reported tick-weight differences using actual rendered repeated
+  standalone Puncta on lines/spaces, varied horizontal positions, responsive
+  scales and zoom in Chromium and Firefox. Inspect enlarged raster crops and
+  geometry/overlap measurements alongside actual Gregorio/Solesmes references.
+  Distinguish antialiasing/subpixel phase from collisions or unequal geometry.
+- Apply only an evidence-supported small geometry/rendering correction if
+  warranted. Retain authored semantics, stable IDs, v4 encoding and shared
+  measured paint. No blanket `shape-rendering: crispEdges`, arbitrary thickening,
+  orientation fields or unmeasured screen-only ink. If comparison evidence
+  conflicts materially with the proposed placement or an Accepted ADR, stop.
+- Update interaction/testing/engraving guidance as needed. Run affected pure
+  tests and Chromium/Firefox production-subpath verification for all four
+  contextual controls, no duplicated top editor, legal forms/scopes, history,
+  refresh, pointer/keyboard focus/reopening and lower-score/320px behavior.
+  Retain updated UI screenshots, rendered tick before/after crops and numeric
+  findings, explicitly separating unverified foreground/browser-menu checks.
+
+ADR 0020 remains Proposed; owner visual acceptance and closeout remain pending.
 
 ## Exclusions
 
