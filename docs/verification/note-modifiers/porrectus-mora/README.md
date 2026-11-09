@@ -196,3 +196,13 @@ Final diagnostics: Chromium `/tmp/chant-note-modifiers-TQ5wwl`; Firefox
 Firefox session via `CHANT_FIREFOX_URL`, as described in the parent record.
 Foreground owner engraving acceptance and spoken screen-reader testing remain
 separate from these headless checks. No merge was performed.
+
+## Reopened ownership question — proposals only
+
+The owner has requested a comparison of ways to make ambiguous per-note mora
+assignments visually interpretable before choosing another convention. The
+[ownership review](ownership-review/README.md) supplies three rendered approaches,
+including first-only versus third-only, individual-note doubles and mixed
+episema cases. It recommends an explicit editorial supplement for exceptional
+assignments and stops for owner review. It does not change the implemented
+trailing-placement policy or supersede the accepted semantic/persistence model.

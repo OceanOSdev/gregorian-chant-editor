@@ -1,0 +1,63 @@
+{
+  "browser": "Chromium 157",
+  "units": "unscaled SVG units",
+  "method": "getBBox() on candidate ink/text groups; excludes stroke thickness",
+  "patterns": {
+    "equal-line": {
+      "A": {
+        "maxExtraRight": 25,
+        "maxExtraBottom": 1
+      },
+      "B": {
+        "maxExtraRight": 45.9,
+        "maxExtraBottom": 0
+      },
+      "C": {
+        "maxExtraRight": 0,
+        "maxExtraBottom": 45
+      }
+    },
+    "equal-space": {
+      "A": {
+        "maxExtraRight": 25,
+        "maxExtraBottom": 1
+      },
+      "B": {
+        "maxExtraRight": 45.9,
+        "maxExtraBottom": 0
+      },
+      "C": {
+        "maxExtraRight": 0,
+        "maxExtraBottom": 33
+      }
+    },
+    "adjacent": {
+      "A": {
+        "maxExtraRight": 25,
+        "maxExtraBottom": 1
+      },
+      "B": {
+        "maxExtraRight": 45.9,
+        "maxExtraBottom": 0
+      },
+      "C": {
+        "maxExtraRight": 0,
+        "maxExtraBottom": 63
+      }
+    },
+    "unequal": {
+      "A": {
+        "maxExtraRight": 25,
+        "maxExtraBottom": 1
+      },
+      "B": {
+        "maxExtraRight": 45.9,
+        "maxExtraBottom": 0
+      },
+      "C": {
+        "maxExtraRight": 0,
+        "maxExtraBottom": 21
+      }
+    }
+  }
+}
