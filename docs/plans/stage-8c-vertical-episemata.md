@@ -103,8 +103,8 @@ to the owner before introducing a new field or artistic convention.
 ## Owner-approved contextual editing follow-up (PR #67)
 
 Approved in the [owner review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
-Implementation of this addition and owner review remain pending; this approval
-is not engraving acceptance or permission to merge.
+This addition is implemented for review; owner acceptance remains pending.
+The scope approval is not engraving acceptance or permission to merge.
 
 - In Select mode, show a small contextual editing surface near the selected
   note for **Mora scope**, **Horizontal episema** and **Vertical episema**.

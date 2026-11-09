@@ -1,0 +1,56 @@
+.note-context-toolbar {
+  position: fixed;
+  z-index: 20;
+  width: min(20rem, calc(100vw - 1rem));
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  border: 1px solid #a79e90;
+  border-radius: 0.4rem;
+  background: #fffdf8;
+  color: #28231e;
+  box-shadow: 0 0.2rem 0.75rem #28231e30;
+  font:
+    0.875rem Georgia,
+    'Times New Roman',
+    serif;
+}
+.note-context-toolbar__target {
+  margin: 0 0 0.35rem;
+  font-weight: bold;
+}
+.note-context-toolbar label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block: 0.25rem;
+}
+.note-context-toolbar select {
+  width: 8rem;
+  max-width: 100%;
+  margin-left: auto;
+  min-width: 0;
+  flex-shrink: 0;
+}
+.note-context-toolbar select,
+.note-context-toolbar button {
+  min-height: 2rem;
+  padding: 0.2rem 0.35rem;
+  color: inherit;
+  background: #fffdf8;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  font: inherit;
+}
+.note-context-toolbar button {
+  display: block;
+  margin: 0.35rem 0 0 auto;
+  cursor: pointer;
+}
+.note-context-toolbar :focus-visible {
+  outline: 2px solid #1e64d2;
+  outline-offset: 2px;
+}

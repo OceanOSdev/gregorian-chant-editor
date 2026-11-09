@@ -767,3 +767,37 @@ control widths; selection changes do not mount or remove controls. Native Tab
 reaches it after Horizontal episema. Accessible note names announce the sign.
 This authors notation only; manual Above/Below and automatic rhythmic counting
 remain deferred. Each accepted change has one Undo/Redo step.
+
+## Nearby note markings (Stage 8C review follow-up)
+
+In Select mode a selected note also shows a small **Selected note markings**
+group beside its current rendered bounds. It provides the same legal Mora scope,
+Horizontal episema and Vertical episema selects as the top inspector. Form stays
+in the comprehensive inspector. Both surfaces derive values from the committed
+note/neume and invoke the same existing command callbacks; selecting or closing
+this convenience never changes the document.
+
+The HTML panel is portaled outside the SVG and score scroller with fixed viewport
+positioning, so it consumes no layout space and cannot be clipped by the SVG.
+It follows semantic/font reflow, window and nested score scrolling, resize and
+visual-viewport changes. Placement prefers above, then below or spare side room;
+short viewports use bounded panel scrolling, and narrow controls wrap rather
+than overflow. It stays outside the selected note's bounds. An offscreen note
+hides the panel unless its controls still hold focus; the inspector remains the
+fallback when no usable surrounding space exists.
+
+Selecting a note leaves score focus in place. Tab from that selected note enters
+Mora scope, followed by the two episema fields and Close. Shift+Tab from Mora
+returns to the note; Tab from Close continues to the next score control when
+one exists. Escape or Close dismisses the panel and returns focus to the same
+note without scrolling or undoing committed changes. Tab or reselecting the same
+note reopens it. Native select keys retain their behavior; notation insertion,
+delete and pitch shortcuts do not escape the panel. Ctrl/Cmd+Z and Redo use the
+existing semantic history action. Placement and pending history/lyric-move/clef
+workflows hide this convenience, retaining the existing guards.
+
+Only browser presentation state (visibility, client bounds and focus) is added.
+The semantic model, engraving layout, history and native v4/storage contracts do
+not change. This fits the existing state-separation/identity ADRs; no new durable
+architectural decision is required. ADR 0020 remains Proposed. See the
+[follow-up verification](verification/vertical-episemata/contextual-editing.md).

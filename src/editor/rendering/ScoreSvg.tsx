@@ -47,6 +47,7 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  onFocusNoteModifiers?: () => boolean;
   clefPreview: ClefPlacementPreview | null;
   clefDraftPreview: { id: string; clef: ClefGeometry } | null;
   onPlaceClef: (point?: SvgPoint) => void;
@@ -100,6 +101,7 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  onFocusNoteModifiers,
   clefPreview,
   clefDraftPreview,
   onPlaceClef,
@@ -351,6 +353,20 @@ export function ScoreSvg({
       return;
     }
 
+    if (
+      isNoteSelected &&
+      event.key === 'Tab' &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      onFocusNoteModifiers?.()
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       event.stopPropagation();
@@ -464,7 +480,9 @@ export function ScoreSvg({
         {getScoreAccessibleDescription(layout)}
       </desc>
       <desc id="whole-neume-selection-instruction">
-        {wholeNeumeSelectionInstruction}
+        {wholeNeumeSelectionInstruction} When a note is selected, Tab opens its
+        nearby markings. Escape in the markings closes them and returns to the
+        note.
       </desc>
 
       {layout.systems.map((system) => (

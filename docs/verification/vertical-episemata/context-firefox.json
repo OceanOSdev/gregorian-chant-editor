@@ -1,0 +1,84 @@
+{
+  "browser": "Firefox",
+  "reports": [
+    {
+      "width": 1440,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 526.5,
+          "right": 560.6666717529297,
+          "top": 24.316665649414062,
+          "bottom": 65.31666564941406,
+          "width": 34.16667175292969,
+          "height": 41
+        },
+        "panel": {
+          "left": 383.58331298828125,
+          "right": 703.5833129882812,
+          "top": 73.31666564941406,
+          "bottom": 255.31666564941406,
+          "width": 320,
+          "height": 182
+        },
+        "viewport": {
+          "left": 0,
+          "right": 1428,
+          "top": 0,
+          "bottom": 1000
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 2381,
+        "scoreTop": 785.199951171875,
+        "scrollWidth": 1428,
+        "width": 1440
+      }
+    },
+    {
+      "width": 320,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 94,
+          "right": 108.58332824707031,
+          "top": 23.833328247070312,
+          "bottom": 38.43333435058594,
+          "width": 14.583328247070312,
+          "height": 14.600006103515625
+        },
+        "panel": {
+          "left": 8,
+          "right": 300,
+          "top": 46.43333435058594,
+          "bottom": 228.63333129882812,
+          "width": 292,
+          "height": 182.1999969482422
+        },
+        "viewport": {
+          "left": 0,
+          "right": 308,
+          "top": 0,
+          "bottom": 600
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 1792,
+        "scoreTop": 1319.7999877929688,
+        "scrollWidth": 308,
+        "width": 320
+      }
+    }
+  ],
+  "result": "PASS"
+}

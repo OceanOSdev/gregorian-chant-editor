@@ -1,11 +1,15 @@
 import {
+  NoteContextToolbar,
+  type NoteContextToolbarHandle,
+} from './NoteContextToolbar';
+import {
   allowedNoteForms,
   isNoteForm,
   noteFormLabels,
 } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
 import { entryAppearance, toolNoteForm } from '../state/editor-tool';
-import { getMoraScope, moraChoices } from '../domain/mora';
+import { getMoraScope, moraChoices, type MoraScope } from '../domain/mora';
 import {
   updateMoraScope,
   updateNoteModifiers,
@@ -121,6 +125,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
   const rememberedName = entryName(rememberedKind, session.rememberedForm);
+  const scoreWorkspace = useRef<HTMLDivElement>(null);
+  const noteToolbar = useRef<NoteContextToolbarHandle>(null);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
@@ -153,6 +159,39 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       ? findNote(history.present, selection.noteId)
       : null;
   const selectedNote = selectedNoteLocation?.note;
+  const selectedNoteId = selectedNote?.id;
+  const getSelectedNoteElement = useCallback(
+    () =>
+      selectedNoteId
+        ? (scoreWorkspace.current?.querySelector<SVGGElement>(
+            `[data-note-id="${CSS.escape(selectedNoteId)}"]`,
+          ) ?? null)
+        : null,
+    [selectedNoteId],
+  );
+  const noteToolbarAvailable = Boolean(
+    selectedNote &&
+    activeTool.kind === 'select' &&
+    !session.pendingHistory &&
+    !session.lyricMove &&
+    !session.clefTransaction,
+  );
+  function changeMoraScope(scope: MoraScope) {
+    if (!selectedNoteLocation) return;
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) =>
+        updateMoraScope(document, selectedNoteLocation.neume.id, scope),
+    });
+  }
+  function changeEpisema(kind: 'episema' | 'verticalEpisema', value: boolean) {
+    if (!selectedNote) return;
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) =>
+        updateNoteModifiers(document, selectedNote.id, { kind, value }),
+    });
+  }
   const selectedDivision =
     selection.kind === 'division'
       ? history.present.divisions.find((d) => d.id === selection.divisionId)
@@ -1062,16 +1101,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 const choice = moraChoices(
                   selectedNoteLocation.neume.kind,
                 ).find((c) => c.value === event.target.value);
-                if (choice)
-                  dispatch({
-                    type: 'engraving-edit',
-                    edit: (document) =>
-                      updateMoraScope(
-                        document,
-                        selectedNoteLocation.neume.id,
-                        choice.value,
-                      ),
-                  });
+                if (choice) changeMoraScope(choice.value);
               }}
             >
               {moraChoices(selectedNoteLocation?.neume.kind ?? 'punctum').map(
@@ -1089,16 +1119,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               aria-label="Horizontal episema"
               value={selectedNote?.episema ? 'on' : 'off'}
               onChange={(event) => {
-                if (!selectedNote) return;
-                const value = event.target.value === 'on';
-                dispatch({
-                  type: 'engraving-edit',
-                  edit: (document) =>
-                    updateNoteModifiers(document, selectedNote.id, {
-                      kind: 'episema',
-                      value,
-                    }),
-                });
+                changeEpisema('episema', event.target.value === 'on');
               }}
             >
               <option value="off">Off</option>
@@ -1111,16 +1132,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               aria-label="Vertical episema"
               value={selectedNote?.verticalEpisema ? 'on' : 'off'}
               onChange={(event) => {
-                if (!selectedNote) return;
-                const value = event.target.value === 'on';
-                dispatch({
-                  type: 'engraving-edit',
-                  edit: (document) =>
-                    updateNoteModifiers(document, selectedNote.id, {
-                      kind: 'verticalEpisema',
-                      value,
-                    }),
-                });
+                changeEpisema('verticalEpisema', event.target.value === 'on');
               }}
             >
               <option value="off">Off</option>
@@ -1143,7 +1155,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </button>
         </div>
       ) : null}
-      <div className="score-workspace">
+      <div className="score-workspace" ref={scoreWorkspace}>
         <div
           className="score-viewport"
           tabIndex={layout.width > 720 ? 0 : undefined}
@@ -1151,6 +1163,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
         >
           <ScoreSvg
+            onFocusNoteModifiers={
+              noteToolbarAvailable
+                ? () => noteToolbar.current?.focus() ?? false
+                : undefined
+            }
             clefPreview={clefPlacement?.preview ?? null}
             clefDraftPreview={clefDraftPreview}
             onPlaceClef={(point) => {
@@ -1265,6 +1282,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               dispatch({ type: 'focus-handled', request });
             }}
             onSelectNote={(noteId) => {
+              if (noteId === selectedNoteId) noteToolbar.current?.show();
               const note = findNote(history.present, noteId);
               if (session.lyrics && session.lyrics.kind !== 'recovery' && note)
                 lyricAction({ type: 'navigate', neumeId: note.neume.id });
@@ -1330,6 +1348,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             }
           />
         </div>
+        {noteToolbarAvailable && selectedNote && selectedNoteLocation ? (
+          <NoteContextToolbar
+            key={selectedNote.id}
+            ref={noteToolbar}
+            note={selectedNote}
+            neume={selectedNoteLocation.neume}
+            layout={layout}
+            getNoteElement={getSelectedNoteElement}
+            onMoraChange={changeMoraScope}
+            onEpisemaChange={changeEpisema}
+            onHistory={navigateHistory}
+          />
+        ) : null}
         <SyllableControls
           onAlignment={(syllableId, range) =>
             dispatch({

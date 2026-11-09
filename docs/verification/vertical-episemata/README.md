@@ -167,6 +167,15 @@ Run its driver with `CHANT_CURRENT_VERSION=4` plus
 for each run; it intentionally refuses an existing cache. Its read-only server
 accepts `?build=v4` for the current build and `?build=v2` for the actual baseline.
 
+## Contextual editing follow-up
+
+The owner approved nearby note marking controls in
+[PR #67's review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
+The scope was committed to the plan before implementation. The [follow-up record](contextual-editing.md)
+contains its actual lower-score, keyboard, responsive and compatibility results
+and screenshots. This convenience retains the inspector and existing commands,
+engraving and native format. It is not Stage 8C visual acceptance or closeout.
+
 ## Owner review still required
 
 Review the contours, note ownership, local side choices and crowded cases against

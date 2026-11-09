@@ -1,0 +1,84 @@
+{
+  "browser": "Chromium",
+  "reports": [
+    {
+      "width": 1440,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 525.6300659179688,
+          "right": 559.1549072265625,
+          "top": 24.2506103515625,
+          "bottom": 65.225341796875,
+          "width": 33.52484130859375,
+          "height": 40.9747314453125
+        },
+        "panel": {
+          "left": 382.390625,
+          "right": 702.390625,
+          "top": 73.21875,
+          "bottom": 254.21875,
+          "width": 320,
+          "height": 181
+        },
+        "viewport": {
+          "left": 0,
+          "right": 1425,
+          "top": 0,
+          "bottom": 1000
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 2341,
+        "scoreTop": 745.125,
+        "scrollWidth": 1425,
+        "width": 1440
+      }
+    },
+    {
+      "width": 320,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 95.85393524169922,
+          "right": 106.01634979248047,
+          "top": 23.52587890625,
+          "bottom": 35.94659423828125,
+          "width": 10.16241455078125,
+          "height": 12.42071533203125
+        },
+        "panel": {
+          "left": 8,
+          "right": 297,
+          "top": 43.9375,
+          "bottom": 224.9375,
+          "width": 289,
+          "height": 181
+        },
+        "viewport": {
+          "left": 0,
+          "right": 305,
+          "top": 0,
+          "bottom": 600
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 1725,
+        "scoreTop": 1256.71875,
+        "scrollWidth": 305,
+        "width": 320
+      }
+    }
+  ],
+  "result": "PASS"
+}

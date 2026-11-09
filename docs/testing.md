@@ -775,3 +775,23 @@ contains reproducible reference comparisons, actual results, actual-build storag
 compatibility and remaining foreground/owner checks. The separate storage-review
 driver accepts `CHANT_CURRENT_VERSION=4` for the current build. ADR 0020 remains
 Proposed, and visual owner acceptance remains required before milestone closeout.
+
+### Contextual note editing review follow-up
+
+`interaction/position-note-toolbar.test.ts` tests client-coordinate placement,
+flipping, viewport clamping, short-viewport scrolling limits, visual viewport
+offsets and separation from note bounds. It does not test DOM focus or native
+select operation. The standalone
+`docs/verification/vertical-episemata/context-browser-check.mjs` exercises the
+actual production editor on lower Pater Noster systems, both synchronized editing
+surfaces, native keyboard focus/select changes, Escape/Close/reopening, Tab exit,
+shortcut isolation, exact history/cache/refresh, every legal mora menu, reflow,
+scrolling and narrow/short viewports. Chromium additionally emulates pinch zoom.
+
+Run it with the same disposable-profile/environment overrides as the other
+Stage 8C drivers, then run the existing vertical-episema, note-modifier, note-form,
+persistence and bundled-example drivers sequentially. Blank-score pointer helpers
+now choose a genuinely unobscured canvas point rather than assume a fixed corner
+is free of the contextual panel. See the [actual evidence and remaining manual
+checks](verification/vertical-episemata/contextual-editing.md). No browser test
+dependency or DOM test environment is added.

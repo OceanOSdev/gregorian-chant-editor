@@ -194,9 +194,18 @@ async function select(id) {
   );
 }
 async function clearNote() {
-  const point = await ev(
-    `(()=>{const svg=document.querySelector('svg.score');svg.scrollIntoView({block:'center'});const r=svg.getBoundingClientRect();return {x:r.x+8,y:Math.max(8,Math.min(innerHeight-8,r.y+8))}})()`,
+  await ev(
+    `document.querySelector('svg.score').scrollIntoView({block:'center'})`,
   );
+  await pause();
+  const point = await ev(`(()=>{
+    const svg=document.querySelector('svg.score'),r=svg.getBoundingClientRect();
+    for(let y=Math.max(8,r.top+8);y<Math.min(innerHeight-8,r.bottom-8);y+=20){
+      const x=r.left+8;
+      if(document.elementFromPoint(x,y)===svg)return {x,y};
+    }
+    throw Error('No unobscured blank score point');
+  })()`);
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
       type,
