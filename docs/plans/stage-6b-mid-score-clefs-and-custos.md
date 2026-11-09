@@ -207,10 +207,13 @@ line **editing** must still obey ADR 0015's transient draft + Apply/Cancel.
 
 This **supersedes** earlier wording in this handoff allowing a
 post-click Preserve melody / Preserve noteheads dialog for **insertion**.
+The subsequent owner-approved shared-mode amendment also removes the
+post-Apply choice for **editing existing clefs**.
 The owner explicitly wants the behavior chosen **beforehand** and a
-genuinely one-click interaction. Accepted ADR 0015 is narrowly
-amended on this branch to match. Existing-clef editing and deletion
-retain their current conditional confirmation rules.
+genuinely one-click insertion interaction. Accepted ADR 0015 is narrowly
+amended on this branch to match. Existing-clef **editing** continues to
+use Apply/Cancel but adopts the same preselected mode, with no further
+choice prompt. Existing-clef **deletion** retains conditional confirmation.
 
 - While either **C clef** or **F clef** placement tool is selected,
   show a compact **Insertion behavior** control visibly near the
@@ -243,11 +246,12 @@ retain their current conditional confirmation rules.
   An optional preview of the resulting shifted **existing notes**
   would make the mode's effect clearer, but is **not a blocker**
   if it requires a disproportionate measured-layout rewrite.
-- **This mode governs insertion only.** Editing an existing
-  authored clef still stages multiple type/line changes with
-  Apply/Cancel and one conditional preservation choice; deletion
-  keeps its existing conditional choice. Initial clefs retain
-  ADR 0014's always-preserve-melody rule. No horizontal relocation.
+- **This mode governs insertion AND edits of an existing authored
+  clef.** Existing-clef editing still stages type/line changes
+  with Apply/Cancel; Apply uses the shared mode with **no further
+  preservation dialog**. Deletion keeps its separate conditional
+  pitch choice. Initial-clef editing remains always melody-preserving
+  under ADR 0014. No horizontal relocation.
 - **Tests:** both modes with affected notes, unaffected/trailing
   changes, repeated C/F clicks without any modal, persistence of
   selected mode across tool switches, keyboard parity, correct
@@ -256,6 +260,48 @@ retain their current conditional confirmation rules.
   Verify Chromium/Firefox and 320px containment. Record screenshots
   of mode control, ghost, and insertion before/after. Update the
   owning interaction guide and PR verification only when implemented.
+
+### Owner-approved shared pitch mode for existing-clef editing (2026-11-08)
+
+The owner wants **one consistent pitch-handling mode for insertion and
+editing**. This narrowly amends Accepted ADR 0015's *post-Apply*
+confirmation requirement for edits. It does not alter the semantic
+representation, preserve-melody formula, or atomic history.
+
+- **Reuse `clefInsertionPolicy`** (or rename it appropriately to
+  reflect its shared role); do not introduce a duplicate policy state
+  that can disagree. Keep the chosen mode transient and consistent
+  between C/F placement tools, Select mode, and staged editing.
+- Keep **Keep pitches (move existing notes)** and **Keep note
+  positions (change pitches)** visible/accessible while an authored
+  clef is selected and while its edit draft is open, not only while
+  a placement tool is active. Choosing a mode never edits music
+  or adds a history entry. No need for a global settings screen.
+- Existing-clef editing flow: **select clef → choose behavior if
+  desired → change type/line in a transient draft → Apply → done.**
+  Apply determines affected existing notes from the original
+  committed document and final draft, applies the selected mode,
+  and commits exactly **one** undoable edit. **Never show the
+  preservation popup after Apply**, even if note interpretations
+  change. No-op Apply creates no history; Cancel/Escape preserves
+  document, redo branch, dirty lyric drafts and focus semantics.
+- On an unsafe Keep pitches result, leave the draft pending,
+  announce a nonmodal validation error near the editor, and allow
+  the user to switch to Keep note positions or revise the clef
+  and retry Apply. Do not silently fall back, partially modify
+  music, or incorrectly reject a safe Keep note positions result.
+- **Do not change deletion yet:** removing an existing clef
+  retains the current conditional pitch-choice confirmation.
+  Changing the required initial clef remains automatically
+  melody-preserving (Accepted ADR 0014).
+- Add unit/browser regressions for editing type and line under
+  both modes with affected notes, no popup, unchanged later
+  clef-governed notes, safe overflow rejection, final no-op,
+  cancel, one undo/redo entry, and mode persistence across
+  insertion → edit → insertion. Test keyboard arrows and the
+  contextual editor, Chromium and Firefox, and 320px.
+  Update the interaction guide, browser verification record and
+  screenshots, and report genuinely tested results.
 
 ### Primary interaction: direct in-score placement
 
@@ -311,14 +357,13 @@ retain their current conditional confirmation rules.
   expose a discoverable, compact way to change **C/F type** and staff line
   without searching a global `Authored clef` dropdown. Arrow Up/Down on
   the selected clef is an existing entry point; preserve it.
-- Per **Accepted ADR 0015**, repeated type/line adjustments of an existing
-  clef must remain a **transient draft** until explicit Apply/Cancel;
-  one final preservation choice and one undo entry. Use a compact
-  clef-specific contextual editor and (where safe) an in-score transient
-  preview instead of requiring the current large generic form.
-  Do not commit each arrow press; do not silently alter the accepted edit
-  lifecycle. Keep Delete/Backspace deletion accessible and ask the
-  pitch-policy question only if existing notes are affected.
+- Per **Accepted ADR 0015 as amended**, repeated type/line adjustments
+  of an existing clef remain a **transient draft** until explicit
+  Apply/Cancel. Apply uses the **shared preselected pitch mode** and
+  commits once without a second confirmation choice. Use compact
+  contextual controls and (where safe) an in-score draft preview.
+  Do not commit each arrow press. Delete/Backspace remains accessible;
+  **deletion**, unlike editing, retains its conditional pitch question.
 - A changed or deleted clef retains appropriate selection/focus; decorative
   repeated system clefs and derived custodes are never selectable.
   **No horizontal dragging/repositioning of an already authored clef.**
@@ -359,7 +404,8 @@ retain their current conditional confirmation rules.
   Reject unsafe policy without fallback or history mutation.
   Check exact undo/redo, retained policy across C/F tools and
   keyboard parity. For existing-clef editing, verify transient
-  draft, Apply/Cancel, one conditional choice and cancellation.
+  draft, Apply/Cancel using the shared mode with **no post-Apply
+  choice**, invalid-mode recovery, and cancellation.
   Test stale/reflowing boundaries.
 - Unit-test pointer-to-staff-line snapping/tolerance, shared
   preview/commit boundary resolution, guards against stale/out-of-band
@@ -370,7 +416,8 @@ retain their current conditional confirmation rules.
   regressions and the relevant legacy browser suites.
 - Capture **actual UI screenshots or a short recording** showing C/F
   ghost, visible insertion mode, one-click inserted result and
-  conditional pitch confirmation for **existing-clef edits**. Update `docs/editor-interactions.md`, tests/verification
+  Apply/Cancel on existing-clef edits with no post-Apply
+  preservation confirmation. Update `docs/editor-interactions.md`, tests/verification
   record, accessibility instructions and any now-stale Stage 6B/6C
   roadmap claims. Do not claim tested flows without running them.
 - Before merge, report the smallest manual owner test script:
@@ -409,8 +456,9 @@ accepted **staged edit** lifecycle for modifying an existing clef.
 - Browser-exercise the first-class graphical C/F insertion and selection
   UX described in the owner-approved correction above, including a
   visible **preselected insertion mode with no post-click prompt**;
-  staged Apply/Cancel and conditional pitch choice for
-  **existing-clef edits**, undo/redo, Escape, dirty lyric drafts,
+  staged Apply/Cancel using the same preselected mode with **no
+  post-Apply pitch choice for existing-clef edits**, undo/redo,
+  Escape, dirty lyric drafts,
   keyboard-only use, narrow screens, and focus after reflow.
   Capture screenshots/short recordings for mid-staff and break
   examples; allow owner to inspect engraving.

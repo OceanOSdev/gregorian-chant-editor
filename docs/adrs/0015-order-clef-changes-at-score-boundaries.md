@@ -9,9 +9,13 @@ Revised: 2026-11-08
 automatically derived custos engraving and the reviewed mixed-event boundary
 rules for Stage 6B. **Owner-approved insertion amendment (2026-11-08):**
 the user selects a visible pitch-handling mode before clef placement;
-one click applies it with no further preservation prompt. Editing or
-removing an existing clef retains its staged or conditional confirmation
-lifecycle. This is an interaction change, not a change to pitch semantics.
+one click applies it with no further preservation prompt. **Existing-clef editing amended by the owner on 2026-11-08:**
+the same preselected pitch-handling mode now governs both insertion and
+editing of authored clefs. Editing still stages changes with Apply/Cancel,
+but Apply uses the chosen mode immediately without a second preservation
+dialog. Deleting a clef retains its separate conditional choice; initial
+clefs retain ADR 0014's automatic melody preservation. These are
+interaction changes, not changes to pitch semantics or score order.
 It narrowly qualifies the boundary operations of Accepted
 ADR 0012 and the affected range of initial-clef edits in Accepted ADR 0014;
 neither record is superseded. Acceptance authorizes a separate Stage 6B
@@ -163,9 +167,13 @@ No persistent reference cycles are introduced.
   history entry and **no post-click preservation prompt**, even when
   existing notes are affected. The mode persists for the editor session
   when switching between C/F tools but is not part of the chant document.
-  **Existing-clef edits and removals** keep their conditional choice
-  after the proposed change. Preserve melody translates each affected
-  passage using ADR 0014's relative diatonic mapping:
+  **Existing-clef edits** use the same visible, preselected mode at
+  Apply, without asking again. The user can change that mode during
+  the draft before Apply. **Deletion** of an existing authored clef
+  retains its conditional pitch choice when surviving notes are affected;
+  this amendment does not silently apply the mode to removals.
+  Preserve melody translates each affected passage using ADR 0014's
+  relative diatonic mapping:
 
   ```text
   offset(clef) = base(type) - 2 * (staffLine - 1)
@@ -190,13 +198,17 @@ No persistent reference cycles are introduced.
   explicit changes remains identical. Do not add a preserve-
   noteheads mode for initial-clef edits in Stage 6B.
 - Stage type/line edits **of existing explicit clefs** in transient
-  session state with explicit **Apply/Cancel**. Multiple arrow/select adjustments affect
-  only the draft; they do not mutate the document or history.
-  Apply computes the final candidate relative to the original
-  committed document, prompts **once** if necessary, and commits
-  exactly one snapshot/history entry. A no-op does not prompt or
-  create history. Cancel leaves the document, undo stack, and
-  redo branch untouched; undo/redo never reopens confirmation.
+  session state with explicit **Apply/Cancel**. Multiple arrow/select
+  adjustments affect only the draft; they do not mutate the document
+  or history. Apply computes the final candidate relative to the
+  original committed document and applies the **currently selected
+  pitch mode without another dialog**, committing exactly one history
+  entry. A no-op creates no history. Cancel leaves the document,
+  undo stack and redo branch untouched. If the chosen mode cannot
+  safely apply, leave the draft pending, explain the failure without
+  changing modes, and allow a different selection and retry or Cancel.
+  Clef deletion retains separate conditional confirmation; undo/redo
+  never reopens a prompt.
   Guard against stale pending actions and competing semantic
   edits/history; preserve lyric draft and focus/selection behavior
   consistent with existing editor controls. Precise keyboard,
@@ -286,9 +298,9 @@ No persistent reference cycles are introduced.
 
 Stage 6B covers semantic clef events, expanded insertion
 boundaries, pure validation and reanchoring, scoped pitch
-transformations, graphical/keyboard clef insertion with preselected
-pitch mode, measured engraving and guide marks, staged existing-clef
-edits, and atomic history. A later Stage 6C may refine graphical
+transformations, graphical/keyboard clef insertion and staged existing-clef
+editing with a shared preselected pitch mode, measured engraving and
+guide marks, and atomic history. A later Stage 6C may refine graphical
 polish and vertical editing UX, **not horizontal
 clef relocation**. Do not add a generalized persisted
 event model, chromatic/absolute pitch representation,
