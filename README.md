@@ -13,7 +13,7 @@ interface may still change.
 The deployed public preview is available at
 [Gregorian Chant Editor](https://oceanosdev.github.io/gregorian-chant-editor/).
 Stage 7A adds browser-local recovery of committed edits and native JSON
-New / Import / Export controls. First visits start from an example score.
+title editing and New / Import / Export controls. First visits start from an example score.
 Export files for backups; browser storage is not cloud storage. The deployed
 preview gains these changes only after owner merge/deployment.
 See [native documents and recovery](docs/persistence.md).

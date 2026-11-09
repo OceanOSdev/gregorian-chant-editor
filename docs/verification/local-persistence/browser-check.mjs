@@ -148,6 +148,16 @@ async function importText(text) {
   await pause();
   await pause();
 }
+const titleInput = 'section[aria-label="Document"] input[type="text"]';
+const captureExports = () =>
+  ev(
+    `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){window.exportName=this.download;}`,
+  );
+async function setTitle(title) {
+  return ev(
+    `(()=>{const e=document.querySelector('${titleInput}');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(title)});e.dispatchEvent(new Event('input',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}')).document.title;})()`,
+  );
+}
 const fixture = {
   format: 'gregorian-chant-editor',
   version: 1,
@@ -233,15 +243,77 @@ try {
     await ev(`document.querySelectorAll('[data-system-index]').length>1`),
   );
   // Export exercises the actual Blob/filename path; capture bytes before native download.
-  await ev(
-    `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){window.exportName=this.download;}`,
-  );
+  await captureExports();
   await button('Export');
   const exported = await ev(`window.exported.text()`);
   assert.deepEqual(JSON.parse(exported), fixture);
   assert.equal(await ev('window.exportName'), 'Salve-Regina.chant.json');
   await button('New');
   assert.equal(JSON.parse(await raw()).document.neumes.length, 0);
+  // A new score can be named immediately; every title change uses semantic history/autosave.
+  const named = 'Sálve / Regina';
+  assert.equal(
+    await setTitle(named),
+    named,
+    'title saves in the input event task',
+  );
+  await pause();
+  assert.equal(await ev(`document.querySelector('h1').textContent`), named);
+  await button('Undo');
+  assert.equal(JSON.parse(await raw()).document.title, 'Untitled chant');
+  await button('Redo');
+  assert.equal(JSON.parse(await raw()).document.title, named);
+  await navigate();
+  assert.equal(
+    await ev(`document.querySelector('${titleInput}').value`),
+    named,
+  );
+  await ev(
+    `(()=>{const e=document.querySelector('${titleInput}');e.focus();e.setSelectionRange(e.value.length,e.value.length)})()`,
+  );
+  if (firefox)
+    await rawSend('input.performActions', {
+      context,
+      actions: [
+        {
+          type: 'key',
+          id: 'title-key',
+          actions: [
+            { type: 'keyDown', value: '!' },
+            { type: 'keyUp', value: '!' },
+          ],
+        },
+      ],
+    });
+  else await rawSend('Input.insertText', { text: '!' });
+  await pause();
+  assert.equal(JSON.parse(await raw()).document.title, named + '!');
+  assert.equal(
+    await ev(
+      `document.activeElement === document.querySelector('${titleInput}')`,
+    ),
+    true,
+  );
+  await button('Undo');
+  assert.equal(JSON.parse(await raw()).document.title, named);
+  await captureExports();
+  await button('Export');
+  const namedExport = await ev(`window.exported.text()`);
+  assert.equal(JSON.parse(namedExport).document.title, named);
+  assert.equal(await ev('window.exportName'), 'Sálve-Regina.chant.json');
+  await ev(`window.confirm=()=>true`);
+  await button('New');
+  await importText(namedExport);
+  assert.equal(
+    await ev(`document.querySelector('${titleInput}').value`),
+    named,
+  );
+  assert.equal(JSON.parse(await raw()).document.neumes.length, 0);
+  assert.equal(await setTitle(''), '');
+  await pause();
+  await button('Export');
+  assert.equal(await ev('window.exportName'), 'untitled.chant.json');
+
   await importText(exported);
   assert.deepEqual(JSON.parse(await raw()), fixture);
   const original = await raw();
@@ -253,6 +325,21 @@ try {
       document: { ...fixture.document, neumes: null },
     }),
     ' '.repeat(1024 * 1024 + 1),
+    JSON.stringify({
+      ...fixture,
+      document: {
+        ...fixture.document,
+        neumes: [
+          {
+            id: 'unsafe',
+            kind: 'punctum',
+            notes: [
+              { id: 'unsafe-note', staffPosition: Number.MAX_SAFE_INTEGER + 1 },
+            ],
+          },
+        ],
+      },
+    }),
   ]) {
     await importText(bad);
     assert.equal(await raw(), original);

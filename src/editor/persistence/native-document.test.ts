@@ -66,6 +66,45 @@ describe('native v1 codec', () => {
       ).toThrow();
     },
   );
+  it.each([Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])(
+    'preserves safe staff position %s exactly',
+    (position) => {
+      const document = {
+        ...blankDocument(),
+        neumes: [
+          {
+            id: 'n',
+            kind: 'punctum',
+            notes: [{ id: 'note', staffPosition: position }],
+          },
+        ],
+      };
+      expect(
+        decodeDocument(encodeDocument(decodeDocument(envelope(document)))),
+      ).toEqual(document);
+    },
+  );
+  it.each([
+    Number.MIN_SAFE_INTEGER - 1,
+    Number.MAX_SAFE_INTEGER + 1,
+    1e100,
+    -1e100,
+  ])(
+    'rejects unsafe staff position %s without rounding or coercion',
+    (position) => {
+      const document = {
+        ...blankDocument(),
+        neumes: [
+          {
+            id: 'n',
+            kind: 'punctum',
+            notes: [{ id: 'note', staffPosition: position }],
+          },
+        ],
+      };
+      expect(() => decodeDocument(envelope(document))).toThrow('safe integers');
+    },
+  );
   it('preserves complete semantic values, IDs, order and layout including an empty score', () => {
     const score = specimen();
     const first = score.syllables[0];

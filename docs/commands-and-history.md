@@ -254,3 +254,9 @@ serialized. Recovery, confirmed New and validated/confirmed Import create a fres
 `createEditorSession` root rather than an undoable edit. Failed or canceled
 imports do not dispatch semantic actions. See [persistence](persistence.md) for
 the shared codec, recovery and conflict policy under Accepted ADR 0016.
+
+`updateDocumentTitle` changes only the semantic title, structurally sharing the
+rest of the score and returning the original document for unchanged text.
+The Document title field uses the existing semantic edit/history path; each
+input change commits immediately and is undoable, redoable and autosaved.
+There is no additional title draft or history authority.

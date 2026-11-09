@@ -1,3 +1,4 @@
+import { updateDocumentTitle } from '../commands/update-document-title';
 import { DocumentControls } from './DocumentControls';
 import { usePersistedSession } from '../persistence/use-persisted-session';
 import { isDirtyLyricEntry } from '../state/lyric-entry';
@@ -871,6 +872,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           session.lyricMove ||
           session.pendingHistory,
         )}
+        updateTitle={(title) =>
+          dispatch({
+            type: 'engraving-edit',
+            edit: (document) => updateDocumentTitle(document, title),
+          })
+        }
         status={persistence.status}
         needsRecovery={persistence.needsRecovery}
         replace={(document) => {

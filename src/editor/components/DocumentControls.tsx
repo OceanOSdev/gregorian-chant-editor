@@ -14,6 +14,7 @@ interface DocumentControlsProps {
   blocked: boolean;
   status: string;
   needsRecovery: boolean;
+  updateTitle: (title: string) => void;
   replace: (document: ChantDocument) => void;
   reload: () => void;
   replaceCache: () => void;
@@ -23,6 +24,7 @@ export function DocumentControls({
   blocked,
   status,
   needsRecovery,
+  updateTitle,
   replace,
   reload,
   replaceCache,
@@ -77,6 +79,14 @@ export function DocumentControls({
     <section aria-label="Document">
       <fieldset disabled={blocked || reading}>
         <legend>Document</legend>
+        <label>
+          Title{' '}
+          <input
+            type="text"
+            value={document.title}
+            onChange={(event) => updateTitle(event.target.value)}
+          />
+        </label>{' '}
         <button
           type="button"
           onClick={() => {

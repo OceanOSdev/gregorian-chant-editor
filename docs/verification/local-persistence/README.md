@@ -106,3 +106,41 @@ atomic cross-tab synchronization service. Truly simultaneous writes remain a
 localStorage platform limitation. Extreme semantic pitches retain existing
 engraving limits; persistence never changes them. No GABC, cloud, library,
 playback or history persistence was introduced.
+
+## PR #63 review follow-up
+
+The Document section now includes a labeled Title field. Each input change
+commits through the existing semantic history/autosave path, with no separate
+draft. The pure command preserves all music/lyrics and returns the same document
+for unchanged text. Native validation now uses `Number.isSafeInteger()` for note
+positions, rejecting unsafe values instead of rounding or clamping them.
+
+Follow-up verification passed: `npm run format:check`, `npm run lint` (no
+warnings), `npm test` (64 files / 1,307 tests), `npm run build`, and
+`git diff --check`. New tests cover title immutability/sharing, no-op history,
+undo/redo, cache recovery, file round trips and blank-title filenames, plus
+inclusive safe-integer bounds and out-of-range rejection.
+
+The expanded production Chromium and Firefox drivers both pass the previous
+Stage 7A scenarios and the following additions:
+
+- Name a newly created blank chant and observe synchronous cache update, heading
+  update, title undo/redo and refresh recovery.
+- Append a character through native keyboard input while retaining title focus;
+  Undo restores the preceding title through semantic history.
+- Export the named chant, verify exact title/filename, New then Import the
+  exported bytes, and verify title-field restoration. A cleared title exports
+  with the fallback filename.
+- Reject unsafe imported staff positions while retaining the active score.
+
+Fresh diagnostics: Chromium `/tmp/chant-local-persistence-vBsAbg`; Firefox
+`/tmp/chant-local-persistence-0Be3n1`. Agent-inspected screenshots show the title
+field at [1440px in Chromium](title-controls-chromium.png) and
+[320px in Firefox](title-controls-firefox-320.png). The original screenshots above
+remain pre-follow-up evidence. Local Node remains v24.12.0; hosted CI uses the
+repository's declared version.
+
+Add to foreground acceptance: name a new chant using native typing/paste/IME,
+use Undo/Redo, refresh, and export/import an actual downloaded file. Check that
+its filename follows the chosen title, including the blank-title fallback.
+Foreground and hosted Pages checks remain unrun as described above.

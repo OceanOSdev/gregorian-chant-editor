@@ -50,7 +50,10 @@ architecture.
 5. **Transparent UI.** Small Document controls (New / Import / Export) and
    unobtrusive autosave status; update the existing preview notice, which
    currently promises refresh data loss. Make browser-local limitations clear
-   without misleadingly promising cloud backups.
+   without misleadingly promising cloud backups. PR #63 review follow-up adds a
+   simple editable title through semantic history/autosave, including refresh,
+   undo/redo and native-file preservation. The same review tightens native staff
+   position validation to JavaScript safe integers.
 
 ## Versioned interchange/validation contract
 

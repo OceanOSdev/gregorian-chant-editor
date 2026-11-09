@@ -13,7 +13,7 @@ The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
 arrays. Optional syllable alignment is the only optional semantic field.
 Unknown fields at every object level, invalid enums, missing fields, invalid
-note tuples/contours, noninteger or nonfinite positions, duplicate/nonblank-ID
+note tuples/contours, positions outside JavaScript’s safe integer range, duplicate/nonblank-ID
 violations, invalid lyric text/order/boundaries/alignment, and dangling or
 mismatched slot anchors reject the entire payload. No coercion or ID reminting
 occurs. Array order is preserved; divisions and clefs retain their documented
@@ -26,6 +26,13 @@ by this reader. An oversized in-memory score remains editable, with an unsaved
 status explaining export failure if necessary. Empty scores are valid. Valid
 extreme pitches are retained even when current engraving exceeds fixed vertical
 staff spacing; loading never transposes or repairs them.
+
+Staff positions at the native boundary must satisfy `Number.isSafeInteger()`
+(inclusive range −9,007,199,254,740,991 to 9,007,199,254,740,991), so imported
+integers are represented exactly by JavaScript numbers. The reader rejects
+out-of-range input rather than rounding or clamping. This validation also applies
+to export and cache recovery; it does not expand engraving limits or change the
+internal `StaffPosition` model.
 
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
@@ -66,6 +73,15 @@ cross-tab synchronization: localStorage offers no atomic compare-and-set, so
 truly simultaneous writes remain a platform limitation.
 
 ## Document controls
+
+**Title** is a labeled text field bound directly to the committed semantic title.
+Each input change creates one ordinary history entry and synchronously attempts
+autosave; unchanged values create no history entry. There is no separate title
+draft or Apply step. Undo/Redo restores title changes along with the rest of the
+semantic document. The heading, recovered score, native export content and
+sanitized export filename all use that same title. Empty titles are allowed and
+export as `untitled.chant.json`. The field follows the same pending-workflow
+and file-reading guards as the other Document controls.
 
 **New** confirms replacing work and creates a blank Latin chant with C clef on
 line 3 and title “Untitled chant.” **Import** reads and validates the selected

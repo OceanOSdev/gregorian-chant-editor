@@ -53,8 +53,11 @@ function clef(value: unknown) {
 }
 function note(value: unknown): ChantNote {
   const n = shape(value, ['id', 'staffPosition']);
-  if (typeof n.staffPosition !== 'number' || !Number.isInteger(n.staffPosition))
-    fail('Note positions must be finite integers.');
+  if (
+    typeof n.staffPosition !== 'number' ||
+    !Number.isSafeInteger(n.staffPosition)
+  )
+    fail('Note positions must be safe integers.');
   return { id: id(n.id), staffPosition: staffPosition(n.staffPosition) };
 }
 function neume(value: unknown): Neume {

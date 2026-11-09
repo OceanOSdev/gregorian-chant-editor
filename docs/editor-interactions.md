@@ -705,7 +705,11 @@ clef has horizontal dragging or slot movement.
 
 ## Document controls (Stage 7A)
 
-New / Import / Export and the autosave status appear in the Document section.
+A labeled Title field, New / Import / Export and the autosave status appear in
+the Document section. Title changes commit immediately through semantic history
+and autosave; no Apply step or separate draft is needed. Each input change is
+one undoable edit. Empty titles use the fallback export filename described in
+the persistence guide.
 Dirty/recovery lyric drafts, pending history prompts, lyric moves and staged
 clef transactions disable these controls with an explanation. Finish or cancel
 the existing edit first. New/import confirm replacement; cancellation and file
