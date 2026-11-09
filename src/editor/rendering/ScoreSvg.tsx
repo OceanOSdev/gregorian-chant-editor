@@ -481,8 +481,8 @@ export function ScoreSvg({
       </desc>
       <desc id="whole-neume-selection-instruction">
         {wholeNeumeSelectionInstruction} When a note is selected, Tab opens its
-        nearby markings. Escape in the markings closes them and returns to the
-        note.
+        nearby properties. Escape in the properties closes them and returns to
+        the note.
       </desc>
 
       {layout.systems.map((system) => (

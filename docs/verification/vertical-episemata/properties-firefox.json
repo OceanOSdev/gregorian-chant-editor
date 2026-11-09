@@ -1,0 +1,84 @@
+{
+  "browser": "Firefox",
+  "reports": [
+    {
+      "width": 1440,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 526.5,
+          "right": 560.6666717529297,
+          "top": 23.716659545898438,
+          "bottom": 64.71665954589844,
+          "width": 34.16667175292969,
+          "height": 41
+        },
+        "panel": {
+          "left": 383.58331298828125,
+          "right": 703.5833129882812,
+          "top": 72.71665954589844,
+          "bottom": 290.71665954589844,
+          "width": 320,
+          "height": 218
+        },
+        "viewport": {
+          "left": 0,
+          "right": 1428,
+          "top": 0,
+          "bottom": 1000
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 2264,
+        "scoreTop": 667.5999755859375,
+        "scrollWidth": 1428,
+        "width": 1440
+      }
+    },
+    {
+      "width": 320,
+      "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+      "system": 5,
+      "systems": 8,
+      "metrics": {
+        "note": {
+          "left": 94,
+          "right": 108.58332824707031,
+          "top": 24.23333740234375,
+          "bottom": 38.83332824707031,
+          "width": 14.583328247070312,
+          "height": 14.599990844726562
+        },
+        "panel": {
+          "left": 8,
+          "right": 300,
+          "top": 46.83332824707031,
+          "bottom": 264.8333282470703,
+          "width": 292,
+          "height": 218
+        },
+        "viewport": {
+          "left": 0,
+          "right": 308,
+          "top": 0,
+          "bottom": 600
+        },
+        "visibility": "visible",
+        "position": "fixed",
+        "parent": "BODY",
+        "controlsFit": true,
+        "selected": "true",
+        "scrollY": 1590,
+        "scoreTop": 1118.2000122070312,
+        "scrollWidth": 308,
+        "width": 320
+      }
+    }
+  ],
+  "result": "PASS"
+}

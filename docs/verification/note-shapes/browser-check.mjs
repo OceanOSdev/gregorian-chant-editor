@@ -142,6 +142,9 @@ async function importText(text) {
   await pause();
 }
 async function pointer(selector) {
+  await ev(
+    `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
+  );
   const point = await ev(
     `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing target');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
@@ -558,6 +561,9 @@ try {
     if (width === 1440) {
       await ev(
         `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){}`,
+      );
+      await ev(
+        `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
       );
       const exportPoint = await ev(
         `(()=>{const b=[...document.querySelectorAll('section[aria-label="Document"] button')].find(b=>b.textContent.trim()==='Export');b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,

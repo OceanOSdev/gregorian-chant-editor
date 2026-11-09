@@ -214,9 +214,9 @@ async function screenshot(name) {
   const { data } = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile(join(output, name + '.png'), Buffer.from(data, 'base64'));
 }
-async function change(label, value, contextual = true) {
+async function change(label, value) {
   return ev(
-    `(()=>{const e=document.querySelector(${JSON.stringify(contextual ? panelSelector : '.note-modifiers')}).querySelector('select[aria-label="${label}"]');${contextual ? 'e.focus({preventScroll:true});' : ''}e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}'));})()`,
+    `(()=>{const e=document.querySelector('${panelSelector} select[aria-label="${label}"]');e.focus({preventScroll:true});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}'));})()`,
   );
 }
 async function pointer(selector) {
@@ -328,12 +328,14 @@ try {
     let metrics = await contextMetrics(id);
     assert.ok(Math.abs(metrics.scoreTop - top) < 0.05);
     assert.ok(Math.abs(metrics.scrollY - scroll) < 1);
-    assert.ok(
-      await ev(
-        `document.querySelector('.note-modifiers').getBoundingClientRect().bottom<0`,
-      ),
-      'inspector is several systems above: ' +
-        JSON.stringify({ width, target, metrics }),
+    assert.equal(
+      await ev(`document.querySelectorAll('.note-modifiers').length`),
+      0,
+      'no duplicated top inspector',
+    );
+    assert.equal(
+      await ev(`document.querySelectorAll('select[aria-label="Form"]').length`),
+      1,
     );
     await screenshot('selected-' + width);
     await key('Tab');
@@ -341,11 +343,11 @@ try {
       await ev(
         `document.activeElement.closest('${panelSelector}')?.getAttribute('aria-label')`,
       ),
-      'Selected note markings',
+      'Selected note properties',
     );
     assert.equal(
       await ev('document.activeElement.getAttribute("aria-label")'),
-      'Mora scope',
+      'Form',
     );
     await key('Tab', 'Tab', ['Shift']);
     assert.equal(
@@ -379,29 +381,45 @@ try {
     );
     await key('z', 'KeyZ', ['Control', 'Shift']);
     assert.deepEqual(await score(), expected);
-    for (const label of [
-      'Mora scope',
-      'Horizontal episema',
-      'Vertical episema',
-    ])
-      assert.equal(
-        await ev(
-          `document.querySelector('.note-modifiers select[aria-label="${label}"]').value`,
-        ),
-        label === 'Mora scope' ? 'sole' : 'on',
-      );
-    await change('Horizontal episema', 'off', false);
+    for (const form of ['virga', 'inclinatum', 'default']) {
+      const prior = structuredClone(expected);
+      if (form === 'default') delete getNote(expected).form;
+      else getNote(expected).form = form;
+      saved = await change('Form', form);
+      assert.deepEqual(saved.document, expected);
+      const bytes = await raw();
+      await change('Form', form);
+      assert.equal(await raw(), bytes);
+      await key('z', 'KeyZ', ['Control']);
+      assert.deepEqual(await score(), prior);
+      await key('z', 'KeyZ', ['Control', 'Shift']);
+      assert.deepEqual(await score(), expected);
+      if (form !== 'default') await screenshot('form-' + form + '-' + width);
+    }
+    await ev(
+      `document.querySelector('${panelSelector} select[aria-label="Form"]').focus({preventScroll:true})`,
+    );
+    await key('ArrowDown');
+    await key('Tab');
+    const nativeForm = structuredClone(expected);
+    getNote(nativeForm).form = 'virga';
+    assert.deepEqual(
+      await score(),
+      nativeForm,
+      'native form arrows edit form only',
+    );
+    await change('Form', 'default');
+    assert.deepEqual(await score(), expected);
     assert.equal(
       await ev(
-        `document.querySelector('${panelSelector} select[aria-label="Horizontal episema"]').value`,
+        `document.querySelector('${panelSelector} select[aria-label="Vertical episema"]').value`,
       ),
-      'off',
+      'on',
     );
-    await change('Horizontal episema', 'on', false);
     await contextMetrics(id);
     assert.ok(
       Math.abs((await ev('scrollY')) - scroll) < 1,
-      'editing does not scroll to inspector',
+      'editing properties must remain local',
     );
     await screenshot('after-' + width);
     const beforeDismiss = await raw();
@@ -451,7 +469,28 @@ try {
       ),
     );
     assert.equal(await raw(), beforeDismiss);
+    const beforeReopen = await raw();
+    await ev('window.scrollTo(0,0)');
+    await pause();
     await key('Tab');
+    await pause();
+    await contextMetrics(id);
+    assert.equal(
+      await ev('document.activeElement.getAttribute("aria-label")'),
+      'Form',
+    );
+    assert.equal(
+      await raw(),
+      beforeReopen,
+      'offscreen keyboard reopening changes no semantics',
+    );
+    await key('Escape');
+    await key('Tab');
+    await key('Tab');
+    assert.equal(
+      await ev('document.activeElement.getAttribute("aria-label")'),
+      'Mora scope',
+    );
     await key('Tab');
     assert.equal(
       await ev('document.activeElement.getAttribute("aria-label")'),
@@ -465,7 +504,7 @@ try {
     await key('Tab');
     assert.equal(
       await ev('document.activeElement.getAttribute("aria-label")'),
-      'Close note markings',
+      'Close note properties',
     );
     await key('Tab');
     assert.ok(
@@ -548,6 +587,7 @@ try {
     await key('Tab');
     await key('Tab');
     await key('Tab');
+    await key('Tab');
     assert.equal(
       await ev('document.activeElement.getAttribute("aria-label")'),
       'Vertical episema',
@@ -561,7 +601,7 @@ try {
     await key('Tab');
     assert.equal(
       await ev('document.activeElement.getAttribute("aria-label")'),
-      'Close note markings',
+      'Close note properties',
     );
     await key('Escape');
     assert.equal(await raw(), shortBytes);
@@ -670,6 +710,38 @@ try {
           ? ['none', 'first', 'second', 'both']
           : ['none', 'final', 'final-two'],
     );
+    const formOptions = await ev(
+      `Array.from(document.querySelector('${panelSelector} select[aria-label="Form"]').options,o=>o.value)`,
+    );
+    assert.deepEqual(
+      formOptions,
+      i === 0
+        ? ['default', 'virga', 'inclinatum']
+        : i === 1
+          ? ['default', 'quilisma']
+          : ['default'],
+    );
+    assert.equal(
+      await ev(
+        `document.querySelector('${panelSelector} select[aria-label="Form"]').disabled`,
+      ),
+      i >= 2,
+    );
+    if (i >= 2)
+      assert.match(
+        await ev(`document.querySelector('${panelSelector}').textContent`),
+        /No alternate form/,
+      );
+    if (i >= 2) {
+      await key('Tab');
+      assert.equal(
+        await ev('document.activeElement.getAttribute("aria-label")'),
+        'Mora scope',
+        'disabled Form is skipped',
+      );
+      await key('Tab', 'Tab', ['Shift']);
+      if (i === 2) await screenshot('form-disabled-320');
+    }
     if (i > 2) {
       await change('Mora scope', 'final-two');
       const n = (await score()).neumes[i];
@@ -678,6 +750,19 @@ try {
       assert.equal(n.notes[2].mora, 1);
     }
   }
+  await focusNote('note-3-1');
+  assert.deepEqual(
+    await ev(
+      `Array.from(document.querySelector('${panelSelector} select[aria-label="Form"]').options,o=>o.value)`,
+    ),
+    ['default', 'quilisma'],
+  );
+  const unshaped = await score();
+  await change('Form', 'quilisma');
+  assert.equal((await score()).neumes[3].notes[1].form, 'quilisma');
+  await screenshot('form-quilisma-320');
+  await key('z', 'KeyZ', ['Control']);
+  assert.deepEqual(await score(), unshaped);
   // Responsive reflow and real horizontal score-viewport scrolling.
   const wide = structuredClone(corpus);
   wide.document.neumes = wide.document.neumes.slice(0, 2);

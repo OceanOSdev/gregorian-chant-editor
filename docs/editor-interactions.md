@@ -727,10 +727,10 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 ## Selected note modifiers (Stage 8A)
 
-The compact **Selected note form and modifiers** group stays mounted above the score,
-including while no note is selected. Fixed control widths and a single-line
-target keep selection/deselection and switching neumes from moving the score.
-The target names the owning neume for mora and the selected note for episema.
+The selected note’s contextual properties group is the primary editor for its
+form and rhythmic signs. No permanent duplicate inspector sits above the score.
+Its fixed overlay leaves score layout unchanged on selection/deselection. The
+target names the selected note and owning neume; mora scope belongs to that neume.
 
 **Mora scope** choices are None/Sole note for Punctum; None/First note/Second
 note/Both notes for Podatus and Clivis; None/Final note/Final two notes for the
@@ -751,8 +751,8 @@ with a matching ghost and no popup. Tools persist during pointer placement;
 I inserts the remembered kind and form, and T returns to its palette button.
 The figure choice is transient and resets with a new session, like other tools.
 
-The always-mounted selected-note group adds **Form**, separate from Mora scope
-and Horizontal episema. It offers default/Virga/Inclinatum on Punctum,
+The contextual note properties group includes **Form**, separate from Mora scope
+and the episema controls. It offers default/Virga/Inclinatum on Punctum,
 default/Quilisma on lower Podatus or middle Scandicus, and a disabled default-only
 control elsewhere. Fixed widths keep selection from moving the score. Placement
 and pending-workflow guards apply. Accessible note names include authored forms.
@@ -760,7 +760,7 @@ Undo/redo and immediate refresh preserve accepted edits and independent signs.
 
 ## Selected vertical episema (Stage 8C)
 
-The same always-mounted group adds an independent native **Vertical episema**
+The contextual group includes an independent native **Vertical episema**
 Off/On select for the selected note, on all seven neume kinds and supported
 forms. It shares the existing placement/pending-workflow guards and fixed
 control widths; selection changes do not mount or remove controls. Native Tab
@@ -768,36 +768,39 @@ reaches it after Horizontal episema. Accessible note names announce the sign.
 This authors notation only; manual Above/Below and automatic rhythmic counting
 remain deferred. Each accepted change has one Undo/Redo step.
 
-## Nearby note markings (Stage 8C review follow-up)
+## Consolidated nearby note properties (Stage 8C owner feedback)
 
-In Select mode a selected note also shows a small **Selected note markings**
-group beside its current rendered bounds. It provides the same legal Mora scope,
-Horizontal episema and Vertical episema selects as the top inspector. Form stays
-in the comprehensive inspector. Both surfaces derive values from the committed
-note/neume and invoke the same existing command callbacks; selecting or closing
-this convenience never changes the document.
+The owner superseded the earlier duplicate-inspector instruction in
+[PR #67’s later feedback](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740779436).
+In Select mode the contextual **Selected note properties** group is the sole
+primary note-property editor: Form, Mora scope, Horizontal episema and Vertical
+episema. Every value comes from the committed note/neume and uses the existing
+`updateNoteForm`, `updateMoraScope` and `updateNoteModifiers` callbacks. The former
+**Selected note form and modifiers** fieldset and its CSS are removed.
+
+Form offers exactly `allowedNoteForms` plus Default. Unsupported constituent
+roles show a disabled Default with “No alternate form for this note.” Rejected
+form-constrained deletion reopens the panel with the existing error beside the
+controls, preserving the unchanged note/history. There is no new form rule.
 
 The HTML panel is portaled outside the SVG and score scroller with fixed viewport
 positioning, so it consumes no layout space and cannot be clipped by the SVG.
-It follows semantic/font reflow, window and nested score scrolling, resize and
-visual-viewport changes. Placement prefers above, then below or spare side room;
-short viewports use bounded panel scrolling, and narrow controls wrap rather
-than overflow. It stays outside the selected note's bounds. An offscreen note
-hides the panel unless its controls still hold focus; the inspector remains the
-fallback when no usable surrounding space exists.
+It follows semantic/font reflow, window and nested scrolling, resize and visual
+viewport changes. It prefers above, then below or spare side room. Short
+viewports scroll within the panel, and narrow controls wrap. It stays outside
+the selected note’s bounds; offscreen notes hide it unless controls hold focus.
 
-Selecting a note leaves score focus in place. Tab from that selected note enters
-Mora scope, followed by the two episema fields and Close. Shift+Tab from Mora
-returns to the note; Tab from Close continues to the next score control when
-one exists. Escape or Close dismisses the panel and returns focus to the same
-note without scrolling or undoing committed changes. Tab or reselecting the same
-note reopens it. Native select keys retain their behavior; notation insertion,
-delete and pitch shortcuts do not escape the panel. Ctrl/Cmd+Z and Redo use the
-existing semantic history action. Placement and pending history/lyric-move/clef
-workflows hide this convenience, retaining the existing guards.
+Selection leaves score focus in place. Tab from the selected note opens or
+reopens the first enabled field: Form when authorable, otherwise Mora scope.
+Tab continues through the remaining enabled fields and Close; Shift+Tab from
+the first field returns to the note. Tab from Close continues to the next score
+control when present. Escape/Close preserves committed edits and returns focus
+to the same note. Reselecting also reopens it. Keyboard reopening reveals an
+offscreen focused note before focusing properties, so removing the inspector
+adds no dependency on scrolling to a distant fallback form.
 
-Only browser presentation state (visibility, client bounds and focus) is added.
-The semantic model, engraving layout, history and native v4/storage contracts do
-not change. This fits the existing state-separation/identity ADRs; no new durable
-architectural decision is required. ADR 0020 remains Proposed. See the
-[follow-up verification](verification/vertical-episemata/contextual-editing.md).
+Native select keys retain their behavior; insertion, delete and pitch shortcuts
+do not escape the panel. Ctrl/Cmd+Z and Redo use existing semantic history.
+Placement and pending history/lyric-move/clef workflows retain their guards.
+Only browser presentation state is added; semantics, history and native v4 are
+unchanged. ADR 0020 remains Proposed. See [current owner-feedback verification](verification/vertical-episemata/consolidation-and-weight.md).

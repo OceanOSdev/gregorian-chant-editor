@@ -54,3 +54,18 @@
   outline: 2px solid #1e64d2;
   outline-offset: 2px;
 }
+
+.note-context-toolbar__help,
+.note-context-toolbar__error {
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+}
+.note-context-toolbar__help {
+  color: #675f55;
+}
+.note-context-toolbar__error {
+  color: #a42018;
+}
+.note-context-toolbar select:disabled {
+  opacity: 0.7;
+}

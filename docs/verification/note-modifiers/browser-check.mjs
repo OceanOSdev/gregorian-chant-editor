@@ -123,6 +123,9 @@ const status = () =>
     `document.querySelector('section[aria-label="Document"] .document-header__save-status').textContent`,
   );
 const button = async (text) => {
+  await ev(
+    `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
+  );
   const point = await ev(
     `(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}); if(!b)throw Error('Missing '+${JSON.stringify(text)});b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
@@ -280,10 +283,8 @@ async function checkSelectionPosition(width) {
       );
   };
   assert.equal(
-    await ev(
-      `document.querySelector('[aria-label="Mora scope"]').matches(':disabled')`,
-    ),
-    true,
+    await ev(`!!document.querySelector('[aria-label="Mora scope"]')`),
+    false,
   );
   await pointer('[data-note-id="note-0-0"] .score__note-hit-target');
   assert.equal(
@@ -332,6 +333,14 @@ async function checkSelectionPosition(width) {
   await clearNote();
 }
 async function change(label, value) {
+  if (
+    !(await ev(`!!document.querySelector('select[aria-label="${label}"]')`))
+  ) {
+    const id = await ev(
+      `document.querySelector('[data-note-id][aria-pressed="true"]')?.dataset.noteId`,
+    );
+    if (id) await select(id);
+  }
   return ev(
     `(()=>{const e=document.querySelector('select[aria-label="${label}"]');e.focus();e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}'));})()`,
   );
@@ -567,6 +576,7 @@ try {
   await button('Redo');
   assert.equal(await raw(), narrowAfter);
   // Native Tab traversal into and within the contextual controls.
+  await select('note-6-0');
   await ev(`document.querySelector('[aria-label="Mora scope"]').focus()`);
   await key('Tab');
   assert.equal(

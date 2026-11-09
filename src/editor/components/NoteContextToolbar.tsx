@@ -7,7 +7,12 @@ import {
   useState,
   type Ref,
 } from 'react';
-import type { ChantNote, Neume } from '../domain/chant-document';
+import type { ChantNote, Neume, NoteForm } from '../domain/chant-document';
+import {
+  allowedNoteForms,
+  isNoteForm,
+  noteFormLabels,
+} from '../domain/note-forms';
 import { getMoraScope, moraChoices, type MoraScope } from '../domain/mora';
 import {
   positionNoteToolbar,
@@ -29,6 +34,8 @@ interface NoteContextToolbarProps {
   /** Refresh browser geometry after semantic/font-driven reflow. */
   layout: ChantLayout;
   getNoteElement: () => SVGGElement | null;
+  onFormChange: (form: NoteForm | undefined) => void;
+  formError: string | null;
   onMoraChange: (scope: MoraScope) => void;
   onEpisemaChange: (
     kind: 'episema' | 'verticalEpisema',
@@ -43,6 +50,8 @@ export function NoteContextToolbar({
   neume,
   layout,
   getNoteElement,
+  onFormChange,
+  formError,
   onMoraChange,
   onEpisemaChange,
   onHistory,
@@ -52,19 +61,34 @@ export function NoteContextToolbar({
   const panel = useRef<HTMLDivElement>(null);
   const firstControl = useRef<HTMLSelectElement>(null);
   const focusRequested = useRef(false);
+  const refreshPosition = useRef<(() => NoteToolbarPosition | null) | null>(
+    null,
+  );
   const targetId = useId();
+  const formHelpId = useId();
+  const forms = allowedNoteForms(
+    neume.kind,
+    neume.notes.findIndex((n) => n.id === note.id),
+  );
 
   useImperativeHandle(ref, () => ({
     show() {
       setOpen(true);
     },
     focus() {
-      if (!getNoteElement()) return false;
+      const element = getNoteElement();
+      if (!element) return false;
       if (open) {
-        if (!position || !firstControl.current) return false;
+        if (!position || !firstControl.current) {
+          focusAndReveal(element);
+          if (!refreshPosition.current?.()) return false;
+          focusRequested.current = true;
+          return true;
+        }
         if (panel.current) panel.current.scrollTop = 0;
         firstControl.current.focus({ preventScroll: true });
       } else {
+        focusAndReveal(element);
         focusRequested.current = true;
         setOpen(true);
       }
@@ -84,7 +108,7 @@ export function NoteContextToolbar({
     const update = () => {
       const element = getNoteElement();
       const surface = panel.current;
-      if (!element || !surface) return;
+      if (!element || !surface) return null;
       const noteBounds = element.getBoundingClientRect();
       const visual = window.visualViewport;
       const viewport = {
@@ -121,11 +145,13 @@ export function NoteContextToolbar({
           ? previous
           : next,
       );
+      return next;
     };
     const schedule = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
+    refreshPosition.current = update;
     update();
     const observer = new ResizeObserver(schedule);
     if (panel.current) observer.observe(panel.current);
@@ -140,6 +166,7 @@ export function NoteContextToolbar({
     window.visualViewport?.addEventListener('resize', schedule);
     window.visualViewport?.addEventListener('scroll', schedule);
     return () => {
+      refreshPosition.current = null;
       cancelAnimationFrame(frame);
       observer.disconnect();
       document.removeEventListener('focusin', schedule);
@@ -163,7 +190,7 @@ export function NoteContextToolbar({
       ref={panel}
       className="note-context-toolbar"
       role="group"
-      aria-label="Selected note markings"
+      aria-label="Selected note properties"
       aria-describedby={targetId}
       data-note-context-for={note.id}
       style={{
@@ -211,10 +238,42 @@ export function NoteContextToolbar({
         Note {neume.notes.findIndex((n) => n.id === note.id) + 1} of{' '}
         {neume.kind}
       </p>
+      {formError ? (
+        <p role="alert" className="note-form-error note-context-toolbar__error">
+          {formError}
+        </p>
+      ) : null}
+      <label>
+        Form
+        <select
+          ref={forms.length ? firstControl : undefined}
+          aria-label="Form"
+          aria-describedby={!forms.length ? formHelpId : undefined}
+          disabled={!forms.length}
+          value={note.form ?? 'default'}
+          onChange={(event) => {
+            const value = event.target.value;
+            if (value === 'default' || isNoteForm(value))
+              onFormChange(value === 'default' ? undefined : value);
+          }}
+        >
+          <option value="default">Default form</option>
+          {forms.map((form) => (
+            <option key={form} value={form}>
+              {noteFormLabels[form]}
+            </option>
+          ))}
+        </select>
+      </label>
+      {!forms.length ? (
+        <p id={formHelpId} className="note-context-toolbar__help">
+          No alternate form for this note.
+        </p>
+      ) : null}
       <label>
         Mora scope
         <select
-          ref={firstControl}
+          ref={!forms.length ? firstControl : undefined}
           aria-label="Mora scope"
           value={getMoraScope(neume) ?? 'none'}
           onChange={(event) => {
@@ -259,7 +318,7 @@ export function NoteContextToolbar({
       </label>
       <button
         type="button"
-        aria-label="Close note markings"
+        aria-label="Close note properties"
         onClick={close}
         onKeyDown={(event) => {
           if (event.key !== 'Tab' || event.shiftKey) return;

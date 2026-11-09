@@ -525,11 +525,11 @@ try {
       ),
       /Vertical episema/,
     );
-    await snapshot('controls-' + width, '.note-modifiers');
+    await snapshot('controls-' + width, '.note-context-toolbar');
     await clearNote();
     assert.equal(
       await ev(
-        `document.querySelector('select[aria-label="Vertical episema"]').disabled||document.querySelector('select[aria-label="Vertical episema"]').closest('fieldset').disabled`,
+        `!document.querySelector('select[aria-label="Vertical episema"]')`,
       ),
       true,
     );
