@@ -1,4 +1,4 @@
-import type { NoteModifiers } from '../domain/chant-document';
+import type { Neume, NoteModifiers } from '../domain/chant-document';
 import {
   getInkBounds,
   interNeumeInkGap,
@@ -21,6 +21,7 @@ export function addNoteModifiers(
   geometry: NeumeGeometry,
   modifiers: readonly NoteModifiers[],
   bottomStaffY: number,
+  kind: Neume['kind'],
 ): NeumeGeometry {
   if (!modifiers.some((n) => n.mora || n.episema)) return geometry;
   const ink = [...geometry.ink];
@@ -71,10 +72,19 @@ export function addNoteModifiers(
   geometry.notes.forEach((note, index) => {
     const count = modifiers[index]?.mora;
     if (!count) return;
-    // Line notes prefer the adjacent space above. Double mora is a vertical pair.
+    // Porrectus signs trail the whole ribbon. Gregorio puts a line-level
+    // second note's dot below when the final ascent is one staff step.
+    const porrectus = kind === 'porrectus';
+    const lowerSecond =
+      porrectus &&
+      index === 1 &&
+      geometry.notes[2]?.anchorY === note.anchorY - 12;
     const position = Math.round((bottomStaffY - note.anchorY) / 12);
-    const y = note.anchorY - (position % 2 === 0 ? 12 : 0);
-    const initialX = note.anchorX + 11;
+    const y =
+      note.anchorY + (position % 2 === 0 ? (lowerSecond ? 12 : -12) : 0);
+    const initialX = porrectus
+      ? geometry.bounds.x + geometry.bounds.width + 3
+      : note.anchorX + 11;
     const columns = [
       initialX,
       ...[...ink, ...signs].map(
@@ -84,7 +94,9 @@ export function addNoteModifiers(
       .filter((x) => x >= initialX)
       .sort((a, b) => a - b);
     for (const x of columns) {
-      const rows = position % 2 === 0 ? [y, y + 24] : [y];
+      // Keep a Porrectus dot on its conventional row. Coincident authored
+      // signs take separate compact trailing columns; none is merged or lost.
+      const rows = !porrectus && position % 2 === 0 ? [y, y + 24] : [y];
       const candidates = rows.map((centerY) =>
         Array.from({ length: count }, (_, dot) => ({
           x,

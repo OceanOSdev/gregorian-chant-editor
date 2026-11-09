@@ -158,11 +158,13 @@ commands above, setting `CHANT_FIREFOX_URL` to the active disposable session.
 Dense compound engraving remains an owner acceptance observation; this focused
 follow-up changes only the control location and its browser regression checks.
 
-## Porrectus mora refinement investigation — pending owner decision
+## Porrectus mora refinement — owner-selected trailing placement
 
 The [reference investigation and rendered comparison](porrectus-mora/README.md)
 found that Gregorio deliberately uses trailing Porrectus dots, with ambiguous
 overlap for equal outer pitches, and interprets double signs across the final
 two notes. No conventional three-way local placement was established. The
-requested placement refinement is paused under the owner's explicit stop
-condition; production code and the accepted note-level model remain unchanged.
+owner subsequently chose conventional trailing placement. The focused refinement
+uses compact clearance and the second note's adjacent-ascent line exception;
+the accepted note-level model and v2 meaning are unchanged. The linked record
+contains current behavior, limitations, before/after evidence and checks.

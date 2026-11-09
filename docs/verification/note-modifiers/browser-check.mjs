@@ -555,6 +555,103 @@ try {
     await select('wide-note-0-1-0');
     await snapshot('multisystem-' + width);
   }
+  // Porrectus owner-approved trailing placement: inspect actual SVG sign ink.
+  const porrectus = JSON.parse(
+    await readFile(
+      new URL('porrectus-mora/editor-cases.chant.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const inspectPorrectus = async (fixture) => {
+    assert.deepEqual(
+      JSON.parse(await raw()),
+      fixture,
+      'engraving must preserve exact v2 note data',
+    );
+    const result = await ev(`(()=>{
+      const input=${JSON.stringify(fixture.document.neumes)};
+      const svg=document.querySelector('svg.score');const v=svg.viewBox.baseVal;
+      const overlap=(a,b)=>a.x<b.x+b.width-0.01&&a.x+a.width>b.x+0.01&&a.y<b.y+b.height-0.01&&a.y+a.height>b.y+0.01;
+      return input.map(n=>{
+        const group=document.querySelector('[data-neume-id="'+n.id+'"]');
+        const ink=group.querySelector('.score__ink');const body=ink.querySelector('path').getBBox();
+        const signs=[...ink.querySelectorAll('rect')];
+        const dots=signs.filter(e=>e.getAttribute('rx')==='2');
+        const lines=[...group.closest('[data-system-index]').querySelectorAll('.score__staff-line')].map(e=>Number(e.getAttribute('y1')));
+        const bottom=Math.max(...lines);
+        const singleSecond=n.notes[1].mora===1&&!n.notes[0].mora&&!n.notes[2].mora&&!n.notes.some(note=>note.episema);
+        const secondBounds=singleSecond?dots[0].getBBox():null;
+        return {
+          id:n.id, count:dots.length,
+          trailing:dots.every(e=>e.getBBox().x>=body.x+body.width+2.99),
+          clear:signs.every((e,i)=>[ink.querySelector('path'),...signs.slice(0,i)].every(other=>!overlap(e.getBBox(),other.getBBox()))),
+          staffClear:dots.every(e=>{const b=e.getBBox();return lines.every(y=>b.y+b.height<=y-0.5||b.y>=y+0.5)}),
+          contained:signs.every(e=>{const b=e.getBBox();return b.x>=v.x&&b.y>=v.y&&b.x+b.width<=v.x+v.width+0.1&&b.y+b.height<=v.y+v.height+0.1}),
+          secondY:secondBounds?secondBounds.y+2:null,
+          belowY:bottom-n.notes[1].staffPosition*12+12,
+          adjacentLine:singleSecond&&n.notes[1].staffPosition%2===0&&n.notes[2].staffPosition-n.notes[1].staffPosition===1,
+        };
+      });
+    })()`);
+    for (const [index, r] of result.entries()) {
+      assert.equal(
+        r.count,
+        fixture.document.neumes[index].notes.reduce(
+          (sum, n) => sum + (n.mora ?? 0),
+          0,
+        ),
+        r.id + ' dot count',
+      );
+      for (const flag of ['trailing', 'clear', 'staffClear', 'contained'])
+        assert.equal(r[flag], true, r.id + ' ' + flag);
+      if (r.adjacentLine)
+        assert.equal(r.secondY, r.belowY, r.id + ' second-note space below');
+    }
+  };
+  await importText(JSON.stringify(porrectus));
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await pause();
+    await inspectPorrectus(porrectus);
+    await snapshot('porrectus-trailing-' + width);
+  }
+  const porrectusSpace = structuredClone(porrectus);
+  porrectusSpace.document.neumes.forEach((n) =>
+    n.notes.forEach((note) => (note.staffPosition += 1)),
+  );
+  await importText(JSON.stringify(porrectusSpace));
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await pause();
+    await inspectPorrectus(porrectusSpace);
+    await snapshot('porrectus-trailing-transposed-' + width);
+  }
+  const porrectusDouble = structuredClone(porrectus);
+  porrectusDouble.document.neumes.forEach((n) =>
+    n.notes.forEach((note) => Object.assign(note, { mora: 2, episema: true })),
+  );
+  await importText(JSON.stringify(porrectusDouble));
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await pause();
+    await inspectPorrectus(porrectusDouble);
+    await snapshot('porrectus-double-episema-' + width);
+  }
   // Corrupt/foreign v2 values do not destroy recoverable bytes.
   for (const invalid of [
     { ...marked, version: 99 },

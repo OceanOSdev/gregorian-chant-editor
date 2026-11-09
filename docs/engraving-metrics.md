@@ -474,7 +474,7 @@ placement. These are independently constructed project metrics, not GregorioTeX
 optical rules or a promise of identical output.
 
 Mora dots are circles of diameter 4. Start their left edge 5 units right of
-the nominal 12-unit head cell, including the first pitch of a Porrectus ribbon.
+the nominal 12-unit head cell, except for the trailing Porrectus rule below.
 A space note uses its pitch row; a line note tries the space above then below.
 Double mora uses two dots vertically separated by 24 units. Candidate columns
 include the initial column and occupied ink's right edges plus 3 units; choose
@@ -493,3 +493,23 @@ unchanged. Conservative full-ribbon bounds can displace signs beyond where a
 contour-aware engraver would place them; manual orientation and optical joining
 are deferred. See [verification](verification/note-modifiers/README.md) for
 rendered evidence and owner acceptance steps.
+
+### Porrectus trailing mora refinement
+
+Porrectus dots start 3 units after the complete glyph's right bound, so an
+ordinary single dot adds only 7 units to its measured width. No dot is moved
+along the descending ribbon. Space-level dots stay at their pitch; line-level
+dots prefer the space above, except for the **second note with a one-step final
+ascent**, which uses the space below. This follows the qualitative distinction
+in Gregorio's writer and its separate line/space Porrectus mora macros; it does
+not copy TeX font offsets into project units. The source and rendered comparison
+are in the [Porrectus investigation](verification/note-modifiers/porrectus-mora/README.md).
+
+Porrectus dots retain their chosen row instead of changing pitch association to
+avoid another dot. Colliding authored signs take subsequent trailing columns,
+with 3 units between the preceding sign's right edge and the next dot's left.
+All authored dots remain measured and visible, including equal-pitch outer
+notes and note-level double mora. Those unusual combinations may look crowded
+and cannot always communicate unique note ownership through position alone.
+We do not copy Gregorio's coincident-dot overpainting or merge semantic signs.
+Horizontal episema placement and the approved Porrectus contour are unchanged.

@@ -693,6 +693,9 @@ all seven kinds and marked interval matrices, full measured ink, staff-line
 clearance, unchanged heads/anchors, wrapping, accessible descriptions, exact
 baseline v1 decoding and guarded same-key v2 cache upgrade. Native v1 rejection
 coverage remains in place; v2 adds strict optional modifier validation.
+`porrectus-mora.test.ts` additionally checks conventional trailing clearance,
+the adjacent-ascent second note's line/space exception, equal-pitch sign
+preservation and double mora/episema without changing v2 note ownership.
 
 Run `node docs/verification/note-modifiers/browser-check.mjs` against the production
 repo-subpath preview with isolated Chromium/CDP on port 9230. Set

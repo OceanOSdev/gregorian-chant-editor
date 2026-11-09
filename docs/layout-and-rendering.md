@@ -601,7 +601,9 @@ use the same builder and complete committed sign bounds when resolving slots.
 
 Automatic placement uses conservative rectangles for shared silhouettes,
 stems and existing signs, plus explicit staff-line avoidance. This can leave
-more room than contour-specific optical placement, especially on ribbons.
+more room than contour-specific optical placement, especially on ribbons. Porrectus mora uses the complete glyph's trailing edge
+and a conventional second-note line/space exception; coincident authored dots
+keep their row and use separate compact trailing columns (see engraving metrics).
 Episemata remain separate when pitches/heights or intervening occupied ink make
 a bridge ambiguous; no across-neume joining occurs. Exact metrics and source
 basis live in [engraving metrics](engraving-metrics.md#rhythmic-signs-stage-8a).

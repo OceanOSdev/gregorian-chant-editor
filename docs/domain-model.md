@@ -108,6 +108,9 @@ properties on surviving notes; deletion removes only the deleted notes' signs.
 No timing or performance duration is implied. Coordinates and orientation remain
 derived under [Accepted ADR 0017](adrs/0017-model-rhythmic-modifiers-on-notes.md).
 See [persistence](persistence.md) for strict v2 fields and exact v1 compatibility.
+Note-level `mora: 2` remains distinct from Gregorio's conventional last-two-note
+double sign; [ADR 0017's follow-up question](adrs/0017-model-rhythmic-modifiers-on-notes.md#follow-up-design-question-conventional-double-signs)
+records the unresolved design issue without changing existing data.
 
 ## Lookup and identity
 

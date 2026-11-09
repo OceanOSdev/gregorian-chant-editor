@@ -40,6 +40,7 @@ export function buildNeumeGeometry(
     buildUnmodifiedGeometry(kind, positions, leftX, bottomStaffY),
     modifiers,
     bottomStaffY,
+    kind,
   );
 }
 

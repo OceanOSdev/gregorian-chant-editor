@@ -1,9 +1,11 @@
-# Porrectus mora investigation — decision required
+# Porrectus mora investigation and trailing-placement refinement
 
-PR #64 follow-up, 2026-11-09. Research and baseline captures only: **no engraving,
-semantic, native-format or test-contract change has been made**. The owner's
-instruction requires reporting unconventional notation or different semantic
-interpretations before implementing a speculative design.
+PR #64 follow-up, 2026-11-09. The initial investigation below is retained as
+reference evidence. The owner subsequently chose **Option 1: conventional trailing
+placement**, with narrow second-note line/space and clearance refinements.
+The semantic model and native v2 meaning remain unchanged. See the implementation
+and verification section below for current behavior; the original captures and
+initial checks describe the pre-refinement baseline.
 
 ## What the references establish
 
@@ -55,7 +57,7 @@ Each row compares Plain / First / Second / Third / All / Pair / Double:
 | Row | Pitches | All-three input | Last-two input | Double input |
 | --- | ------- | --------------- | -------------- | ------------ |
 | 1   | `h f h` | `h.f.h.`        | `hf.h.`        | `hfh..`      |
-| 2   | `g d f` | `g.d.f.`        | `gd.f.`        | `gdf..`      |
+| 2   | `g d h` | `g.d.h.`        | `gd.h.`        | `gdh..`      |
 | 3   | `i h i` | `i.h.i.`        | `ih.i.`        | `ihi..`      |
 
 With equal outer pitches (rows 1 and 3), First and Third use the same
@@ -88,11 +90,11 @@ artifact, but trailing dots are also an intentional Gregorio convention. Our
 collision checks keep equal-pitch dots distinct by finding additional space;
 they do not reproduce Gregorio's overlapping-dot fallback.
 
-The approved silhouette, semantic pitches/IDs, anchors and shared geometry have
-not been altered. No after screenshot or new preferred-placement assertions
-are supplied because a replacement policy has not been approved.
+The baseline above predates the owner-selected refinement. The approved
+silhouette, semantic pitches/IDs and lyric anchors remain unchanged; updated
+placement tests and after images are recorded below.
 
-## Alternatives for owner decision
+## Historical alternatives — owner selected Option 1
 
 1. **Keep the conventional trailing arrangement.** Consider a narrow follow-up
    for the second note's line/space displacement and compact trailing clearance.
@@ -108,10 +110,11 @@ are supplied because a replacement policy has not been approved.
    refinement and conflicts with preserving the approved silhouette or current
    per-note `mora: 2` contract; it requires an explicit design/ADR review first.
 
-Do not silently adopt option 2 or 3 in response to a request for conventional
-placement. The investigation stops here pending the owner's choice.
+The owner selected Option 1 and explicitly retained the existing per-note
+semantics. Options 2 and 3 were not authorized. The double-sign discrepancy is
+now an explicit [follow-up design question in ADR 0017](../../../adrs/0017-model-rhythmic-modifiers-on-notes.md#follow-up-design-question-conventional-double-signs).
 
-## Reproduction and checks
+## Reference reproduction and initial baseline checks
 
 With a matching Gregorio/TeX installation, in this directory:
 
@@ -136,3 +139,60 @@ Diagnostics: Chromium `/tmp/chant-note-modifiers-7CwJXX`; Firefox
 `/tmp/chant-note-modifiers-ylrM9U`. Current-renderer fixture captures are in
 `/tmp/chant-note-modifiers-lkmxji`. Formatting and diff checks also pass. These checks
 verify the unchanged baseline, not the requested refinement or conventionality.
+
+## Implemented Option 1 and verification
+
+All Porrectus mora dots now trail the **complete** glyph, beginning 3 layout
+units after its right bound. A single dot adds 7 units to the measured width.
+A line-level second note with a one-step final ascent uses the space **below**;
+a space-level second note stays at pitch. Wider final ascents retain the usual
+space above a line note. These are project-unit approximations of the reference
+placement distinction, not copied GregorioTeX font offsets.
+
+When authored signs occupy the same row, additional compact trailing columns
+preserve every dot instead of overpainting, merging or silently changing its
+pitch-related row. In particular, equal-pitch outer notes remain visually
+ambiguous: two neighboring trailing dots do not uniquely identify two ribbon
+endpoints. Three independently dotted notes and multiple note-level double
+modifiers are supported data, but can be crowded and should not be presented
+as a conventional three-way ownership notation. Native/accessible note labels
+and controls retain the exact authored owners. The existing `mora: 2` meaning
+is unchanged; its mismatch with the conventional double sign is an unresolved
+[ADR follow-up question](../../../adrs/0017-model-rhythmic-modifiers-on-notes.md#follow-up-design-question-conventional-double-signs).
+
+The complete contour, pitches, note IDs, lyric anchors and episema placement are
+unchanged. Shared ink still supplies bounds, advance, wrapping and rendering.
+No general collision engine, new glyph, semantic field or format migration was
+introduced. Existing extreme-pitch vertical-layout limitations remain.
+
+Agent-inspected visual evidence:
+
+- [Before](editor-before-chromium.png) / [after](editor-after-chromium.png) in
+  Chromium at 1440px, using the exact same retained native fixture. It shows a
+  single dot on each constituent independently and all three dotted.
+- [Transposed line/space cases](editor-after-transposed-chromium.png): the same
+  fixture with every pitch raised one staff step, including a space-level second
+  note with adjacent final ascent.
+- [Firefox at 320px](editor-after-firefox-320.png).
+- [Double mora plus simultaneous episema](editor-double-episema-firefox.png).
+  Every note in this deliberate stress fixture has `mora: 2` and `episema: true`;
+  its six dots per neume are not a conventional note-pair double sign.
+
+The new `porrectus-mora.test.ts` covers six interval patterns, four vertical
+transpositions, each constituent independently, all three dotted, double mora,
+episema coexistence, staff/ink clearance, compact width, equal-pitch sign count,
+unchanged silhouettes/anchors, wrapping, IDs and exact v2 round trips.
+Formatting, lint, all 68 test files / 1,357 tests, production build and diff checks
+pass. The production repo-subpath modifier driver passes again in Chromium and
+Firefox at 1440px/320px. New assertions inspect actual SVG dot counts, complete-glyph
+trailing clearance, staff/sign/body separation, second-note placement, viewBox
+containment and exact persisted values for original/transposed/double+episema
+fixtures; all existing selection-stability, keyboard, history and recovery cases
+also pass.
+
+Final diagnostics: Chromium `/tmp/chant-note-modifiers-TQ5wwl`; Firefox
+`/tmp/chant-note-modifiers-ok7ar8` (BiDi port 9261). Reproduce with
+`node docs/verification/note-modifiers/browser-check.mjs` and the active disposable
+Firefox session via `CHANT_FIREFOX_URL`, as described in the parent record.
+Foreground owner engraving acceptance and spoken screen-reader testing remain
+separate from these headless checks. No merge was performed.

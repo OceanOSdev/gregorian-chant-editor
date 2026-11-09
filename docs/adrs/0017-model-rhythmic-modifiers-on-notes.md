@@ -95,3 +95,18 @@ This ADR covers _puncta morae_ and horizontal episemata only. It does not
 decide flats/naturals, vertical episemata/ictus, additional neume kinds,
 liquescence, playback or GABC import/export. It does not amend the semantics
 of Accepted ADR 0016; it applies its versioning requirement.
+
+## Follow-up design question: conventional double signs
+
+The Porrectus investigation found that Gregorio's compound-glyph double sign
+(auctum duplex, commonly entered as final `..`) denotes its last two notes.
+Our accepted `mora: 2` denotes **two dots attached to one stable-ID note**.
+These meanings are not interchangeable. Native v2 retains its current meaning,
+including existing files and browser autosaves; this engraving refinement
+changes no semantic or persistence contract.
+
+A future design review must decide whether to add a separate note-pair concept,
+revise the editing vocabulary, or document a deliberate editor-specific double
+modifier. Any change must explicitly address existing v2 data and import/export
+mapping instead of silently reinterpreting it. No such change is approved or
+implemented here. See the [evidence and owner-selected trailing placement](../verification/note-modifiers/porrectus-mora/README.md).
