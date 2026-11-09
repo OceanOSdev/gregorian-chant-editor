@@ -196,3 +196,13 @@ synchronously; existing-clef editing retains Apply/Cancel and uses that same
 option at Apply. Only deletion retains conditional confirmation.
 Keyboard boundaries, previews and persistent tool state
 are transient; no semantic fields, event model or new history authority are added.
+
+## Native persistence (Stage 7A)
+
+`src/editor/persistence/` owns the pure versioned codec, guarded browser adapter
+and React session integration under [Accepted ADR 0016](adrs/0016-persist-versioned-semantic-chant-documents.md).
+The integration invokes the existing pure reducer and synchronously persists
+changed committed snapshots before publishing React state. Commands and rendering
+remain browser-independent. `DocumentControls` owns file selection/download and
+replacement confirmation; there is no new mutable score alongside history.
+See [persistence](persistence.md) for format, recovery and compatibility contracts.

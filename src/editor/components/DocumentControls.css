@@ -1,0 +1,117 @@
+.document-header {
+  margin: 0.75rem 0 0.5rem;
+  min-width: 0;
+}
+.document-header__main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.document-header__identity {
+  flex: 1;
+  min-width: 0;
+}
+.chant-editor .document-header__title {
+  margin: 0;
+  text-align: left;
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+}
+.chant-editor .document-header__title-button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.15rem 0;
+  min-height: 2.25rem;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.document-header__edit-icon {
+  color: #675f55;
+  font-size: 0.8rem;
+}
+.document-header__title-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0.15rem 0.2rem;
+  border: 1px solid #a79e90;
+  border-radius: 0.25rem;
+  background: #fffdf8;
+  color: #28231e;
+  font: inherit;
+}
+.document-header__title-input:focus-visible,
+.document-header__help summary:focus-visible {
+  outline: 3px solid #1e64d2;
+  outline-offset: 2px;
+}
+.document-header__actions,
+.document-header__recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.document-header__actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.chant-editor .document-header__actions button,
+.chant-editor .document-header__recovery button {
+  min-height: 2rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.875rem;
+}
+.document-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-top: 0.2rem;
+  color: #675f55;
+  font-size: 0.8rem;
+}
+.document-header__save-status {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.document-header__save-status--unsaved,
+.document-header__error {
+  color: #8b321e;
+}
+.document-header__help summary {
+  cursor: pointer;
+}
+.document-header__help[open] {
+  flex-basis: 100%;
+}
+.document-header__help p {
+  margin: 0.4rem 0;
+  max-width: 40rem;
+  line-height: 1.45;
+}
+.document-header__recovery {
+  margin-top: 0.5rem;
+}
+.document-header__recovery button {
+  overflow-wrap: anywhere;
+}
+.document-header__error {
+  margin: 0.4rem 0 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 32rem) {
+  .document-header__main {
+    flex-wrap: wrap;
+  }
+  .document-header__identity {
+    flex-basis: 100%;
+  }
+  .document-header__actions {
+    margin-left: auto;
+  }
+}

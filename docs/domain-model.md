@@ -164,7 +164,8 @@ See [ADR 0008](adrs/0008-anchor-lyrics-to-neumes.md) for the relationship decisi
 `el` (Greek), or `und` (Unspecified). New chants, including the example, explicitly
 use Latin. This is a document-wide engraving preference, never a text restriction
 or inferred language. Missing/invalid runtime values are handled as `und` at
-layout and control boundaries. There is no persisted format or migration today.
+layout and control boundaries. The native persistence boundary instead rejects
+missing or invalid language values; see [persistence](persistence.md).
 
 A syllable may have `alignment: { start, end }`, a half-open range of Unicode
 extended grapheme indexes into its exact text. It overrides automatic alignment,
@@ -182,8 +183,8 @@ See [ADR 0009](adrs/0009-document-lyric-language.md).
 Finalis is legal anywhere. Divisions have no notes, pitch, lyrics or geometry.
 Their IDs must be unique across divisions and existing semantic entities.
 `hasValidDivisions` rejects missing/malformed collections, unsupported kinds,
-extra entity fields, duplicate IDs and dangling anchors. There is no persisted
-schema or save/load migration today; existing fixtures explicitly supply `[]`.
+extra entity fields, duplicate IDs and dangling anchors. Native v1 files require
+these collections, including `[]` for empty collections; see [persistence](persistence.md).
 
 `deriveScoreOrder` returns a tagged stream of neumes, divisions and clef changes, or null for
 invalid boundary data. Neume order determines boundary order; division-array
@@ -237,3 +238,11 @@ There is no persistent event stream, absolute pitch field or clef ownership by b
 See [ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md) for the full
 ordering and relative-pitch contract, and [commands](commands-and-history.md#explicit-clef-transactions-stage-6b)
 for its transaction boundary.
+
+## Native interchange boundary (Stage 7A)
+
+The [native v1 codec](persistence.md#native-version-1) validates complete runtime
+objects before they enter the semantic model, preserving valid IDs and order.
+The semantic model itself still contains no schema, history or browser fields;
+the version belongs to the external envelope. Future schema evolution follows
+Accepted ADR 0016 and the persistence guide.

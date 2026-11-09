@@ -702,3 +702,25 @@ focus to the score, revealing the actual inserted glyph after reflow. Tab focus
 alone never selects. Decorative system repetitions, ghosts, draft overlays and
 custodes remain noninteractive. Relocation requires delete/reinsert; no existing
 clef has horizontal dragging or slot movement.
+
+## Document controls (Stage 7A)
+
+A compact header above the score presents the chant title as its single visible
+heading, with New / Import / Export as secondary actions on the right. It wraps
+at narrow widths. Activate the title to edit; Enter or blur commits one semantic
+history/autosave change, Escape cancels. Enter/Escape return focus to the heading
+button, while blur keeps the user's next focus target. IME composition Enter
+never commits. A title draft is not saved until accepted, and its status says so.
+Document actions also commit a pending title before acting. Empty titles use a
+visible “Untitled chant” affordance and the fallback export filename.
+
+Normal feedback reads “Saved locally”; errors, conflicts and unsaved states
+remain visible and actionable. **About local saving** expands the permanent
+storage/backup explanation through a native accessible disclosure.
+Dirty/recovery lyric drafts, pending history prompts, lyric moves and staged
+clef transactions disable these controls with an explanation. Finish or cancel
+the existing edit first. New/import confirm replacement; cancellation and file
+errors preserve the active session. Accepted replacement resets history,
+selection, tools and drafts. Export names the committed snapshot explicitly.
+Recovery and conflicting-cache operations also require explicit confirmation;
+see [persistence](persistence.md) for their authoritative workflow and limitations.

@@ -103,3 +103,8 @@ records the owner-approved Stage 6B architecture (accepted 2026-11-08):
 bar-independent clef placement, mixed-event boundary ordering, scoped pitch
 edits, and derived custos engraving. It narrowly qualifies ADRs 0012 and 0014
 without superseding them. Implementation follows in a separate handoff.
+
+[Accepted ADR 0016: Persist only versioned semantic chant documents locally](0016-persist-versioned-semantic-chant-documents.md)
+records the owner-approved Stage 7A native JSON interchange and browser-local
+recovery contract (accepted 2026-11-08). Only committed semantic documents
+are persisted; editor transient state and history remain outside the format.

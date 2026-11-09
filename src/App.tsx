@@ -6,9 +6,7 @@ function App() {
   return (
     <>
       <header>
-        <p className="preview-notice">
-          Experimental preview — edits are lost on refresh.
-        </p>
+        <p className="preview-notice">Experimental preview.</p>
       </header>
       <ChantEditor document={exampleDocument} />
     </>

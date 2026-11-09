@@ -31,8 +31,9 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
-- There is no persistence layer or persisted document format. Consequently
-  there is no document schema version yet.
+- Stage 7A provides one browser-local active document and native v1 JSON
+  interchange. See [persistence](persistence.md). Storage is best-effort; export
+  files for backups. No document library or cloud synchronization is provided.
 - There is no GABC import/export or other interchange adapter.
 - There is no backend.
 - Vitest runs pure TypeScript tests without a DOM or React component-test
@@ -57,7 +58,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   successive notes, such as `et(hh)` in the Requiem gradual, without changing
   current first-note vowel alignment or globally compressing music.
 - Add explicit manual system breaks.
-- Define versioned local persistence.
+- Consider explicit future schema migrations as the semantic vocabulary evolves.
 - Add GABC import and export adapters around the internal semantic document.
 
 Automatic measured multi-system wrapping, graphical placement on rendered
@@ -143,5 +144,5 @@ and [verification record](verification/mid-score-clefs/README.md). Remaining
 foreground keyboard, engraving and accessibility checks are recorded separately
 from milestone completion; merge does not imply comprehensive manual verification.
 Stage 6C may refine cosmetic polish and vertical editing, but **free horizontal clef movement is not
-planned**. There is no save/load format or migration, accidental support,
+planned**. Native v1 save/load is implemented in Stage 7A. There is no accidental support,
 playback, or general neume ledger-line support.

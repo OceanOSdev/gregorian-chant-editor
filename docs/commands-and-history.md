@@ -245,3 +245,20 @@ A transient `keepScoreFocus` hint distinguishes arrow entry from the contextual
 Edit button; it adds no new transaction or semantic identity. Other targets,
 stale drafts, placement and pending deletion cannot be stepped. Apply/Cancel
 continue through the existing shared-policy and focus/history mechanisms.
+
+## Persistence boundaries (Stage 7A)
+
+Committed `history.present` changes, including undo/redo, synchronously pass to
+the browser adapter outside the pure reducer. Drafts and history stacks are not
+serialized. Recovery, confirmed New and validated/confirmed Import create a fresh
+`createEditorSession` root rather than an undoable edit. Failed or canceled
+imports do not dispatch semantic actions. See [persistence](persistence.md) for
+the shared codec, recovery and conflict policy under Accepted ADR 0016.
+
+`updateDocumentTitle` changes only the semantic title, structurally sharing the
+rest of the score and returning the original document for unchanged text.
+The editable document heading keeps its text draft outside history. Enter or
+blur commits the final text through the existing semantic edit/history path as
+one undoable, redoable and autosaved change. Escape and unchanged text leave
+history and redo untouched. Document actions explicitly resolve an open title
+before acting. There is no additional semantic history authority.

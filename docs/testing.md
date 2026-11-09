@@ -122,7 +122,7 @@ For a production check, run `npm run build`, then `npm run preview` and open
 Production builds and preview use `/gregorian-chant-editor/`; the development
 server continues to use `/`. Inspect `dist/index.html` and verify that the
 referenced JS, CSS and favicon load under the project subpath. Check the page
-title, experimental notice, basic editing and reset-on-refresh behavior in the
+title, experimental notice, basic editing and committed-score refresh recovery in the
 real browser, including a narrow viewport.
 
 ## Formatting changes
@@ -675,3 +675,12 @@ committed ink, inert Left/Right, Apply/Cancel/Escape, both modes, exact history
 and focus after reflow in Chromium/Firefox at desktop/320px. Contextual-button
 entry still focuses its controls; initial-clef and insertion keyboard checks
 remain regression gates. See the Stage 6B verification record for actual runs.
+
+## Local persistence verification (Stage 7A)
+
+The codec/adapter unit suites cover full-document round trips, malformed payloads,
+size limits, IDs/anchors/contours, corrupt cache protection, unavailable storage,
+conflicts and undo/redo saves. The standalone [browser driver](verification/local-persistence/browser-check.mjs)
+checks the actual production subpath editor in Chromium/CDP and Firefox/BiDi.
+See its [record and manual checklist](verification/local-persistence/README.md)
+for commands, scope and limits. Browser drivers remain outside CI/Vitest.
