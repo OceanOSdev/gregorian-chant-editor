@@ -1,4 +1,9 @@
-import type { Neume, StaffPosition } from '../domain/chant-document';
+import { addNoteModifiers } from './note-modifiers';
+import type {
+  NoteModifiers,
+  Neume,
+  StaffPosition,
+} from '../domain/chant-document';
 import type { NeumeGeometry } from './neumes/shared';
 import { buildPunctum } from './neumes/punctum';
 import { buildPodatusOrClivis } from './neumes/podatus-clivis';
@@ -25,6 +30,20 @@ export type {
  * Positions are valid semantic input, in musical order; coordinates are absolute.
  */
 export function buildNeumeGeometry(
+  kind: Neume['kind'],
+  positions: readonly StaffPosition[],
+  leftX: number,
+  bottomStaffY: number,
+  modifiers: readonly NoteModifiers[] = [],
+): NeumeGeometry {
+  return addNoteModifiers(
+    buildUnmodifiedGeometry(kind, positions, leftX, bottomStaffY),
+    modifiers,
+    bottomStaffY,
+  );
+}
+
+function buildUnmodifiedGeometry(
   kind: Neume['kind'],
   positions: readonly StaffPosition[],
   leftX: number,

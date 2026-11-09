@@ -1,4 +1,4 @@
-import type { Neume } from '../domain/chant-document';
+import type { NoteModifiers, Neume } from '../domain/chant-document';
 
 export function getNoteAccessibleLabel(
   kind: Neume['kind'],
@@ -71,4 +71,12 @@ export function getSelectedNeumeDescription(
   }
 
   return `Whole ${kind} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
+}
+
+export function getNoteModifierDescription(note: NoteModifiers): string {
+  return (
+    (note.mora
+      ? '. ' + (note.mora === 1 ? 'Single' : 'Double') + ' punctum mora'
+      : '') + (note.episema ? '. Horizontal episema' : '')
+  );
 }

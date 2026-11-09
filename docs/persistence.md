@@ -5,13 +5,16 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native version 1
+## Native versions 1 and 2
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 1`, and `document: ChantDocument`. All seven document properties are
+`version: 2`, and `document: ChantDocument`. The reader accepts v1 and v2. All seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is the only optional semantic field.
+arrays. Optional syllable alignment is supported in both versions. V2 additionally accepts
+optional note fields `mora: 1 | 2` and `episema: true`; absence means off.
+Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
+its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
 Unknown fields at every object level, invalid enums, missing fields, invalid
 note tuples/contours, positions outside JavaScript’s safe integer range, duplicate/nonblank-ID
 violations, invalid lyric text/order/boundaries/alignment, and dangling or
@@ -36,13 +39,20 @@ internal `StaffPosition` model.
 
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
-versions and formats reject clearly. There is no older persisted format to
-migrate. Native JSON is an editor format, not GABC or a notation standard.
+versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
+always writes v2. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
-`gregorian-chant-editor:active-document:v1`. `use-persisted-session.ts` reads
+`gregorian-chant-editor:active-document:v1`. The literal key is deliberately
+retained for Stage 8A: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1 bytes untouched. The next
+successful committed save writes v2 into that same key, after comparing the
+original observed bytes. No second slot, startup rewrite, removal or unguarded
+migration write exists. Existing corrupt/foreign caches and cross-tab protection
+retain their exact recovery policy. Older builds cannot read a v2 score, but
+must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
 An absent cache shows the supplied example without writing it. A valid cache

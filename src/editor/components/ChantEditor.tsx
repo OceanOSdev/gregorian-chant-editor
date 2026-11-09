@@ -1,3 +1,4 @@
+import { updateNoteModifiers } from '../commands/update-note-modifiers';
 import { updateDocumentTitle } from '../commands/update-document-title';
 import { DocumentControls } from './DocumentControls';
 import { usePersistedSession } from '../persistence/use-persisted-session';
@@ -131,6 +132,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         : selectedSyllable
           ? findNeume(history.present, selectedSyllable.startsAtNeumeId)?.neume
           : null;
+  const selectedNoteLocation =
+    selection.kind === 'note'
+      ? findNote(history.present, selection.noteId)
+      : null;
+  const selectedNote = selectedNoteLocation?.note;
   const selectedDivision =
     selection.kind === 'division'
       ? history.present.divisions.find((d) => d.id === selection.divisionId)
@@ -898,6 +904,65 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         replaceCache={persistence.replaceCache}
       />
       <ClefChangeControls session={session} dispatch={dispatch} />
+      {selectedNote ? (
+        <fieldset
+          disabled={
+            placing ||
+            !!session.pendingHistory ||
+            !!session.lyricMove ||
+            !!session.clefTransaction
+          }
+        >
+          <legend>
+            Selected note modifiers — {selectedNoteLocation?.neume.kind}, note{' '}
+            {(selectedNoteLocation?.noteIndex ?? 0) + 1}
+          </legend>
+          <label>
+            Mora{' '}
+            <select
+              aria-label="Mora"
+              value={selectedNote.mora ?? 0}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                if (value === 0 || value === 1 || value === 2)
+                  dispatch({
+                    type: 'engraving-edit',
+                    edit: (document) =>
+                      updateNoteModifiers(document, selectedNote.id, {
+                        kind: 'mora',
+                        value,
+                      }),
+                  });
+              }}
+            >
+              <option value={0}>None</option>
+              <option value={1}>Single dot</option>
+              <option value={2}>Double dot</option>
+            </select>
+          </label>{' '}
+          <label>
+            Horizontal episema{' '}
+            <select
+              aria-label="Horizontal episema"
+              value={selectedNote.episema ? 'on' : 'off'}
+              onChange={(event) => {
+                const value = event.target.value === 'on';
+                dispatch({
+                  type: 'engraving-edit',
+                  edit: (document) =>
+                    updateNoteModifiers(document, selectedNote.id, {
+                      kind: 'episema',
+                      value,
+                    }),
+                });
+              }}
+            >
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </label>
+        </fieldset>
+      ) : null}
       {activeTool.kind === 'place-clef' ? (
         <div className="clef-placement-help">
           <span>{placementDescription}</span>{' '}

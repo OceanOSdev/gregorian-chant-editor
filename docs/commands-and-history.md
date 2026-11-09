@@ -262,3 +262,13 @@ blur commits the final text through the existing semantic edit/history path as
 one undoable, redoable and autosaved change. Escape and unchanged text leave
 history and redo untouched. Document actions explicitly resolve an open title
 before acting. There is no additional semantic history authority.
+
+## Rhythmic modifier edits (Stage 8A)
+
+`updateNoteModifiers` accepts a stable note ID and a discriminated mora
+(0/1/2) or episema (boolean) intent. Off removes the optional field. Missing IDs,
+invalid and unchanged values return exact document identity; the other modifier
+and unrelated notes retain their values/references. Existing movement and
+normalization preserve complete surviving note records. The session records
+one `engraving-edit` per control change, preserving selection, native control
+focus and lyric drafts; existing pending-workflow guards still apply.

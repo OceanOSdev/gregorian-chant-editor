@@ -684,3 +684,21 @@ conflicts and undo/redo saves. The standalone [browser driver](verification/loca
 checks the actual production subpath editor in Chromium/CDP and Firefox/BiDi.
 See its [record and manual checklist](verification/local-persistence/README.md)
 for commands, scope and limits. Browser drivers remain outside CI/Vitest.
+
+## Rhythmic note modifiers (Stage 8A)
+
+The command, layout and persistence `note-modifiers` suites cover per-note
+immutability, invalid/no-op identity, normalization/movement, exact history,
+all seven kinds and marked interval matrices, full measured ink, staff-line
+clearance, unchanged heads/anchors, wrapping, accessible descriptions, exact
+baseline v1 decoding and guarded same-key v2 cache upgrade. Native v1 rejection
+coverage remains in place; v2 adds strict optional modifier validation.
+
+Run `node docs/verification/note-modifiers/browser-check.mjs` against the production
+repo-subpath preview with isolated Chromium/CDP on port 9230. Set
+`CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session` for isolated Firefox/BiDi.
+Run the existing local-persistence driver sequentially on each shared browser;
+Firefox exits when its session ends, so restart it between drivers. These drivers
+use native pointer/keyboard actions plus DOM select/file events, capture SVG
+bounds and screenshots, and remain outside CI. The [record and owner checklist](verification/note-modifiers/README.md)
+separate actual automated/visual evidence from foreground acceptance.

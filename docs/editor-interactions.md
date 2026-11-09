@@ -724,3 +724,18 @@ errors preserve the active session. Accepted replacement resets history,
 selection, tools and drafts. Export names the committed snapshot explicitly.
 Recovery and conflicting-cache operations also require explicit confirmation;
 see [persistence](persistence.md) for their authoritative workflow and limitations.
+
+## Selected note modifiers (Stage 8A)
+
+Selecting one note reveals **Selected note modifiers** beside the score.
+Native **Mora** (None / Single dot / Double dot) and **Horizontal episema**
+(Off / On) selects show that exact note's current values. Native select arrows
+and Tab/Shift+Tab remain browser-owned; changing a value keeps control focus.
+Note pitch arrows and existing shortcuts retain their established scope.
+The controls are disabled while placing, moving lyrics, resolving history or
+editing a clef transaction. Modifier changes preserve dirty lyric drafts and
+use the existing draft-resolution policy on subsequent undo/redo.
+Accessible note labels name each present sign; the score description counts
+notes with modifiers. Signs are inert ink, selected through their owning
+notehead rather than independent controls. Derived sign bounds participate in
+focus reveal without enlarging overlapping constituent head targets.

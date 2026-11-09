@@ -1,3 +1,4 @@
+import type { NoteModifiers } from '../domain/chant-document';
 import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
   staffStartX,
@@ -82,7 +83,7 @@ export interface ClefChangeLayout extends ClefGeometry {
   clefChangeId: string;
 }
 
-export interface NoteLayout extends NoteGeometry {
+export interface NoteLayout extends NoteGeometry, NoteModifiers {
   noteId: string;
 }
 
@@ -184,6 +185,7 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 }
 
 interface GeometryInput {
+  modifiers?: readonly NoteModifiers[];
   kind: Neume['kind'];
   staffPositions: readonly StaffPosition[];
 }
@@ -203,6 +205,7 @@ interface PositionedSystem {
 function geometryInput(neume: Neume): GeometryInput {
   return {
     kind: neume.kind,
+    modifiers: neume.notes,
     staffPositions: neume.notes.map((note) => note.staffPosition),
   };
 }
@@ -430,6 +433,7 @@ function placeNeumeSequence(
             : nextLeftX
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+        input.modifiers,
       );
       if (!extents || !lyric) return initial;
       const left = initial.lyricAnchorX + extents.left;
@@ -468,6 +472,7 @@ function placeNeumeSequence(
           input.staffPositions,
           initial.bounds.x + shift,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+          input.modifiers,
         );
       // If an empty system cannot contain this anchored unit, retain its normal
       // musical anchor. Canvas expansion exposes both overhangs without scaling.
@@ -555,6 +560,7 @@ function placeNeumeSequence(
           input.staffPositions,
           geometry.bounds.x - missing,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+          input.modifiers,
         );
     }
     geometries.push(geometry);
@@ -575,6 +581,7 @@ export function measureNeumeWidth(neume: Neume): number {
     geometryInput(neume).staffPositions,
     0,
     firstSystemBottomStaffY,
+    neume.notes,
   ).bounds.width;
 }
 
@@ -643,6 +650,8 @@ function layoutCommittedNeume(
     notes: geometry.notes.map((note, index) => ({
       ...note,
       noteId: neume.notes[index].id,
+      ...(neume.notes[index].mora ? { mora: neume.notes[index].mora } : {}),
+      ...(neume.notes[index].episema ? { episema: true as const } : {}),
     })),
   };
 }
@@ -970,6 +979,15 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
+    for (const marked of system.neumes.filter((n) =>
+      n.notes.some((note) => note.mora || note.episema),
+    )) {
+      canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
+      canvasBottom = Math.max(
+        canvasBottom,
+        marked.bounds.y + marked.bounds.height + 12,
+      );
+    }
     for (const guide of system.custodes) {
       canvasTop = Math.min(canvasTop, guide.bounds.y - 12);
       canvasBottom = Math.max(

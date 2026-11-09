@@ -1,0 +1,68 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 1,
+  "document": {
+    "clefChanges": [
+      {
+        "id": "baseline-clef",
+        "clef": {
+          "type": "f",
+          "staffLine": 2
+        },
+        "beforeNeumeId": "neume-torculus-1",
+        "beforeDivisionId": "baseline-bar"
+      }
+    ],
+    "divisions": [
+      {
+        "id": "baseline-bar",
+        "kind": "minor",
+        "beforeNeumeId": "neume-torculus-1"
+      }
+    ],
+    "lyricLanguage": "la",
+    "title": "Gregorian Chant Editor",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "syllables": [
+      {
+        "id": "syllable-alle",
+        "text": "Al",
+        "startsAtNeumeId": "neume-punctum-1",
+        "boundaryBefore": "word"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "neume-punctum-1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-punctum-1",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "neume-torculus-1",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "note-torculus-1",
+            "staffPosition": 2
+          },
+          {
+            "id": "note-torculus-2",
+            "staffPosition": 4
+          },
+          {
+            "id": "note-torculus-3",
+            "staffPosition": 3
+          }
+        ]
+      }
+    ]
+  }
+}

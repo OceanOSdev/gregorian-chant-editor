@@ -587,3 +587,24 @@ Y origin, without moving staff/system coordinates or adding a vertical collision
 engine. Neume ledger lines remain absent. See the [Gregorio comparison and
 verification](verification/mid-score-clefs/custos-ledgers.md) for source, dimensions,
 actual examples and remaining silhouette differences.
+
+## Rhythmic sign geometry (Stage 8A)
+
+`buildNeumeGeometry` optionally consumes note modifiers and delegates to
+`note-modifiers.ts` after constructing the approved unmodified glyph. Signs
+are ordinary shared ink: bounds, advances, compaction, wrapping, boundary
+reservations and whole-neume outlines include them. Unmodified geometry is
+unchanged; musical anchors and constituent head/hit contours never move.
+Derived per-note modifier bounds extend browser focus/reveal bounds without
+creating new semantic targets. New-neume previews have unmarked notes; they
+use the same builder and complete committed sign bounds when resolving slots.
+
+Automatic placement uses conservative rectangles for shared silhouettes,
+stems and existing signs, plus explicit staff-line avoidance. This can leave
+more room than contour-specific optical placement, especially on ribbons.
+Episemata remain separate when pitches/heights or intervening occupied ink make
+a bridge ambiguous; no across-neume joining occurs. Exact metrics and source
+basis live in [engraving metrics](engraving-metrics.md#rhythmic-signs-stage-8a).
+The canvas includes signed neumes' complete vertical ink. Fixed system/lyric
+spacing and absent neume ledger lines remain limitations: extreme pitches can
+still overlap another system or lyrics; this adds no vertical collision engine.

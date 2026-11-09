@@ -16,6 +16,9 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
     0,
   );
 
+  const marked = neumes
+    .flatMap((n) => n.notes)
+    .filter((n) => n.mora || n.episema).length;
   const clef = layout.systems[0]?.clef;
   const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);
@@ -29,6 +32,6 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
+    )}.${marked ? ' ' + countLabel(marked, 'note with rhythmic modifiers', 'notes with rhythmic modifiers') + '.' : ''}${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
   );
 }

@@ -51,18 +51,31 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown): ChantNote {
-  const n = shape(value, ['id', 'staffPosition']);
+function note(value: unknown, version: 1 | 2): ChantNote {
+  const n = shape(
+    value,
+    ['id', 'staffPosition'],
+    version === 2 ? ['mora', 'episema'] : [],
+  );
+  if (Object.hasOwn(n, 'mora') && n.mora !== 1 && n.mora !== 2)
+    fail('Mora must be 1 or 2, or omitted.');
+  if (Object.hasOwn(n, 'episema') && n.episema !== true)
+    fail('Horizontal episema must be true or omitted.');
   if (
     typeof n.staffPosition !== 'number' ||
     !Number.isSafeInteger(n.staffPosition)
   )
     fail('Note positions must be safe integers.');
-  return { id: id(n.id), staffPosition: staffPosition(n.staffPosition) };
+  return {
+    id: id(n.id),
+    staffPosition: staffPosition(n.staffPosition),
+    ...(n.mora === 1 || n.mora === 2 ? { mora: n.mora } : {}),
+    ...(n.episema === true ? { episema: true } : {}),
+  };
 }
-function neume(value: unknown): Neume {
+function neume(value: unknown, version: 1 | 2): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
-  const notes = array(n.notes).map(note);
+  const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
   const identity = id(n.id);
   let result: Neume;
@@ -112,7 +125,10 @@ function syllable(value: unknown): LyricSyllable {
   }
   return result;
 }
-export function validateDocument(value: unknown): ChantDocument {
+export function validateDocument(
+  value: unknown,
+  version: 1 | 2 = 2,
+): ChantDocument {
   const d = shape(value, [
     'title',
     'lyricLanguage',
@@ -133,7 +149,7 @@ export function validateDocument(value: unknown): ChantDocument {
     title: string(d.title),
     lyricLanguage: d.lyricLanguage,
     clef: clef(d.clef),
-    neumes: array(d.neumes).map(neume),
+    neumes: array(d.neumes).map((n) => neume(n, version)),
     syllables: array(d.syllables).map(syllable),
     divisions: array(d.divisions).map((value) => {
       shape(value, ['id', 'kind', 'beforeNeumeId']);
@@ -171,13 +187,13 @@ export function decodeDocument(text: string): ChantDocument {
   const envelope = shape(value, ['format', 'version', 'document']);
   if (envelope.format !== format)
     fail('This is not a Gregorian Chant Editor file.');
-  if (envelope.version !== 1)
-    fail('Unsupported schema version. This editor reads version 1 only.');
-  return validateDocument(envelope.document);
+  if (envelope.version !== 1 && envelope.version !== 2)
+    fail('Unsupported schema version. This editor reads versions 1 and 2.');
+  return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 1, document: validateDocument(document) },
+    { format, version: 2, document: validateDocument(document) },
     null,
     2,
   );

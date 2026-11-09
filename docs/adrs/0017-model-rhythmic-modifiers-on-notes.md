@@ -20,11 +20,12 @@ Gregorio's GABC documentation represents the punctum mora with a period after
 an individual note (two periods for two dots), and horizontal episemata by
 marking individual notes with an underscore. Horizontal episemata may be
 positioned above or below and adjacent marks may be joined in engraving.
-Their *meaning* therefore belongs to authored notes, while exact graphic
+Their _meaning_ therefore belongs to authored notes, while exact graphic
 placement/bridging belongs to derived layout. The rendering of individual
 signs in compound neumes can require collision avoidance.
 
 Reference:
+
 - https://gregorio-project.github.io/gabc/details.html (rhythmic signs)
 - https://gregorio-project.github.io/tutorial/tutorial-gabc-01.html
 - Existing `docs/engraving-metrics.md` and ADRs 0002, 0007, 0010, 0016.
@@ -55,7 +56,7 @@ Reference:
    be bridged only when visually safe and unambiguous; avoid silently
    extending an episema across a division, clef, syllable boundary, or system
    break. The implementation plan specifies representative cases.
-5. Extend the versioned native document reader to preserve the *exact*
+5. Extend the versioned native document reader to preserve the _exact_
    existing v1 contract and accept **v2** with the new optional note fields.
    New exports and autosaves use v2; a valid v1 score is upgraded in memory
    with unmodified notes and remains a valid import. Keep a safe recovery
@@ -90,7 +91,7 @@ Reference:
 
 ## Scope boundary
 
-This ADR covers *puncta morae* and horizontal episemata only. It does not
+This ADR covers _puncta morae_ and horizontal episemata only. It does not
 decide flats/naturals, vertical episemata/ictus, additional neume kinds,
 liquescence, playback or GABC import/export. It does not amend the semantics
 of Accepted ADR 0016; it applies its versioning requirement.

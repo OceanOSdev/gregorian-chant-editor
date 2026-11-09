@@ -464,3 +464,32 @@ historical evidence. Visual fidelity is reviewed separately from bounds tests.
 The [Gregorio clef convention](https://gregorio-project.github.io/gabc/#the-clef)
 still supplies bottom-to-top line numbering; final owner visual acceptance
 remains separate from numeric verification.
+
+## Rhythmic signs (Stage 8A)
+
+[Gregorio rhythmic signs](https://gregorio-project.github.io/gabc/details.html#rhythmic-signs)
+and its [worked tutorial](https://gregorio-project.github.io/tutorial/tutorial-gabc-01.html)
+supply qualitative note ownership, dots beside heads and contextual episema
+placement. These are independently constructed project metrics, not GregorioTeX
+optical rules or a promise of identical output.
+
+Mora dots are circles of diameter 4. Start their left edge 5 units right of
+the nominal 12-unit head cell, including the first pitch of a Porrectus ribbon.
+A space note uses its pitch row; a line note tries the space above then below.
+Double mora uses two dots vertically separated by 24 units. Candidate columns
+include the initial column and occupied ink's right edges plus 3 units; choose
+the first collision-free column, with a 2-unit ink clearance. The bounded
+candidate search handles large intervals without a pixel-by-pixel loop.
+An ordinary single dotted Punctum adds only 9 units to measured width.
+
+Horizontal episemata are 12 × 2 rules centred on the nominal note anchor.
+Try 16, 22, 28, 34, 40 units above/below the pitch, preferring above at equal
+distance. A conservative fallback uses the full glyph exterior. All candidates
+clear actual staff lines, occupied glyph rectangles and earlier signs. Separate
+strokes avoid misleading bridges on the current ascending/descending compounds;
+there is no authored bridge state or connection across neumes. Both signs may
+coexist. Approved head silhouettes, internal positions and lyric anchors are
+unchanged. Conservative full-ribbon bounds can displace signs beyond where a
+contour-aware engraver would place them; manual orientation and optical joining
+are deferred. See [verification](verification/note-modifiers/README.md) for
+rendered evidence and owner acceptance steps.

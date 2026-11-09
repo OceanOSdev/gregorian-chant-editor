@@ -98,6 +98,17 @@ TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
 ordering defensively.
 
+## Note rhythmic modifiers (Stage 8A)
+
+Each stable-ID note optionally owns `mora: 1 | 2` and `episema: true`.
+Omitting a property means no mark; explicit zero/false is not stored. Both
+may coexist on any constituent of all seven supported kinds. Runtime neume
+validation rejects invalid modifier values. Movement and normalization retain
+properties on surviving notes; deletion removes only the deleted notes' signs.
+No timing or performance duration is implied. Coordinates and orientation remain
+derived under [Accepted ADR 0017](adrs/0017-model-rhythmic-modifiers-on-notes.md).
+See [persistence](persistence.md) for strict v2 fields and exact v1 compatibility.
+
 ## Lookup and identity
 
 `findNeume` resolves a neume ID and its current global semantic index.

@@ -12,6 +12,7 @@ export type InkShape =
   | { kind: 'path'; bounds: LayoutBounds; d: string };
 
 export interface NoteGeometry extends LayoutBounds {
+  modifierBounds?: LayoutBounds;
   anchorX: number;
   anchorY: number;
   /** Selection contour: a head or a constituent region of shared ribbon ink. */

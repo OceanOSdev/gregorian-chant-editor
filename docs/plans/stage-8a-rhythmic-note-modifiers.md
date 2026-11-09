@@ -3,7 +3,9 @@
 Branch: `feat/stage-8a-note-modifiers`
 Target: `master`
 
-Status: Planned; ADR 0017 accepted by the owner on 2026-11-09. Implementation may proceed.
+Status: Implemented for PR review; owner acceptance and plan closeout remain pending.
+ADR 0017 is Accepted. Actual verification and remaining manual checks are in
+[the Stage 8A record](../verification/note-modifiers/README.md).
 
 ## Problem and user-visible goal
 
@@ -22,6 +24,7 @@ Accepted ADRs 0002, 0003, 0004, 0007, 0010/0011, 0016 and
 [Accepted ADR 0017](../adrs/0017-model-rhythmic-modifiers-on-notes.md).
 
 Notation sources for qualitative reference:
+
 - [Gregorio advanced GABC notation](https://gregorio-project.github.io/gabc/details.html)
   (punctum mora `.`, double dots `..`, horizontal episema `_`,
   derived top/bottom placement and optional bridging).
@@ -43,7 +46,7 @@ syntax, every custom glyph, or sophisticated Gregorio engraving controls.
   note of a neume. Optional properties live on the note's stable semantic ID.
 - Default horizontal episema placement above or below is automatic.
   A single note's episema should look like a short horizontal stroke anchored
-  to that note. Where contiguous marked notes *within the same neume* can
+  to that note. Where contiguous marked notes _within the same neume_ can
   naturally share a continuous stroke, join them only when geometrically safe;
   a separate stroke is better than a collision or misleading mark.
   Explicit custom positioning, bridge/break editing, across-neume/system
@@ -80,8 +83,8 @@ syntax, every custom glyph, or sophisticated Gregorio engraving controls.
   hit/selection zones and focus/reveal. Preserve the approved notehead
   silhouettes and lyric anchor position. Avoid drawing non-measured floating
   SVG strokes in `ScoreSvg` and avoid whitespace hacks in the UI.
-- Pay particular attention to dotted *Podatus*, *Clivis*, *Torculus*,
-  *Climacus* and *Porrectus*, and to consecutive marked notes.
+- Pay particular attention to dotted _Podatus_, _Clivis_, _Torculus_,
+  _Climacus_ and _Porrectus_, and to consecutive marked notes.
   Verify marks near system ends, close to divisions, nearby clefs/custodes,
   and adjacent hyphenated lyrics. Typical signs on in-staff notes must
   not cause unexpected huge gaps. Extraordinary outside-staff ink should
@@ -91,7 +94,7 @@ syntax, every custom glyph, or sophisticated Gregorio engraving controls.
 - **Native format v2 is required.** Continue reading exact v1 JSON payloads
   and existing cached v1 documents, add strictly validated v2 optional note
   modifiers, and write new exports/autosaves as v2. V1-to-v2 upgrade supplies
-  *no* marks and preserves all existing IDs, notes, lyric anchors, division
+  _no_ marks and preserves all existing IDs, notes, lyric anchors, division
   and clef order. Reject invalid modifier values, malformed object shapes,
   unknown future versions, and oversized data with unchanged recovery
   guarantees. Use a deliberate migration strategy for the namespaced
