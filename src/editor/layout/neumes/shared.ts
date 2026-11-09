@@ -8,7 +8,13 @@ export interface LayoutBounds {
 }
 
 export type InkShape =
-  | { kind: 'rect'; bounds: LayoutBounds; radius: number }
+  | {
+      kind: 'rect';
+      bounds: LayoutBounds;
+      radius: number;
+      /** Screen hint only; canonical vector bounds remain authoritative. */
+      rasterization?: 'vertical-episema';
+    }
   | { kind: 'path'; bounds: LayoutBounds; d: string };
 
 export interface NoteGeometry extends LayoutBounds {

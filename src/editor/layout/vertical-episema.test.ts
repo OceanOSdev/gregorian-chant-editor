@@ -62,6 +62,11 @@ describe('bounded vertical episema placement', () => {
                     140,
                     modifiers,
                   );
+                  expect(
+                    before.ink.some(
+                      (part) => part.kind === 'rect' && part.rasterization,
+                    ),
+                  ).toBe(false);
                   const after = buildNeumeGeometry(
                     kind,
                     positions,
@@ -80,6 +85,11 @@ describe('bounded vertical episema placement', () => {
                     .slice(before.ink.length)
                     .entries()) {
                     const anchor = before.notes[index];
+                    expect(sign.kind === 'rect' && sign.rasterization).toBe(
+                      'vertical-episema',
+                    );
+                    expect(sign.bounds.width).toBe(1.5);
+                    expect(sign.bounds.height).toBe(7);
                     for (const position of [0, 2, 4, 6]) {
                       const staffY = 140 - position * 12;
                       expect(

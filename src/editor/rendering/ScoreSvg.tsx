@@ -1,3 +1,4 @@
+import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
 import { getNoteModifierDescription } from './note-accessible-label';
 import {
   custosLedgerThickness,
@@ -146,6 +147,7 @@ export function ScoreSvg({
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
   const scoreElement = useRef<SVGSVGElement>(null);
+  useVerticalEpisemaRasterization(scoreElement);
   const lyricElements = useRef(new Map<string, SVGTextElement>());
   const divisionElements = useRef(new Map<string, SVGGElement>());
   const noteElements = useRef(new Map<string, SVGGElement>());

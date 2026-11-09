@@ -1,5 +1,9 @@
 # Stage 8C — vertical episemata: implementation and review evidence
 
+Latest review: [tick-only screen phase alignment, native-size comparisons and print proof](rasterization.md).
+The earlier clearance-only comparison below did not resolve optical weight; it is
+retained as historical investigation. ADR 0020 remains Proposed.
+
 2026-11-09. Implemented on `feat/stage-8c-vertical-episema` for review against
 `master`. **Owner visual acceptance and milestone closeout remain pending.**
 [ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md)

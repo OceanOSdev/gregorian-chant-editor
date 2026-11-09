@@ -282,3 +282,9 @@ Re-align on screen scale/origin changes, reset for print, and retain canonical
 rendering where a safe bounded alignment cannot be made. Guard the existing
 collision and canvas clearances rather than expanding layout. Commit actual
 normal-size before/after browser and print/vector comparisons for owner review.
+
+Implementation is available for review: tagged ticks share a screen-only phase
+adapter, with physical/clearance/clip guards and unchanged print/vector attributes.
+The [comparison record](../verification/vertical-episemata/rasterization.md) retains
+normal-size browser pairs, raster measurements and identical print-page evidence.
+Owner visual acceptance and Stage 8C closeout remain pending.

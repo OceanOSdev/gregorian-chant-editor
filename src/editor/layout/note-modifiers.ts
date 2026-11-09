@@ -188,7 +188,12 @@ export function addNoteModifiers(
     );
     if (!bounds)
       throw new Error('No local vertical episema placement for this geometry');
-    const sign: InkShape = { kind: 'rect', bounds, radius: 0 };
+    const sign: InkShape = {
+      kind: 'rect',
+      bounds,
+      radius: 0,
+      rasterization: 'vertical-episema',
+    };
     signs.push(sign);
     noteSigns[index].push(sign);
   });

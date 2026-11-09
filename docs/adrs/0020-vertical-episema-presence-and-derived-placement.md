@@ -54,6 +54,46 @@ research references, not a request to implement GABC interchange.
    collect comparison evidence and return to the owner for a separately
    approved extension rather than silently inventing syntax.
 
+## Proposed narrow screen rasterization qualification to ADR 0007
+
+Owner feedback on PR #67 authorizes a vertical-episema-only display tolerance.
+Identical 1.5 × 7 vector rectangles otherwise produce visibly different one/two
+pixel-column weights at the same browser scale. Scoped crisp edges and a
+same-bounds stroke also fail across scales and can drop narrow ticks.
+
+Canonical derived geometry, musical anchors, measured vector bounds, wrapping,
+interaction geometry and print remain unchanged. Only tagged vertical ticks may
+receive a transient **horizontal screen translation of at most half a physical
+device pixel**, aligning their left-edge phase while retaining width, height,
+fill and normal antialiasing. This is the sole proposed qualification to ADR
+0007's exact geometry/rendering contract: nominal ink bounds can differ from
+screen ink by this declared tolerance. It does not authorize renderer-derived
+musical placement, other marks, global snapping, arbitrary thickening or a
+viewport-dependent canonical layout.
+
+The screen adapter also caps translation at 1.5 layout units, below the existing
+two-unit obstacle clearance, and declines shifts crossing the score canvas or
+horizontal viewport clip. Equal-width neighboring ticks align to the same
+monotonic grid; they cannot exchange order or consume their separation. Unsafe
+scales/clip edges retain canonical rendering rather than changing geometry.
+Selection/hit targets continue to identify the same nominal notes; the tick is
+not an independent interaction target. No wrapping or semantic edit is caused
+by screen hinting.
+
+The shared committed/preview ink renderer tags the derived tick explicitly;
+other rectangles and paths receive no hint. One SVG screen adapter refreshes
+alignment after React commits, resize, scrolling, font completion, DPR changes
+and visual viewport changes. Adjustments are discardable CSS presentation only.
+The translation rule applies only to screen media; print clears transient shifts
+and uses exact vector attributes. Native documents/history never contain it.
+Device pixel ratio and visual viewport scale bound physical displacement;
+compositor resampling during pinch zoom is not a promise of identical pixels.
+
+This proposal records the owner's approved implementation scope, **not ADR or
+engraving acceptance**. ADR 0007 stays Accepted and its general shared geometry
+contract remains in force. ADR 0020 remains Proposed pending owner review of the
+committed actual browser and print comparisons.
+
 ## Consequences
 
 ### Positive

@@ -318,6 +318,15 @@ owns each committed division's SVG control, accessible label, and event handlers
 `NeumeInk` displays the same supplied ink for committed notation and previews;
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.
+Vertical episemata alone use the owner-approved screen rasterization tolerance
+specified in [Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#proposed-narrow-screen-rasterization-qualification-to-adr-0007).
+Their tagged rectangles retain canonical vector attributes and measured bounds;
+a shared SVG adapter aligns horizontal pixel phase by at most half a physical
+device pixel, also capped below the existing obstacle clearance. It skips unsafe
+clip-edge/very small-scale shifts. Width/height, anchors, wrapping and hit geometry
+remain unchanged, and print has no translation. All other ink follows the exact
+shared geometry contract without snapping or crisp-edge hints.
+
 Individual note selection adds a stroke-only contour overlay, including ribbon
 regions for Porrectus.
 A selected whole neume

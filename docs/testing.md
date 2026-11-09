@@ -811,3 +811,25 @@ scripts use local ImageMagick (and GregorioTeX for reference reproduction), not 
 new application/test dependency or screenshot golden. No blanket crispEdges or
 extra screen-only paint is introduced. Follow the record for baseline/current
 build reproduction and limitations of the measurements.
+
+### Tick-only screen phase alignment
+
+`raster-browser-check.mjs` in `docs/verification/vertical-episemata/` compares
+production alignment with `CHANT_TICK_HINT=auto` (the original vector raster),
+`crispEdges` and a same-bounds `stroke` experiment. It measures isolated tick
+columns in actual screenshots, avoiding neighboring ink at 320px. Use disposable
+Chromium/CDP or Firefox/BiDi profiles and the production subpath. The repeated
+Punctum matrix covers x phases, responsive desktop/320px, SVG 1×/approximately
+1.33×/2×, and DPR 1/2. `CHANT_WEIGHT_PATER=1` uses a temporary fully marked owner
+score derivative at desktop, 320px and approximately 1.33×. The bundled source
+remains unchanged. `CHANT_RASTER_PRINT=1` also captures actual print PDFs,
+unchanged canonical vector attributes and zero print translations. Compare
+rasterized PDF pages separately; screen pixel measurements are not print metrics.
+
+Pure screen-adapter tests cover physical bounds, grid alignment, invalid display
+inputs, canvas clipping, tiny-scale fallback and adjacent-tick clearances. The
+existing engraving matrix protects all forms/modifiers and exact vector metrics.
+Run the existing vertical-episema, contextual editing, authored form, modifier,
+local-persistence and bundled-example browser drivers after rendering changes.
+Native OS print dialogs, spoken output and real multi-monitor/pinch compositor
+behavior still require foreground checks. No browser-testing dependency is added.

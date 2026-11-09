@@ -36,6 +36,10 @@ The first contextual record and its three-field/inspector screenshots are
 
 ## Rendered weight investigation
 
+This clearance-only investigation is superseded for optical consistency by the
+[screen phase alignment follow-up](rasterization.md). Its placement observations
+remain valid; its remaining subpixel variation was not owner acceptance.
+
 The report was reproducible, with two distinct causes. Actual source dimensions
 were equal: every sampled tick is a single filled **1.5 × 7** rectangle, opacity
 1, no stroke, no duplicate mark and no head overlap. Different horizontal

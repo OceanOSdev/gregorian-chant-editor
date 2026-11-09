@@ -513,3 +513,10 @@ kbd {
   border: 1px solid #8e341e;
   color: #7b2615;
 }
+
+/* Tick-only screen hinting; vector attributes and all other ink stay exact. */
+@media screen {
+  .score__vertical-episema {
+    transform: translateX(var(--vertical-episema-shift, 0px));
+  }
+}

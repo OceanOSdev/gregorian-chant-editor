@@ -577,3 +577,9 @@ Gregorio sometimes uses another side or lateral offset; automatic placement is
 not a facsimile promise. Manual orientation remains deferred, and owner visual
 acceptance is separate from collision/bounds checks. Fixed inter-system/lyric
 spacing and the pre-existing extreme-pitch limitations remain unchanged.
+
+Vertical-tick screen rasterization is narrowly qualified in
+[Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#proposed-narrow-screen-rasterization-qualification-to-adr-0007):
+the 1.5 × 7 vector recipe and all bounds remain unchanged, with at most half a
+physical pixel of horizontal screen phase alignment. Print retains exact vector
+ink. See the [normal-size browser and print comparisons](verification/vertical-episemata/rasterization.md).
