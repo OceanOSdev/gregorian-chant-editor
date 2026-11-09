@@ -96,7 +96,7 @@ describe('shared authored engraving', () => {
       ).toBe(false);
     },
   );
-  it('uses form ink for whole-neume wrapping with lyrics, divisions, clefs and custodes', () => {
+  it('preserves form metadata and order across mixed-event wrapping', () => {
     const doc = blankDocument();
     doc.neumes = Array.from({ length: 40 }, (_, i) => ({
       id: 'n' + i,
@@ -139,5 +139,119 @@ describe('shared authored engraving', () => {
         { form: 'quilisma' },
       ]),
     ).toThrow('Unsupported');
+  });
+});
+
+describe('authored ink through actual lyric layout and wrapping', () => {
+  const measure = (text: string) => ({
+    width: text.length * 10,
+    boundaries: Array.from({ length: text.length + 1 }, (_, i) => i * 10),
+  });
+  it.each(['word', 'continuation'] as const)(
+    'keeps inclinatum %s clearance through lyric-driven rebuilds',
+    (boundaryBefore) => {
+      const doc = blankDocument();
+      doc.lyricLanguage = 'und';
+      doc.neumes = [
+        {
+          id: 'first',
+          kind: 'punctum',
+          notes: [{ id: 'a', staffPosition: staffPosition(2) }],
+        },
+        {
+          id: 'inclined',
+          kind: 'punctum',
+          notes: [
+            { id: 'b', staffPosition: staffPosition(2), form: 'inclinatum' },
+          ],
+        },
+      ];
+      doc.syllables = [
+        {
+          id: 's1',
+          text: 'abcdefghij',
+          startsAtNeumeId: 'first',
+          boundaryBefore: 'word',
+        },
+        {
+          id: 's2',
+          text: 'klmnopqrst',
+          startsAtNeumeId: 'inclined',
+          boundaryBefore,
+        },
+      ];
+      const system = layoutChant(doc, measure).systems[0];
+      expect(system.lyrics[1].left).toBe(
+        Number(system.lyrics[0].right) + (boundaryBefore === 'word' ? 5 : 1),
+      );
+      const inclined = system.neumes[1];
+      expect(inclined.bounds.x).toBeGreaterThan(
+        layoutChant({ ...doc, syllables: [] }).systems[0].neumes[1].bounds.x,
+      );
+      const rebuilt = buildNeumeGeometry(
+        'punctum',
+        positions([2]),
+        inclined.bounds.x,
+        124,
+        [{ form: 'inclinatum' }],
+      );
+      expect(rebuilt.ink).toEqual(inclined.ink);
+      expect(inclined.lyricAnchorX).toBe(inclined.bounds.x + 7);
+      doc.syllables[0].text = 'a';
+      doc.syllables[1].text = 'b';
+      doc.syllables[1].boundaryBefore = 'continuation';
+      const compact = layoutChant(doc, () => ({
+        width: 14,
+        boundaries: [0, 14],
+      })).systems[0].neumes;
+      expect(
+        compact[1].bounds.x - compact[0].bounds.x - compact[0].bounds.width,
+      ).toBe(2);
+    },
+  );
+  it('wraps at a different boundary when the authored diamond is measured instead of a square', () => {
+    const doc = blankDocument();
+    doc.lyricLanguage = 'und';
+    doc.neumes = Array.from({ length: 12 }, (_, i) => ({
+      id: 'n' + i,
+      kind: 'punctum',
+      notes: [
+        { id: 'note' + i, staffPosition: staffPosition(2), form: 'inclinatum' },
+      ],
+    }));
+    doc.syllables = [
+      {
+        id: 'lyric',
+        text: 'wide',
+        startsAtNeumeId: 'n0',
+        boundaryBefore: 'word',
+      },
+    ];
+    const wide = (text: string) =>
+      text === '-'
+        ? { width: 10, boundaries: [0, 10] }
+        : { width: 212, boundaries: [0, 53, 106, 159, 212] };
+    const authored = layoutChant(doc, wide);
+    const unmarked = structuredClone(doc);
+    unmarked.neumes.forEach((n) => n.notes.forEach((n) => delete n.form));
+    const ordinary = layoutChant(unmarked, wide);
+    expect(authored.systems[0].neumes.map((n) => n.neumeId)).toEqual(
+      Array.from({ length: 10 }, (_, i) => 'n' + i),
+    );
+    expect(ordinary.systems[0].neumes.map((n) => n.neumeId)).toEqual(
+      Array.from({ length: 11 }, (_, i) => 'n' + i),
+    );
+    expect(authored.systems[1].startNeumeIndex).toBe(10);
+    expect(ordinary.systems[1].startNeumeIndex).toBe(11);
+    expect(
+      authored.systems[0].neumes[1].bounds.x -
+        authored.systems[0].neumes[0].bounds.x,
+    ).toBe(47);
+    expect(
+      ordinary.systems[0].neumes[1].bounds.x -
+        ordinary.systems[0].neumes[0].bounds.x,
+    ).toBe(45);
+    expect(authored.systems[0].neumes[0].bounds.width).toBe(14);
+    expect(ordinary.systems[0].neumes[0].bounds.width).toBe(12);
   });
 });

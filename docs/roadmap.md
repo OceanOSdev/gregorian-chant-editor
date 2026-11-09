@@ -31,7 +31,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
-- Stage 7A provides one browser-local active document and native JSON (v2 writes, v1/v2 reads)
+- Stage 7A provides one browser-local active document and native JSON (v3 writes, v1/v2/v3 reads)
   interchange. See [persistence](persistence.md). Storage is best-effort; export
   files for backups. No document library or cloud synchronization is provided.
 - There is no GABC import/export or other interchange adapter.

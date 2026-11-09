@@ -64,7 +64,11 @@ import {
 } from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import { focusAndReveal } from '../rendering/focus-visibility';
-import { neumeName, lyricMoveTargets } from '../state/editor-session';
+import {
+  entryName,
+  neumeName,
+  lyricMoveTargets,
+} from '../state/editor-session';
 import {
   placeClimacusTool,
   placeClivisTool,
@@ -116,12 +120,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const persistence = usePersistedSession(initialDocument);
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
-  const rememberedName = session.rememberedForm
-    ? noteFormLabels[session.rememberedForm] +
-      (session.rememberedForm === 'quilisma'
-        ? ' ' + neumeName(rememberedKind)
-        : '')
-    : neumeName(rememberedKind);
+  const rememberedName = entryName(rememberedKind, session.rememberedForm);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
@@ -223,11 +222,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           draftTransaction.clef,
         )
       : null;
-  const placementForm = toolNoteForm(activeTool);
   const placementName = placementKind
-    ? placementForm && placementForm !== 'quilisma'
-      ? noteFormLabels[placementForm]
-      : (placementForm ? 'Quilisma ' : '') + neumeName(placementKind)
+    ? entryName(placementKind, toolNoteForm(activeTool))
     : '';
   const placementDescription = placementKind
     ? `${placementName}. Escape selects the editing tool.`
@@ -1279,7 +1275,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoveNote={(noteId, delta) =>
               dispatch({
                 type: 'edit',
-                formSensitiveNoteId: noteId,
                 edit: (document) => moveNoteVertically(document, noteId, delta),
                 focusNoteId: noteId,
               })
@@ -1295,7 +1290,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onDeleteNote={(noteId) =>
               dispatch({
                 type: 'edit',
-                formSensitiveNoteId: noteId,
+                formDeletionNoteId: noteId,
                 edit: (document) => deleteNote(document, noteId),
                 clearSelection: true,
               })

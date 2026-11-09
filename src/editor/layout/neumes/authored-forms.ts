@@ -32,33 +32,73 @@ export function buildAuthoredGeometry(
     )
   )
     throw new Error('Unsupported authored note form');
+  if (authored.length !== 1)
+    throw new Error('Unsupported authored form combination');
   const form = authored[0].form;
-  const { x, y, move, shape } = geometryContext(positions, leftX, bottomStaffY);
-  if (kind === 'punctum') {
-    if (form === 'virga') {
-      // Exact proportions and fitted underside of the approved Climacus virga.
-      const virga = shape(
-        `M${move(0, -4)} C${move(0, -5.4)} ${move(3, -6)} ${move(6, -6)} C${move(9, -6)} ${move(12, -5.4)} ${move(12, -4)} V${y + 27} H${x + 10.5} V${y + 5.9} C${move(9, 5.7)} ${move(8, 4.8)} ${move(6, 4.8)} C${move(4, 4.8)} ${move(2.2, 6)} ${move(0.4, 6)} C${move(0.15, 6)} ${move(0, 5.9)} ${move(0, 5.6)} Z`,
-        0,
-        -6,
-        12,
-        33,
-      );
-      const head = buildPunctum(positions, x, bottomStaffY).notes[0];
-      head.hitBounds = { x: x - 6, y: y - 12, width: 24, height: 45 };
-      return finishGeometry([head], [virga], x + 6);
+  if (!isNoteForm(form)) throw new Error('Unsupported authored note form');
+  switch (form) {
+    case 'virga':
+      if (kind !== 'punctum') throw new Error('Virga requires a one-note unit');
+      return buildVirga(positions, leftX, bottomStaffY);
+    case 'inclinatum':
+      if (kind !== 'punctum')
+        throw new Error('Inclinatum requires a one-note unit');
+      return buildInclinatum(positions, leftX, bottomStaffY);
+    case 'quilisma':
+      if (kind !== 'podatus' && kind !== 'scandicus')
+        throw new Error('Quilisma requires an ascending figure');
+      return buildQuilismaticFigure(kind, positions, leftX, bottomStaffY);
+    default: {
+      const unhandled: never = form;
+      throw new Error(`Unsupported authored note form: ${unhandled}`);
     }
-    // Neutral/unison upright diamond; descending Climacus heads stay intact.
-    const diamond = shape(
-      `M${move(6, -10)} L${move(13, 0)} L${move(6, 10)} L${move(-1, 0)} Z`,
-      -1,
-      -10,
-      14,
-      20,
-    );
-    return finishGeometry([note(diamond, x + 6, y)], [diamond], x + 6);
   }
+}
 
+function buildVirga(
+  positions: readonly StaffPosition[],
+  leftX: number,
+  bottomStaffY: number,
+): NeumeGeometry {
+  const { x, y, move, shape } = geometryContext(positions, leftX, bottomStaffY);
+  // Exact proportions and fitted underside of the approved Climacus virga.
+  const virga = shape(
+    `M${move(0, -4)} C${move(0, -5.4)} ${move(3, -6)} ${move(6, -6)} C${move(9, -6)} ${move(12, -5.4)} ${move(12, -4)} V${y + 27} H${x + 10.5} V${y + 5.9} C${move(9, 5.7)} ${move(8, 4.8)} ${move(6, 4.8)} C${move(4, 4.8)} ${move(2.2, 6)} ${move(0.4, 6)} C${move(0.15, 6)} ${move(0, 5.9)} ${move(0, 5.6)} Z`,
+    0,
+    -6,
+    12,
+    33,
+  );
+  const head = buildPunctum(positions, x, bottomStaffY).notes[0];
+  head.hitBounds = { x: x - 6, y: y - 12, width: 24, height: 45 };
+  return finishGeometry([head], [virga], x + 6);
+}
+
+function buildInclinatum(
+  positions: readonly StaffPosition[],
+  leftX: number,
+  bottomStaffY: number,
+): NeumeGeometry {
+  const { x, y, move, shape } = geometryContext(positions, leftX, bottomStaffY);
+  // Same upright diamond silhouette, with its left ink edge at the input origin.
+  // Its true centre anchors the note and lyric; rebuilds need no negative bearing.
+  const diamond = shape(
+    `M${move(7, -10)} L${move(14, 0)} L${move(7, 10)} L${move(0, 0)} Z`,
+    0,
+    -10,
+    14,
+    20,
+  );
+  return finishGeometry([note(diamond, x + 7, y)], [diamond], x + 7);
+}
+
+function buildQuilismaticFigure(
+  kind: 'podatus' | 'scandicus',
+  positions: readonly StaffPosition[],
+  leftX: number,
+  bottomStaffY: number,
+): NeumeGeometry {
+  const { x, y, move, shape } = geometryContext(positions, leftX, bottomStaffY);
   const middleIndex = kind === 'scandicus' ? 1 : 0;
   const lower = positions[middleIndex],
     upper = positions[middleIndex + 1];

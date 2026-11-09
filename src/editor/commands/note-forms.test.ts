@@ -8,7 +8,7 @@ import {
   decodeDocument,
   encodeDocument,
 } from '../persistence/native-document';
-import { BrowserDocument } from '../persistence/browser-document';
+import { BrowserDocument, autosaveKey } from '../persistence/browser-document';
 import v1Source from '../../../docs/verification/note-modifiers/baseline-v1.chant.json?raw';
 import v2Source from '../../../docs/verification/note-modifiers/conventional/editor-cases.chant.json?raw';
 import { updateNoteForm } from './update-note-form';
@@ -203,7 +203,7 @@ describe('authored form validation and immutable commands', () => {
     };
     const rejected = reduceEditorSession(state, {
       type: 'edit',
-      formSensitiveNoteId: 'sca2',
+      formDeletionNoteId: 'sca2',
       edit: (d) => deleteNote(d, 'sca2'),
     });
     expect(rejected.history).toBe(state.history);
@@ -250,7 +250,7 @@ describe('atomic direct insertion and matching ghost', () => {
     const geometry = buildNeumeGeometry(
       kind,
       neume.notes.map((n) => n.staffPosition),
-      (preview?.preview.notes[0].anchorX ?? 6) - 6,
+      preview?.preview.bounds.x ?? 0,
       Math.max(...layoutChant(doc).systems[0].staffLines.map((l) => l.y)),
       neume.notes,
     );
@@ -274,10 +274,16 @@ describe('exact versioned readers and guarded upgrade', () => {
   it.each([v1Source, v2Source])(
     'loads actual old source unchanged, then saves v3 in the same key',
     (source) => {
+      const originalKey = 'gregorian-chant-editor:active-document:v1';
+      expect(autosaveKey).toBe(originalKey);
       let bytes = source;
       const adapter = new BrowserDocument(() => ({
-        getItem: () => bytes,
-        setItem: (_k, v) => {
+        getItem: (key) => {
+          expect(key).toBe(originalKey);
+          return bytes;
+        },
+        setItem: (key, v) => {
+          expect(key).toBe(originalKey);
           bytes = v;
         },
       }));
@@ -285,7 +291,10 @@ describe('exact versioned readers and guarded upgrade', () => {
       expect(bytes).toBe(source);
       expect(doc).toEqual(JSON.parse(source).document);
       const id = doc.neumes[0].notes[0].id;
-      const edit = updateNoteForm(doc, id, 'virga');
+      const form = doc.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
+      const edit = updateNoteForm(doc, id, form);
+      expect(edit).not.toBe(doc);
+      expect(edit.neumes[0].notes[0].form).toBe(form);
       adapter.save(edit);
       expect(JSON.parse(bytes).version).toBe(3);
       expect(decodeDocument(bytes)).toEqual(edit);

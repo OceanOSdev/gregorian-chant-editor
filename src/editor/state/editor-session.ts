@@ -1,3 +1,4 @@
+import { noteFormLabels } from '../domain/note-forms';
 import {
   resolveGraphicalClefPlacement,
   resolveKeyboardClefPlacement,
@@ -234,7 +235,7 @@ export type EditorAction =
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | {
       type: 'edit';
-      formSensitiveNoteId?: string;
+      formDeletionNoteId?: string;
       edit: DocumentEdit;
       focusNoteId?: string;
       clearSelection?: boolean;
@@ -270,6 +271,13 @@ export function createEditorSession(document: ChantDocument): EditorSession {
 
 export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
   return kind[0].toUpperCase() + kind.slice(1);
+}
+
+/** One visual entry name for controls and live-region messages. */
+export function entryName(kind: GraphicalNeumeKind, form?: NoteForm): string {
+  return form
+    ? noteFormLabels[form] + (form === 'quilisma' ? ' ' + neumeName(kind) : '')
+    : neumeName(kind);
 }
 
 function announce(state: EditorSession, text: string): EditorSession {
@@ -377,7 +385,7 @@ function reduceSessionAction(
           hoveredPoint: null,
           focusRequest: null,
         },
-        `Placing ${kind ? neumeName(kind) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
+        `Placing ${kind ? entryName(kind, toolNoteForm(action.tool)) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
       );
     }
     case 'focus-palette':
@@ -498,7 +506,7 @@ function reduceSessionAction(
               ? { kind: 'lyrics' }
               : reconciled.focusRequest,
         },
-        `${neumeName(kind)} added.`,
+        `${entryName(kind, action.type === 'place' ? toolNoteForm(state.activeTool) : state.rememberedForm)} added.`,
       );
     }
     case 'place-division': {
@@ -572,17 +580,15 @@ function reduceSessionAction(
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;
       const history = applyDocumentEdit(state.history, action.edit);
-      return history === state.history
-        ? state
-        : { ...state, history, noteFormError: null };
+      return history === state.history ? state : { ...state, history };
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);
       if (history === state.history)
-        return action.formSensitiveNoteId &&
+        return action.formDeletionNoteId &&
           findNote(
             state.history.present,
-            action.formSensitiveNoteId,
+            action.formDeletionNoteId,
           )?.neume.notes.some((n) => n.form)
           ? announce(
               {
@@ -595,7 +601,6 @@ function reduceSessionAction(
       const next = reconcile({
         ...state,
         history,
-        noteFormError: null,
         selection: action.clearSelection ? clearSelection() : state.selection,
         hoveredPoint: null,
         focusRequest:
@@ -614,7 +619,6 @@ function reduceSessionAction(
       if (history === state.history) return state;
       const next = reconcile({
         ...state,
-        noteFormError: null,
         history,
         hoveredPoint: null,
         focusRequest:
@@ -712,6 +716,17 @@ function applyLyrics(
 
 /** Coordinates semantic history and the single transient lyric draft. */
 export function reduceEditorSession(
+  state: EditorSession,
+  action: EditorAction,
+): EditorSession {
+  const next = transitionEditorSession(state, action);
+  return next.history.present !== state.history.present &&
+    next.noteFormError !== null
+    ? { ...next, noteFormError: null }
+    : next;
+}
+
+function transitionEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {

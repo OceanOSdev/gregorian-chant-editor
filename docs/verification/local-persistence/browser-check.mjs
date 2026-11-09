@@ -8,7 +8,11 @@ const output = await mkdtemp(join(tmpdir(), 'chant-local-persistence-'));
 const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 const pages = firefox
   ? []
-  : await (await fetch('http://127.0.0.1:9230/json')).json();
+  : await (
+      await fetch(
+        process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json',
+      )
+    ).json();
 const ws = new WebSocket(
   process.env.CHANT_FIREFOX_URL ??
     pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
@@ -28,7 +32,7 @@ const rawSend = (method, params = {}) =>
     const id = ++serial;
     pending.set(id, (m) =>
       m.error || m.type === 'error'
-        ? reject(Error(JSON.stringify(m.error)))
+        ? reject(Error(method + ': ' + JSON.stringify(m)))
         : resolve(m.result),
     );
     ws.send(JSON.stringify({ id, method, params }));
@@ -109,7 +113,9 @@ const ev = async (expression) => {
   if (r.exceptionDetails) throw Error(JSON.stringify(r.exceptionDetails));
   return r.result.value;
 };
-const url = 'http://127.0.0.1:4173/gregorian-chant-editor/';
+const url =
+  process.env.CHANT_PREVIEW_URL ??
+  'http://127.0.0.1:4173/gregorian-chant-editor/';
 const storageKey = 'gregorian-chant-editor:active-document:v1';
 const raw = () => ev(`localStorage.getItem('${storageKey}')`);
 const status = () =>
@@ -583,9 +589,14 @@ try {
     await rawSend('browsingContext.close', { context: other });
   } else {
     const other = await (
-      await fetch('http://127.0.0.1:9230/json/new?' + encodeURIComponent(url), {
-        method: 'PUT',
-      })
+      await fetch(
+        (process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json') +
+          '/new?' +
+          encodeURIComponent(url),
+        {
+          method: 'PUT',
+        },
+      )
     ).json();
     const socket = new WebSocket(other.webSocketDebuggerUrl);
     await new Promise((r) => socket.addEventListener('open', r));
@@ -603,7 +614,11 @@ try {
     );
     await response;
     socket.close();
-    await fetch('http://127.0.0.1:9230/json/close/' + other.id);
+    await fetch(
+      (process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json') +
+        '/close/' +
+        other.id,
+    );
   }
   await pause();
   await pause();

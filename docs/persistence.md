@@ -11,7 +11,7 @@ saved. This guide owns native format compatibility and browser recovery.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
 `version: 3`, and `document: ChantDocument`. The reader accepts exact v1, finalized v2 and v3. All seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in both versions. V2 additionally accepts
+arrays. Optional syllable alignment is supported in all three versions. V2 and v3 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.

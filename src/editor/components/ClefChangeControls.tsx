@@ -1,10 +1,13 @@
-import { noteFormLabels } from '../domain/note-forms';
 import { useLayoutEffect, useRef, type Dispatch } from 'react';
 import { isPlacementTool } from '../state/editor-tool';
 import type { Clef } from '../domain/chant-document';
 import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { isValidClef } from '../domain/clef';
-import type { EditorAction, EditorSession } from '../state/editor-session';
+import {
+  entryName,
+  type EditorAction,
+  type EditorSession,
+} from '../state/editor-session';
 
 /** Staged authored-clef editing and the separate deletion confirmation. */
 export function ClefChangeControls({
@@ -14,12 +17,10 @@ export function ClefChangeControls({
   session: EditorSession;
   dispatch: Dispatch<EditorAction>;
 }) {
-  const rememberedLabel = session.rememberedForm
-    ? noteFormLabels[session.rememberedForm] +
-      (session.rememberedForm === 'quilisma'
-        ? ' ' + session.rememberedKind
-        : '')
-    : session.rememberedKind;
+  const rememberedLabel = entryName(
+    session.rememberedKind,
+    session.rememberedForm,
+  );
   const selection = session.selection;
   const target =
     selection.kind === 'clef-change'

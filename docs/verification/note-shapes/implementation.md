@@ -60,7 +60,7 @@ Selected real-editor evidence:
 - [Chromium SVG measurements](ink-chromium.json), [Firefox SVG measurements](ink-firefox.json)
 
 The measurement drivers independently compare SVG extrema against the expected
-geometry metrics, probe the lower and upper shafts for actual filled ink, and
+geometry metrics including horizontal x, probe the lower and upper shafts for actual filled ink, and
 sample painted points at half-unit intervals against real pointer targets.
 Chromium sampled 8,631 points; Firefox sampled 8,629. Both found zero unowned
 or multiply-owned points across the eight new/default comparison figures.
@@ -68,14 +68,15 @@ Small count differences reflect browser curve-boundary precision.
 
 ## Automated verification actually run
 
-Against the local production GitHub Pages subpath
-`http://127.0.0.1:4173/gregorian-chant-editor/`:
+Against a **local preview of the production build**, using the GitHub Pages
+subpath at `http://127.0.0.1:4254/gregorian-chant-editor/` in the review follow-up
+(the initial run used port 4173). Hosted deployment is not verified:
 
 | Check                                     | Result                                          |
 | ----------------------------------------- | ----------------------------------------------- |
 | `npm run format:check`                    | Passed, including corrected ADR/plan formatting |
 | `npm run lint`                            | Passed without warnings                         |
-| `npm test`                                | 71 files, 1,516 tests passed                    |
+| `npm test`                                | 72 files, 1,530 tests passed                    |
 | `npm run build`                           | Passed                                          |
 | `git diff --check`                        | Passed                                          |
 | New authored-form browser driver          | Chromium and Firefox passed                     |
@@ -83,19 +84,32 @@ Against the local production GitHub Pages subpath
 | Existing local-persistence browser driver | Chromium and Firefox passed                     |
 
 The authored-form driver checks real pointer placement for all four new figures,
-pre-click figure choice, actual shaped ghosts, accessible form names, native
-keyboard I insertion, exact history/redo, immediate refresh, contextual options,
+pre-click figure choice, ghost/committed path-command parity after translation
+normalization, accessible form names and form-aware live-region messages, native
+keyboard I insertion with explicit kind/form assertions, exact history/redo, immediate refresh, contextual options,
 form/sign retention, rejected deletion, editable pitch, stable score position
 on selection/deselection and 320px containment. It also checks actual old-source
 hydration/import, native v3 export Blob/import round trips with forms and signs,
 unknown/context-invalid imports, protected draft-v2 cache bytes and conflicts.
+Figure selects and focus assignment use DOM APIs; tool activation uses real
+pointer input, followed by native I. This does not claim keyboard-only tool
+selection. The standalone first figure also checks its absolute x against the
+known layout origin, so negative horizontal overhang cannot hide behind a
+width/height-only assertion.
 
 The existing drivers provide regression coverage for all mora scopes, independent
 episemata, mixed clefs/divisions/custodes/wrapping, title/edit/replacement guards,
 original-source downloads and multi-tab conflict behavior. Their successful-save
 expectations now use v3; the actual historical fixtures remain unchanged. The
 new pure layout matrix includes authored forms at intervals 1/2/3/5/12, with
-line/space transpositions, simultaneous signs and mixed event wrapping.
+line/space transpositions, simultaneous signs and mixed event wrapping. Actual
+`layoutChant` regressions additionally enforce 5-unit word / 1-unit continuation
+clearance, a 2-unit compact ink gap and exact system membership when measuring
+14-unit authored diamonds instead of 12-unit default heads.
+
+The [review follow-up and separate storage investigation](review-follow-up.md)
+maps all 11 should-fix findings to code/tests and records actual v2/v3 app
+switching, immediate refresh, two-tab UI feedback and the extreme-pitch probe.
 
 ### Migration record
 

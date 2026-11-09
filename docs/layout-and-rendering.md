@@ -613,7 +613,10 @@ vertical collision engine is added.
 
 `buildNeumeGeometry` accepts note appearance (optional form and rhythmic signs).
 `neumes/authored-forms.ts` derives original form ink before the existing modifier
-pass. Unmarked inputs still use the unchanged approved builders. Previews and
+pass. Unmarked inputs still use the unchanged approved builders. The builder’s left
+input must equal its left ink edge: lyric-clearance and system-fit adjustments
+rebuild from measured `bounds.x`. The neutral diamond therefore uses a positive
+14-unit cell with its own 7-unit note/lyric centre, rather than a negative bearing. Previews and
 commits supply the same appearance; bounds, advance, lyric anchoring, wrapping,
 selection and focus all consume shared geometry. Unsupported forms throw rather
 than silently drawing a square.

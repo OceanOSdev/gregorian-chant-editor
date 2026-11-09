@@ -334,6 +334,30 @@ function specimen() {
   }));
   return doc;
 }
+// Compare actual SVG path commands in ink-local coordinates. A translation
+// between a pointer ghost and canonical score placement must not change contour.
+async function inkGeometry(selector) {
+  return ev(`(()=>{
+    const root=document.querySelector(${JSON.stringify(selector)});
+    const ink=root?.querySelector('.score__ink');
+    if(!ink)throw Error('Missing ink: '+${JSON.stringify(selector)});
+    const b=ink.getBBox();
+    const paths=[...ink.querySelectorAll('path')].map(p=>{
+      const tokens=p.getAttribute('d').match(/[MLCQHVZ]|[-+]?(?:\\d*\\.\\d+|\\d+)(?:e[-+]?\\d+)?/gi);
+      const result=[];let index=0,command;
+      while(index<tokens.length){
+        if(/^[MLCQHVZ]$/i.test(tokens[index]))command=tokens[index++];
+        if(command==='Z'){result.push(['Z']);continue;}
+        const count={M:2,L:2,C:6,Q:4,H:1,V:1}[command];
+        if(!count)throw Error('Unexpected path command '+command);
+        const values=tokens.slice(index,index+count).map(Number);index+=count;
+        result.push([command,...values.map((n,j)=>Number((n-(command==='H'?b.x:command==='V'?b.y:j%2?b.y:b.x)).toFixed(4)))]);
+      }
+      return result;
+    });
+    return {width:Number(b.width.toFixed(4)),height:Number(b.height.toFixed(4)),paths};
+  })()`);
+}
 try {
   if (firefox) {
     await rawSend('session.new', { capabilities: {} });
@@ -386,17 +410,39 @@ try {
     const point = await staffPoint(210, 100);
     await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
     await pause();
-    const ghost = await ev(
-      `document.querySelector('.score__placement-preview')?.outerHTML ?? document.querySelector('[class*="ghost"]')?.outerHTML ?? ''`,
-    );
+    const ghost = await inkGeometry('.score__placement-ghost');
     await snapshot('ghost-' + tool + (figure ?? ''));
-    assert.ok(ghost.length, 'shaped ghost exists');
+    assert.ok(ghost.paths.length, 'ghost has actual path geometry');
     await clickAt(point);
     const doc = await score();
     assert.equal(doc.neumes.length, 1);
     assert.equal(doc.neumes[0].kind, kind);
     assert.equal(doc.neumes[0].notes[kind === 'scandicus' ? 1 : 0].form, form);
     assert.equal(doc.syllables.length, 0);
+    assert.deepEqual(
+      await inkGeometry('[data-neume-id="' + doc.neumes[0].id + '"]'),
+      ghost,
+      'actual ghost and committed paths must match up to translation',
+    );
+    assert.equal(
+      await ev(
+        `document.querySelector('[data-neume-id="${doc.neumes[0].id}"] .score__ink').getBBox().x`,
+      ),
+      144,
+      'first figure ink begins at the known layout input, including inclinatum',
+    );
+    const label =
+      form === 'virga'
+        ? 'Virga'
+        : form === 'inclinatum'
+          ? 'Punctum inclinatum'
+          : 'Quilisma ' + (kind === 'podatus' ? 'Podatus' : 'Scandicus');
+    assert.equal(
+      await ev(
+        `document.querySelector('.editor-announcement').textContent.trim()`,
+      ),
+      label + ' added.',
+    );
     const shapedId = doc.neumes[0].notes[kind === 'scandicus' ? 1 : 0].id;
     assert.match(
       await ev(
@@ -417,12 +463,26 @@ try {
     assert.deepEqual(await score(), doc);
     await navigate();
     assert.deepEqual(await score(), doc);
-    // Remembered figure supports keyboard-only insertion after tool activation.
+    // Figure selection uses DOM APIs and palette activation uses a native
+    // pointer. Native I must insert the remembered kind AND authored form;
+    // this does not claim keyboard-only tool selection.
     if (figure) await change('Quilisma figure', figure);
+    await pointer('[data-tool="select"]');
     await pointer(`[data-tool="${tool}"]`);
-    await ev(`document.querySelector('[data-tool="${tool}"]').focus()`);
+    assert.equal(
+      await ev(
+        `document.querySelector('.editor-announcement').textContent.trim()`,
+      ),
+      'Placing ' + label + '.',
+    );
     await key('i', 'KeyI');
-    assert.equal((await score()).neumes.length, 2);
+    const keyboardScore = await score();
+    assert.equal(keyboardScore.neumes.length, 2);
+    assert.equal(keyboardScore.neumes[1].kind, kind);
+    assert.equal(
+      keyboardScore.neumes[1].notes[kind === 'scandicus' ? 1 : 0].form,
+      form,
+    );
   }
   const fixture = specimen();
   const defaults = structuredClone(fixture);
@@ -515,6 +575,13 @@ try {
     );
     // Reject deletion of the terminal, preserving the middle authored form.
     await select('note-5-2');
+    await key('ArrowDown');
+    assert.deepEqual(await score(), saved.document);
+    assert.equal(
+      await ev(`!!document.querySelector('.note-form-error')`),
+      false,
+      'invalid contour move must not suggest removing the form',
+    );
     await key('Delete');
     assert.deepEqual(await score(), saved.document);
     assert.ok(
@@ -523,6 +590,18 @@ try {
       ),
     );
     await snapshot('rejected-delete-' + width);
+    await key('i', 'KeyI');
+    assert.equal(
+      (await score()).neumes.length,
+      saved.document.neumes.length + 1,
+    );
+    assert.equal(
+      await ev(`!!document.querySelector('.note-form-error')`),
+      false,
+      'successful insertion clears stale feedback',
+    );
+    await pointer('[aria-label="Undo last edit"]');
+    assert.deepEqual(await score(), saved.document);
     await select('note-1-0');
     await key('ArrowUp');
     assert.equal((await score()).neumes[1].notes[0].staffPosition, 4);
@@ -583,13 +662,14 @@ try {
       const path=group.querySelector('.score__ink path');
       const b=path.getBBox();
       const bottom=Math.max(...[...group.closest('[data-system-index]').querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1')));
+      const expectedX=group.querySelector('.score__note-hit-target').getBBox().x+6;
       const pitches=n.notes.map(n=>n.staffPosition);
       const firstY=bottom-pitches[0]*12;
       let expected;
-      if(n.kind==='punctum') expected={width:i===2?14:12,y:firstY-(i===2?10:6),height:i===1?33:i===2?20:12};
+      if(n.kind==='punctum') expected={x:expectedX,width:i===2?14:12,y:firstY-(i===2?10:6),height:i===1?33:i===2?20:12};
       else {
         const top=bottom-pitches.at(-1)*12-(pitches.at(-1)-pitches.at(-2)===1?10:6);
-        expected={width:n.kind==='scandicus'?22.5:12,y:top,height:firstY+(n.kind==='scandicus'?6:7)-top};
+        expected={x:expectedX,width:n.kind==='scandicus'?22.5:12,y:top,height:firstY+(n.kind==='scandicus'?6:7)-top};
       }
       const connections=[];
       if(n.kind==='scandicus'){
@@ -616,7 +696,7 @@ try {
     });
   })()`);
   for (const measurement of ink) {
-    for (const property of ['y', 'width', 'height'])
+    for (const property of ['x', 'y', 'width', 'height'])
       assert.ok(
         Math.abs(measurement.box[property] - measurement.expected[property]) <
           0.02,

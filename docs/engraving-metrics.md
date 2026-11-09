@@ -514,8 +514,10 @@ including without a preceding note; this is not a claim of traditional usage.
 Standalone Virga repeats the approved Climacus virga's 12-unit head, 1.5-unit
 right queue and tip at +27; nominal/lyric x=6, complete height=33. The selection
 follows its head and the padded target includes its queue. Neutral Inclinatum
-has vertices (6,-10), (13,0), (6,10), (-1,0), nominal/lyric (6,0), and a measured
-14×20 extent. Existing descending Climacus diamonds remain exactly unchanged.
+has vertices (7,-10), (14,0), (7,10), (0,0), nominal/lyric (7,0), and a measured
+14×20 extent. The one-unit origin correction preserves the silhouette while
+keeping input x equal to the left ink edge during lyric rebuilds and compaction.
+Existing descending Climacus diamonds remain exactly unchanged.
 
 For quilisma-pes let u=0 and v=-12Δ; for Scandicus set u=-12a,
 v=-12(a+b) and upper-column offset h=10.5 (h=0 for pes). The jagged middle/lower
@@ -529,7 +531,8 @@ Scandicus's first head connects through the 1.5-unit right shaft to the left
 of the quilisma; the quilisma's right shaft reaches the terminal. One traced
 filled contour includes both joins, avoiding overlapping translucent bridge
 pieces. Width is 22.5 for Scandicus, 12 for pes; lyric x stays 6. Adjacent/wider
-intervals change shaft length, never head size. Wider intervals are procedural
+intervals change shaft length; the terminal retains the interval-dependent
+optical lift specified above rather than stretching the jagged head. Wider intervals are procedural
 project extensions of the primary traditional silhouette, not claims of an exact
 printed match at every interval. Ink bounds/advance include the whole contour.
 

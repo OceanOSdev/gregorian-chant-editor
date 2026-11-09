@@ -287,6 +287,9 @@ note may retain its middle Quilisma as Podatus's first note; deleting its final
 note rejects because the surviving Quilisma would become an unsupported upper
 Podatus note. Deleting the Quilisma itself is allowed. A surviving Quilisma may
 not become a one-note unit. Movement keeps forms on their original IDs and
-rejects invalid contours. Rejected selected-note edits announce why the required
-context must be preserved; authors can first change Form to default. Whole-neume
+rejects invalid contours. Rejected form-constrained deletions announce why the required partners must
+be preserved; authors can first change Form to default before deletion. Invalid
+pitch moves are rejected by the neume contour rules, independently of Form;
+removing a form does not permit crossing that contour. Any committed document
+mutation clears stale form-deletion feedback. Whole-neume
 deletion remains atomic. No preceding-neume condition is imposed.
