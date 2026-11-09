@@ -3,6 +3,10 @@
 Branch: `feat/stage-7a-local-persistence`
 Target: `master`
 
+Status: Implemented for PR review. Automated and foreground verification evidence
+is recorded in [Stage 7A verification](../verification/local-persistence/README.md);
+owner merge/deployment and foreground acceptance remain separate.
+
 ## Problem and user-visible goal
 
 The deployed preview starts from `exampleDocument` on every load and says

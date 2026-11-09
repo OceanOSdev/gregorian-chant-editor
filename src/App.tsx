@@ -7,7 +7,8 @@ function App() {
     <>
       <header>
         <p className="preview-notice">
-          Experimental preview — edits are lost on refresh.
+          Experimental preview — committed edits save in this browser. Export
+          files for backups.
         </p>
       </header>
       <ChantEditor document={exampleDocument} />

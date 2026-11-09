@@ -702,3 +702,14 @@ focus to the score, revealing the actual inserted glyph after reflow. Tab focus
 alone never selects. Decorative system repetitions, ghosts, draft overlays and
 custodes remain noninteractive. Relocation requires delete/reinsert; no existing
 clef has horizontal dragging or slot movement.
+
+## Document controls (Stage 7A)
+
+New / Import / Export and the autosave status appear in the Document section.
+Dirty/recovery lyric drafts, pending history prompts, lyric moves and staged
+clef transactions disable these controls with an explanation. Finish or cancel
+the existing edit first. New/import confirm replacement; cancellation and file
+errors preserve the active session. Accepted replacement resets history,
+selection, tools and drafts. Export names the committed snapshot explicitly.
+Recovery and conflicting-cache operations also require explicit confirmation;
+see [persistence](persistence.md) for their authoritative workflow and limitations.

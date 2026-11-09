@@ -1,3 +1,6 @@
+import { DocumentControls } from './DocumentControls';
+import { usePersistedSession } from '../persistence/use-persisted-session';
+import { isDirtyLyricEntry } from '../state/lyric-entry';
 import {
   resolveGraphicalClefPlacement,
   resolveKeyboardClefPlacement,
@@ -23,7 +26,6 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useReducer,
   useRef,
   useState,
 } from 'react';
@@ -49,12 +51,7 @@ import {
 } from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import { focusAndReveal } from '../rendering/focus-visibility';
-import {
-  createEditorSession,
-  neumeName,
-  lyricMoveTargets,
-  reduceEditorSession,
-} from '../state/editor-session';
+import { neumeName, lyricMoveTargets } from '../state/editor-session';
 import {
   placeClimacusTool,
   placeClivisTool,
@@ -103,11 +100,8 @@ function allocateInsertionIds(): InsertionIds {
 }
 
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
-  const [session, dispatch] = useReducer(
-    reduceEditorSession,
-    initialDocument,
-    createEditorSession,
-  );
+  const persistence = usePersistedSession(initialDocument);
+  const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
@@ -223,9 +217,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       );
   }
 
-  function lyricAction(action: LyricAction) {
-    dispatch({ type: 'lyrics', action, newId: crypto.randomUUID() });
-  }
+  const lyricAction = useCallback(
+    (action: LyricAction) => {
+      dispatch({ type: 'lyrics', action, newId: crypto.randomUUID() });
+    },
+    [dispatch],
+  );
 
   const navigateHistory = useCallback(
     (direction: 'undo' | 'redo') => {
@@ -238,7 +235,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           focusedDivisionId,
       });
     },
-    [focusedDivisionId],
+    [focusedDivisionId, dispatch],
   );
 
   function handlePlaceNeume(kind: GraphicalNeumeKind, point: SvgPoint) {
@@ -260,7 +257,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     const button = paletteButtons.current.get(request.tool);
     if (button) focusAndReveal(button);
     dispatch({ type: 'focus-handled', request });
-  }, [session.focusRequest]);
+  }, [session.focusRequest, dispatch]);
 
   function insertRememberedNeume(divisionSide?: {
     divisionId: string;
@@ -397,6 +394,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       document.removeEventListener('keydown', handleKey);
     };
   }, [
+    dispatch,
+    lyricAction,
     placementKind,
     activeTool.kind,
     navigateHistory,
@@ -864,6 +863,33 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           cancels. Left/Right never move an existing clef.
         </p>
       </details>
+      <DocumentControls
+        document={history.present}
+        blocked={Boolean(
+          isDirtyLyricEntry(session.lyrics) ||
+          session.clefTransaction ||
+          session.lyricMove ||
+          session.pendingHistory,
+        )}
+        status={persistence.status}
+        needsRecovery={persistence.needsRecovery}
+        replace={(document) => {
+          persistence.replace(document);
+          setRovingTool('select');
+          setDivisionKind('minima');
+          setFocusedDivisionId(null);
+          setFocusedLyricId(null);
+        }}
+        reload={() => {
+          if (persistence.reload()) {
+            setRovingTool('select');
+            setDivisionKind('minima');
+            setFocusedDivisionId(null);
+            setFocusedLyricId(null);
+          }
+        }}
+        replaceCache={persistence.replaceCache}
+      />
       <ClefChangeControls session={session} dispatch={dispatch} />
       {activeTool.kind === 'place-clef' ? (
         <div className="clef-placement-help">

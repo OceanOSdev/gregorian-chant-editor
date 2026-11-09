@@ -245,3 +245,12 @@ A transient `keepScoreFocus` hint distinguishes arrow entry from the contextual
 Edit button; it adds no new transaction or semantic identity. Other targets,
 stale drafts, placement and pending deletion cannot be stepped. Apply/Cancel
 continue through the existing shared-policy and focus/history mechanisms.
+
+## Persistence boundaries (Stage 7A)
+
+Committed `history.present` changes, including undo/redo, synchronously pass to
+the browser adapter outside the pure reducer. Drafts and history stacks are not
+serialized. Recovery, confirmed New and validated/confirmed Import create a fresh
+`createEditorSession` root rather than an undoable edit. Failed or canceled
+imports do not dispatch semantic actions. See [persistence](persistence.md) for
+the shared codec, recovery and conflict policy under Accepted ADR 0016.

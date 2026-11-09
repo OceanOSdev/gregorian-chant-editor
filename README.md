@@ -12,8 +12,11 @@ interface may still change.
 
 The deployed public preview is available at
 [Gregorian Chant Editor](https://oceanosdev.github.io/gregorian-chant-editor/).
-This is an experimental preview starting from an example score. There is no
-persistence: **edits are lost on refresh**.
+Stage 7A adds browser-local recovery of committed edits and native JSON
+New / Import / Export controls. First visits start from an example score.
+Export files for backups; browser storage is not cloud storage. The deployed
+preview gains these changes only after owner merge/deployment.
+See [native documents and recovery](docs/persistence.md).
 
 Each push to `master` runs the Pages workflow, which installs
 locked dependencies using the Node version in `.nvmrc`, checks formatting,
@@ -49,6 +52,7 @@ The editor currently supports:
 - graphical placement with a caret and local ghost preview on any rendered system;
 - independent music insertion with stable lyric anchors;
 - immutable semantic edits with atomic undo and redo;
+- browser-local committed-score recovery and versioned native JSON interchange;
 - measured, whole-neume automatic wrapping across multiple systems;
 - stable semantic identity when notation reflows;
 - repeated four-line staffs and C/F clefs in a responsive SVG with dynamic height;
@@ -68,7 +72,7 @@ guarantee: practical browser and memory limits still apply.
   derived continuation marks. Ambiguous alignment falls back to whole text.
 - Four division kinds support graphical placement, selection, kind changes and
   deletion, with explicit neume insertion before or after a division.
-- There are no manual system breaks, persistence, GABC import/export, backend,
+- There are no manual system breaks, GABC import/export, backend,
   or component test environment. Reusable browser verification drivers are
   documented in the [testing guide](docs/testing.md).
 
