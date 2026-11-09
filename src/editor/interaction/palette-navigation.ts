@@ -9,8 +9,10 @@ export const paletteTools = [
   'torculus',
   'climacus',
   'porrectus',
+  'c-clef',
+  'f-clef',
 ] as const;
-export type PaletteTool = 'select' | GraphicalNeumeKind;
+export type PaletteTool = 'select' | GraphicalNeumeKind | 'c-clef' | 'f-clef';
 
 /** Focus navigation only; activation remains native button Enter/Space/click. */
 export function nextPaletteTool(

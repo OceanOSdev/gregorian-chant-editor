@@ -5,6 +5,8 @@ import type {
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
 import {
+  deriveScoreOrder,
+  reanchorScoreOrder,
   hasValidDivisions,
   isDivisionKind,
   isValidDivision,
@@ -26,18 +28,10 @@ export function insertDivision(
     document.divisions.some((d) => d.id === division.id)
   )
     return document;
-  const index =
-    boundary.beforeDivisionId === null
-      ? document.divisions.length
-      : document.divisions.findIndex((d) => d.id === boundary.beforeDivisionId);
-  return {
-    ...document,
-    divisions: [
-      ...document.divisions.slice(0, index),
-      division,
-      ...document.divisions.slice(index),
-    ],
-  };
+  const order = deriveScoreOrder(document);
+  if (!order) return document;
+  order.splice(resolved.scoreIndex, 0, { type: 'division', entity: division });
+  return { ...document, ...reanchorScoreOrder(order) };
 }
 
 export function updateDivisionKind(
@@ -70,6 +64,10 @@ export function deleteDivision(
     return document;
   return {
     ...document,
-    divisions: document.divisions.filter((d) => d.id !== id),
+    ...reanchorScoreOrder(
+      (deriveScoreOrder(document) ?? []).filter(
+        (item) => item.entity.id !== id,
+      ),
+    ),
   };
 }

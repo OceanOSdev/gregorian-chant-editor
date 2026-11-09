@@ -577,7 +577,7 @@ actual checks, selected visual review evidence and remaining owner acceptance.
 Continue running division, continuous-lyric, anchor-move, vowel-alignment,
 measured-spacing and word-composition browser regressions sequentially on the
 shared browser tab. Foreground focus/zoom/IME, spoken output and final clef
-contour acceptance remain owner checks; Stage 6B/6C are not implemented.
+contour acceptance remain owner checks; see Stage 6B below for authored changes.
 
 The [clef refinement review](verification/clefs/refinement/review.md) separately
 checks visual fidelity against printed C/F examples at matched staff spacing.
@@ -585,3 +585,93 @@ Bounds tests alone do not assess typography. Refinement fixtures now fill the
 larger musical region left by the reduced leading gap: exact-fit growth still
 crosses the actual x=656 edge, and the shared et-lux split-span fixture keeps
 its two same-syllable notes on opposite systems with a synthetic wider prefix.
+
+## Stage 6B explicit clefs and custodes
+
+`clef-changes.test.ts` covers mixed boundary split/merge/reanchor invariants,
+non-global clef collection order, leading/trailing/empty/redundant events,
+legacy/stale intent rejection, all C/F offset pairs, initial-clef scope and unsafe
+positions. `clef-transactions.test.ts` covers transient final-value application,
+one-shot policy choice, exact history, dirty lyric preservation and exclusive
+pending ownership. `clef-changes-layout.test.ts` verifies outgoing-clef guide pitch,
+leading substitution, separated bars, deterministic long mixed runs and slot IDs.
+Existing exact-fit fixtures reserve the new system-end custos width.
+
+Run `node docs/verification/mid-score-clefs/browser-check.mjs` with the standard
+Vite/Chromium setup. `CHANT_FIREFOX_URL=ws://127.0.0.1:9234/session` selects Firefox
+BiDi. The [Stage 6B record](verification/mid-score-clefs/README.md) records actual
+results, source inspection, selected screenshots and manual owner checks.
+Run the existing clef, division, continuous-lyrics, lyric-move, vowel-alignment,
+lyric-spacing and word-composition drivers sequentially on each shared browser.
+
+### PR #60 review follow-up
+
+`clef-review-boundaries.test.ts` covers cross-boundary/slot rejection, identity
+collisions across lyric/music/division/clef collections, actual-end I fallback,
+clef-side shortcut feedback and placement guards. `clef-review-regressions.test.ts`
+checks graphical insertion on both authored-clef sides (mid-staff, trailing and
+system-leading), oversized staff/slot reachability, caret/guide clearance,
+division-leading duplicate suppression, reclaimed guide spacing, and a continuation
+system whose effective F clef differs from the initial C clef. Transaction tests
+now distinguish a rejected melody translation from a valid notehead-preserving edit.
+
+The existing mid-score-clef browser driver includes these interaction regressions
+at desktop/320px, semantic dropdown persistence and target clearing, Escape from
+a focused lyric field outside the dialog, focused-clef I feedback, policy-specific
+overflow, and scrolled oversized insertion with a negative viewBox origin.
+
+### Owner-approved graphical clef UX correction
+
+`graphical-clef-placement.test.ts` covers C/F × four-line snapping and half-line
+tolerance, out-of-band rejection, approved ghost geometry, every mixed slot,
+empty/division-only placement, latest measured resolution, stale tools/IDs and
+keyboard targets, direct redundant/trailing commits, preselected insertion policies,
+exact undo/redo, transaction serialization, dirty drafts, remembered-neume I,
+keyboard traversal and safe contextual draft overlays. Palette tests include
+C/F roving navigation; the prior semantic/layout regression suites remain gates.
+
+The mid-score-clef browser driver now targets the graphical workflow instead of
+the removed insertion form: real C/F hover, all four lines, exact slot/line commit,
+one-click selected policy, persistence across C/F, unsafe-policy rejection,
+wrapping, adjacent division/clef sides,
+contextual staged edits, native roving toolbar and keyboard-only insertion,
+Escape/dirty drafts, history and desktop/320px containment. Screenshots include
+visible insertion behavior, ghost, inserted result, selected-clef draft and
+existing-clef pitch confirmation. Historical
+form-driver results in the verification record do not describe the new UI.
+
+### Shared pitch handling for existing-clef edits
+
+`clef-transactions.test.ts` checks immediate Apply under both shared policies,
+scoped unaffected passages, exact history, no-op/cancel, session persistence
+across insertion/edit/insertion and overflow recovery by mode switch or draft
+revision. Deletion retains its separate conditional-choice regressions. The
+mid-score-clef browser driver exercises visible/enabled shared radios during
+selection/drafts, keyboard-arrow editing, contextual C/F and line changes,
+no-dialog Apply, both policies' measured displacement, later-clef scope,
+undo/redo, no-op/cancellation, overflow/retry and unchanged deletion confirmation
+in Chromium/Firefox at desktop/320px. Earlier edit-confirmation screenshots are
+historical; current evidence is in the Stage 6B verification record.
+
+### Custos ledger engraving
+
+`custos-geometry.test.ts` covers staff/adjacent-space omissions, exact one/multiple
+ledger positions above/below, glyph alignment, complete bounds and translation,
+compact extreme-pitch geometry, unchanged guide formulas and whole-neume order,
+oversized staff/canvas and reachable caret clearance. The mid-score-clef browser
+driver renders representative positions and the approximate GABC reference in
+the real editor at desktop/320px, checks SVG ink against derived geometry and
+canvas bounds, and retains screenshots. The [focused record](verification/mid-score-clefs/custos-ledgers.md)
+separates actual Gregorio output, editor evidence, and remaining owner review.
+
+### Selected authored-clef vertical arrows
+
+`clef-transactions.test.ts` covers first-press and consecutive draft steps, both
+bounds, shared pitch outcomes, exact Apply/undo/redo, Cancel with redo/lyric
+drafts, stale/exclusive targets and a measured reflow specimen. The real-editor
+mid-score-clef driver verifies pointer/keyboard selection, six consecutive native
+arrows without focus theft, current in-score preview/control line, unchanged
+committed ink, inert Left/Right, Apply/Cancel/Escape, both modes, exact history
+and focus after reflow in Chromium/Firefox at desktop/320px. Contextual-button
+entry still focuses its controls; initial-clef and insertion keyboard checks
+remain regression gates. See the Stage 6B verification record for actual runs.

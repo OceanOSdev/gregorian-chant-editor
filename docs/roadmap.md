@@ -118,20 +118,29 @@ editing, with selection, keyboard movement and atomic history.
 [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md) records the
 owner-accepted relative diatonic rule. The shared-C-body F engraving has also
 received owner acceptance. Extreme pitches retain the fixed
-vertical bounds and absent ledger-line limitations.
+vertical spacing and absent neume ledger-line limitations.
 
-Stage 6B is specified by [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
+Stage 6B implements [Accepted ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md)
 (owner-approved 2026-11-08), following the _Liber Usualis_ investigation.
 Explicit clef changes may be inserted at whole-neume semantic boundaries
 **without a preceding bar**. Independent clefs and divisions use derived
 score order and an extended stable-ID insertion boundary; deleting a division
-does not delete its nearby clef. Explicit-clef edits offer Preserve melody /
-Preserve noteheads only when existing notes are affected; the initial clef
+does not delete its nearby clef. Explicit-clef insertion and staged edits share
+a preselected pitch mode, with no preservation popup on insertion or Apply.
+Deletion retains its conditional pitch choice; the initial clef
 remains automatically melody-preserving within its governing passage.
 Stage 6B includes automatically derived custos at mid-staff changes and
 staff endings, with effective-clef-aware guide pitches and measured wrapping.
-Implementation remains pending a separate Git-backed Codex handoff and PR;
-ADR acceptance is not feature completion. Stage 6C may improve graphical
-insertion and vertical editing, but **free horizontal clef movement is not
-planned**. No persisted clef-change collection or guide rendering is
-implemented yet.
+Custodes now carry measured short ledger lines outside the staff; guide ink
+can extend the canvas vertically. This does not add neume ledger support or
+vertical system collision handling.
+The graphical C/F tools with snapped ghosts and direct clicks, keyboard slot
+placement with a remembered preselected pitch policy and no insertion prompt,
+contextual staged Apply/Cancel using the shared mode, scoped
+initial edits, measured clefs/custodes and atomic history are implemented.
+See [verification](verification/mid-score-clefs/README.md); final owner engraving,
+foreground keyboard and accessibility acceptance remain pending. Graphical clef
+insertion is implemented in Stage 6B under the owner-approved UX correction.
+Stage 6C may refine cosmetic polish and vertical editing, but **free horizontal clef movement is not
+planned**. There is no save/load format or migration, accidental support,
+playback, or general neume ledger-line support.

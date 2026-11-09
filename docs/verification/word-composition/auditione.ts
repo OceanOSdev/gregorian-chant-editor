@@ -14,6 +14,7 @@ function specimen(
   const words = [['au', 'di', 'ti', accented ? 'ó' : 'o', 'ne']];
   const document: ChantDocument = {
     title: `Auditione — ${id}`,
+    clefChanges: [],
     divisions: [],
     lyricLanguage: centered ? 'und' : 'la',
     clef: { type: 'c', staffLine: 3 },

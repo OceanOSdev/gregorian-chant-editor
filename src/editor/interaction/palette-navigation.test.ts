@@ -22,7 +22,7 @@ describe('palette focus navigation', () => {
       const next = nextPaletteTool(tool, 'ArrowRight');
       expect(next && nextPaletteTool(next, 'ArrowLeft')).toBe(tool);
       expect(nextPaletteTool(tool, 'Home')).toBe('select');
-      expect(nextPaletteTool(tool, 'End')).toBe('porrectus');
+      expect(nextPaletteTool(tool, 'End')).toBe('f-clef');
       expect(nextPaletteTool(tool, 'ArrowDown')).toBe(next);
       expect(nextPaletteTool(tool, 'Enter')).toBeNull();
       expect(nextPaletteTool(tool, ' ')).toBeNull();

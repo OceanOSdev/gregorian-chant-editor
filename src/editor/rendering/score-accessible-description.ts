@@ -17,6 +17,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
   );
 
   const clef = layout.systems[0]?.clef;
+  const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);
   return (
     `A Gregorian chant score with ${countLabel(
@@ -28,6 +29,6 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom, repeated on every system.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
+    )}.${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
   );
 }

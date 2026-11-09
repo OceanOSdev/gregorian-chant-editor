@@ -20,7 +20,7 @@
 }
 .neume-palette {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 0.35rem;
   margin-bottom: 0.75rem;
 }
@@ -430,4 +430,72 @@ kbd {
   stroke: #7b3fb0;
   stroke-width: 2;
   stroke-dasharray: 4 3;
+}
+
+.clef-dialog {
+  position: fixed;
+  z-index: 20;
+  inset: 20% auto auto 50%;
+  transform: translateX(-50%);
+  width: min(34rem, 90vw);
+  padding: 1.5rem;
+  border: 2px solid #44365c;
+  background: #fffdf8;
+  box-shadow: 0 0 0 100vmax #0006;
+  max-height: 70vh;
+  overflow: auto;
+}
+.score__custos {
+  fill: currentColor;
+}
+
+.clef-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: #f3edf8;
+  border: 1px solid #b9a6ce;
+  border-radius: 0.3rem;
+}
+.clef-context label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.clef-context select {
+  font: inherit;
+  min-height: 2.5rem;
+}
+.clef-context__hint,
+.clef-placement-help {
+  font-size: 0.875rem;
+}
+.clef-placement-help {
+  margin: 0.5rem 0;
+}
+.score__clef-ghost {
+  fill: #286b9a;
+  opacity: 0.5;
+}
+.score__clef-draft-preview {
+  fill: #65348b;
+  opacity: 0.65;
+}
+
+.clef-insertion-behavior {
+  margin: 0.5rem 0;
+  min-width: 0;
+}
+.clef-insertion-behavior label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-right: 1rem;
+}
+.clef-insertion-behavior p {
+  margin: 0.4rem 0 0;
+  font-size: 0.875rem;
 }

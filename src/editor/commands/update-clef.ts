@@ -1,15 +1,8 @@
 import type { ChantDocument, Clef } from '../domain/chant-document';
 import { isValidClef } from '../domain/clef';
-import { isValidNeume } from '../domain/neume';
-import { transposeNeume } from './move-neume';
+import { preserveClefMelody } from './edit-clef-change';
 
-const clefBaseDegree = { c: 0, f: 3 } satisfies Record<Clef['type'], number>;
-
-function degreeOffset(clef: Clef): number {
-  return clefBaseDegree[clef.type] - 2 * (clef.staffLine - 1);
-}
-
-/** One atomic melody-preserving change of the required initial clef. */
+/** Initial edits preserve only the passage governed by the required clef. */
 export function updateClef(document: ChantDocument, clef: Clef): ChantDocument {
   if (
     !isValidClef(clef) ||
@@ -18,22 +11,7 @@ export function updateClef(document: ChantDocument, clef: Clef): ChantDocument {
       clef.staffLine === document.clef.staffLine)
   )
     return document;
-  const delta = degreeOffset(document.clef) - degreeOffset(clef);
-  if (
-    !document.neumes.every(
-      (n) =>
-        isValidNeume(n) &&
-        n.notes.every(
-          (note) =>
-            Number.isSafeInteger(note.staffPosition) &&
-            Number.isSafeInteger(note.staffPosition + delta),
-        ),
-    )
-  )
-    return document;
-  return {
-    ...document,
-    clef: { type: clef.type, staffLine: clef.staffLine },
-    neumes: document.neumes.map((n) => transposeNeume(n, delta)),
-  };
+  return (
+    preserveClefMelody(document, { ...document, clef: { ...clef } }) ?? document
+  );
 }

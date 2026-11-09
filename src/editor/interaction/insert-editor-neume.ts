@@ -1,3 +1,4 @@
+import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { createNeumeEntryPitches } from '../neume-entry-pitches';
 import type { EditorSelection } from '../state/selection';
 import { insertClimacus } from '../commands/insert-climacus';
@@ -163,13 +164,28 @@ export function resolveEditorToolbarInsertion(
   const beforeNeumeId = document.neumes[insertionIndex]?.id ?? null;
   // Contextual I inserts immediately after its neume, before punctuation there.
   // A selected division requires the visible before/after control.
-  if (selection.kind === 'division' && !explicitBoundary) return null;
-  const scoreBoundary = explicitBoundary ?? {
-    beforeNeumeId,
-    beforeDivisionId:
-      document.divisions.find((d) => d.beforeNeumeId === beforeNeumeId)?.id ??
-      null,
-  };
+  if (
+    (selection.kind === 'division' || selection.kind === 'clef-change') &&
+    !explicitBoundary
+  )
+    return null;
+  const order = deriveScoreOrder(document);
+  if (!order) return null;
+  const firstAtBoundary = order.findIndex(
+    (item) =>
+      (item.type !== 'neume' && item.entity.beforeNeumeId === beforeNeumeId) ||
+      (item.type === 'neume' && item.entity.id === beforeNeumeId),
+  );
+  const scoreBoundary =
+    explicitBoundary ??
+    scoreBoundaryAt(
+      order,
+      selection.kind === 'none' ||
+        selection.kind === 'clef' ||
+        firstAtBoundary < 0
+        ? order.length
+        : firstAtBoundary,
+    );
   return {
     ...createNeumeEntryPitches(kind, boundary.referenceStaffPosition),
     boundary: scoreBoundary,
@@ -185,15 +201,8 @@ export function resolveDivisionSideBoundary(
 ): ScoreInsertionBoundary | null {
   const division = document.divisions.find((d) => d.id === id);
   if (!division) return null;
-  const siblings = document.divisions.filter(
-    (d) => d.beforeNeumeId === division.beforeNeumeId,
-  );
-  const next =
-    side === 'before'
-      ? division
-      : siblings[siblings.findIndex((d) => d.id === id) + 1];
-  return {
-    beforeNeumeId: division.beforeNeumeId,
-    beforeDivisionId: next?.id ?? null,
-  };
+  const order = deriveScoreOrder(document);
+  if (!order) return null;
+  const index = order.findIndex((item) => item.entity.id === id);
+  return scoreBoundaryAt(order, index + (side === 'after' ? 1 : 0));
 }

@@ -161,6 +161,7 @@ try {
   } else {
     const fixture = {
       title: 'Stage 4C — Al ... leluia ah',
+      clefChanges: [],
       divisions: [],
       lyricLanguage: 'la',
       clef: { type: 'c', staffLine: 3 },
@@ -410,11 +411,11 @@ try {
         syllables: [
           {
             ...fixture.syllables[0],
-            // Fill the wider region while retaining room for the outgoing mark.
-            text: 'a' + 'b'.repeat(49),
+            // Fill the region while retaining room for the outgoing mark and custos.
+            text: 'a' + 'b'.repeat(46),
             startsAtNeumeId: 'n0',
           },
-          { ...fixture.syllables[1], text: 'le', startsAtNeumeId: 'n1' },
+          { ...fixture.syllables[1], text: 'lelelele', startsAtNeumeId: 'n1' },
         ],
       };
       await viewport(1440);

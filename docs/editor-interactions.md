@@ -27,6 +27,7 @@ Score selection uses stable IDs for entities and a singleton tag for the clef:
 - one whole-neume ID;
 - one syllable ID;
 - one division ID;
+- one explicit clef-change ID;
 - the required initial clef (no semantic ID).
 
 Clicking a note or pressing Enter/Space on its focused control selects the
@@ -586,24 +587,118 @@ linguistic validation attached to a division kind.
 
 The always-visible **Initial clef** group offers explicitly labeled **Clef type**
 (C/do or F/fa) and **Staff line** (1–4, bottom to top) native selects.
-Each change preserves melody by translating all notes and records one semantic
+Each change preserves melody in the initial governing passage and records one semantic
 history entry. Controls keep native focus, preserve active placement tools and
 remembered neume kind, and leave dirty lyric drafts intact. They are disabled
-during pending history resolution and lyric reassignment.
+during pending history resolution, lyric reassignment and clef transactions.
 
-In Select mode only the first system's clef is a focusable button. Click or
+In Select mode the required first-system clef is a singleton focusable button. Click or
 Enter/Space selects it. Tab focus alone does not select. Arrow Up/Down on the
 focused clef moves its reference line one legal line; at lines 1/4 the outward
 arrow makes no edit. Modifier chords, repeat and composition do not edit it.
 Blue selection and a purple dashed keyboard-focus cue are independent. Escape
 clears selection through the existing handler (or resolves the active lyric
 context first). Delete never removes the required clef. Later-system copies
-are decorative and repeat the same document clef; they are not independent
-editable entities. The score summary and control label name type and line.
+are decorative repetitions of the effective incoming clef, unless an authored
+clef occupies the leading position; authored changes remain independent controls. The score summary and control label name type and line.
 
 While placement is active the clef target is disabled, removed from Tab order
 and pointer-inert; the score surface retains placement ownership. Leaving
 placement can restore clef focus through the singleton focus request. The first
 clef stays in its first-system DOM group through musical reflow, so normal clef
-edits and history retain browser focus. Mid-score insertion and dragging belong
-to later stages.
+edits and history retain browser focus. Horizontal clef dragging is excluded.
+
+## Mid-score clef placement and contextual editing (Stage 6B)
+
+**C clef** and **F clef** are persistent placement tools in the main notation
+palette. They share pressed states, roving Arrow/Home/End navigation and native
+Enter/Space activation with neume tools. They do not change the remembered
+neume kind: I continues to insert that neume. The required initial clef remains
+a separate control.
+
+Hovering a valid staff shows the approved translucent C/F silhouette at a
+measured score slot, with the existing caret. Height snaps to the nearest staff
+line, bottom 1 through top 4; exact half-line ties go upward. The hit band extends
+half a staff space beyond the outer lines. Outside that band (or the extended
+staff's horizontal bounds), neither preview nor click is accepted. Hover never
+changes the document, lyrics, wrapping or history. Both hover and click use
+`resolveGraphicalClefPlacement`; click resolves again against the latest document
+and displayed font snapshot in the reducer.
+
+A compact **Pitch handling** radio group appears near the toolbar while placing
+a clef, selecting an authored clef, or editing its draft.
+**Keep pitches (move existing notes)** is selected at initialization: existing
+noteheads shift to retain their interpreted pitches. **Keep note positions
+(change pitches)** leaves noteheads in place and changes their interpreted
+pitches. This session-only option persists across placements and C/F tool
+switches, Select mode and staged edits; it is outside the document and history
+and may reset on refresh. Changing it never edits music. It is available during
+a draft but disabled during deletion confirmation.
+
+Click applies the selected behavior immediately as one undoable edit, even when
+existing notes are affected. No insertion confirmation or Apply step appears.
+Trailing/redundant clefs commit under either choice. Unsafe arithmetic rejects
+without music/history mutation or fallback; a nearby accessible status explains
+how to choose another mode and retry. The tool stays armed, successful placement
+clears hover and returns focus to the score. Double-click continuation events
+and repeated keyboard activation are ignored. Escape returns to Select.
+
+For keyboard-only insertion, choose C/F in the palette, choose the insertion
+behavior, then Tab to **Place clef
+with keyboard** and activate it (or focus the score and use an arrow). Left/Right
+visits explicit semantic boundaries; Home/End visits the score edges; Up/Down
+chooses lines 1–4; Enter/Space inserts with exactly the same pitch/history rules.
+The live announcement describes the line and neighboring item; the caret and
+ghost reveal the current target. A shared break boundary uses its continuation
+system copy. A stale keyboard target rejects rather than silently retargeting.
+Pointer motion takes over from keyboard placement; switching tools clears both
+preview sources. Keyboard cursor, hover and tools live only in session state.
+
+Clef arming retains a lyric draft without saving or discarding it. Hover, rejected
+placement and Escape preserve that draft, anchor and redo branch; successful
+insertion preserves the draft and starts a new history branch. Switching to a
+neume/division tool still follows their established commit-on-mode-change policy.
+Escape from an armed clef returns to Select before acting on a lyric draft.
+A document capture handler gives pending existing-clef cancellation precedence
+even if focus leaves the draft or deletion prompt for an editable lyric field.
+
+In Select, click or Enter/Space selects an authored clef by stable ID. A compact
+**Selected clef** group beside the score offers Edit, Delete and explicit
+remembered-neume insertion on either side; there is no global clef picker or
+full-score boundary dropdown. I on a focused/selected clef announces those side
+controls. Selecting does not itself start an edit.
+
+**Edit clef change** opens a compact contextual C/F + line draft and focuses its
+controls. In Select, Up/Down on a focused authored clef instead starts that same
+draft **and moves it one staff line on the first press**. Subsequent presses
+continue from the current draft, retaining focus on the stable in-score clef
+and updating the preview and contextual line control. The active target remains
+keyboard-enabled while competing score controls are disabled. Bounds 1/4 stop
+movement without wrapping; an outward first press does not open a draft.
+Left/Right neither move nor reanchor an existing clef. Keyboard insertion's
+separate slot navigation and initial-clef arrows remain unchanged.
+
+The draft has explicit **Apply clef change** / **Cancel clef change** controls;
+Tab/Shift+Tab reaches them and the shared pitch mode. Enter/Space on the in-score
+draft target does not Apply, and Delete cannot remove it during a pending edit.
+Repeated arrow/control changes remain transient. Where the draft glyph fits safely
+between committed ink and staff bounds, an inert purple overlay previews it in
+place; the original geometry remains committed and its ink fades. No music or
+custos is provisionally transposed or reflowed. Apply compares the final draft
+with the original snapshot and uses the currently selected shared pitch mode
+immediately, committing one history entry without a preservation popup. Unsafe
+Keep pitches leaves the draft pending with an accessible nonmodal error beside
+the editor. Switch to Keep note positions or revise the draft and retry Apply;
+there is no silent fallback. No-op/Cancel preserves exact music, history, redo
+and lyric drafts. The chosen tool option persists even after Cancel. This
+retains amended ADR 0015's staged editing contract.
+
+Delete/Backspace or Delete removes an authored clef immediately when pitches are
+unaffected, otherwise asking its separate conditional Preserve melody / Preserve noteheads
+choice. The shared pitch mode does not decide deletion. Commit selects
+and reveals the surviving ID; deletion focuses Select. Edit cancellation retains
+the preceding selection and returns focus to the edited glyph. Placement returns
+focus to the score, revealing the actual inserted glyph after reflow. Tab focus
+alone never selects. Decorative system repetitions, ghosts, draft overlays and
+custodes remain noninteractive. Relocation requires delete/reinsert; no existing
+clef has horizontal dragging or slot movement.

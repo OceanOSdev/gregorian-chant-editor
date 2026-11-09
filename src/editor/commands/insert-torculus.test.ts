@@ -25,6 +25,7 @@ function punctum(id: string): PunctumNeume {
 
 function createDocument(): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',

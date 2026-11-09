@@ -5,6 +5,7 @@ import { getScoreAccessibleDescription } from './score-accessible-description';
 
 function documentWith(count: number): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',

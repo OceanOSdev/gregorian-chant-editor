@@ -23,7 +23,8 @@ identity, ordering, pitch representation, and neume invariants.
   numbered bottom to top; this singleton value object has no ID;
 - `syllables` is the semantic lyric order;
 - `neumes` is the pitched semantic order;
-- `divisions` is a required collection of non-pitched punctuation.
+- `divisions` is a required collection of non-pitched punctuation;
+- `clefChanges` is a required collection of stable-ID authored clef events.
 
 The document contains no pixel coordinates, connector geometry, system
 assignment, placeholder glyph shape, selection, tool, focus, or history data.
@@ -31,7 +32,8 @@ Those concerns are derived or transient.
 
 ## Syllables, neumes, and notes
 
-A lyric syllable has a stable `id`, nonblank single-syllable `text`, a
+A lyric syllable has a stable `id` unique across all semantic collections
+(including authored clefs), nonblank single-syllable `text`, a
 `startsAtNeumeId` anchor, and `boundaryBefore` (`word` or `continuation`).
 Neumes are independent entities with stable IDs, explicit kinds, and nested
 notes. They have no lyric reference.
@@ -107,15 +109,13 @@ may change after any edit that changes horizontal flow.
 
 ## Semantic insertion boundaries
 
-`ScoreInsertionBoundary` identifies a boundary by `beforeNeumeId` (null means
-end) and `beforeDivisionId` (null means after all divisions there). A non-null
-division ID must belong to that neume boundary. This distinguishes every slot
-among adjacent divisions, including leading/trailing punctuation and an empty
-score. A boundary never points inside a compact neume.
-
-Legacy numeric insertion indexes remain valid only at division-free boundaries;
-occupied boundaries reject ambiguous numeric insertion with the original document.
-Stage 5B will provide graphical and keyboard side selection.
+`ScoreInsertionBoundary` names `beforeNeumeId` (null means end),
+`beforeDivisionId` (null means the final division slot), and optional
+`beforeClefId`. A clef ID must belong to exactly that neume/division slot;
+explicit null means after its clef run. Omitting the clef field is compatible
+only with an empty clef slot. Legacy numeric insertion is valid only at
+boundaries with neither divisions nor clefs. Stale and ambiguous intents reject.
+See [ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md).
 
 Insertion is independent of lyrics: any valid whole-neume boundary is legal,
 and inserting music never moves existing syllable anchors. Toolbar insertion
@@ -185,8 +185,8 @@ Their IDs must be unique across divisions and existing semantic entities.
 extra entity fields, duplicate IDs and dangling anchors. There is no persisted
 schema or save/load migration today; existing fixtures explicitly supply `[]`.
 
-`deriveScoreOrder` returns a tagged stream of neumes and divisions, or null for
-invalid division data. Neume order determines boundary order; division-array
+`deriveScoreOrder` returns a tagged stream of neumes, divisions and clef changes, or null for
+invalid boundary data. Neume order determines boundary order; division-array
 order determines order only within each boundary. There is no persisted second
 full-score ordering authority. Consumers must not treat the raw division array
 as global score order.
@@ -199,9 +199,8 @@ already at the destination in their prior derived order; none are discarded.
 Normalization preserving a neume ID preserves its division anchors.
 
 [Accepted ADR 0012](adrs/0012-divisions-at-semantic-boundaries.md) records the
-owner-approved semantic model and alternatives. Rendering, accessible division controls, and any effect
-on lyric compaction/hyphenation remain Stage 5B work; current layout ignores
-divisions and the accepted lyric contracts are unchanged.
+owner-approved division model. Its boundary operations are narrowly extended by
+ADR 0015; graphical divisions and the ADR 0013 compaction exception are implemented.
 
 ## Initial clef editing (Stage 6A)
 
@@ -209,11 +208,32 @@ divisions and the accepted lyric contracts are unchanged.
 F (fa) names used by accessible descriptions. Commands and UI boundaries consume
 these helpers; the semantic value remains defined in `chant-document.ts`.
 
-Changing the initial clef preserves relative diatonic melody by translating all
-stored note positions atomically. The implemented mapping and its limits are
+Changing the initial clef preserves relative diatonic melody by translating the
+initially governed passage atomically (before the first explicit change). The implemented mapping and its limits are
 recorded in [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md),
 accepted by the owner on 2026-11-04. This introduces no absolute octave,
 chromatic pitch, playback or new pitch field. Neume kinds, internal intervals,
 IDs, lyric anchors and division order remain unchanged. Outside-staff positions
-remain legal. Automatic clef repetitions are derived graphics; there are no
-persisted mid-score clef events or insertion boundaries for clefs in Stage 6A.
+remain legal. Automatic clef repetitions and custodes are derived graphics.
+
+## Explicit clef changes (Stage 6B)
+
+`ClefChange` stores `id`, a C/F `clef`, `beforeNeumeId`, and
+`beforeDivisionId`. The latter refers to the next division at the same boundary,
+not an owner. IDs are unique across all semantic entities. Required collections,
+clef values, anchors and slot membership are validated together by
+`hasValidDivisions`; invalid runtime data is never treated as empty.
+
+`deriveScoreOrder` visits each neume boundary, emits clefs before each division,
+then the final clef run and the neume. Only order within a clef's own slot is
+authoritative in `clefChanges`; division-array order controls divisions sharing
+a boundary. The last preceding clef governs a whole neume. Leading, trailing,
+consecutive and redundant clefs retain their IDs, including in empty scores.
+
+`reanchorScoreOrder` reconstructs only boundary anchors from a temporary derived
+walk after split/merge commands. Survivors retain their former derived order,
+including when formerly distinct slots merge despite reversed collection order.
+There is no persistent event stream, absolute pitch field or clef ownership by bars.
+See [ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md) for the full
+ordering and relative-pitch contract, and [commands](commands-and-history.md#explicit-clef-transactions-stage-6b)
+for its transaction boundary.

@@ -74,6 +74,7 @@ function documentWith(
     : [],
 ): ChantDocument {
   return {
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',
     title: 'Test chant',
@@ -122,13 +123,13 @@ describe('multi-system chant layout', () => {
       flattened.flatMap((neume) => neume.notes.map((note) => note.noteId)),
     ).toEqual(neumes.flatMap((neume) => neume.notes.map((note) => note.id)));
     expect(layout.systems.map((system) => system.startNeumeIndex)).toEqual([
-      0, 12, 24,
+      0, 11, 22,
     ]);
     expect(
       layout.systems.map(
         (system) => system.startNeumeIndex + system.neumes.length,
       ),
-    ).toEqual([12, 24, 25]);
+    ).toEqual([11, 22, 25]);
     expect(flattened.every((neume) => !('systemIndex' in neume))).toBe(true);
   });
 
@@ -148,18 +149,20 @@ describe('multi-system chant layout', () => {
   });
 
   it('keeps exact fits and wraps the next complete neume', () => {
-    const fullSystem = Array.from({ length: 12 }, (_, index) =>
+    const fullSystem = Array.from({ length: 11 }, (_, index) =>
       punctum(String(index)),
     );
-    const exactRightBound = 651;
+    const exactRightBound = 626;
 
     expect(wrapNeumes(fullSystem, exactRightBound)).toHaveLength(1);
     expect(
       wrapNeumes([...fullSystem, punctum('overflow')], exactRightBound),
     ).toHaveLength(2);
-    expect(wrapNeumes([...fullSystem, punctum('overflow')])).toMatchObject([
+    expect(
+      wrapNeumes([...fullSystem, punctum('overflow')], exactRightBound),
+    ).toMatchObject([
       { startNeumeIndex: 0, neumes: fullSystem },
-      { startNeumeIndex: 12, neumes: [{ id: 'neume-overflow' }] },
+      { startNeumeIndex: 11, neumes: [{ id: 'neume-overflow' }] },
     ]);
   });
 
@@ -169,10 +172,10 @@ describe('multi-system chant layout', () => {
     compact('scandicus', 'scandicus'),
     compact('torculus', 'torculus'),
   ])('never splits a complete $kind', (neume) => {
-    const prefix = Array.from({ length: 12 }, (_, index) =>
+    const prefix = Array.from({ length: 11 }, (_, index) =>
       punctum(String(index)),
     );
-    const systems = wrapNeumes([...prefix, neume]);
+    const systems = wrapNeumes([...prefix, neume], 626);
 
     expect(systems[1]?.neumes).toEqual([neume]);
   });
@@ -227,12 +230,14 @@ describe('multi-system chant layout', () => {
     ];
     const layout = layoutChant(documentWith(neumes));
     const firstPunctum = layout.systems[0]?.neumes[0];
-    const high = layout.systems[1]?.neumes[0];
+    const high = layout.systems[1]?.neumes.find(
+      (n) => n.neumeId === 'neume-high',
+    );
     const firstHighNote = high?.notes[0];
     const finalHighNote = high?.notes[2];
 
     expect(firstPunctum?.notes[0]?.x).toBe(144);
-    expect(firstHighNote?.x).toBe(144);
+    expect(firstHighNote?.x).toBe(high?.bounds.x);
     expect(high?.ink).toHaveLength(2);
     expect(high?.bounds.y).toBeGreaterThanOrEqual(layout.systems[1]?.y ?? 0);
     expect((finalHighNote?.y ?? 0) + (finalHighNote?.height ?? 0)).toBeLessThan(
@@ -275,7 +280,9 @@ describe('multi-system chant layout', () => {
         ],
       ),
     );
-    const secondNeume = layout.systems[1]?.neumes[0];
+    const secondNeume = layout.systems[1]?.neumes.find(
+      (n) => n.neumeId === 'neume-second',
+    );
 
     expect(layout.systems[0]?.lyrics).toHaveLength(1);
     expect(layout.systems[1]?.lyrics).toMatchObject([
@@ -297,7 +304,7 @@ describe('multi-system chant layout', () => {
     const deleted = layoutChant(deleteNeume(document, 'neume-0'));
     const moved = layoutChant(moveNoteVertically(document, 'note-0', 1));
 
-    expect(before.systems[1]?.neumes[0]?.neumeId).toBe('neume-12');
+    expect(before.systems[1]?.neumes[0]?.neumeId).toBe('neume-11');
     expect(deleted.systems).toHaveLength(1);
     expect(deleted.systems[0]?.neumes.at(-1)?.neumeId).toBe('neume-12');
     expect(

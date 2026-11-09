@@ -111,13 +111,22 @@ export interface ChantDivision {
   beforeNeumeId: string | null;
 }
 
-/** A slot before one division, or after all divisions at a neume boundary. */
+export interface ClefChange {
+  id: string;
+  clef: Clef;
+  beforeNeumeId: string | null;
+  beforeDivisionId: string | null;
+}
+
+/** A position within a clef run in a division slot at a neume boundary. */
 export interface ScoreInsertionBoundary {
+  beforeClefId?: string | null;
   beforeNeumeId: string | null;
   beforeDivisionId: string | null;
 }
 
 export interface ChantDocument {
+  clefChanges: ClefChange[];
   divisions: ChantDivision[];
   lyricLanguage: LyricLanguage;
   title: string;

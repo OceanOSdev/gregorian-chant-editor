@@ -1,3 +1,4 @@
+import type { PunctumNeume } from '../domain/chant-document';
 import { describe, expect, it } from 'vitest';
 import { buildClefGeometry } from './clef-geometry';
 import { layoutChant, staffStep } from './layout-chant';
@@ -37,9 +38,16 @@ for (const type of ['c', 'f'] as const)
           ...exampleDocument,
           clef,
           syllables: [],
-          neumes: Array.from({ length: 30 }, (_, i) => ({
+          neumes: Array.from({ length: 30 }, (_, i): PunctumNeume => ({
             ...exampleDocument.neumes[0],
+            kind: 'punctum',
             id: `n${i}`,
+            notes: [
+              {
+                id: `note${i}`,
+                staffPosition: exampleDocument.neumes[0].notes[0].staffPosition,
+              },
+            ],
           })),
         };
         const layout = layoutChant(document);

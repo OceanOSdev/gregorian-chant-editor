@@ -34,6 +34,7 @@ function fixture(count = 2): ChantDocument {
       notes: [{ id: `note${i}`, staffPosition: staffPosition(2) }],
     })),
     syllables: [],
+    clefChanges: [],
     divisions: [],
   };
 }
@@ -255,6 +256,7 @@ describe('derived division layout and explicit insertion', () => {
       'punctum',
     );
     expect(insertion?.boundary).toEqual({
+      beforeClefId: null,
       beforeNeumeId: 'n1',
       beforeDivisionId: 'D',
     });
@@ -476,13 +478,21 @@ it.each(['word', 'continuation'] as const)(
               x: bar.bounds.x - 1,
               y: system.staffLines[1].y,
             })?.slot.boundary,
-          ).toEqual({ beforeNeumeId: 'n1', beforeDivisionId: 'D' });
+          ).toEqual({
+            beforeNeumeId: 'n1',
+            beforeDivisionId: 'D',
+            beforeClefId: null,
+          });
           expect(
             resolveScoreSlot(l, {
               x: bar.bounds.x + bar.bounds.width + 1,
               y: system.staffLines[1].y,
             })?.slot.boundary,
-          ).toEqual({ beforeNeumeId: 'n1', beforeDivisionId: null });
+          ).toEqual({
+            beforeNeumeId: 'n1',
+            beforeDivisionId: null,
+            beforeClefId: null,
+          });
           for (const slot of system.slots) {
             const intent = resolveGraphicalNeumePlacement(l, 'punctum', {
               x: slot.x,
@@ -506,7 +516,11 @@ it.each(['word', 'continuation'] as const)(
         expect(l.systems[0].divisions[0].bounds.x).toBeGreaterThan(staffEndX);
         expect(l.x + l.width).toBeGreaterThan(l.systems[0].staffLines[0].x2);
         expect(l.systems[1].neumes[0].neumeId).toBe('n1');
-        expect(l.systems[1].staffLines[0].x2).toBe(staffEndX);
+        expect(l.systems[1].staffLines[0].x2).toBeGreaterThanOrEqual(staffEndX);
+        for (const guide of l.systems[1].custodes)
+          expect(l.systems[1].staffLines[0].x2).toBeGreaterThan(
+            guide.bounds.x + guide.bounds.width,
+          );
       }
     }
   },

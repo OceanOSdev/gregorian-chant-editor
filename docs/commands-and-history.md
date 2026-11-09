@@ -161,7 +161,7 @@ music, lyric and division snapshot together.
 
 All seven neume insertion entrypoints delegate to `insertNeume`, accepting
 an explicit score boundary or a legacy number. Numeric boundaries containing
-divisions reject ambiguity. Explicit insertion reanchors the preceding subset
+divisions or clefs reject ambiguity. Explicit insertion reanchors the preceding subset
 of divisions to the new neume, preserving every division's derived order.
 Whole-neume and final-note deletion reanchor punctuation before the next
 surviving neume or end, preserving the pre-delete score order on convergence.
@@ -176,7 +176,7 @@ implemented in Stage 5A.
 ## Initial clef transaction (Stage 6A)
 
 `updateClef` validates both clefs and every neume/pitch before constructing a
-candidate. It changes the clef and translates all notes in one history entry,
+candidate. It changes the clef and translates the initial governing passage in one history entry,
 preserving relative diatonic melody using the mapping in
 [Accepted ADR 0014](adrs/0014-preserve-melody-on-initial-clef-edit.md).
 Unchanged/invalid clefs, malformed neumes and unsafe integer pitch results return
@@ -188,3 +188,60 @@ kind, focus requests and lyric drafts. It clears stale hover geometry and
 announces the new type/line and melody preservation. Pending history resolution
 and lyric reassignment block the action. Later history navigation still requires
 resolution of a dirty lyric draft. Clef edits never implicitly save that draft.
+
+## Explicit clef transactions (Stage 6B)
+
+`insertClefChange`, `updateClefChange` and `deleteClefChange` construct validated
+semantic candidates without choosing a pitch policy. `effectiveOffsets` compares
+committed and candidate governing offsets by stable neume ID.
+`preserveClefMelody` prevalidates safe integer positions and neume invariants,
+then translates only affected surviving passages using the shared domain
+`clefOffset`. Preserve noteheads commits the candidate with unchanged positions.
+Redundant event identities do not constitute a pitch change.
+
+For existing-clef edits/removals, the session owns one `clefTransaction`: original
+snapshot, previous selection,
+authored ID, insertion boundary or existing target, draft value, and optional
+final candidate awaiting confirmation. Draft adjustments never enter history.
+Apply compares the final edit with the original document and immediately uses
+`clefInsertionPolicy`, the single shared session option for insertion and edits.
+Policy changes during a draft never mutate music/history. Unsafe transformations
+leave the draft pending with a nonmodal error; changing policy or draft clears
+the error for retry. Cancel/no-op preserves the exact history and redo branch.
+Deletion alone creates a final candidate awaiting conditional confirmation;
+its policy is independent of the shared setting. Unsafe melody translation
+keeps deletion confirmation open, permitting Preserve noteheads or cancellation.
+Competing semantic actions and history navigation are blocked while a draft or
+confirmation is pending; a stale original snapshot cancels rather than applying
+to newer music.
+There is no generic transaction framework. Undo/redo restores committed snapshots
+without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-placement-and-contextual-editing-stage-6b).
+
+## Direct graphical clef insertion
+
+`place-clef` uses `layoutChant` with the displayed measurement snapshot and the
+shared pointer/keyboard clef resolver, then reuses candidate validation and the
+existing atomic commit path. The session's `clefInsertionPolicy` defaults to
+`melody` and persists across C/F placements, Select and staged edits outside
+semantic history. Insertion
+applies that selected policy synchronously, never exposing a pending draft or
+confirmation. Unsafe arithmetic returns unchanged music/history and a nonmodal
+session error; it never falls back to the alternate mode. Each successful
+placement records one snapshot and returns to the armed tool. Pending
+existing-clef drafts block competing placement but allow changing the shared
+policy; deletion confirmation blocks both.
+
+`clef-keyboard` stores only an explicit semantic boundary and staff line in the
+transient session. Traversal derives mixed order anew; commit verifies its
+current slot. The cursor advances after an inserted clef and never moves an
+existing authored clef. Hover, keyboard cursor and the remembered neume tool
+remain outside semantic history. Existing-clef edits still use draft/Apply/Cancel.
+
+`step-clef-change` is a narrow entry point into the existing authored-clef
+transaction. It validates Select mode, target/exclusivity and line bounds,
+starts the draft when needed, and computes each step from its current value.
+The first press stages its movement atomically without editing semantic history.
+A transient `keepScoreFocus` hint distinguishes arrow entry from the contextual
+Edit button; it adds no new transaction or semantic identity. Other targets,
+stale drafts, placement and pending deletion cannot be stepped. Apply/Cancel
+continue through the existing shared-policy and focus/history mechanisms.

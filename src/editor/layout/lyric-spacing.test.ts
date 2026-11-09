@@ -33,6 +33,7 @@ const measure: MeasureLyricText = (text) => {
 function fixture(texts: string[], count = texts.length): ChantDocument {
   return {
     title: 'Spacing',
+    clefChanges: [],
     divisions: [],
     lyricLanguage: 'und',
     clef: { type: 'c', staffLine: 3 },
@@ -160,9 +161,10 @@ describe('combined music and lyric placement', () => {
     const exact: MeasureLyricText = (text) =>
       text === 'a'
         ? { width: 10, boundaries: [0, 10] }
-        : { width: 496, boundaries: [0, 496] };
+        : { width: 476, boundaries: [0, 476] };
     const l = layoutChant(d, exact);
-    expect(l.systems[0].lyrics.at(-1)?.right).toBe(staffEndX);
+    expect(l.systems[0].lyrics.at(-1)?.right).toBe(staffEndX - 20);
+    expect(l.systems[0].custodes.at(-1)?.bounds.x).toBe(staffEndX - 10);
     expect(l.systems[0].neumes).toHaveLength(2);
     expect(l.systems[1].startNeumeIndex).toBe(2);
   });

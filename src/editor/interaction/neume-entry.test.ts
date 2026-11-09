@@ -11,6 +11,7 @@ const empty: ChantDocument = {
   lyricLanguage: 'la',
   neumes: [],
   syllables: [],
+  clefChanges: [],
   divisions: [],
 };
 
@@ -68,7 +69,11 @@ describe.each(Object.values(entryPitchCases))(
           kind,
           staffPositions: expected,
           insertionIndex,
-          boundary: { beforeNeumeId, beforeDivisionId: null },
+          boundary: {
+            beforeNeumeId,
+            beforeDivisionId: null,
+            beforeClefId: null,
+          },
         });
 
         const layout = layoutChant(document);
