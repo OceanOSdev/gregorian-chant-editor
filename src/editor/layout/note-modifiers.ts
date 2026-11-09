@@ -151,7 +151,9 @@ export function addNoteModifiers(
     ) &&
     ![0, 2, 4, 6].some((position) => {
       const lineY = bottomStaffY - position * 12;
-      return bounds.y < lineY + 1 && bounds.y + bounds.height > lineY - 1;
+      // The staff stroke does not scale with the SVG. Four layout units
+      // keep ordinary narrow-view ticks visually separate from its raster ink.
+      return bounds.y < lineY + 4 && bounds.y + bounds.height > lineY - 4;
     });
   geometry.notes.forEach((note, index) => {
     if (!modifiers[index]?.verticalEpisema) return;

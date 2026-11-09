@@ -1,0 +1,384 @@
+{
+  "browser": "Firefox",
+  "method": "Native screenshot center-row red-channel darkness normalized from background 255 to ink 32; nominal widths from SVG/CTM; browser client rectangles may round. No screenshot golden threshold.",
+  "configurations": [
+    {
+      "configuration": {
+        "name": "desktop",
+        "width": 1440
+      },
+      "before": {
+        "count": 24,
+        "scale": 1.2416666746139526,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "clientWidth": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "staffGap": {
+          "min": 1.7166152000427246,
+          "max": 7.933366775512695
+        }
+      },
+      "after": {
+        "count": 24,
+        "scale": 1.2416666746139526,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "clientWidth": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        }
+      }
+    },
+    {
+      "configuration": {
+        "name": "medium",
+        "width": 1024
+      },
+      "before": {
+        "count": 24,
+        "scale": 1.2416666746139526,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "clientWidth": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "staffGap": {
+          "min": 1.7166152000427246,
+          "max": 7.933366775512695
+        }
+      },
+      "after": {
+        "count": 24,
+        "scale": 1.2416666746139526,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "clientWidth": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        }
+      }
+    },
+    {
+      "configuration": {
+        "name": "narrow",
+        "width": 320
+      },
+      "before": {
+        "count": 24,
+        "scale": 0.38055554032325745,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.33183856502242154,
+          "max": 0.5695067264573991
+        },
+        "integratedWidth": {
+          "min": 0.5695067264573991,
+          "max": 0.57847533632287
+        },
+        "clientWidth": {
+          "min": 0.5833282470703125,
+          "max": 0.5999908447265625
+        },
+        "staffGap": {
+          "min": 4.887580871582031e-6,
+          "max": 1.9110922813415527
+        }
+      },
+      "after": {
+        "count": 24,
+        "scale": 0.38055554032325745,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.33183856502242154,
+          "max": 0.5695067264573991
+        },
+        "integratedWidth": {
+          "min": 0.5695067264573991,
+          "max": 0.57847533632287
+        },
+        "clientWidth": {
+          "min": 0.5833282470703125,
+          "max": 0.5999908447265625
+        },
+        "staffGap": {
+          "min": 1.5166674852371216,
+          "max": 1.9110922813415527
+        }
+      },
+      "samples": [
+        {
+          "id": "weight-7",
+          "kind": "line",
+          "before": {
+            "x": 193.6666717529297,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.6666717529296875,
+            "peakCoverage": 0.33183856502242154,
+            "integratedWidth": 0.57847533632287,
+            "staffGap": 1.9055770635604858,
+            "coverage": [0, 0, 0.33183856502242154, 0.24663677130044842, 0, 0]
+          },
+          "after": {
+            "x": 193.6666717529297,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.6666717529296875,
+            "peakCoverage": 0.33183856502242154,
+            "integratedWidth": 0.57847533632287,
+            "staffGap": 1.9055770635604858,
+            "coverage": [0, 0, 0.33183856502242154, 0.24663677130044842, 0, 0]
+          }
+        },
+        {
+          "id": "weight-10",
+          "kind": "line",
+          "before": {
+            "x": 245.03334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.0333404541015625,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "staffGap": 1.9055770635604858,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          "after": {
+            "x": 245.03334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.0333404541015625,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "staffGap": 1.9055770635604858,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          }
+        },
+        {
+          "id": "weight-18",
+          "kind": "space",
+          "before": {
+            "x": 193.6666717529297,
+            "y": 882.86669921875,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.6666717529296875,
+            "peakCoverage": 0.33183856502242154,
+            "integratedWidth": 0.57847533632287,
+            "staffGap": 0.0055811405181884766,
+            "coverage": [0, 0, 0.33183856502242154, 0.24663677130044842, 0, 0]
+          },
+          "after": {
+            "x": 193.6666717529297,
+            "y": 884.38330078125,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.6666717529296875,
+            "peakCoverage": 0.33183856502242154,
+            "integratedWidth": 0.57847533632287,
+            "staffGap": 1.5221827030181885,
+            "coverage": [0, 0, 0.33183856502242154, 0.24663677130044842, 0, 0]
+          }
+        },
+        {
+          "id": "weight-21",
+          "kind": "space",
+          "before": {
+            "x": 245.03334045410156,
+            "y": 882.86669921875,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.0333404541015625,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "staffGap": 0.0055811405181884766,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          "after": {
+            "x": 245.03334045410156,
+            "y": 884.38330078125,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "pixelPhase": 0.0333404541015625,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "staffGap": 1.5221827030181885,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          }
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "name": "svg-1x",
+        "width": 1440,
+        "svgWidth": 720
+      },
+      "before": {
+        "count": 24,
+        "scale": 0.9972221851348877,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.7937219730941704,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.5022421524663676,
+          "max": 1.506726457399103
+        },
+        "clientWidth": {
+          "min": 1.5,
+          "max": 1.51666259765625
+        },
+        "staffGap": {
+          "min": 1.2333002090454102,
+          "max": 6.227794647216797
+        }
+      },
+      "after": {
+        "count": 24,
+        "scale": 0.9972221851348877,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 0.7937219730941704,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 1.5022421524663676,
+          "max": 1.506726457399103
+        },
+        "clientWidth": {
+          "min": 1.5,
+          "max": 1.51666259765625
+        },
+        "staffGap": {
+          "min": 5.21669864654541,
+          "max": 6.227794647216797
+        }
+      }
+    },
+    {
+      "configuration": {
+        "name": "svg-2x",
+        "width": 1440,
+        "svgWidth": 1440
+      },
+      "before": {
+        "count": 16,
+        "scale": 1.9972221851348877,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 1,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 3.004484304932735,
+          "max": 3.0044843049327357
+        },
+        "clientWidth": {
+          "min": 3,
+          "max": 3.01666259765625
+        },
+        "staffGap": {
+          "min": 3.233330726623535,
+          "max": 13.227764129638672
+        }
+      },
+      "after": {
+        "count": 16,
+        "scale": 1.9972221851348877,
+        "widths": [1.5],
+        "heights": [7],
+        "bodyOverlaps": 0,
+        "staffOverlaps": 0,
+        "peakCoverage": {
+          "min": 1,
+          "max": 1
+        },
+        "integratedWidth": {
+          "min": 3.004484304932735,
+          "max": 3.0044843049327357
+        },
+        "clientWidth": {
+          "min": 3,
+          "max": 3.01666259765625
+        },
+        "staffGap": {
+          "min": 11.216729164123535,
+          "max": 13.227764129638672
+        }
+      }
+    }
+  ]
+}

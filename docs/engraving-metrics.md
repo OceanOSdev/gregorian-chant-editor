@@ -557,7 +557,9 @@ Resolve after existing signs. Try below then above; on each side try horizontal
 anchor offsets 0, −9, +9, −15, +15, each with near-edge distances
 10, 14, 18, 22, 26, 30 from nominal pitch. Keep the complete tick right of the
 builder's existing left ink origin. Reject candidates within 2 units of occupied
-head/shaft regions or earlier signs, or crossing a staff line's ±1-unit band.
+head/shaft regions or earlier signs, or crossing a staff line's ±4-unit band. The wider staff clearance is based on
+the [rendered stroke-weight investigation](verification/vertical-episemata/consolidation-and-weight.md):
+fixed-width staff strokes previously visually joined space-note ticks at 320px.
 For another note whose nominal x differs by at most 7 units, do not pass that
 note's head: preserve 2 units on its nearer vertical edge. This prevents an
 upper tick from migrating under the lower head and appearing to mark it.

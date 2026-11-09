@@ -5,6 +5,13 @@
 [ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md)
 remains **Proposed**. No Accepted ADR is superseded or amended.
 
+## Latest owner feedback
+
+The [consolidation and rendered weight investigation](consolidation-and-weight.md)
+records the current four-field contextual editor, removal of the top duplicate,
+and the measured staff-clearance correction. Earlier screenshots/results below
+are retained evidence for prior PR states; they are not owner acceptance.
+
 ## Traditional notation investigation
 
 Primary sources inspected before selecting the engraving approach:

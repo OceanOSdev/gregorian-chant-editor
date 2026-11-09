@@ -105,7 +105,7 @@ to the owner before introducing a new field or artistic convention.
 
 Approved in the [owner review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
 The original convenience panel is implemented; the consolidation below is
-approved and pending implementation. Owner acceptance remains pending.
+implemented for review below. Owner acceptance remains pending.
 The scope approval is not engraving acceptance or permission to merge.
 
 - In Select mode, show a small contextual editing surface near the selected
@@ -142,8 +142,8 @@ report any material architectural conflict before implementing divergent behavio
 ## Owner feedback: consolidation and stroke weight (PR #67)
 
 Approved in the [latest owner comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740779436).
-This explicitly replaces the earlier request to keep the top inspector. Commit
-this scope update before implementation. It is not Stage 8C acceptance.
+This explicitly replaces the earlier request to keep the top inspector. The scope update was committed before implementation. The changes are now for
+review, not Stage 8C acceptance.
 
 - Make the contextual panel the sole primary note-property editor, adding
   **Form** with the existing `allowedNoteForms`, default/disabled behavior and

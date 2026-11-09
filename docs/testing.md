@@ -783,8 +783,9 @@ flipping, viewport clamping, short-viewport scrolling limits, visual viewport
 offsets and separation from note bounds. It does not test DOM focus or native
 select operation. The standalone
 `docs/verification/vertical-episemata/context-browser-check.mjs` exercises the
-actual production editor on lower Pater Noster systems, both synchronized editing
-surfaces, native keyboard focus/select changes, Escape/Close/reopening, Tab exit,
+actual production editor on lower Pater Noster systems, all four consolidated
+property fields with no duplicate top inspector, native keyboard Form/select
+changes, disabled-role feedback, Escape/Close/offscreen reopening, Tab exit,
 shortcut isolation, exact history/cache/refresh, every legal mora menu, reflow,
 scrolling and narrow/short viewports. Chromium additionally emulates pinch zoom.
 
@@ -795,3 +796,18 @@ now choose a genuinely unobscured canvas point rather than assume a fixed corner
 is free of the contextual panel. See the [actual evidence and remaining manual
 checks](verification/vertical-episemata/contextual-editing.md). No browser test
 dependency or DOM test environment is added.
+
+### Owner consolidation and vertical-tick raster review
+
+The [current owner-feedback record](verification/vertical-episemata/consolidation-and-weight.md)
+links Form/mark screenshots and the rendered weight study. The strengthened
+vertical-episema matrix checks the four-unit staff exclusion band while retaining
+unchanged heads, horizontal/mora ink, widths, measured bounds and preview parity.
+`weight-browser-check.mjs` captures actual repeated Puncta in Chromium/Firefox
+at desktop, narrow and explicit SVG scales, checking source dimensions, overlap,
+CTMs and normalized screenshot darkness. `render-weight-board.mjs` composes the
+native raster crops with actual Gregorio/Solesmes references. These diagnostic
+scripts use local ImageMagick (and GregorioTeX for reference reproduction), not a
+new application/test dependency or screenshot golden. No blanket crispEdges or
+extra screen-only paint is introduced. Follow the record for baseline/current
+build reproduction and limitations of the measurements.

@@ -80,6 +80,14 @@ describe('bounded vertical episema placement', () => {
                     .slice(before.ink.length)
                     .entries()) {
                     const anchor = before.notes[index];
+                    for (const position of [0, 2, 4, 6]) {
+                      const staffY = 140 - position * 12;
+                      expect(
+                        sign.bounds.y >= staffY + 4 ||
+                          sign.bounds.y + sign.bounds.height <= staffY - 4,
+                      ).toBe(true);
+                    }
+
                     expect(
                       Math.abs(sign.bounds.x + 0.75 - anchor.anchorX),
                     ).toBeLessThanOrEqual(15);

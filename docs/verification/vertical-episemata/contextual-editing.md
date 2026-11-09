@@ -1,4 +1,8 @@
-# Stage 8C contextual note editing follow-up
+# Stage 8C contextual note editing follow-up — historical
+
+The subsequent [consolidation and weight review](consolidation-and-weight.md)
+supersedes the inspector-retention and three-field design below. This record
+preserves the first follow-up’s actual verification.
 
 2026-11-09. Implemented for owner review in PR #67; **not visual acceptance,
 milestone closeout or permission to merge**. ADR 0020 remains **Proposed**.
