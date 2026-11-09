@@ -13,7 +13,7 @@ library or a cloud service.
 
 Read `AGENTS.md`, `docs/ai-workflow.md`, `docs/architecture.md`,
 `docs/domain-model.md`, `docs/commands-and-history.md`,
-`docs/editor-interactions.md`, `docs/testing.md`, and proposed
+`docs/editor-interactions.md`, `docs/testing.md`, and Accepted
 [ADR 0016](../adrs/0016-persist-versioned-semantic-chant-documents.md).
 The present `ChantEditor` initializes its session with
 `createEditorSession(initialDocument)` via `useReducer`;
@@ -127,10 +127,9 @@ dependencies unless justified. Add or amend owning docs for the native file
 format, browser recovery behavior, user-visible workflow, and compatibility
 obligations.
 
-ADR 0016 is currently **Proposed**. Obtain owner approval and update the ADR
-status in the agreed review flow **before** implementing a conflicting
-architecture or treating the proposed persistence contract as Accepted.
-If approval is still pending when Codex begins, stop at that guard and ask.
+**ADR 0016 was accepted by the owner on 2026-11-08.** The architectural
+approval gate is cleared. Implement within that contract and follow the
+usual stop/escalation process for any new conflicting decision.
 
 ## Acceptance criteria and verification
 
@@ -176,17 +175,17 @@ If approval is still pending when Codex begins, stop at that guard and ask.
 
 ## Open questions and stop conditions
 
-- Stop for the ADR 0016 acceptance gate above. Normal implementation
-  details (e.g. module names, which accessible status surface, filename
-  sanitizer and precise autosave mechanism) belong to Codex.
+- ADR 0016 is Accepted; there is no pending architecture-approval gate.
+  Normal implementation details (e.g. module names, accessible status
+  surface, filename sanitizer and autosave mechanism) belong to Codex.
 - If unavoidable compatibility/validation gaps or a significantly different
   multi-tab/draft policy emerge, report evidence and options instead of
   guessing, loosening validation, or sacrificing user data.
 
 ## Delivery
 
-Follow `docs/ai-workflow.md`: implement on this branch after the ADR gate
-is settled, commit, and open a PR targeting `master`. Do not merge.
+Follow `docs/ai-workflow.md`: implement on this branch, commit, and open
+a PR targeting `master`. Do not merge.
 Report real tests and browser evidence, any deviations, failure modes,
 and an owner-friendly manual acceptance checklist. Keep this plan accurate
 during review; close it out per the documented PR workflow.
