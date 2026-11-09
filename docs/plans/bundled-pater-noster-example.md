@@ -2,7 +2,13 @@
 
 Branch: `feat/bundled-pater-noster-example`
 Target: `master`
-Status: **Ready for Codex implementation; not owner-accepted.**
+Status: **Completed (owner-accepted 2026-11-09)**.
+
+The owner completed manual acceptance of the bundled Pater Noster example-loading
+workflow in [PR #66](https://github.com/OceanOSdev/gregorian-chant-editor/pull/66)
+and reported that everything works as expected. This completed plan is retained
+as historical scope and acceptance evidence. PR #66 remains unmerged; the owner
+will handle the merge.
 
 ## Goal
 

@@ -9,7 +9,7 @@ The owner completed manual acceptance, including the new note shapes and
 localStorage recovery verification. Implementation and evidence are delivered in
 [PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65). This plan
 is retained as historical scope and acceptance evidence; ADR 0019 remains Accepted.
-The PR is not merged; the owner will handle merge after CI passes.
+PR #65 was merged on 2026-11-09.
 
 Separate [post-Stage 8B follow-ups](../roadmap.md#post-stage-8b-follow-ups-non-blocking)
 are recorded without blocking Stage 8B completion.
@@ -263,4 +263,4 @@ roadmap, review resolutions and rendered comparisons are updated. The
 successful automated/browser checks from the owner’s manual acceptance.
 
 Owner-accepted 2026-11-09. Retain this completed plan as review evidence.
-Do not merge as part of this closeout; the owner will merge after CI passes.
+PR #65 was merged on 2026-11-09.

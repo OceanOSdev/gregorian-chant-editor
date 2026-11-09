@@ -163,10 +163,10 @@ across-neume joins, new neume kinds and playback remain deferred.
 
 ## Additional authored note shapes (Stage 8B)
 
-**Completed (owner-accepted 2026-11-09)** in
+**Completed and merged (owner-accepted 2026-11-09)** in
 [PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65).
 The owner completed manual acceptance of the new note shapes and localStorage
-recovery verification. Merge remains with the owner after CI passes.
+recovery verification. PR #65 was merged on 2026-11-09.
 
 Stage 8B provides one-click standalone Virga and Punctum inclinatum,
 preselected one-click quilismatic Podatus/Scandicus, and contextual form editing.
