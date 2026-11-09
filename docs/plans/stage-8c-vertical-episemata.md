@@ -273,3 +273,12 @@ redesign editing. If uniformity requires material geometry/bounds compromises,
 report alternatives before implementing that approach. Update the owning rendering
 guide and run affected regression checks. ADR 0020 remains Proposed; this is
 implementation for visual review, not acceptance or permission to merge.
+
+Owner clarification authorizes option 1: a vertical-episema-only screen
+rasterization tolerance of at most half a physical device pixel. Canonical vector
+geometry, anchors, print, wrapping and hit geometry stay unchanged. Qualify ADR
+0007 narrowly in Proposed ADR 0020; do not weaken the general geometry contract.
+Re-align on screen scale/origin changes, reset for print, and retain canonical
+rendering where a safe bounded alignment cannot be made. Guard the existing
+collision and canvas clearances rather than expanding layout. Commit actual
+normal-size before/after browser and print/vector comparisons for owner review.
