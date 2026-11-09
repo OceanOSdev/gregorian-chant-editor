@@ -1,9 +1,13 @@
-# Stage 8B reference investigation — paused for engraving decision
+# Stage 8B reference investigation — historical, decisions resolved
 
 2026-11-09. Branch `feat/stage-8b-note-shapes`, target `master`.
 ADR 0019 remains Accepted. This investigation does not reopen its choice of
 optional note forms, seven semantic kinds, one-click tools or native v3.
-No Stage 8B application changes are included in this research record.
+This is the retained historical investigation, not the current implementation status.
+The owner resolved both questions after reviewing PR #65: independent quilisma-pes
+is allowed without context validation, and Scandicus uses the traditional connected
+construction. See [the implementation record](implementation.md) for current work.
+The original evidence and options below are retained unchanged as research history.
 
 ## Stop condition encountered
 
@@ -145,4 +149,5 @@ After restoring the application exactly to branch HEAD:
 
 These are baseline checks only. No Stage 8B browser verification, v3 migration,
 editor comparison or implementation acceptance has occurred. Foreground/manual
-acceptance remains pending. The plan remains Planned; it is not Completed.
+acceptance remains pending. At this historical stop checkpoint the plan remained Planned, not Completed.
+The subsequent implementation status is recorded separately.

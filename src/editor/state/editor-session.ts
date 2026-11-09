@@ -29,6 +29,7 @@ import type {
   ChantDocument,
   Clef,
   DivisionKind,
+  NoteForm,
   ScoreInsertionBoundary,
 } from '../domain/chant-document';
 import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
@@ -59,7 +60,12 @@ import {
   type DocumentEdit,
   type DocumentHistory,
 } from './document-history';
-import { isPlacementTool, selectTool, type EditorTool } from './editor-tool';
+import {
+  toolNoteForm,
+  isPlacementTool,
+  selectTool,
+  type EditorTool,
+} from './editor-tool';
 import {
   clearSelection,
   reconcileSelection,
@@ -68,6 +74,9 @@ import {
   selectSyllable,
   type EditorSelection,
 } from './selection';
+
+const noteFormRejection =
+  'Edit rejected: preserve the ascending contour and supported context of the authored form. Change Form to default before removing its required partner.';
 
 export type EditorFocusRequest =
   | { kind: 'clef-placement'; clefChangeId?: string }
@@ -93,6 +102,7 @@ export interface ClefTransaction {
 }
 
 export interface EditorSession {
+  noteFormError: string | null;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
   keyboardClefPlacement: ClefPlacementCursor | null;
@@ -113,6 +123,8 @@ export interface EditorSession {
   selection: EditorSelection;
   activeTool: EditorTool;
   rememberedKind: GraphicalNeumeKind;
+  rememberedForm?: NoteForm;
+  quilismaFigure: 'podatus' | 'scandicus';
   hoveredPoint: { x: number; y: number } | null;
   focusRequest: EditorFocusRequest | null;
   announcement: { sequence: number; text: string };
@@ -222,6 +234,7 @@ export type EditorAction =
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | {
       type: 'edit';
+      formSensitiveNoteId?: string;
       edit: DocumentEdit;
       focusNoteId?: string;
       clearSelection?: boolean;
@@ -236,6 +249,7 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    noteFormError: null,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
     keyboardClefPlacement: null,
@@ -247,6 +261,7 @@ export function createEditorSession(document: ChantDocument): EditorSession {
     selection: clearSelection(),
     activeTool: selectTool(),
     rememberedKind: 'punctum',
+    quilismaFigure: 'podatus',
     hoveredPoint: null,
     focusRequest: null,
     announcement: { sequence: 0, text: '' },
@@ -334,6 +349,7 @@ function reduceSessionAction(
       if (
         action.tool.kind === 'select' ||
         (action.tool.kind === state.activeTool.kind &&
+          toolNoteForm(action.tool) === toolNoteForm(state.activeTool) &&
           (action.tool.kind !== 'place-division' ||
             (state.activeTool.kind === 'place-division' &&
               action.tool.divisionKind === state.activeTool.divisionKind)) &&
@@ -345,9 +361,19 @@ function reduceSessionAction(
       return announce(
         {
           ...state,
+          noteFormError: null,
           activeTool: action.tool,
           keyboardClefPlacement: null,
           rememberedKind: kind ?? state.rememberedKind,
+          rememberedForm: kind
+            ? toolNoteForm(action.tool)
+            : state.rememberedForm,
+          quilismaFigure:
+            kind &&
+            toolNoteForm(action.tool) === 'quilisma' &&
+            (kind === 'podatus' || kind === 'scandicus')
+              ? kind
+              : state.quilismaFigure,
           hoveredPoint: null,
           focusRequest: null,
         },
@@ -357,7 +383,16 @@ function reduceSessionAction(
     case 'focus-palette':
       return {
         ...state,
-        focusRequest: { kind: 'palette', tool: state.rememberedKind },
+        focusRequest: {
+          kind: 'palette',
+          tool:
+            state.rememberedForm === 'quilisma'
+              ? 'quilisma'
+              : state.rememberedForm === 'virga' ||
+                  state.rememberedForm === 'inclinatum'
+                ? state.rememberedForm
+                : state.rememberedKind,
+        },
       };
     case 'hover':
       return {
@@ -384,6 +419,7 @@ function reduceSessionAction(
       if (placing) return state;
       return {
         ...state,
+        noteFormError: null,
         selection: action.selection,
         focusRequest: action.focusNoteId
           ? { kind: 'note', noteId: action.focusNoteId }
@@ -433,7 +469,14 @@ function reduceSessionAction(
         );
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
-      const nextDocument = insertEditorNeume(document, insertion, action.ids);
+      const nextDocument = insertEditorNeume(
+        document,
+        insertion,
+        action.ids,
+        action.type === 'place'
+          ? toolNoteForm(state.activeTool)
+          : state.rememberedForm,
+      );
       if (nextDocument === document) return state;
       const graphical = action.type === 'place';
       const noteId = action.ids.noteIds[0];
@@ -529,14 +572,30 @@ function reduceSessionAction(
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;
       const history = applyDocumentEdit(state.history, action.edit);
-      return history === state.history ? state : { ...state, history };
+      return history === state.history
+        ? state
+        : { ...state, history, noteFormError: null };
     }
     case 'edit': {
       const history = applyDocumentEdit(state.history, action.edit);
-      if (history === state.history) return state;
+      if (history === state.history)
+        return action.formSensitiveNoteId &&
+          findNote(
+            state.history.present,
+            action.formSensitiveNoteId,
+          )?.neume.notes.some((n) => n.form)
+          ? announce(
+              {
+                ...state,
+                noteFormError: noteFormRejection,
+              },
+              noteFormRejection,
+            )
+          : state;
       const next = reconcile({
         ...state,
         history,
+        noteFormError: null,
         selection: action.clearSelection ? clearSelection() : state.selection,
         hoveredPoint: null,
         focusRequest:
@@ -555,6 +614,7 @@ function reduceSessionAction(
       if (history === state.history) return state;
       const next = reconcile({
         ...state,
+        noteFormError: null,
         history,
         hoveredPoint: null,
         focusRequest:

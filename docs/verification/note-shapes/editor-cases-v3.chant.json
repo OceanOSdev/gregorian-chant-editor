@@ -1,0 +1,209 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 3,
+  "document": {
+    "title": "Authored forms — adjacent and wider intervals",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "n0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-0-0",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-1-0",
+            "staffPosition": 3,
+            "form": "virga"
+          }
+        ]
+      },
+      {
+        "id": "n2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "note-2-0",
+            "staffPosition": 3,
+            "form": "inclinatum"
+          }
+        ]
+      },
+      {
+        "id": "n3",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-3-0",
+            "staffPosition": 3,
+            "form": "quilisma"
+          },
+          {
+            "id": "note-3-1",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n4",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "note-4-0",
+            "staffPosition": 0,
+            "form": "quilisma"
+          },
+          {
+            "id": "note-4-1",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n5",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-5-0",
+            "staffPosition": 2
+          },
+          {
+            "id": "note-5-1",
+            "staffPosition": 3,
+            "form": "quilisma"
+          },
+          {
+            "id": "note-5-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n6",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-6-0",
+            "staffPosition": 0
+          },
+          {
+            "id": "note-6-1",
+            "staffPosition": 2,
+            "form": "quilisma"
+          },
+          {
+            "id": "note-6-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "n7",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "note-7-0",
+            "staffPosition": 0
+          },
+          {
+            "id": "note-7-1",
+            "staffPosition": 3,
+            "form": "quilisma"
+          },
+          {
+            "id": "note-7-2",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "n8",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "note-8-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "note-8-1",
+            "staffPosition": 3
+          },
+          {
+            "id": "note-8-2",
+            "staffPosition": 1
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "s0",
+        "text": "Square",
+        "startsAtNeumeId": "n0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s1",
+        "text": "Virga",
+        "startsAtNeumeId": "n1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s2",
+        "text": "Upright",
+        "startsAtNeumeId": "n2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s3",
+        "text": "PesClose",
+        "startsAtNeumeId": "n3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s4",
+        "text": "PesWide",
+        "startsAtNeumeId": "n4",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s5",
+        "text": "ScandClose",
+        "startsAtNeumeId": "n5",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s6",
+        "text": "ScandWide",
+        "startsAtNeumeId": "n6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s7",
+        "text": "ScandBoth",
+        "startsAtNeumeId": "n7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s8",
+        "text": "Climacus",
+        "startsAtNeumeId": "n8",
+        "boundaryBefore": "word"
+      }
+    ],
+    "divisions": [],
+    "clefChanges": []
+  }
+}

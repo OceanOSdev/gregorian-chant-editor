@@ -417,7 +417,7 @@ try {
     expected.neumes[0].notes[0].mora = 1;
     assert.deepEqual(saved, {
       format: base.format,
-      version: 2,
+      version: 3,
       document: expected,
     });
     await navigate();
@@ -431,7 +431,7 @@ try {
     await importText(text);
     assert.deepEqual(
       JSON.parse(await raw()),
-      { ...baseline, version: 2 },
+      { ...baseline, version: 3 },
       'v1 file import preserves every semantic value',
     );
   }
@@ -650,7 +650,7 @@ try {
         mobile: false,
       });
       await pause();
-      assert.deepEqual(JSON.parse(await raw()), fixture);
+      assert.deepEqual(JSON.parse(await raw()), { ...fixture, version: 3 });
       assert.equal(
         await ev('document.documentElement.scrollWidth<=innerWidth'),
         true,

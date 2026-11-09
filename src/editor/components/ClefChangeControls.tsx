@@ -1,3 +1,4 @@
+import { noteFormLabels } from '../domain/note-forms';
 import { useLayoutEffect, useRef, type Dispatch } from 'react';
 import { isPlacementTool } from '../state/editor-tool';
 import type { Clef } from '../domain/chant-document';
@@ -13,6 +14,12 @@ export function ClefChangeControls({
   session: EditorSession;
   dispatch: Dispatch<EditorAction>;
 }) {
+  const rememberedLabel = session.rememberedForm
+    ? noteFormLabels[session.rememberedForm] +
+      (session.rememberedForm === 'quilisma'
+        ? ' ' + session.rememberedKind
+        : '')
+    : session.rememberedKind;
   const selection = session.selection;
   const target =
     selection.kind === 'clef-change'
@@ -171,10 +178,10 @@ export function ClefChangeControls({
             Delete clef change
           </button>
           <button type="button" onClick={() => insertNeume(false)}>
-            Insert {session.rememberedKind} before clef
+            Insert {rememberedLabel} before clef
           </button>
           <button type="button" onClick={() => insertNeume(true)}>
-            Insert {session.rememberedKind} after clef
+            Insert {rememberedLabel} after clef
           </button>
         </>
       ) : null}

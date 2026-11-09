@@ -1,3 +1,4 @@
+import { entryAppearance } from '../state/editor-tool';
 import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { createNeumeEntryPitches } from '../neume-entry-pitches';
 import type { EditorSelection } from '../state/selection';
@@ -13,6 +14,7 @@ import {
   staffPosition,
   type ScoreInsertionBoundary,
   type ChantDocument,
+  type NoteForm,
 } from '../domain/chant-document';
 import type { GraphicalNeumeKind } from '../layout/layout-chant';
 import type { ResolvedGraphicalNeumePlacement } from './resolve-graphical-neume-placement';
@@ -34,9 +36,11 @@ export function insertEditorNeume(
   document: ChantDocument,
   insertion: Insertion,
   ids: InsertionIds,
+  form?: NoteForm,
 ): ChantDocument {
   const base = { id: ids.neumeId };
   const note = (index: 0 | 1 | 2, position: number) => ({
+    ...entryAppearance(insertion.kind, form)[index],
     id: ids.noteIds[index],
     staffPosition: staffPosition(position),
   });

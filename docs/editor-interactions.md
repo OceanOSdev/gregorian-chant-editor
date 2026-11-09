@@ -727,7 +727,7 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 ## Selected note modifiers (Stage 8A)
 
-The compact **Selected note modifiers** group stays mounted above the score,
+The compact **Selected note form and modifiers** group stays mounted above the score,
 including while no note is selected. Fixed control widths and a single-line
 target keep selection/deselection and switching neumes from moving the score.
 The target names the owning neume for mora and the selected note for episema.
@@ -740,3 +740,20 @@ Off/On on the selected note, independent of mora scope. Native select keyboard
 behavior and focus are retained; pending workflow and placement guards apply.
 Selecting a note does not itself edit or save anything. Score note accessible
 labels describe mora presence, pair participation and horizontal episema.
+
+## Authored forms and placement (Stage 8B)
+
+Virga and Punctum inclinatum join the existing roving palette. One Quilisma
+button uses the compact **Quilisma figure** selector (Podatus/Scandicus), available
+before clicking the score; changing that selector arms the chosen figure.
+A staff click commits the full snapped contour and authored form in one action,
+with a matching ghost and no popup. Tools persist during pointer placement;
+I inserts the remembered kind and form, and T returns to its palette button.
+The figure choice is transient and resets with a new session, like other tools.
+
+The always-mounted selected-note group adds **Form**, separate from Mora scope
+and Horizontal episema. It offers default/Virga/Inclinatum on Punctum,
+default/Quilisma on lower Podatus or middle Scandicus, and a disabled default-only
+control elsewhere. Fixed widths keep selection from moving the score. Placement
+and pending-workflow guards apply. Accessible note names include authored forms.
+Undo/redo and immediate refresh preserve accepted edits and independent signs.

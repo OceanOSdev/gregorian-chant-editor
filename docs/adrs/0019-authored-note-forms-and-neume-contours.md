@@ -6,6 +6,28 @@ Date: 2026-11-09
 
 Accepted (owner-approved 2026-11-09). Includes preselected one-click placement for Virga, Punctum inclinatum and quilismatic Podatus/Scandicus.
 
+## Owner clarification after reference review (2026-11-09)
+
+The owner reviewed [the research and rendered references](../verification/note-shapes/README.md)
+in PR #65 and resolved its stop conditions:
+
+- An independent quilismatic Podatus is allowed, including at score start.
+  This is an intentional authoring allowance, not a claim that unpreceded
+  quilisma is conventional historical usage. Authors may add context later.
+  Do not add cross-neume, cross-syllable or division-dependent validation.
+- A middle-quilisma Scandicus uses the **traditional connected rising
+  three-note construction** represented in the Liber Usualis table. That
+  printed example is the primary silhouette reference; Gregorio's separate
+  initial punctum is not the default. Derive the connections from Scandicus
+  plus its middle note form, with original measured SVG geometry and three
+  stable note identities/selection targets. No persisted fusion flag or new
+  semantic kind is introduced.
+- These choices clarify Accepted ADR 0019. Preserve the original research
+  record, existing default contours, rhythmic modifiers and v1/v2 readers.
+  Compare adjacent and wider connected cases side by side with references.
+  Stop only if the traditional construction cannot fit shared geometry
+  cleanly, explaining the specific conflict before inventing a workaround.
+
 ## Context
 
 The editor has seven pitch-contour neume kinds, identified by stable note IDs
@@ -16,8 +38,9 @@ diamonds, but these forms are not independently authorable. Stage 8A
 added note-level conventional rhythmic signs under Accepted ADR 0018.
 Native versions 1 and 2 now have public compatibility obligations.
 
-Gregorian square notation distinguishes the *shape of a note* from the
-*melodic shape of a neume*:
+Gregorian square notation distinguishes the _shape of a note_ from the
+_melodic shape of a neume_:
+
 - A single pitch can use a punctum quadratum, virga, or punctum inclinatum.
 - A quilisma is a distinctive wavy note **within** an ascending figure. It is
   not a new three-pitch note and cannot be added as a floating decoration.
@@ -26,6 +49,7 @@ Gregorian square notation distinguishes the *shape of a note* from the
   flags. Gregorio chooses many virgae and inclinatum orientations from context.
 
 Primary reference:
+
 - https://gregorio-project.github.io/gabc/ (one-note forms, virga, quilisma
   inside complex neumes)
 - https://gregorio-project.github.io/tips/inclinatum.html (context-dependent
@@ -42,7 +66,7 @@ Primary reference:
 1. Model **explicitly authored non-default note forms** as a small optional
    semantic choice on the existing stable-ID `ChantNote`, e.g.
    `form?: 'virga' | 'inclinatum' | 'quilisma'`. Omission means the
-   **existing context-derived normal form**, *not* an explicitly square head
+   **existing context-derived normal form**, _not_ an explicitly square head
    overriding every compound neume. Exact spelling can be chosen during
    implementation but the semantic distinction must survive serialization.
    A note form changes engraving only, never pitch, melody, relative note
@@ -58,10 +82,11 @@ Primary reference:
      or explicit `inclinatum`. Standalone inclinatum uses one stable
      unison/upright design; direction-specific alternates are deferred.
    - A strictly ascending three-note `scandicus` may have a `quilisma`
-     on its **middle** note.
+     on its **middle** note, with all three pitches connected under the
+     owner-selected traditional engraving profile.
    - A strictly ascending two-note `podatus` may have a `quilisma`
-     on its **first/lower** note (quilismatic pes), if the reference
-     implementation confirms the required attached contour.
+     on its **first/lower** note (connected quilismatic pes), including
+     independently at score start under the intentional authoring allowance.
    - Other explicit overrides are **not authorable in Stage 8B**.
      Existing automatic virga and descending inclinata in Climacus remain
      derived with no newly persisted fields. This whitelist is a product
@@ -113,7 +138,7 @@ Primary reference:
 
 ### Negative
 
-- Each explicit form requires a validity check against the *current*
+- Each explicit form requires a validity check against the _current_
   semantic neume kind and may constrain operations that normalize neumes.
 - A connected quilisma-pes and quilismatic Scandicus need dedicated reference
   engraving and selection work; swapping a square notehead in place is

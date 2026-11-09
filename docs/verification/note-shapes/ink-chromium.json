@@ -1,0 +1,146 @@
+[
+  {
+    "id": "n0",
+    "box": {
+      "x": 144,
+      "y": 82,
+      "width": 12,
+      "height": 12
+    },
+    "expected": {
+      "width": 12,
+      "y": 82,
+      "height": 12
+    },
+    "samples": 532,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": []
+  },
+  {
+    "id": "n1",
+    "box": {
+      "x": 199.87890625,
+      "y": 82,
+      "width": 12,
+      "height": 33
+    },
+    "expected": {
+      "width": 12,
+      "y": 82,
+      "height": 33
+    },
+    "samples": 658,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": []
+  },
+  {
+    "id": "n2",
+    "box": {
+      "x": 257.09375,
+      "y": 78,
+      "width": 14,
+      "height": 20
+    },
+    "expected": {
+      "width": 14,
+      "y": 78,
+      "height": 20
+    },
+    "samples": 560,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": []
+  },
+  {
+    "id": "n3",
+    "box": {
+      "x": 332.31640625,
+      "y": 66,
+      "width": 12,
+      "height": 29
+    },
+    "expected": {
+      "width": 12,
+      "y": 66,
+      "height": 29
+    },
+    "samples": 1003,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": [true]
+  },
+  {
+    "id": "n4",
+    "box": {
+      "x": 410.255859375,
+      "y": 70,
+      "width": 12,
+      "height": 61
+    },
+    "expected": {
+      "width": 12,
+      "y": 70,
+      "height": 61
+    },
+    "samples": 1111,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": [true]
+  },
+  {
+    "id": "n5",
+    "box": {
+      "x": 498.7421875,
+      "y": 66,
+      "width": 22.5,
+      "height": 40
+    },
+    "expected": {
+      "width": 22.5,
+      "y": 66,
+      "height": 40
+    },
+    "samples": 1541,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": [true, true]
+  },
+  {
+    "id": "n6",
+    "box": {
+      "x": 144,
+      "y": 314,
+      "width": 22.5,
+      "height": 60
+    },
+    "expected": {
+      "width": 22.5,
+      "y": 314,
+      "height": 60
+    },
+    "samples": 1577,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": [true, true]
+  },
+  {
+    "id": "n7",
+    "box": {
+      "x": 239.705078125,
+      "y": 302,
+      "width": 22.5,
+      "height": 72
+    },
+    "expected": {
+      "width": 22.5,
+      "y": 302,
+      "height": 72
+    },
+    "samples": 1649,
+    "unowned": 0,
+    "ambiguous": 0,
+    "connections": [true, true]
+  }
+]

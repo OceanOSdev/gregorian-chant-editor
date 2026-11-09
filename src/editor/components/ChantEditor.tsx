@@ -1,3 +1,10 @@
+import {
+  allowedNoteForms,
+  isNoteForm,
+  noteFormLabels,
+} from '../domain/note-forms';
+import { updateNoteForm } from '../commands/update-note-form';
+import { entryAppearance, toolNoteForm } from '../state/editor-tool';
 import { getMoraScope, moraChoices } from '../domain/mora';
 import {
   updateMoraScope,
@@ -109,6 +116,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const persistence = usePersistedSession(initialDocument);
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
+  const rememberedName = session.rememberedForm
+    ? noteFormLabels[session.rememberedForm] +
+      (session.rememberedForm === 'quilisma'
+        ? ' ' + neumeName(rememberedKind)
+        : '')
+    : neumeName(rememberedKind);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
@@ -180,6 +193,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           layout,
           placementKind,
           session.hoveredPoint,
+          entryAppearance(placementKind, toolNoteForm(activeTool)),
         )?.preview ?? null)
       : null;
   const clefPlacement =
@@ -209,8 +223,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           draftTransaction.clef,
         )
       : null;
+  const placementForm = toolNoteForm(activeTool);
+  const placementName = placementKind
+    ? placementForm && placementForm !== 'quilisma'
+      ? noteFormLabels[placementForm]
+      : (placementForm ? 'Quilisma ' : '') + neumeName(placementKind)
+    : '';
   const placementDescription = placementKind
-    ? `${neumeName(placementKind)}. Escape selects the editing tool.`
+    ? `${placementName}. Escape selects the editing tool.`
     : activeTool.kind === 'place-division'
       ? `${activeTool.divisionKind} division. Click a caret slot to insert. Escape selects the editing tool.`
       : activeTool.kind === 'place-clef'
@@ -551,7 +571,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 : tool === 'c-clef' || tool === 'f-clef'
                   ? activeTool.kind === 'place-clef' &&
                     activeTool.clefType === tool[0]
-                  : placementKind === tool
+                  : tool === 'virga' || tool === 'inclinatum'
+                    ? toolNoteForm(activeTool) === tool
+                    : tool === 'quilisma'
+                      ? toolNoteForm(activeTool) === 'quilisma'
+                      : placementKind === tool && !toolNoteForm(activeTool)
             }
             onFocus={() => setRovingTool(tool)}
             onClick={() => {
@@ -563,6 +587,25 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                     kind: 'place-clef',
                     clefType: tool === 'c-clef' ? 'c' : 'f',
                   },
+                });
+              else if (
+                tool === 'virga' ||
+                tool === 'inclinatum' ||
+                tool === 'quilisma'
+              )
+                dispatch({
+                  type: 'arm',
+                  tool:
+                    tool === 'quilisma'
+                      ? {
+                          kind:
+                            session.quilismaFigure === 'podatus'
+                              ? 'place-podatus'
+                              : 'place-scandicus',
+                          form: 'quilisma',
+                        }
+                      : { kind: 'place-punctum', form: tool },
+                  lyricCommitId: crypto.randomUUID(),
                 });
               else {
                 const choice = neumeTools.find(
@@ -583,10 +626,42 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 ? 'C clef'
                 : tool === 'f-clef'
                   ? 'F clef'
-                  : neumeName(tool)}
+                  : tool === 'virga' ||
+                      tool === 'inclinatum' ||
+                      tool === 'quilisma'
+                    ? noteFormLabels[tool]
+                    : neumeName(tool)}
           </button>
         ))}
       </div>
+      <label className="quilisma-figure">
+        Quilisma figure{' '}
+        <select
+          aria-label="Quilisma figure"
+          value={session.quilismaFigure}
+          disabled={Boolean(
+            session.pendingHistory ||
+            session.lyricMove ||
+            session.clefTransaction,
+          )}
+          onChange={(event) =>
+            dispatch({
+              type: 'arm',
+              tool: {
+                kind:
+                  event.target.value === 'scandicus'
+                    ? 'place-scandicus'
+                    : 'place-podatus',
+                form: 'quilisma',
+              },
+              lyricCommitId: crypto.randomUUID(),
+            })
+          }
+        >
+          <option value="podatus">Podatus</option>
+          <option value="scandicus">Scandicus</option>
+        </select>
+      </label>
       {activeTool.kind === 'place-clef' ||
       session.selection.kind === 'clef-change' ||
       session.clefTransaction ? (
@@ -783,7 +858,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 })
               }
             >
-              Insert {neumeName(rememberedKind)} before division
+              Insert {rememberedName} before division
             </button>
             <button
               type="button"
@@ -795,7 +870,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 })
               }
             >
-              Insert {neumeName(rememberedKind)} after division
+              Insert {rememberedName} after division
             </button>
             <button
               type="button"
@@ -837,7 +912,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-keyshortcuts="I"
           onClick={() => insertRememberedNeume()}
         >
-          Insert {neumeName(rememberedKind)} <kbd aria-hidden="true">I</kbd>
+          Insert {rememberedName} <kbd aria-hidden="true">I</kbd>
         </button>
         <button
           type="button"
@@ -920,15 +995,62 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           !!session.clefTransaction
         }
       >
-        <legend>Selected note modifiers</legend>
-        <p id="note-modifier-target" className="note-modifiers__target">
-          {selectedNoteLocation
-            ? selectedNoteLocation.neume.kind +
-              ' mora scope; episema on note ' +
-              (selectedNoteLocation.noteIndex + 1)
-            : 'Select a note to edit'}
+        <legend>Selected note form and modifiers</legend>
+        <p
+          id="note-modifier-target"
+          className="note-modifiers__target"
+          title={session.noteFormError ?? undefined}
+        >
+          {session.noteFormError
+            ? 'Edit rejected: preserve the form’s partners.'
+            : selectedNoteLocation
+              ? selectedNoteLocation.neume.kind +
+                ' mora scope; form and episema on note ' +
+                (selectedNoteLocation.noteIndex + 1)
+              : 'Select a note to edit'}
         </p>
         <div className="note-modifiers__controls">
+          <label>
+            Form{' '}
+            <select
+              aria-label="Form"
+              value={selectedNote?.form ?? 'default'}
+              disabled={
+                !selectedNoteLocation ||
+                !allowedNoteForms(
+                  selectedNoteLocation.neume.kind,
+                  selectedNoteLocation.noteIndex,
+                ).length
+              }
+              onChange={(event) => {
+                if (!selectedNote) return;
+                const value = event.target.value;
+                if (value !== 'default' && !isNoteForm(value)) return;
+                dispatch({
+                  type: 'engraving-edit',
+                  edit: (document) =>
+                    updateNoteForm(
+                      document,
+                      selectedNote.id,
+                      value === 'default' ? undefined : value,
+                    ),
+                });
+              }}
+            >
+              <option value="default">Default form</option>
+              {(selectedNoteLocation
+                ? allowedNoteForms(
+                    selectedNoteLocation.neume.kind,
+                    selectedNoteLocation.noteIndex,
+                  )
+                : []
+              ).map((form) => (
+                <option key={form} value={form}>
+                  {noteFormLabels[form]}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             Mora scope{' '}
             <select
@@ -1157,6 +1279,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoveNote={(noteId, delta) =>
               dispatch({
                 type: 'edit',
+                formSensitiveNoteId: noteId,
                 edit: (document) => moveNoteVertically(document, noteId, delta),
                 focusNoteId: noteId,
               })
@@ -1172,6 +1295,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onDeleteNote={(noteId) =>
               dispatch({
                 type: 'edit',
+                formSensitiveNoteId: noteId,
                 edit: (document) => deleteNote(document, noteId),
                 clearSelection: true,
               })
@@ -1221,6 +1345,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         />
       </div>
+      {session.noteFormError ? (
+        <p className="note-form-error" role="alert">
+          {session.noteFormError}
+        </p>
+      ) : null}
       <div
         className="editor-announcement"
         role="status"

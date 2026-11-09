@@ -1,3 +1,4 @@
+import { isNoteForm } from '../domain/note-forms';
 import type {
   ChantDocument,
   ChantNote,
@@ -52,12 +53,18 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown, version: 1 | 2): ChantNote {
+function note(value: unknown, version: 1 | 2 | 3): ChantNote {
   const n = shape(
     value,
     ['id', 'staffPosition'],
-    version === 2 ? ['mora', 'episema'] : [],
+    version === 3
+      ? ['mora', 'episema', 'form']
+      : version === 2
+        ? ['mora', 'episema']
+        : [],
   );
+  if (Object.hasOwn(n, 'form') && !isNoteForm(n.form))
+    fail('Unknown note form.');
   if (Object.hasOwn(n, 'mora') && n.mora !== 1)
     fail('Mora must be 1 or omitted.');
   if (Object.hasOwn(n, 'episema') && n.episema !== true)
@@ -69,12 +76,13 @@ function note(value: unknown, version: 1 | 2): ChantNote {
     fail('Note positions must be safe integers.');
   return {
     id: id(n.id),
+    ...(isNoteForm(n.form) ? { form: n.form } : {}),
     staffPosition: staffPosition(n.staffPosition),
     ...(n.mora === 1 ? { mora: n.mora } : {}),
     ...(n.episema === true ? { episema: true } : {}),
   };
 }
-function neume(value: unknown, version: 1 | 2): Neume {
+function neume(value: unknown, version: 1 | 2 | 3): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
@@ -102,7 +110,9 @@ function neume(value: unknown, version: 1 | 2): Neume {
     default:
       return fail('Unsupported neume kind.');
   }
-  return isValidNeume(result) ? result : fail('Invalid neume pitch contour.');
+  return isValidNeume(result)
+    ? result
+    : fail('Invalid neume contour, note form or rhythmic pattern.');
 }
 function syllable(value: unknown): LyricSyllable {
   const s = shape(
@@ -128,7 +138,7 @@ function syllable(value: unknown): LyricSyllable {
 }
 export function validateDocument(
   value: unknown,
-  version: 1 | 2 = 2,
+  version: 1 | 2 | 3 = 3,
 ): ChantDocument {
   const d = shape(value, [
     'title',
@@ -234,14 +244,18 @@ export function decodeDocument(text: string): ChantDocument {
   const envelope = shape(value, ['format', 'version', 'document']);
   if (envelope.format !== format)
     fail('This is not a Gregorian Chant Editor file.');
-  if (envelope.version !== 1 && envelope.version !== 2)
-    fail('Unsupported schema version. This editor reads versions 1 and 2.');
+  if (
+    envelope.version !== 1 &&
+    envelope.version !== 2 &&
+    envelope.version !== 3
+  )
+    fail('Unsupported schema version. This editor reads versions 1, 2 and 3.');
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 2, document: validateDocument(document) },
+    { format, version: 3, document: validateDocument(document) },
     null,
     2,
   );

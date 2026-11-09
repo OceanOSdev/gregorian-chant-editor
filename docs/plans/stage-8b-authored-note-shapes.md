@@ -3,7 +3,21 @@
 Branch: `feat/stage-8b-note-shapes`
 Target: `master`
 
-Status: **Planned — ADR 0019 accepted (owner-approved 2026-11-09); implementation authorized.**
+Status: **Implemented for review in PR #65 — owner acceptance pending. ADR 0019 and the post-research engraving clarifications are accepted.**
+
+## Owner clarification after reference review (2026-11-09)
+
+The owner resolved the [retained research questions](../verification/note-shapes/README.md)
+in PR #65. The durable decision is recorded in
+[ADR 0019's clarification](../adrs/0019-authored-note-forms-and-neume-contours.md#owner-clarification-after-reference-review-2026-11-09):
+
+- Allow independent quilisma-pes at score start as an intentional authoring
+  allowance, without cross-neume, syllable or division validation.
+- Use the traditional connected three-note Scandicus silhouette, derived from
+  kind and middle-note form without a new kind or persisted fusion flag.
+- Preserve the research and existing defaults; compare adjacent/wider cases.
+  Stop if that construction cannot fit shared geometry cleanly, explaining the
+  specific conflict before inventing a workaround.
 
 ## Goal
 
@@ -66,7 +80,8 @@ Under Accepted ADR 0019:
     Punctum inclinatum**. A standalone inclined note uses one consistent
     upright/neutral form; forced ascending/descending slants deferred.
   - Two-note ascending Podatus: **Quilisma on the first/lower note**,
-    rendered as a connected quilismatic pes. Validate reference shape.
+    rendered as a connected quilismatic pes, including independent insertion
+    at score start under the owner clarification.
   - Three-note ascending Scandicus: **Quilisma on the middle note**,
     rendered as a connected rising group; the Quilisma may connect to
     more than a single following punctum as the shape warrants.
@@ -162,7 +177,7 @@ Under Accepted ADR 0019:
   remain unchanged; v3 alone accepts valid form fields.
 - Use the existing single namespaced browser-local cache key, byte conflict
   detection and confirmed replacement safeguards. A valid v1/v2 score
-  hydrates without writing; the first *committed* change saves v3 under
+  hydrates without writing; the first _committed_ change saves v3 under
   the same key, with all unaffected data preserved.
 - Validate full v3 field shape and whitelist across each note/neume before
   replacing a document. Unknown form/version, malformed values or
@@ -222,8 +237,8 @@ playback, GABC import/export, general glyph-font engine, or unrelated
 refactors.
 
 **ADR 0019 is Accepted (owner-approved 2026-11-09).** The approval gate
-is cleared. The accepted choices are *optional note-form on an existing note
-rather than a new neume kind*, supported contexts, preselected one-click
+is cleared. The accepted choices are _optional note-form on an existing note
+rather than a new neume kind_, supported contexts, preselected one-click
 Quilisma figure insertion and native v3 compatibility. If actual
 Gregorio/typeset evidence contradicts
 the quilisma-pes or middle-Scandicus contour, or an allowed operation would

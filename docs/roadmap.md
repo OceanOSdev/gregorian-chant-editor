@@ -163,11 +163,11 @@ across-neume joins, new neume kinds and playback remain deferred.
 
 ## Additional authored note shapes (Stage 8B)
 
-Planning is underway on `feat/stage-8b-note-shapes`. The
+Implemented for review in [PR #65](https://github.com/OceanOSdev/gregorian-chant-editor/pull/65); owner acceptance is pending. The
 [Stage 8B plan](plans/stage-8b-authored-note-shapes.md) and
 [Accepted ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
 outline one-click standalone Virga and Punctum inclinatum and preselected,
 one-click quilismatic Podatus/Scandicus, with contextual form editing. The
 architecture and native v3 compatibility were **owner-approved 2026-11-09**;
-implementation has not started. Forced orientation, generic fusion and other
+the owner subsequently clarified independent quilisma-pes authoring and traditional connected Scandicus engraving. New saves write v3 while exact v1/v2 readers and protected draft recovery remain. See [verification and manual acceptance](verification/note-shapes/implementation.md). Forced orientation, generic fusion and other
 new forms remain deferred.

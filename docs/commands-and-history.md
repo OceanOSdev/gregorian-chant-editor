@@ -273,3 +273,20 @@ editing and validates any single-note mora edit against the same profile.
 Off removes optional fields; unrelated notes and the other modifier are shared.
 Movement and deletion retain marks on the same surviving note IDs; they never
 infer or retarget a pair. Pending workflows retain existing edit guards.
+
+## Authored form edits (Stage 8B)
+
+`updateNoteForm` changes only the selected stable note's optional form, retaining
+pitches, kind, tuple order, IDs, lyrics and rhythmic signs. Default removes the
+field. Unsupported and unchanged intents return the original document, preserving
+history/redo and avoiding autosave. One contextual change or preselected shaped
+insertion commits one snapshot through the existing reducer/persistence path.
+
+Normalization checks every surviving explicit form. Deleting Scandicus's first
+note may retain its middle Quilisma as Podatus's first note; deleting its final
+note rejects because the surviving Quilisma would become an unsupported upper
+Podatus note. Deleting the Quilisma itself is allowed. A surviving Quilisma may
+not become a one-note unit. Movement keeps forms on their original IDs and
+rejects invalid contours. Rejected selected-note edits announce why the required
+context must be preserved; authors can first change Form to default. Whole-neume
+deletion remains atomic. No preceding-neume condition is imposed.

@@ -709,3 +709,25 @@ keyboard/pointer checks use browser input. Run the existing local-persistence
 driver sequentially as a regression gate. See the
 [current record](verification/note-modifiers/conventional/README.md) for actual
 results and remaining foreground/visual owner acceptance.
+
+## Authored note forms (Stage 8B)
+
+`commands/note-forms.test.ts` covers the exact whitelist on all seven kinds,
+identity/no-op/rejection, form/sign preservation, normalization, one-step history,
+atomic shaped pointer/keyboard insertion and ghost parity, exact v1/v2 hydration,
+v3 round trips and protected malformed caches. `layout/authored-forms.test.ts`
+covers connected geometry across intervals 1/2/3/5/12 and line/space transpositions,
+partitioned targets, five simultaneous signs, complete bounds/advances, ordinary
+Climacus virga parity and mixed wrapping. Existing strict codec/recovery suites
+remain regression gates; future-version fixtures now use v4.
+
+Run `node docs/verification/note-shapes/browser-check.mjs` against the production
+preview subpath and isolated Chromium/CDP on 9230. Set
+`CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session` for Firefox/BiDi. It exercises the
+real editor's one-click tools and ghosts, remembered keyboard insertion, Form
+choices, independent rhythmic signs, selection stability at desktop/320px,
+history/refresh, old native files, strict failed imports and guarded caches.
+Run the existing modifier and local-persistence drivers sequentially as regressions.
+See [actual runs, comparisons and manual checklist](verification/note-shapes/implementation.md)
+for limits; native select/file events are injected through DOM APIs, and foreground
+zoom, IME, OS dialogs and spoken output remain distinct owner checks.

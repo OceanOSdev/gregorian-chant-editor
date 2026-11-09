@@ -1,4 +1,5 @@
-import type { NoteModifiers, Neume } from '../domain/chant-document';
+import { noteFormLabels } from '../domain/note-forms';
+import type { NoteAppearance, Neume } from '../domain/chant-document';
 
 export function getNoteAccessibleLabel(
   kind: Neume['kind'],
@@ -74,14 +75,16 @@ export function getSelectedNeumeDescription(
 }
 
 export function getNoteModifierDescription(
-  note: NoteModifiers,
+  note: NoteAppearance,
   paired = false,
 ): string {
   return (
+    (note.form ? '. ' + noteFormLabels[note.form] : '') +
     (note.mora
       ? paired
         ? '. Punctum mora, part of auctum duplex affecting final two notes'
         : '. Punctum mora'
-      : '') + (note.episema ? '. Horizontal episema' : '')
+      : '') +
+    (note.episema ? '. Horizontal episema' : '')
   );
 }

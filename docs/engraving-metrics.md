@@ -12,7 +12,7 @@ The ordinary Pes stacks its lower-first and upper-second heads with the upper
 head to the left of a right-side join. The ordinary stemmed Clivis descends from
 an upper-left head to a lower-right head. Adjacent Clivis uses a fitted contact,
 not the connecting line used for wider intervals. Specialized quadratus,
-liquescent, quilisma, and initio debilis forms are excluded.
+liquescent and initio debilis forms are excluded. Authored quilisma is specified below.
 
 References are the [Gregorio GABC guide](https://gregorio-project.github.io/gabc/),
 its [Podatus discussion](https://gregorio-project.github.io/gabc/details.html#podatus),
@@ -500,3 +500,44 @@ earlier signs. Separate strokes avoid unsafe bridges. Approved head silhouettes,
 pitches and lyric anchors remain unchanged. Manual orientation and optical
 joining remain deferred. See the [current comparison](verification/note-modifiers/conventional/README.md)
 and [reference probes](verification/note-modifiers/rhythm-model/README.md).
+
+## Authored forms (Stage 8B)
+
+[Owner-clarified ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
+selects the traditional connected middle-quilisma silhouette from Liber Usualis,
+printed p. xxij, over Gregorio's ordinary separated initial punctum. See the
+[retained source investigation](verification/note-shapes/README.md) and
+[actual editor comparisons](verification/note-shapes/implementation.md).
+Independent two-note quilisma-pes is deliberately permitted by the editor,
+including without a preceding note; this is not a claim of traditional usage.
+
+Standalone Virga repeats the approved Climacus virga's 12-unit head, 1.5-unit
+right queue and tip at +27; nominal/lyric x=6, complete height=33. The selection
+follows its head and the padded target includes its queue. Neutral Inclinatum
+has vertices (6,-10), (13,0), (6,10), (-1,0), nominal/lyric (6,0), and a measured
+14×20 extent. Existing descending Climacus diamonds remain exactly unchanged.
+
+For quilisma-pes let u=0 and v=-12Δ; for Scandicus set u=-12a,
+v=-12(a+b) and upper-column offset h=10.5 (h=0 for pes). The jagged middle/lower
+head occupies x=h…h+12, y=u-7…u+7, with three rising teeth and rounded lower
+returns. The terminal keeps the approved crown vocabulary, with top v-10
+for adjacent ascent and v-6 otherwise; its lower/inner returns are v+4/v+2
+for adjacent ascent and v+6/v+4 otherwise. This optical adjacent lift protects
+the opening above the teeth. Musical pitch anchors remain unchanged.
+
+Scandicus's first head connects through the 1.5-unit right shaft to the left
+of the quilisma; the quilisma's right shaft reaches the terminal. One traced
+filled contour includes both joins, avoiding overlapping translucent bridge
+pieces. Width is 22.5 for Scandicus, 12 for pes; lyric x stays 6. Adjacent/wider
+intervals change shaft length, never head size. Wider intervals are procedural
+project extensions of the primary traditional silhouette, not claims of an exact
+printed match at every interval. Ink bounds/advance include the whole contour.
+
+First-note target ownership ends at x=h above the lower contact, then steps
+right to x=18 below y=u+7.5 to include the whole lower head and its shaft.
+The middle target ends at that same contact; its actual path-shaped neighbor
+prevents overlapping target interiors. Within the upper column, ownership
+splits at min((u+v)/2,u-7.5): the terminal owns the upper exposed shaft and
+the quilisma owns its complete jagged head. Note selection paths remain head
+contours rather than a new square replacement. Existing mora/episema placement
+uses complete form ink, preserving collision clearance and affected-note identity.

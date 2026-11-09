@@ -123,3 +123,8 @@ records the owner-approved Stage 8B authorable Virga, Punctum inclinatum
 and Quilisma forms on stable notes, including preselected one-click insertion,
 a limited context whitelist and version-3 native-file migration (accepted
 2026-11-09). ADRs 0004, 0007, 0016 and 0018 remain Accepted.
+
+ADR 0019's owner clarification after PR #65 reference review allows independent
+quilisma-pes authoring without preceding-context validation and selects the
+traditional connected three-note Scandicus silhouette. No fusion flag or semantic
+kind is added; the original research remains available in the verification record.

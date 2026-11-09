@@ -1,12 +1,17 @@
-import type { DivisionKind, Clef } from '../domain/chant-document';
+import type {
+  DivisionKind,
+  Clef,
+  NoteForm,
+  Neume,
+} from '../domain/chant-document';
 export type EditorTool =
   | { kind: 'place-clef'; clefType: Clef['type'] }
   | { kind: 'place-division'; divisionKind: DivisionKind }
   | { kind: 'select' }
-  | { kind: 'place-punctum' }
-  | { kind: 'place-podatus' }
+  | { kind: 'place-punctum'; form?: 'virga' | 'inclinatum' }
+  | { kind: 'place-podatus'; form?: 'quilisma' }
   | { kind: 'place-clivis' }
-  | { kind: 'place-scandicus' }
+  | { kind: 'place-scandicus'; form?: 'quilisma' }
   | { kind: 'place-torculus' }
   | { kind: 'place-climacus' }
   | { kind: 'place-porrectus' };
@@ -55,4 +60,23 @@ export function isPlacementTool(tool: EditorTool): boolean {
     tool.kind === 'place-climacus' ||
     tool.kind === 'place-porrectus'
   );
+}
+
+/** Appearance for the existing melodic placement contour, shared by ghosts/commit. */
+export function entryAppearance(kind: Neume['kind'], form?: NoteForm) {
+  return Array.from(
+    {
+      length:
+        kind === 'punctum'
+          ? 1
+          : kind === 'podatus' || kind === 'clivis'
+            ? 2
+            : 3,
+    },
+    (_, index) =>
+      form && index === (kind === 'scandicus' ? 1 : 0) ? { form } : {},
+  );
+}
+export function toolNoteForm(tool: EditorTool): NoteForm | undefined {
+  return 'form' in tool ? tool.form : undefined;
 }

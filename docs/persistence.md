@@ -5,11 +5,11 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1 and 2
+## Native versions 1, 2 and 3
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 2`, and `document: ChantDocument`. The reader accepts v1 and v2. All seven document properties are
+`version: 3`, and `document: ChantDocument`. The reader accepts exact v1, finalized v2 and v3. All seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
 arrays. Optional syllable alignment is supported in both versions. V2 additionally accepts
 optional note fields `mora: 1` and `episema: true`; absence means off.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v2. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v3. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 8A: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1 bytes untouched. The next
-successful committed save writes v2 into that same key, after comparing the
+retained for Stage 8B: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1/v2 bytes untouched. The next
+successful committed save writes v3 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot read a v2 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v3 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -158,3 +158,20 @@ remain. Source download does not commit edits or require resolving pending work.
 Explicit replacement warns users to retain source and current work separately.
 There is no automatic converter; revise unsupported intent in a compatible
 editor or retain the original for later resolution.
+
+## Authored forms in native v3 (Stage 8B)
+
+V3 alone additionally permits optional note `form` with exact values `virga`,
+`inclinatum` and `quilisma`. The shared within-neume whitelist and strict pitch
+contour checks reject unsupported configurations. Explicit default/null/false,
+unknown strings/types and unknown fields reject before document replacement.
+V1/v2 field whitelists remain unchanged; they reject all form fields. V2's
+separate full old-syntax validation and withdrawn-draft recovery are retained.
+
+Importing/hydrating v1/v2 never synthesizes forms or changes note identities,
+marks, lyrics or event order. Hydration does not write; the next committed edit,
+including undo/redo, saves v3 through the same cache key and byte conflict guard.
+Exports and confirmed imports write v3. Failed imports and unreadable caches
+retain their existing original-source download/replacement safeguards. Older
+app versions cannot be assumed to import v3. See the
+[migration and browser record](verification/note-shapes/implementation.md).

@@ -1,5 +1,8 @@
 import { resolveScoreSlot } from './resolve-score-slot';
-import type { ScoreInsertionBoundary } from '../domain/chant-document';
+import type {
+  ScoreInsertionBoundary,
+  NoteAppearance,
+} from '../domain/chant-document';
 import type { NeumeEntryPitches } from '../neume-entry-pitches';
 import {
   canGraphicalNeumeFitNormalSystem,
@@ -27,6 +30,7 @@ export function resolveGraphicalNeumePlacement(
   layout: ChantLayout,
   kind: GraphicalNeumeKind,
   point: { x: number; y: number },
+  appearance?: readonly NoteAppearance[],
 ): ResolvedGraphicalNeumePlacement | null {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
 
@@ -67,6 +71,7 @@ export function resolveGraphicalNeumePlacement(
     {
       ...placement,
       insertionIndex,
+      appearance,
     },
     point,
   );
