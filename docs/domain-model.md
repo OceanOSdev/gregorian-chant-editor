@@ -32,7 +32,8 @@ Those concerns are derived or transient.
 
 ## Syllables, neumes, and notes
 
-A lyric syllable has a stable `id`, nonblank single-syllable `text`, a
+A lyric syllable has a stable `id` unique across all semantic collections
+(including authored clefs), nonblank single-syllable `text`, a
 `startsAtNeumeId` anchor, and `boundaryBefore` (`word` or `continuation`).
 Neumes are independent entities with stable IDs, explicit kinds, and nested
 notes. They have no lyric reference.

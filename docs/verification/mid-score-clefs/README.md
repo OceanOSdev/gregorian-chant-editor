@@ -5,9 +5,9 @@ mixed score order, scoped pitch preservation and measured custodes. The committe
 handoff plan remains available for review; owner acceptance and plan closeout
 remain separate from implementation.
 
-## Automated checks
+## Initial implementation checks (`4a4d159`)
 
-The implementation passes `npm run format:check`, `npm run lint`, `npm test`
+The initial implementation passed `npm run format:check`, `npm run lint`, `npm test`
 (57 files, 1,182 tests), `npm run build`, and `git diff --check`.
 
 New suites cover mixed-slot insertion and convergence in reversed collection
@@ -89,3 +89,72 @@ existing limitations. Horizontal clef relocation requires delete/reinsert;
 graphical clef insertion ghosts, accidentals, playback, save/load and ledger-line
 redesign are outside Stage 6B. Headless assertions do not establish comprehensive
 accessibility or publication-quality engraving acceptance.
+
+## PR #60 review follow-up
+
+All seven required correctness findings are fixed:
+
+- Graphical neume insertion always uses the measured mixed-event slot, so both
+  sides of mid-staff, trailing and system-leading authored clefs remain distinct.
+- Oversized staff and canvas extents include clef/custos bounds; pointer slots
+  beyond the normal staff edge remain reachable, including with a negative
+  viewBox origin.
+- A capture-phase Escape handler cancels the pending clef transaction before
+  native lyric/input handlers, even if focus leaves the dialog.
+- Insertion carets reserve their cap footprint outside guide bounds.
+- No-selection I inserts at actual score end after trailing clefs/divisions;
+  contextual insertion after a selected neume retains its explicit boundary.
+- Apply validates unchanged candidate positions, then confirmation validates
+  only the chosen pitch policy. Melody overflow leaves the prompt open with
+  an explanation; valid Preserve noteheads still commits atomically.
+- Lyric creation rejects authored-clef IDs, as well as IDs in other semantic
+  collections, before changing the document.
+
+The smaller interaction/documentation findings are also fixed: focused/selected
+clef I announces explicit side choices; dropdown choices store semantic boundaries
+and reject stale targets rather than retargeting an index; clef controls are
+blocked during placement; Choose clef clears the target; descriptions distinguish
+initial/effective/authored clefs; deletion wording matches immediate versus
+pitch-confirmed removal; glossary and owning guides describe implemented behavior.
+
+Both investigated engraving findings were reproduced against `4a4d159`:
+
+- A 30-division run puts an outgoing guide on system one and an extra mid-staff
+  guide before a clef on system two, anticipating the same note. The boundary
+  walk now remembers the outgoing anticipation and suppresses the duplicate.
+- Ten puncta followed by a clef and a wrapping clivis removed the mid-staff guide
+  but left its 20-unit advance: clef left x=597 instead of x=577. The walker now
+  rebuilds the following boundary geometry without that advance before finalizing
+  the system. No renderer-side shift or new event framework is used.
+
+The new regressions fail against the old walker and pass after the fixes.
+The unit suite passes 59 files / 1,202 tests, including cross-boundary/slot
+rejection, cross-collection ID collisions, and a continuation staff with F2
+when the initial clef is C3. Formatting, lint, build and diff checks pass.
+
+The extended mid-score-clef browser driver passes in Chromium and Firefox at
+1440/320px, including native graphical insertion on both clef sides, Escape from
+an outside lyric input, stable/stale dropdown targets, target clearing, focused
+I feedback, actual-end insertion, disabled placement controls, selected-policy
+overflow, actual caret/guide separation, oversized scrolled targets and duplicate
+suppression. Firefox's existing headless HTML activation limitation remains;
+HTML button activation uses native pointer input there, while Chromium also
+exercises Enter. Native select popup and spoken-output acceptance remain manual.
+
+Additional regressions rerun successfully for this follow-up: Chromium divisions,
+continuous lyrics, lyric moves, vowel alignment, measured lyric spacing, word
+composition and the 47-case corpus; Firefox divisions, word composition and its
+47-case corpus. Both corpora report no invariant errors. The production Chromium
+smoke check also passes for subpath assets, notice, desktop/320px containment,
+clef insertion and refresh reset, with no observed runtime/asset-loading errors.
+
+Selected fresh evidence: [Chromium division-leading transition](review-division-leading-chromium.png)
+and [Firefox division-leading transition](review-division-leading-firefox.png).
+Both retain the incoming decorative clef before leading divisions and the later
+authored clef, with only the preceding staff's outgoing guide for that transition.
+
+No correctness finding from the requested list is deferred or disputed.
+Generalized event/placement frameworks, broad walker extraction, reducer rewrites
+and fixture overhauls remain optional maintainability work and are deliberately
+deferred as requested. Foreground keyboard/zoom, screen reader, IME and final
+engraving acceptance remain owner checks, not claims of automated coverage.

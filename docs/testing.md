@@ -603,3 +603,19 @@ BiDi. The [Stage 6B record](verification/mid-score-clefs/README.md) records actu
 results, source inspection, selected screenshots and manual owner checks.
 Run the existing clef, division, continuous-lyrics, lyric-move, vowel-alignment,
 lyric-spacing and word-composition drivers sequentially on each shared browser.
+
+### PR #60 review follow-up
+
+`clef-review-boundaries.test.ts` covers cross-boundary/slot rejection, identity
+collisions across lyric/music/division/clef collections, actual-end I fallback,
+clef-side shortcut feedback and placement guards. `clef-review-regressions.test.ts`
+checks graphical insertion on both authored-clef sides (mid-staff, trailing and
+system-leading), oversized staff/slot reachability, caret/guide clearance,
+division-leading duplicate suppression, reclaimed guide spacing, and a continuation
+system whose effective F clef differs from the initial C clef. Transaction tests
+now distinguish a rejected melody translation from a valid notehead-preserving edit.
+
+The existing mid-score-clef browser driver includes these interaction regressions
+at desktop/320px, semantic dropdown persistence and target clearing, Escape from
+a focused lyric field outside the dialog, focused-clef I feedback, policy-specific
+overflow, and scrolled oversized insertion with a negative viewBox origin.

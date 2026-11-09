@@ -516,7 +516,11 @@ it.each(['word', 'continuation'] as const)(
         expect(l.systems[0].divisions[0].bounds.x).toBeGreaterThan(staffEndX);
         expect(l.x + l.width).toBeGreaterThan(l.systems[0].staffLines[0].x2);
         expect(l.systems[1].neumes[0].neumeId).toBe('n1');
-        expect(l.systems[1].staffLines[0].x2).toBe(staffEndX);
+        expect(l.systems[1].staffLines[0].x2).toBeGreaterThanOrEqual(staffEndX);
+        for (const guide of l.systems[1].custodes)
+          expect(l.systems[1].staffLines[0].x2).toBeGreaterThan(
+            guide.bounds.x + guide.bounds.width,
+          );
       }
     }
   },

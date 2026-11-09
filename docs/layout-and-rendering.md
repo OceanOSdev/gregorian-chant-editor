@@ -21,8 +21,8 @@ automatic wrapping, lyric placement, SVG rendering, and layout accessibility.
 ## Staff, system, and score
 
 A [staff](glossary.md#staff) is one four-line writing area. A
-[system](glossary.md#system) contains a repeated staff, initial C/F clef, an ordered
-partition of neumes, and the lyrics owned by that partition. The
+[system](glossary.md#system) contains a repeated staff, effective opening C/F clef, an ordered
+partition of mixed semantic events, and the lyrics owned by that partition. The
 [score](glossary.md#score) contains one or more vertically arranged systems.
 Even an empty document produces one empty system.
 
@@ -30,7 +30,8 @@ Even an empty document produces one empty system.
 
 - score `title`, derived canvas `x`, `width`, and `height`;
 - ordered `systems`;
-- each system's index, bounds, staff lines, clef, neumes, lyrics, and
+- each system's index, bounds, staff lines, opening clef, authored clefs, divisions,
+  custodes, insertion slots, neumes, lyrics, and
   `startNeumeIndex`.
 
 `startNeumeIndex` is the global semantic index of the first neume assigned to a
@@ -487,11 +488,11 @@ True word boundaries still receive clearance without continuation marks.
 
 `buildClefGeometry` derives a shared curved C/do body and an F/fa-specific attachment, exact occupied bounds
 and separately padded hit bounds, scaled from `staffStep`. Both C/do and F/fa
-support lines 1–4. The y anchor is the reference line; all automatic systems
-repeat this geometry, including the empty-score system. Geometry contains no
+support lines 1–4. The y anchor is the reference line; automatic repetitions use
+the effective incoming value, including the empty-score initial clef. Geometry contains no
 semantic IDs or DOM/font dependencies. The first copy uses `ClefControl`;
 decorative subsequent copies are aria-hidden, pointer-inert paths. The score summary names
-the global type and line. See [drawing metrics](engraving-metrics.md#clefs-stage-6a)
+the initial type/line and the authored clef-change sequence. See [drawing metrics](engraving-metrics.md#clefs-stage-6a)
 for the contours and reference sources.
 
 Clefs occupy the existing leading region at x=100, separated from the normal
@@ -536,3 +537,16 @@ wrapping policy or universal historical proportions. Approved C/F contours are
 unchanged. Clefs do not categorically block same-word compaction: measured event
 ink supplies clearance, while ADR 0013 remains the division-only exception.
 Lyrics, word boundaries and hyphen rules retain their existing semantics.
+
+Oversized staff extension includes division, authored-clef and custos bounds;
+the exceptional canvas includes the full extended staff. The same extended
+region is used for pointer hit testing, keeping slots beyond normal x=656 reachable.
+Caret positions keep their four-unit caps plus clearance outside custos bounds,
+without changing the semantic slot or its pointer interval.
+
+If a boundary run wraps before a division, its outgoing guide already anticipates
+the pending next note; a later clef on the new staff does not add a second guide.
+When a mid-staff guide is replaced at a later break, the walker rebuilds following
+boundary glyphs without its reserved advance before finalizing that system.
+This reclaims spacing within authoritative measured layout; no renderer-side
+translation or new placement engine is involved.

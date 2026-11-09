@@ -153,7 +153,14 @@ describe('staged clef transactions', () => {
     s = reduce(s, { type: 'apply-clef-change' });
     expect(s.history.present).toBe(unsafe);
     expect(s.history.past).toHaveLength(0);
-    expect(s.clefTransaction?.candidate).toBeNull();
-    expect(s.announcement.text).toContain('unsafe');
+    expect(s.clefTransaction?.candidate).not.toBeNull();
+    s = reduce(s, { type: 'confirm-clef-change', preserve: 'melody' });
+    expect(s.history.present).toBe(unsafe);
+    expect(s.history.past).toHaveLength(0);
+    expect(s.announcement.text).toContain('overflow');
+    s = reduce(s, { type: 'confirm-clef-change', preserve: 'noteheads' });
+    expect(s.history.present.neumes).toBe(unsafe.neumes);
+    expect(s.history.present.clefChanges).toHaveLength(1);
+    expect(s.history.past).toHaveLength(1);
   });
 });

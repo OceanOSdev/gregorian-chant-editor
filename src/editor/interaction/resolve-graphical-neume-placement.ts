@@ -52,11 +52,7 @@ export function resolveGraphicalNeumePlacement(
 
   const resolved = resolveScoreSlot(layout, point);
   if (!resolved) return null;
-  const slot = system.divisions.length
-    ? resolved.slot
-    : (system.slots.find(
-        (s) => s.insertionIndex === placement.preferredNeumeInsertionIndex,
-      ) ?? resolved.slot);
+  const slot = resolved.slot;
   const insertionIndex = slot.insertionIndex;
   const boundary = slot.boundary;
 

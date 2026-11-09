@@ -1,6 +1,11 @@
 import { useLayoutEffect, useRef, useState, type Dispatch } from 'react';
-import type { Clef } from '../domain/chant-document';
-import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
+import { isPlacementTool } from '../state/editor-tool';
+import type { Clef, ScoreInsertionBoundary } from '../domain/chant-document';
+import {
+  deriveScoreOrder,
+  scoreBoundaryAt,
+  resolveScoreBoundary,
+} from '../domain/divisions';
 import { isValidClef } from '../domain/clef';
 import type { EditorAction, EditorSession } from '../state/editor-session';
 
@@ -13,11 +18,18 @@ export function ClefChangeControls({
 }) {
   const document = session.history.present;
   const order = deriveScoreOrder(document) ?? [];
-  const [slotIndex, setSlotIndex] = useState(0);
-  const [targetId, setTargetId] = useState('');
+  const [insertionBoundary, setInsertionBoundary] =
+    useState<ScoreInsertionBoundary>(() => scoreBoundaryAt(order, 0));
+  const boundaries = Array.from({ length: order.length + 1 }, (_, index) =>
+    scoreBoundaryAt(order, index),
+  );
+  const insertionKey = JSON.stringify(insertionBoundary);
+  const validInsertion =
+    resolveScoreBoundary(document, insertionBoundary) !== null;
+  const placing = isPlacementTool(session.activeTool);
   const selection = session.selection;
   const selectedId =
-    selection.kind === 'clef-change' ? selection.clefChangeId : targetId;
+    selection.kind === 'clef-change' ? selection.clefChangeId : '';
   const target = document.clefChanges.find((c) => c.id === selectedId);
   const transaction = session.clefTransaction;
   const dialog = useRef<HTMLDivElement>(null);
@@ -56,11 +68,11 @@ export function ClefChangeControls({
     return `neume ${document.neumes.findIndex((n) => n.id === item.entity.id) + 1}`;
   };
   const start = () => {
-    const index = Math.min(slotIndex, order.length);
+    if (!validInsertion || placing) return;
     dispatch({
       type: 'start-clef-change',
       id: crypto.randomUUID(),
-      boundary: scoreBoundaryAt(order, index),
+      boundary: insertionBoundary,
     });
   };
   return (
@@ -68,7 +80,12 @@ export function ClefChangeControls({
       <fieldset
         className="clef-change-controls"
         disabled={
-          !!(transaction || session.pendingHistory || session.lyricMove)
+          !!(
+            transaction ||
+            session.pendingHistory ||
+            session.lyricMove ||
+            placing
+          )
         }
       >
         <legend>Mid-score clefs</legend>
@@ -76,11 +93,24 @@ export function ClefChangeControls({
           Insertion boundary{' '}
           <select
             aria-label="Clef insertion boundary"
-            value={Math.min(slotIndex, order.length)}
-            onChange={(e) => setSlotIndex(Number(e.currentTarget.value))}
+            value={validInsertion ? insertionKey : ''}
+            onChange={(e) => {
+              const boundary = boundaries.find(
+                (b) => JSON.stringify(b) === e.currentTarget.value,
+              );
+              if (boundary) setInsertionBoundary(boundary);
+            }}
           >
-            {Array.from({ length: order.length + 1 }, (_, i) => (
-              <option key={i} value={i}>
+            {!validInsertion ? (
+              <option value="">
+                Boundary no longer exists — choose another
+              </option>
+            ) : null}
+            {boundaries.map((boundary, i) => (
+              <option
+                key={JSON.stringify(boundary)}
+                value={JSON.stringify(boundary)}
+              >
                 {i + 1}.{' '}
                 {i
                   ? `After ${eventName(i - 1)} / before ${eventName(i)}`
@@ -89,7 +119,7 @@ export function ClefChangeControls({
             ))}
           </select>
         </label>{' '}
-        <button type="button" onClick={start}>
+        <button type="button" disabled={!validInsertion} onClick={start}>
           Insert clef change
         </button>{' '}
         <label>
@@ -98,7 +128,6 @@ export function ClefChangeControls({
             aria-label="Authored clef target"
             value={target?.id ?? ''}
             onChange={(e) => {
-              setTargetId(e.currentTarget.value);
               if (e.currentTarget.value)
                 dispatch({
                   type: 'select',
@@ -107,6 +136,7 @@ export function ClefChangeControls({
                     clefChangeId: e.currentTarget.value,
                   },
                 });
+              else dispatch({ type: 'select', selection: { kind: 'none' } });
             }}
           >
             <option value="">Choose clef</option>
@@ -206,9 +236,17 @@ export function ClefChangeControls({
           {transaction.candidate ? (
             <>
               <p>
-                This clef operation changes how existing notes are interpreted.
-                Choose once for the final change.
+                {transaction.candidate.clefChanges.some(
+                  (c) => c.id === transaction.id,
+                )
+                  ? 'Apply this clef change.'
+                  : 'Remove this clef change.'}{' '}
+                This changes how existing notes are interpreted. Choose once for
+                the final change.
               </p>
+              {transaction.policyError ? (
+                <p role="status">{transaction.policyError}</p>
+              ) : null}
               <button
                 type="button"
                 onClick={() =>

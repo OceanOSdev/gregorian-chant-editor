@@ -616,15 +616,20 @@ C/F and staff-line draft with **Apply clef change** / **Cancel clef change**.
 The authored-target select or a click/Enter/Space on an engraved clef chooses
 its stable ID. **Edit clef change** opens the same draft; Up/Down on an authored
 glyph opens a staged one-line adjustment. **Delete clef change**, or focused
-Delete/Backspace, stages removal. Explicit remembered-neume before/after buttons
+Delete/Backspace, removes the clef immediately when pitches are unaffected;
+otherwise it opens the one-shot pitch choice, whose Cancel retains the clef. Explicit remembered-neume before/after buttons
 also distinguish sides of a selected authored clef. Pointer clef ghosts are deferred;
 native controls provide the insertion path for pointer and keyboard users.
 
 Apply prompts only for changed effective pitches: **Preserve melody** receives
 initial focus and is the default; **Preserve noteheads** retains staff positions.
 No-op, trailing and redundant changes commit or close without a pitch prompt.
-The dialog traps Tab within its controls. Escape cancels the entire clef operation
-first, including from the pitch choice; outside a transaction the established
+Each chosen policy is validated independently: an overflowing melody translation
+leaves the prompt open with an explanation, while valid Preserve noteheads
+remains available.
+The dialog traps Tab within its controls. A document capture handler makes
+Escape cancel the entire clef operation first, including when focus has left the
+dialog for an editable lyric field; outside a transaction the established
 lyric/placement/selection precedence applies. All conflicting semantic actions,
 including lyric commits and history, are blocked by the reducer while pending.
 Dirty lyric text remains exactly intact without implicit save or discard.
@@ -636,3 +641,12 @@ target, or Select if none. Engraved focus survives system reparenting by stable 
 Tab focus alone never selects a clef. Authored glyphs use the existing selection
 and focus cues; decorative repetitions and custodes are pointer-inert and absent
 from the tab order. Relocation requires deletion and reinsertion.
+
+The clef insertion dropdown stores a semantic boundary, not a list index. Edits
+elsewhere retain its target; if its references become stale, insertion is disabled
+until another boundary is chosen. It never silently retargets a numeric position.
+Clef controls are disabled during persistent neume/division placement; return to
+Select to use them. **Choose clef** clears the authored target/selection. I on a
+focused or selected authored clef announces its explicit before/after buttons;
+I without a musical selection inserts after all trailing score events. Graphical
+neume placement always resolves the measured mixed-event slots on either clef side.

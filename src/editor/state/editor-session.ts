@@ -4,6 +4,7 @@ import {
   deleteClefChange,
   hasChangedEffectivePitches,
   preserveClefMelody,
+  hasValidClefCandidate,
 } from '../commands/edit-clef-change';
 import { isValidClef } from '../domain/clef';
 import { resolveScoreBoundary } from '../domain/divisions';
@@ -69,6 +70,7 @@ export type EditorFocusRequest =
   | { kind: 'palette'; tool: 'select' | GraphicalNeumeKind };
 
 export interface ClefTransaction {
+  policyError?: string;
   original: ChantDocument;
   previousSelection: EditorSelection;
   id: string;
@@ -368,11 +370,14 @@ function reduceSessionAction(
       if (
         !insertion &&
         action.type === 'insert' &&
-        state.selection.kind === 'division'
+        (state.selection.kind === 'division' ||
+          state.selection.kind === 'clef-change')
       )
         return announce(
           state,
-          'Choose Insert before division or Insert after division.',
+          state.selection.kind === 'clef-change'
+            ? 'Choose Insert before clef or Insert after clef in Mid-score clefs.'
+            : 'Choose Insert before division or Insert after division.',
         );
       if (!insertion)
         return state.hoveredPoint ? { ...state, hoveredPoint: null } : state;
@@ -599,7 +604,13 @@ export function reduceEditorSession(
 ): EditorSession {
   const transaction = state.clefTransaction;
   if (action.type === 'start-clef-change') {
-    if (transaction || state.pendingHistory || state.lyricMove) return state;
+    if (
+      transaction ||
+      state.pendingHistory ||
+      state.lyricMove ||
+      isPlacementTool(state.activeTool)
+    )
+      return state;
     const document = state.history.present;
     const existing = document.clefChanges.find((c) => c.id === action.id);
     if (
@@ -675,7 +686,7 @@ export function reduceEditorSession(
               transaction.clef,
             );
       if (candidate === transaction.original) return restore();
-      if (!preserveClefMelody(transaction.original, candidate))
+      if (!hasValidClefCandidate(candidate))
         return announce(
           state,
           'Clef change rejected: unsafe note positions. Cancel or revise the draft.',
@@ -687,9 +698,25 @@ export function reduceEditorSession(
       candidate =
         action.preserve === 'melody'
           ? preserveClefMelody(transaction.original, transaction.candidate)
-          : transaction.candidate;
+          : action.preserve === 'noteheads'
+            ? transaction.candidate
+            : null;
     }
-    if (!candidate) return state;
+    if (!candidate) {
+      if (
+        action.type !== 'confirm-clef-change' ||
+        !transaction.candidate ||
+        action.preserve !== 'melody'
+      )
+        return state;
+      const policyError =
+        'Cannot preserve melody: note positions would overflow. Choose Preserve noteheads or cancel.';
+      return announce(
+        { ...state, clefTransaction: { ...transaction, policyError } },
+        policyError,
+      );
+    }
+    if (!hasValidClefCandidate(candidate)) return state;
     const surviving = candidate.clefChanges.some(
       (c) => c.id === transaction.id,
     );
@@ -705,7 +732,7 @@ export function reduceEditorSession(
           ? { kind: 'clef-change', clefChangeId: transaction.id }
           : { kind: 'palette', tool: 'select' },
       }),
-      'Clef change applied.',
+      surviving ? 'Clef change applied.' : 'Clef change removed.',
     );
   }
   if (

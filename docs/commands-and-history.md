@@ -204,8 +204,10 @@ authored ID, insertion boundary or existing target, draft value, and optional
 final candidate awaiting confirmation. Draft adjustments never enter history.
 Apply compares the final value with the original document, offers one pitch
 choice only when offsets change, and commits one snapshot. Cancel/no-op preserves
-the exact history and redo branch. Unsafe translations reject without partial
-mutation. Every other semantic action and history navigation is blocked until
+the exact history and redo branch. Apply validates unchanged noteheads first;
+confirmation validates only the chosen preservation policy. An unsafe melody
+translation leaves history untouched and the prompt open; valid Preserve
+noteheads remains available. Every other semantic action and history navigation is blocked until
 resolution; a stale original snapshot cancels instead of applying to newer music.
 There is no generic transaction framework. Undo/redo restores committed snapshots
 without reopening pitch confirmation. See [interaction lifecycle](editor-interactions.md#mid-score-clef-controls-stage-6b).

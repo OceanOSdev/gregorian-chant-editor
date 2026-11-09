@@ -1,4 +1,4 @@
-import { hasValidDivisions } from '../domain/divisions';
+import { hasValidDivisions, semanticIds } from '../domain/divisions';
 import type { ChantDocument, LyricSyllable } from '../domain/chant-document';
 import { hasValidLyricAnchors } from '../domain/lyrics';
 
@@ -12,6 +12,7 @@ export function createLyricSyllable(
   if (
     !hasValidDivisions(document) ||
     document.divisions.some((d) => d.id === syllable.id) ||
+    semanticIds(document).includes(syllable.id) ||
     at < 0 ||
     document.syllables.some(
       (s) =>

@@ -41,6 +41,17 @@ export function hasChangedEffectivePitches(
   );
 }
 
+export function hasValidClefCandidate(document: ChantDocument): boolean {
+  return (
+    effectiveOffsets(document) !== null &&
+    document.neumes.every(
+      (n) =>
+        isValidNeume(n) &&
+        n.notes.every((note) => Number.isSafeInteger(note.staffPosition)),
+    )
+  );
+}
+
 /** Validate the entire candidate before creating any translated notes. */
 export function preserveClefMelody(
   before: ChantDocument,

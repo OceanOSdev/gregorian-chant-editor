@@ -49,8 +49,8 @@ One four-line musical writing area inside a rendered system.
 
 ### System
 
-One horizontal staff, global C/F clef, notation partition, and owned lyric row within
-the score. System membership is derived by layout.
+One horizontal staff, effective opening C/F clef, notation partition, and owned
+lyric row within the score. System membership is derived by layout.
 
 ### Score
 
@@ -58,10 +58,26 @@ The complete derived layout and SVG, containing one or more systems.
 
 ### Clef
 
-The semantic pitch reference. The current model supports one initial C/do or
-F/fa clef on staff line 1, 2, 3, or 4 (bottom to top). SVG contours repeat it
-on every derived system. Initial clef edits translate note positions to preserve
-relative diatonic melody; mid-score clef events are not yet supported.
+A semantic pitch reference: C/do or F/fa on staff line 1–4, bottom to top.
+The required initial clef is an ID-less value; authored mid-score changes have
+stable IDs and explicit score-boundary anchors. The last preceding clef governs
+a neume. Continuation systems repeat the effective incoming clef, or use their
+first authored clef in the leading position. Initial-clef edits preserve melody
+only in their governing passage. See [ADR 0015](adrs/0015-order-clef-changes-at-score-boundaries.md).
+
+### Custos (plural: custodes)
+
+An automatically derived guide anticipating the next pitched note under the
+clef at the guide's location. Custodes appear at staff endings and meaningful
+mid-staff clef changes; duplicate guides for the same transition are suppressed.
+They are noninteractive geometry, not semantic notes or history items.
+
+### Score insertion boundary
+
+A stable semantic intent naming `beforeNeumeId`, `beforeDivisionId` and
+`beforeClefId`. Null values denote the corresponding end/run edge. A boundary
+never points inside a neume; malformed, stale and ambiguous references reject.
+See [semantic insertion boundaries](domain-model.md#semantic-insertion-boundaries).
 
 ### `StaffPosition`
 
@@ -70,7 +86,9 @@ semantic pitch data, not a pixel coordinate.
 
 ### Semantic order
 
-The order of neumes in `ChantDocument.neumes`. See
+The mixed neume/division/clef walk derived from independent semantic collections.
+Neume-array order governs pitched order; boundary division order and clef order
+within each division slot govern intervening events. See
 [semantic insertion boundaries](domain-model.md#semantic-insertion-boundaries).
 
 ### Layout order

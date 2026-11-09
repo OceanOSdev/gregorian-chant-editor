@@ -256,6 +256,31 @@ function placeNeumeSequence(
   function finishSystem() {
     const nextIndex = startNeumeIndex + geometries.length;
     if (hasItems() && noteClefs[nextIndex]) {
+      const removedGuides = custodes.filter(
+        (g) => g.nextNeumeIndex === nextIndex,
+      );
+      for (const guide of removedGuides) {
+        const shift = custosWidth + custosGap;
+        clefChanges = clefChanges.map((c) =>
+          c.bounds.x > guide.bounds.x
+            ? {
+                ...buildClefGeometry(c, c.x - shift, c.y),
+                clefChangeId: c.clefChangeId,
+              }
+            : c,
+        );
+        divisions = divisions.map((d) =>
+          d.bounds.x > guide.bounds.x
+            ? buildDivisionGeometry(
+                { id: d.divisionId, kind: d.kind, beforeNeumeId: null },
+                d.bounds.x - shift,
+                bottomY(),
+                staffLineSpacing,
+              )
+            : d,
+        );
+        nextLeftX -= shift;
+      }
       custodes = custodes.filter((g) => g.nextNeumeIndex !== nextIndex);
       const right = Math.max(
         nextLeftX - interNeumeInkGap,
@@ -322,6 +347,7 @@ function placeNeumeSequence(
           usableRightBoundary
       ) {
         finishSystem();
+        anticipated = true;
         left = firstNeumeCenterX;
         guideWidth = 0;
       }
@@ -713,7 +739,7 @@ export function layoutChant(
           x1: staffStartX,
           x2: Math.max(
             staffEndX,
-            ...divisions.map((d) =>
+            ...[...divisions, ...clefChanges, ...custodes].map((d) =>
               d.bounds.x + d.bounds.width > staffEndX
                 ? d.bounds.x + d.bounds.width + divisionGap + 3
                 : staffEndX,
@@ -879,7 +905,7 @@ export function layoutChant(
         boundary.beforeNeumeId === null
           ? document.neumes.length
           : document.neumes.findIndex((n) => n.id === boundary.beforeNeumeId);
-      const x =
+      let x =
         next?.type === 'division' || next?.type === 'clef'
           ? next.bounds.x - divisionGap / 2
           : previous?.type === 'division' || previous?.type === 'clef'
@@ -894,6 +920,27 @@ export function layoutChant(
                   previous.bounds.width +
                   interNeumeInkGap / 2
                 : firstNeumeCenterX;
+      const minimumX = Math.max(
+        staffStartX + 3,
+        previous ? previous.bounds.x + previous.bounds.width + 3 : -Infinity,
+      );
+      const maximumX = Math.min(
+        system.staffLines[0].x2 - 3,
+        next ? next.bounds.x - 3 : Infinity,
+      );
+      for (const guide of system.custodes) {
+        const left = guide.bounds.x - 6,
+          right = guide.bounds.x + guide.bounds.width + 6;
+        if (x > left && x < right) {
+          const candidates = [left, right].filter(
+            (value) => value >= minimumX && value <= maximumX,
+          );
+          if (candidates.length)
+            x = candidates.reduce((best, value) =>
+              Math.abs(value - x) < Math.abs(best - x) ? value : best,
+            );
+        }
+      }
       slots.push({
         boundary,
         insertionIndex,
@@ -917,7 +964,7 @@ export function layoutChant(
   for (const system of systems) {
     for (const c of [...system.clefChanges, ...system.custodes])
       canvasRight = Math.max(canvasRight, c.bounds.x + c.bounds.width + 12);
-    if (system.divisions.length)
+    if (system.staffLines[0].x2 > staffEndX)
       canvasRight = Math.max(canvasRight, system.staffLines[0].x2 + 12);
     for (const hyphen of system.hyphens)
       canvasRight = Math.max(

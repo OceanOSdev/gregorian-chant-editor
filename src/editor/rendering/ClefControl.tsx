@@ -32,7 +32,7 @@ export function ClefControl({
       tabIndex={disabled ? -1 : 0}
       aria-pressed={selected}
       aria-disabled={disabled}
-      aria-label={`${changeId ? 'Authored' : 'Initial'} ${clefName(clef)} clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down ${changeId ? 'opens a staged line edit; Delete stages removal' : 'changes line and preserves melody'}. Use clef controls to change type.`}
+      aria-label={`${changeId ? 'Authored' : 'Initial'} ${clefName(clef)} clef, staff line ${clef.staffLine} from bottom. Enter or Space selects; Arrow Up or Down ${changeId ? 'opens a staged line edit; Delete or Backspace removes this clef with a pitch choice when needed' : 'changes line and preserves melody in its initial passage'}. Use clef controls to change type.`}
       pointerEvents={disabled ? 'none' : 'all'}
       onClick={(event) => {
         event.stopPropagation();

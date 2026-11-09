@@ -242,12 +242,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if (
-        event.defaultPrevented ||
-        event.isComposing ||
-        isEditableTarget(event.target)
-      )
-        return;
+      if (event.defaultPrevented || event.isComposing) return;
+      if (isEditableTarget(event.target)) return;
       const notationFocused =
         event.target instanceof Element &&
         !!event.target.closest('[data-notation-shortcuts], .score');
@@ -287,16 +283,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       if (shortcut) {
         event.preventDefault();
         if (shortcut === 'insert') {
-          const divisionId =
-            event.target instanceof Element
-              ? event.target
-                  .closest('[data-division-id]')
-                  ?.getAttribute('data-division-id')
-              : null;
-          if (divisionId)
+          const target = event.target instanceof Element ? event.target : null;
+          const divisionId = target
+            ?.closest('[data-division-id]')
+            ?.getAttribute('data-division-id');
+          const clefChangeId = target
+            ?.closest('[data-clef-change-id]')
+            ?.getAttribute('data-clef-change-id');
+          if (divisionId || clefChangeId)
             dispatch({
               type: 'select',
-              selection: { kind: 'division', divisionId },
+              selection: clefChangeId
+                ? { kind: 'clef-change', clefChangeId }
+                : { kind: 'division', divisionId: divisionId ?? '' },
             });
           dispatch({
             type: 'insert',
@@ -338,8 +337,27 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         navigateHistory('redo');
       }
     }
+    // Pending clef cancellation owns Escape before native lyric/input handlers.
+    function cancelClefOnEscape(event: KeyboardEvent) {
+      if (
+        session.clefTransaction &&
+        event.key === 'Escape' &&
+        !event.isComposing &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        dispatch({ type: 'cancel-clef-change' });
+      }
+    }
+    document.addEventListener('keydown', cancelClefOnEscape, true);
     document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('keydown', cancelClefOnEscape, true);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, [
     placementKind,
     navigateHistory,
@@ -347,6 +365,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     canUndo,
     canRedo,
     session.lyrics,
+    session.clefTransaction,
     history.present,
     selectedNeume,
   ]);

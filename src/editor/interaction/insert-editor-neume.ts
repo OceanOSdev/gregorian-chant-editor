@@ -180,7 +180,11 @@ export function resolveEditorToolbarInsertion(
     explicitBoundary ??
     scoreBoundaryAt(
       order,
-      firstAtBoundary < 0 ? order.length : firstAtBoundary,
+      selection.kind === 'none' ||
+        selection.kind === 'clef' ||
+        firstAtBoundary < 0
+        ? order.length
+        : firstAtBoundary,
     );
   return {
     ...createNeumeEntryPitches(kind, boundary.referenceStaffPosition),
