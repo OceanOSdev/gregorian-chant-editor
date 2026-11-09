@@ -57,8 +57,10 @@
 }
 .document-header__actions {
   flex-shrink: 0;
+  max-width: 100%;
   justify-content: flex-end;
 }
+.chant-editor .document-header__actions select,
 .chant-editor .document-header__actions button,
 .chant-editor .document-header__recovery button {
   min-height: 2rem;

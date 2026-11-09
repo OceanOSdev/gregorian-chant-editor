@@ -85,7 +85,7 @@ truly simultaneous writes remain a platform limitation.
 ## Document controls
 
 The compact document header sits directly above the score. The title is the
-single visible heading, with secondary New / Import / Export actions aligned
+single visible heading, with secondary New / Import / Export / Load example actions aligned
 right; narrow viewports wrap these into another row.
 
 Activate the title by pointer or native button keyboard activation to edit it.
@@ -175,3 +175,21 @@ Exports and confirmed imports write v3. Failed imports and unreadable caches
 retain their existing original-source download/replacement safeguards. Older
 app versions cannot be assumed to import v3. See the
 [migration and browser record](verification/note-shapes/implementation.md).
+
+## Bundled examples
+
+**Load example → Pater Noster** deliberately replaces the active score after a
+native confirmation naming the example, warning that undo/redo history is reset,
+and advising Export first. Cancel leaves the score, history and cache unchanged
+(apart from a title already committed by leaving its editor, as with New/Import).
+The selector resets so the same example can be chosen again. It shares all pending
+workflow and file-reading guards. Loading decodes the bundled native JSON through
+the import codec, creates a fresh session and attempts guarded synchronous autosave.
+Recovery/conflict protection remains in force: an in-memory load is not proof of
+saving; consult the local saving status and existing recovery choices. Startup
+still uses the small fallback score and never seeds the cache with this example.
+
+The project owner transcribed the supported notation from
+[GregoBase Pater noster (A)](https://gregobase.selapa.net/chant.php?id=3326), whose
+transcriptions are [CC0/public domain](https://gregobase.selapa.net/?page_id=2).
+This is not a complete facsimile: source vertical episemata are not yet supported.

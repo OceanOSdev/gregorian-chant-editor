@@ -1,0 +1,1777 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 3,
+  "document": {
+    "title": "Pater Noster",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "97388192-e80e-4f2e-96e3-2aac04742c81",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a12d9d12-7077-48d3-9555-c8e2a5af5d10",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "27288943-052a-499a-9395-b87ea89bd6b0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e31d62e5-cec3-42f1-8a1c-b2d2c84dd064",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "baf0ffc8-ed43-4c5d-8f68-8f35a94dd211",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "34274296-4902-4e7e-a92c-c7bde5173ff0",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "8b5f535e-ac19-4413-9f29-8dec6b0493f3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f11f9d8d-f9c4-40b8-80e2-73dcdf883fac",
+            "staffPosition": 3,
+            "episema": true
+          }
+        ]
+      },
+      {
+        "id": "4e70afb0-3218-4a83-8bcf-d01eca51db04",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "8e495922-909c-440e-b05a-f58a678c7dda",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "b7996041-d517-473e-83c5-5eba1efb337b",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "522e0fd9-8489-4ce3-a341-b1d12043f951",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "09446535-cec8-45b4-a7d7-8b2d7ac8dc23",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ca9252da-d400-4c3c-b03a-ee91144f346e",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "3bb344b2-73ba-45b8-b2f8-95f9a03f507a",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "314734c2-7bc6-40f3-867d-5c7dccf589ca",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "e785e65b-cf58-4aeb-85cf-1f3ef46fd873",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "32a68ace-a4d3-458f-9829-51cd55986283",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "5cc2c298-bba3-4c75-9223-85c3bfc6cf07",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "54107db5-9bc4-4790-8d53-509623b149d7",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "a54ec450-43fa-4f31-bd35-01eda659a7ed",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0b90c94d-5624-437a-b431-5a32f4f3f4bc",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "b45cb545-5f23-41c8-9f4f-1caf729d40c8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "cfd8890f-c385-41a1-8d27-83ddb47e3b08",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "2ba67b3f-8d8e-4fb1-bd75-93fb1421b2f0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "4899acc5-9f4a-4130-8976-a3ec91361347",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "7baf31c9-9211-4b1d-9604-fbe20460c5ae",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "5e26f28e-369a-4301-9ae0-545b2bb350a1",
+            "staffPosition": 2
+          },
+          {
+            "id": "5e11e505-f0e2-4bfc-b0dc-926c9bdc843b",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "129114d0-a00b-40f8-89a1-a20d36df2bd9",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "1b32a4c7-b519-40c4-9851-d5f377cbc63c",
+            "staffPosition": 1
+          },
+          {
+            "id": "9e1c0505-0f6f-48e8-b2d2-0355ad5c41ed",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "8cd7364a-08cd-4c74-b1e3-b8cd05963ba9",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "1d7da6a4-b317-4fc3-b4f4-5c435a22c18c",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "a67d732b-6029-482e-a068-a6b18b4737a6",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "890d38d3-0c93-4f69-84f5-6ed4d91de1a2",
+            "staffPosition": 2
+          },
+          {
+            "id": "2d9f55f5-093c-4943-b276-818a8b88656e",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "aa8fb70e-9a1c-4dc5-9093-76c8b3c07172",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "1dad07c1-6eb0-41f0-a0f6-1dd3ee0db685",
+            "staffPosition": 2,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "7a0ea61b-dfa8-4f4f-90ac-1e8ca43b17af",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ede2db00-dd7e-41c7-9ed6-dcbfb329c873",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "3dbb151e-1b15-4ee4-8b62-1f7a8a92b6a8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c94793b1-0439-4c00-85b0-9a27c212218a",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "710d1711-cfb6-494c-b540-61dd33f6449c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "06624d15-0b62-4801-8411-cd127171de61",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "32fe71ae-a0cc-41fe-b7db-2770269405f5",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "86ea0802-ec2d-4b50-a3b5-fb1002641a0a",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "4e3618fe-513f-4b49-9fbd-b554c35e1a89",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "92463613-12e6-48eb-923c-d79adfafc666",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "accf1094-9312-4912-b2d0-9ab65085958f",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "b749f330-e6ea-45d3-845c-499e4dce91f8",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "fdfe86e9-485c-4767-8bb9-37a1ae246361",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e4082e14-6ee0-40cf-aef1-0a7a7a0532bc",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "e5e04e8e-8d74-45a0-b32f-1bf36e4db2c6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "24c8eb85-1fe2-429a-85b1-08b7115e812c",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "851223a7-dcd7-4b77-aa30-f0bf518a83a9",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f92d7bde-5af1-4539-9aab-45ce22baf519",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "9e327895-43d1-47ee-871a-5a71f6ec54a4",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "53a2ee2f-4a48-4a7d-9da3-63a6e8479164",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "01640f8a-59bb-4560-b915-5e27ba6aaaf7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c452fa2f-215f-496b-a672-5e68fb0c7ba1",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "dd517e8c-f9bc-4445-b647-4d5338ef081c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "99a63d13-93a1-492d-9169-6404edf1b79f",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "a186ca52-c960-430b-ba2e-efd4ab9e3a34",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "627e9a00-539c-42a9-8b10-d4ef3c3c4675",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "fe343d09-1681-4aff-9ed1-35b54ce0b335",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "71582bcd-d370-47e5-a34b-d31e26fd75aa",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "edce9ca8-e64b-4037-8d41-18f8c6bdc73e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "093a6933-3193-4f91-ad1b-220914122823",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "9564b68b-1a00-459c-817b-df47b8d365ed",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "8044bb74-0f95-4e2b-b556-e449e2117a6b",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "24acda2f-8add-4bea-af82-371dcdcc0898",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ff943f01-b9ed-418a-93b4-2710aab64162",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "ff724fcd-e0b0-4658-914c-b8be189749f5",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d911529a-8e01-4b86-99a2-6640f798738f",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "eced9698-cfe0-4df2-b3ac-db412fb582e6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0de0d215-a8a5-40df-9c70-6b428fb922df",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "7233eaf0-27f1-4d99-9fe8-b401b1cfb462",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "19516194-dd96-47b3-98ee-5aa7d0dba112",
+            "staffPosition": 2
+          },
+          {
+            "id": "ff59f101-f62b-4b7a-9950-2b345d2b7ba4",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "84ff6a90-c544-405f-8c69-9269b2ea2a14",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "51fdd53a-a869-4167-9d17-78b86f66bfc0",
+            "staffPosition": 1
+          },
+          {
+            "id": "b444fce2-a4a6-4c9e-81e3-c816c5d3adb5",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "437a2052-cffa-4168-bc4c-00ec6231348a",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e28359b1-731a-42bd-b6df-452ad715f4c6",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "b8339139-163d-461a-87e8-4a7c4882efae",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "68ec08c5-4475-4a27-8276-64498383acd1",
+            "staffPosition": 2
+          },
+          {
+            "id": "58bb144f-c0a6-4c15-80f4-0ab5d1204885",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "cae6e3a7-d05d-4191-86be-3455ab6ea5c9",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e46af0dd-acb8-44ef-b0c6-a2f70ccc1126",
+            "staffPosition": 2,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "45ccb9c3-e687-4b79-99d9-3c8802b072a6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c2c1485a-4f72-4c6b-b69b-4d440fb3eb2b",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "54dc4e22-600c-48ee-8aca-d8341d8a34c3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "23bc8415-46e8-4914-a91e-8f99d1c26227",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "fa718bec-fb1e-406f-8899-ece9bb800f7b",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "2453f98b-122d-424d-b739-67af22741075",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "8cc3d374-f3c8-456e-a480-9f0cf5b167f2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "5ee63c80-9aa4-46dc-a0c3-9401d9f3ab4d",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "f1b6663e-01f5-436f-bcc3-163d0d8f22b7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0f42b34a-35c8-47fe-b444-4824bb218d24",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "16de3cda-7f56-4693-b8b2-579be459bd75",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "67621e8e-c708-42ee-8e66-8f2930aa0d14",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "1d2e7812-d62e-4130-b1d3-ab89b81db780",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "55632c91-2045-4253-8ddf-eda0c40938b7",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "0a52fe19-2100-4549-937b-85cb5803eb16",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "aaf60282-77e5-4d65-9739-44fee150c2a2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "de0e2f4e-5d29-466b-95c5-eca172ae6a02",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d53fb49b-3309-4ad3-bc0d-23fff91fac09",
+            "staffPosition": 3,
+            "episema": true
+          }
+        ]
+      },
+      {
+        "id": "2b6074c7-924e-44e9-ab81-8313b5e6c88e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "89f56214-4124-426b-9f68-59fef625de1f",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "bc49db3c-0c66-480c-954c-9caa06d77556",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "6619ff08-031b-4898-8ba4-8cde4aec498b",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "5db5dd22-9dbb-4026-a772-aa7041cfbcd4",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "8824b38f-a779-449c-8b97-871be9a9ff58",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "8a6abd8a-7d9f-405b-a6eb-742433e1084e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "fca78c4a-103e-44c5-938a-245735e9c199",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "acb19fbd-e8ca-4159-93bd-a2ee0aeda3e8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "dad24e6b-9edb-4e0d-a5e9-57856f71e125",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "6e7ee514-7b79-4077-837f-ccf7554171ce",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "1e285957-b7fc-4525-a373-2d4f7c31dea0",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "cefa0414-f1ff-4387-9870-ee785b569396",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f2fe1fa0-1fce-471d-9777-dfed5ed3954e",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "8616c5c3-1c73-43e5-acb5-8081ceae6a13",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "effbb31e-7d92-47d5-b275-f29014112076",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "7ff3aefc-8925-453e-9871-dfd14c70a97c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "6576fd5e-321f-49b8-8034-64ec7b2edb60",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "46ea0ab3-1dfb-4956-8b10-f57f259b2981",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "56d430cc-702b-46f8-916c-886e1d46e9bb",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "fbb91ded-b2bc-48d5-bc57-52d711e5e996",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "b236a134-e382-4347-b985-d727ad0ab989",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "5de71e7a-7245-4c79-9fe1-4709df64e7bd",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "1288b8d1-19b6-41ec-8b4c-d52c009c0d96",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "9e8f84e9-50d5-4d7c-aede-209166cc73dc",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "28f29cd3-be45-485e-933e-10c0e5707bd5",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "a069d036-8912-43f3-8aa7-9627cdb3851e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "be4e7435-f839-43de-bbb5-22fef7735f67",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "e6cd988d-77d9-42b1-b88a-dffbc5463a7c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "db017944-ac9f-4a45-8c75-45300fa46fbf",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "404387fc-6703-4fc1-9f80-c14812be36b7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "5d1186d5-312b-48b3-975b-5ea680d9ffdb",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "bbf67c2d-f0b1-4386-b9de-cdb78708b649",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "126868f5-4b7c-4e9d-b798-52071dab749e",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "c8ef5b92-faa7-408a-9f57-314405a14360",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a7308323-a1f3-4224-959f-b1ef7f212f64",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "a19487c3-d42c-4db6-ae7e-8ba1c973edcc",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "11944da1-d27a-45f9-8bd7-894efd045d08",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "e931cc90-1fc6-401e-a75f-4c5203bf6e17",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0d4ba2fa-9667-4066-bbea-2556205b3f50",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "99b86548-936c-4899-b9b5-c88963c831a1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "018f39ab-3f0a-4f03-baa8-08e85793692a",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "0ac5c68b-9e74-4549-b0d1-e7c0562502d3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "2559abf1-e957-4918-bf7f-23601571f5d3",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "abb93dfe-a599-4612-94ef-26d75d5ea9a7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "1e00d554-4922-47c8-9be1-b42e23c5f6ca",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "c0c22416-dcc6-4e38-8b64-88888b80f045",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d1ebc46d-3039-4ad4-b0d8-7f77e6c8e2bb",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "eb3417e0-540d-4a33-9b18-6cbc960bc234",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "074d4008-6ad4-47f1-8fbc-e2cd86606c94",
+            "staffPosition": 2,
+            "episema": true
+          }
+        ]
+      },
+      {
+        "id": "5826babc-07f4-4bad-8446-f15088f8ffdd",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "4111b7f4-7417-435b-96b9-58788555732b",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "0a6bd03a-a984-4155-a9d5-a2c6c2c79063",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "22f75990-220a-4de5-979e-14c67937dda1",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "89750d7a-fa86-4dad-a45b-1153fb4ed3d0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "33c9548d-6153-4eb5-8c90-2791df8875e6",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "772edb25-7280-4404-b87e-e6589a2f4798",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "b61324df-0403-4317-a8c7-0295888d0e15",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "80bb9ce9-0f31-43a5-b109-e9ae1f675c82",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f68b8b43-e104-40eb-bae3-d70bcbdfbf95",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "b403f548-8785-4464-b798-ce9f61a23047",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d59a4794-9986-4de5-86f9-4a31ffff937c",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "7ea46d8d-861a-4b15-bfd5-564fb0f06642",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "24fb75b6-5786-4515-82ca-5d3aef3da7d3",
+            "staffPosition": 2,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "90d93d81-c9a8-44ff-8089-7e15d79e0566",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "73d53696-4e30-44c9-bab8-05c5e505fd94",
+            "staffPosition": -1
+          }
+        ]
+      },
+      {
+        "id": "579ed8ba-4fba-4edc-90be-ab38218cbed7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "00342409-7229-40e1-baf8-1add9b1421ad",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "f9e1eae5-2ca0-444d-8fb9-b5bf9756c263",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "49248406-f2ee-46fe-b8fe-a88aea4bb308",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "b6ad9fca-f72b-4c32-9d91-e2b73942033f",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "68a981d3-2851-41c8-9e4d-d5aa46b46ed7",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "ac5dc634-8d32-4353-a2db-88f66a03c752",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e07d5199-c885-494a-85ec-9c7e98213a9b",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "133e247d-987f-4cee-b0c5-a81c9380275d",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c8c953ff-08b0-4a47-b466-d2e7f1fdf032",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "14c18036-d0fe-40cf-a863-2dac170f7a05",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "eb0c8a98-0fab-4b15-98be-4abc0b17443c",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "b17a5c79-6da6-43e5-a772-7fe5a7af94ae",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "02e6026f-1ee9-41d4-808e-a647ba814e5e",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "fc925ecd-b37f-4ea3-a3f2-0f6f9652297d",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a44da96f-9a21-4773-b4f7-ba08e241c579",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "3b607fa2-e14c-4e6b-82fc-32cddc7e5c08",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "48191b70-3874-4069-a958-1e11f1270f86",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "ff0ba080-b033-4c50-87ba-e72e4a4bb3f3",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "93318b6b-415b-43f4-9c51-71fb42714240",
+            "staffPosition": 2
+          },
+          {
+            "id": "342237ee-bdea-41cc-9f0a-8ff3373eb535",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "e7591ef0-79bb-4c58-b217-a081e85a56b0",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "3a7d3465-f9fc-4903-b22d-6a4c7cd0b010",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "741c4131-7062-44bc-8bf4-ab91e7633864",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "4dd215c2-cf20-4a60-b302-779ec1157bf4",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "40bfe39c-5485-4bbb-acbc-04200347424c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "49658f55-b8a7-4a04-8fe8-8a11d5cee012",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "39feb24a-e9a7-4058-9198-6cdb54e6a4c9",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e1fb9aa4-b25c-4efe-a77c-6bd1933b1651",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "74809785-1c45-4c91-af0e-192918528c4d",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "3e3b051e-f1fe-4c2b-8dc2-56e9b5822bbb",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "4d061fa1-399e-4cd9-aa75-7cb8fe255d09",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "82986a02-42aa-41a4-9c9b-7bc8f63653c9",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "bd6c9c64-cfc4-40a9-8c95-d06391df754e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a6c21772-adc4-4ffe-ba3a-0b707bc3dc3b",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "4737f3e0-8bd9-4811-b85d-1926b60fd1d3",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "acf80c5f-518f-4980-b4de-3daeea51bf31",
+            "staffPosition": 2
+          },
+          {
+            "id": "75b91be3-2d35-4bf7-b4fc-0c992124d777",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "bc5143cd-4244-4ff8-bea8-1a44ab5e974c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "5c01bb82-ace5-4ee7-9d36-98779d653f25",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "8930450b-08ef-4cb8-a57f-175c43d5d6ad",
+        "text": "Pa",
+        "startsAtNeumeId": "97388192-e80e-4f2e-96e3-2aac04742c81",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "c9f8ac98-8cd2-4716-9c0b-0b4798a86ff8",
+        "text": "ter",
+        "startsAtNeumeId": "27288943-052a-499a-9395-b87ea89bd6b0",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "abbe2fb9-dc7a-45e9-a65b-4c62fe2e18aa",
+        "text": "nos",
+        "startsAtNeumeId": "baf0ffc8-ed43-4c5d-8f68-8f35a94dd211",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "87faa576-f6b3-40a4-a3fa-983058c9e947",
+        "text": "ter,",
+        "startsAtNeumeId": "8b5f535e-ac19-4413-9f29-8dec6b0493f3",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "9b561235-09e6-473d-8be4-ae9f2a406e9f",
+        "text": "qui",
+        "startsAtNeumeId": "4e70afb0-3218-4a83-8bcf-d01eca51db04",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "38430e1b-6e68-4be7-968c-5ed9b7374a95",
+        "text": "es",
+        "startsAtNeumeId": "b7996041-d517-473e-83c5-5eba1efb337b",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "1c1f7710-f2d1-4346-b00c-5bf875411f12",
+        "text": "in",
+        "startsAtNeumeId": "09446535-cec8-45b4-a7d7-8b2d7ac8dc23",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "45e4a0b4-e26d-4a9b-9235-1e8b9ab7c8db",
+        "text": "cae",
+        "startsAtNeumeId": "3bb344b2-73ba-45b8-b2f8-95f9a03f507a",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "1c3206c2-b254-4bbe-a419-d46672a6aa79",
+        "text": "lis",
+        "startsAtNeumeId": "e785e65b-cf58-4aeb-85cf-1f3ef46fd873",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "28e50efc-88ba-421d-b90a-13110876700b",
+        "text": "sanc",
+        "startsAtNeumeId": "5cc2c298-bba3-4c75-9223-85c3bfc6cf07",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "621e3fa5-ae2c-4b5c-a50a-89eb06a9ae15",
+        "text": "ti",
+        "startsAtNeumeId": "a54ec450-43fa-4f31-bd35-01eda659a7ed",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "b5cd29db-8466-41cf-b3c6-2322e16a954e",
+        "text": "fi",
+        "startsAtNeumeId": "b45cb545-5f23-41c8-9f4f-1caf729d40c8",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "a3bc9219-49bc-4bde-b4a1-393de3380782",
+        "text": "ce",
+        "startsAtNeumeId": "2ba67b3f-8d8e-4fb1-bd75-93fb1421b2f0",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "b8e78f6d-e4d5-4ebb-81f6-ec0bf18da5f6",
+        "text": "tur",
+        "startsAtNeumeId": "7baf31c9-9211-4b1d-9604-fbe20460c5ae",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "61c3f3c8-5ab1-40de-8bcd-13c393fe7d4e",
+        "text": "no",
+        "startsAtNeumeId": "129114d0-a00b-40f8-89a1-a20d36df2bd9",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "560397f1-1695-43cf-bbe8-effad8aeec06",
+        "text": "men",
+        "startsAtNeumeId": "8cd7364a-08cd-4c74-b1e3-b8cd05963ba9",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "895969fb-d60d-4803-9dc3-bd487d94a20a",
+        "text": "tu",
+        "startsAtNeumeId": "a67d732b-6029-482e-a068-a6b18b4737a6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "fb28b668-4430-4b58-a226-955befe4a27b",
+        "text": "um;",
+        "startsAtNeumeId": "aa8fb70e-9a1c-4dc5-9093-76c8b3c07172",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "04b70dd0-3645-44dd-9895-c3b7f22bdce9",
+        "text": "ad",
+        "startsAtNeumeId": "7a0ea61b-dfa8-4f4f-90ac-1e8ca43b17af",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "e85050ce-7c68-4f88-a209-9a5c788116a6",
+        "text": "ve",
+        "startsAtNeumeId": "3dbb151e-1b15-4ee4-8b62-1f7a8a92b6a8",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "652bd29a-1bc8-446c-bee1-a7163d1dc984",
+        "text": "ni",
+        "startsAtNeumeId": "710d1711-cfb6-494c-b540-61dd33f6449c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "7d1b990c-0ba3-4122-8cbf-9c754763e48e",
+        "text": "at",
+        "startsAtNeumeId": "32fe71ae-a0cc-41fe-b7db-2770269405f5",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "898ef602-fb6a-4f39-8405-102bdaaa0c7a",
+        "text": "reg",
+        "startsAtNeumeId": "4e3618fe-513f-4b49-9fbd-b554c35e1a89",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "d56c5179-adc3-4752-a8a0-d492944927fb",
+        "text": "num",
+        "startsAtNeumeId": "accf1094-9312-4912-b2d0-9ab65085958f",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "5f625975-63fc-43f3-b3e1-6c1a892e5e8f",
+        "text": "tu",
+        "startsAtNeumeId": "fdfe86e9-485c-4767-8bb9-37a1ae246361",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "89da4148-9367-492e-b288-e4974a2ba5ca",
+        "text": "um;",
+        "startsAtNeumeId": "e5e04e8e-8d74-45a0-b32f-1bf36e4db2c6",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "d26acf13-b31d-418b-a3cc-972013c217cd",
+        "text": "fi",
+        "startsAtNeumeId": "851223a7-dcd7-4b77-aa30-f0bf518a83a9",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "f4b3c608-42fd-4a3f-bab1-c048ce9e77b7",
+        "text": "at",
+        "startsAtNeumeId": "9e327895-43d1-47ee-871a-5a71f6ec54a4",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "e8b4ef1e-96b8-4f0a-8ab0-f10b4c7031bb",
+        "text": "vo",
+        "startsAtNeumeId": "01640f8a-59bb-4560-b915-5e27ba6aaaf7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "21b463db-5eec-4475-bb3e-84eac9497c07",
+        "text": "lun",
+        "startsAtNeumeId": "dd517e8c-f9bc-4445-b647-4d5338ef081c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "bb30284d-5f74-42da-a635-3c22bb6c22f2",
+        "text": "tas",
+        "startsAtNeumeId": "a186ca52-c960-430b-ba2e-efd4ab9e3a34",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "48acea94-b9ad-46ba-a411-7ec63faa9a55",
+        "text": "tu",
+        "startsAtNeumeId": "fe343d09-1681-4aff-9ed1-35b54ce0b335",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "35ba1580-a726-4030-a283-94c2dc2372d7",
+        "text": "a,",
+        "startsAtNeumeId": "edce9ca8-e64b-4037-8d41-18f8c6bdc73e",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "481684a5-eb28-4dff-b276-9b6320d335b9",
+        "text": "sic",
+        "startsAtNeumeId": "9564b68b-1a00-459c-817b-df47b8d365ed",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "ab6b897c-bb69-4851-978d-a861839f5fa5",
+        "text": "ut",
+        "startsAtNeumeId": "24acda2f-8add-4bea-af82-371dcdcc0898",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "bc6cd96c-9587-41a3-96c3-df92aec2f632",
+        "text": "in",
+        "startsAtNeumeId": "ff724fcd-e0b0-4658-914c-b8be189749f5",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "73207569-87d9-4aa7-b970-94e80fa13283",
+        "text": "cae",
+        "startsAtNeumeId": "eced9698-cfe0-4df2-b3ac-db412fb582e6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "22e3ccc2-46a9-442d-a461-0e9ff109e199",
+        "text": "lo,",
+        "startsAtNeumeId": "7233eaf0-27f1-4d99-9fe8-b401b1cfb462",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "152dce27-3ca2-43ef-863c-eb7b61a744ed",
+        "text": "et",
+        "startsAtNeumeId": "84ff6a90-c544-405f-8c69-9269b2ea2a14",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "d63a8cc5-8e67-43b5-8a48-b425de5c88d0",
+        "text": "in",
+        "startsAtNeumeId": "437a2052-cffa-4168-bc4c-00ec6231348a",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "0e007558-a3e9-4471-a11c-5ca9f346261c",
+        "text": "ter",
+        "startsAtNeumeId": "b8339139-163d-461a-87e8-4a7c4882efae",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "b1e683e1-5e5e-4e15-8f8f-c19e7c8437f1",
+        "text": "ra.",
+        "startsAtNeumeId": "cae6e3a7-d05d-4191-86be-3455ab6ea5c9",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "bb484bd3-5a4d-4421-a786-e3a2247c1e18",
+        "text": "Pa",
+        "startsAtNeumeId": "45ccb9c3-e687-4b79-99d9-3c8802b072a6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "5a486e1a-6274-4559-ab20-a9a1e422fe1d",
+        "text": "nem",
+        "startsAtNeumeId": "54dc4e22-600c-48ee-8aca-d8341d8a34c3",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "338c5dd7-99b8-43a4-ac21-c3ae750b8978",
+        "text": "nos",
+        "startsAtNeumeId": "fa718bec-fb1e-406f-8899-ece9bb800f7b",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "1dee5d9b-9727-4ec6-adce-ea8a02fbca1a",
+        "text": "trum",
+        "startsAtNeumeId": "8cc3d374-f3c8-456e-a480-9f0cf5b167f2",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "b854c450-e19f-4735-b1ea-23f185198395",
+        "text": "co",
+        "startsAtNeumeId": "f1b6663e-01f5-436f-bcc3-163d0d8f22b7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "358041f7-2771-441e-ad86-6a79f844ce47",
+        "text": "ti",
+        "startsAtNeumeId": "16de3cda-7f56-4693-b8b2-579be459bd75",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "14d4c63f-1b98-481d-bafe-aead5c315f07",
+        "text": "di",
+        "startsAtNeumeId": "1d2e7812-d62e-4130-b1d3-ab89b81db780",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "aa5b09d2-ed6a-4b42-82c9-fed58456d83b",
+        "text": "a",
+        "startsAtNeumeId": "0a52fe19-2100-4549-937b-85cb5803eb16",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "27906069-9e4f-41de-94ad-d5897a401f72",
+        "text": "num",
+        "startsAtNeumeId": "de0e2f4e-5d29-466b-95c5-eca172ae6a02",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "116747ad-f2a3-44be-8658-02ae85a303f8",
+        "text": "da",
+        "startsAtNeumeId": "2b6074c7-924e-44e9-ab81-8313b5e6c88e",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "3e670410-40fb-44f2-8d49-37a808e4f555",
+        "text": "no",
+        "startsAtNeumeId": "bc49db3c-0c66-480c-954c-9caa06d77556",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "03f6b80e-0dfc-4506-ac3a-96c802b832f9",
+        "text": "bis",
+        "startsAtNeumeId": "5db5dd22-9dbb-4026-a772-aa7041cfbcd4",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "314cacf8-7342-47e0-ad61-243cc856de33",
+        "text": "ho",
+        "startsAtNeumeId": "8a6abd8a-7d9f-405b-a6eb-742433e1084e",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "8b953a86-ed32-4524-aa4b-4c269adcee2d",
+        "text": "di",
+        "startsAtNeumeId": "acb19fbd-e8ca-4159-93bd-a2ee0aeda3e8",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "e1a00c5c-4ea6-4eca-98f2-3c29704d4482",
+        "text": "e;",
+        "startsAtNeumeId": "6e7ee514-7b79-4077-837f-ccf7554171ce",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "6386cbc6-1fc3-4e8f-8df6-55743b3fd326",
+        "text": "et",
+        "startsAtNeumeId": "cefa0414-f1ff-4387-9870-ee785b569396",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "73459854-62a8-404b-89b8-f4fcb9e61253",
+        "text": "di",
+        "startsAtNeumeId": "8616c5c3-1c73-43e5-acb5-8081ceae6a13",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "487f226f-6bfc-4ed4-ac35-4e556e6163b0",
+        "text": "mit",
+        "startsAtNeumeId": "7ff3aefc-8925-453e-9871-dfd14c70a97c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "51f64fa9-79c1-4394-8589-ea249a89f175",
+        "text": "te",
+        "startsAtNeumeId": "46ea0ab3-1dfb-4956-8b10-f57f259b2981",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "915fc52d-4485-433e-ac8f-547007972e3b",
+        "text": "no",
+        "startsAtNeumeId": "fbb91ded-b2bc-48d5-bc57-52d711e5e996",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "5aff9bdc-f1df-422b-9baf-7e151f3e0b2f",
+        "text": "bis",
+        "startsAtNeumeId": "5de71e7a-7245-4c79-9fe1-4709df64e7bd",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "831742e9-252d-4ea1-8a5e-318efe45cf49",
+        "text": "de",
+        "startsAtNeumeId": "9e8f84e9-50d5-4d7c-aede-209166cc73dc",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "79485b6f-78e0-496d-9d41-c0b06640da90",
+        "text": "bi",
+        "startsAtNeumeId": "a069d036-8912-43f3-8aa7-9627cdb3851e",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "defe61db-a248-4506-8597-1a836174e8ee",
+        "text": "ta",
+        "startsAtNeumeId": "e6cd988d-77d9-42b1-b88a-dffbc5463a7c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "37879340-6464-423e-ae15-aa25e7592477",
+        "text": "nos",
+        "startsAtNeumeId": "404387fc-6703-4fc1-9f80-c14812be36b7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "77561a48-4fdb-4fb2-9e96-4c281ca83777",
+        "text": "tra,",
+        "startsAtNeumeId": "bbf67c2d-f0b1-4386-b9de-cdb78708b649",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "c9c95ef2-98cd-4120-8bb7-385f330a1ce3",
+        "text": "sic",
+        "startsAtNeumeId": "c8ef5b92-faa7-408a-9f57-314405a14360",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "f2b471ae-8791-45c9-9462-c41d943c2334",
+        "text": "ut",
+        "startsAtNeumeId": "a19487c3-d42c-4db6-ae7e-8ba1c973edcc",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "4b124f86-4ad1-45fa-bf21-b3d0d31dd49e",
+        "text": "et",
+        "startsAtNeumeId": "e931cc90-1fc6-401e-a75f-4c5203bf6e17",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "edcfbdc2-cc00-43e6-a4a8-0e4800dc3e0b",
+        "text": "nos",
+        "startsAtNeumeId": "99b86548-936c-4899-b9b5-c88963c831a1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "40617779-148e-4127-8059-a68c02b707f4",
+        "text": "di",
+        "startsAtNeumeId": "0ac5c68b-9e74-4549-b0d1-e7c0562502d3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "c64d7984-d2c4-48cd-81c0-cac45b816415",
+        "text": "mit",
+        "startsAtNeumeId": "abb93dfe-a599-4612-94ef-26d75d5ea9a7",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "b15ddaca-ee20-4b99-8547-3beb6a318d10",
+        "text": "ti",
+        "startsAtNeumeId": "c0c22416-dcc6-4e38-8b64-88888b80f045",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "0dbbb561-04fd-4abc-aaae-d4d82ee12a55",
+        "text": "mus",
+        "startsAtNeumeId": "eb3417e0-540d-4a33-9b18-6cbc960bc234",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "4ba1a890-d50d-47ea-b50e-f8069dae142a",
+        "text": "de",
+        "startsAtNeumeId": "5826babc-07f4-4bad-8446-f15088f8ffdd",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "9e1f6e4a-a4dc-4a84-b79b-c7b4a64acc9e",
+        "text": "bi",
+        "startsAtNeumeId": "0a6bd03a-a984-4155-a9d5-a2c6c2c79063",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "8a546d2f-b8f7-4650-ac04-7f99534fb7d6",
+        "text": "to",
+        "startsAtNeumeId": "89750d7a-fa86-4dad-a45b-1153fb4ed3d0",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "77e00278-dc15-4e4b-ab86-47a62a6d20e0",
+        "text": "ri",
+        "startsAtNeumeId": "772edb25-7280-4404-b87e-e6589a2f4798",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "17a089b3-7fe4-4692-bf02-88d893d0c946",
+        "text": "bus",
+        "startsAtNeumeId": "80bb9ce9-0f31-43a5-b109-e9ae1f675c82",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "6d199748-258c-4655-a40b-390ab791ef35",
+        "text": "nos",
+        "startsAtNeumeId": "b403f548-8785-4464-b798-ce9f61a23047",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "e2428850-4c0e-4d2a-bfe5-b07747561013",
+        "text": "tris;",
+        "startsAtNeumeId": "7ea46d8d-861a-4b15-bfd5-564fb0f06642",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "ef7dc8cf-4962-416c-895b-2dc82b95f494",
+        "text": "et",
+        "startsAtNeumeId": "90d93d81-c9a8-44ff-8089-7e15d79e0566",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "550941df-520d-4a68-9492-406546dc7f49",
+        "text": "ne",
+        "startsAtNeumeId": "579ed8ba-4fba-4edc-90be-ab38218cbed7",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "bffc4ace-310b-4840-856a-cfedb394c66b",
+        "text": "nos",
+        "startsAtNeumeId": "f9e1eae5-2ca0-444d-8fb9-b5bf9756c263",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "d950fd5d-326f-4aca-bd87-473620844e14",
+        "text": "in",
+        "startsAtNeumeId": "b6ad9fca-f72b-4c32-9d91-e2b73942033f",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "4e4d48fd-3349-4b1d-84d2-80b11beaa6e8",
+        "text": "du",
+        "startsAtNeumeId": "ac5dc634-8d32-4353-a2db-88f66a03c752",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "3218248a-71d9-4a2b-9453-3147b50af359",
+        "text": "cas",
+        "startsAtNeumeId": "133e247d-987f-4cee-b0c5-a81c9380275d",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "9223970d-e827-4244-9eb0-6b9f9a37c594",
+        "text": "in",
+        "startsAtNeumeId": "14c18036-d0fe-40cf-a863-2dac170f7a05",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "fd01eed0-9abe-4f02-b9ef-5c739f7013f1",
+        "text": "ten",
+        "startsAtNeumeId": "b17a5c79-6da6-43e5-a772-7fe5a7af94ae",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "785b50dd-f5f4-482d-9d25-e5af0fa301de",
+        "text": "ta",
+        "startsAtNeumeId": "fc925ecd-b37f-4ea3-a3f2-0f6f9652297d",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "450a3736-4e18-4c56-8cf9-c88317daa7b4",
+        "text": "ti",
+        "startsAtNeumeId": "3b607fa2-e14c-4e6b-82fc-32cddc7e5c08",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "fac40751-8630-4d69-bec1-8ef2f95d1e9f",
+        "text": "o",
+        "startsAtNeumeId": "ff0ba080-b033-4c50-87ba-e72e4a4bb3f3",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "69c9402b-bb23-4863-93b4-b615870f2281",
+        "text": "nem;",
+        "startsAtNeumeId": "e7591ef0-79bb-4c58-b217-a081e85a56b0",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "997ec4d1-f28b-4534-b33b-8739150df9ce",
+        "text": "sed",
+        "startsAtNeumeId": "741c4131-7062-44bc-8bf4-ab91e7633864",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "cc536b5d-b5af-465b-a2ec-db95836e842c",
+        "text": "li",
+        "startsAtNeumeId": "40bfe39c-5485-4bbb-acbc-04200347424c",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "59f5bb4e-a009-438d-9ff0-ffe709690bb2",
+        "text": "be",
+        "startsAtNeumeId": "39feb24a-e9a7-4058-9198-6cdb54e6a4c9",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "5dc7f2a2-a5d7-47f5-9aea-b99bbbc619ee",
+        "text": "ra",
+        "startsAtNeumeId": "74809785-1c45-4c91-af0e-192918528c4d",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "e856b0c4-d42a-44a1-805a-916ec30984e1",
+        "text": "nos",
+        "startsAtNeumeId": "4d061fa1-399e-4cd9-aa75-7cb8fe255d09",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "38379321-8e68-43b4-a9ed-ddbc2ce4c499",
+        "text": "a",
+        "startsAtNeumeId": "bd6c9c64-cfc4-40a9-8c95-d06391df754e",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "39a85688-1863-4da9-bb7d-50a393bdbaec",
+        "text": "ma",
+        "startsAtNeumeId": "4737f3e0-8bd9-4811-b85d-1926b60fd1d3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "08116b9e-427e-475d-a598-d4557203e2d5",
+        "text": "lo.",
+        "startsAtNeumeId": "bc5143cd-4244-4ff8-bea8-1a44ab5e974c",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [
+      {
+        "id": "29c9c206-554e-40f1-8383-49180d968159",
+        "kind": "minima",
+        "beforeNeumeId": "4e70afb0-3218-4a83-8bcf-d01eca51db04"
+      },
+      {
+        "id": "d1444057-4813-4c58-a3de-0da78bce0305",
+        "kind": "minor",
+        "beforeNeumeId": "5cc2c298-bba3-4c75-9223-85c3bfc6cf07"
+      },
+      {
+        "id": "44b4b110-ab00-4ed9-a450-2ab7dac95300",
+        "kind": "maior",
+        "beforeNeumeId": "7a0ea61b-dfa8-4f4f-90ac-1e8ca43b17af"
+      },
+      {
+        "id": "802fa34c-bfa7-4526-877c-ed0a3aabfc59",
+        "kind": "minor",
+        "beforeNeumeId": "851223a7-dcd7-4b77-aa30-f0bf518a83a9"
+      },
+      {
+        "id": "68a417cb-9781-44b4-af36-3abc2a6ebcfd",
+        "kind": "minor",
+        "beforeNeumeId": "9564b68b-1a00-459c-817b-df47b8d365ed"
+      },
+      {
+        "id": "76c9dc01-13de-444c-9b7f-28e10bea9967",
+        "kind": "minima",
+        "beforeNeumeId": "84ff6a90-c544-405f-8c69-9269b2ea2a14"
+      },
+      {
+        "id": "99305445-b272-4cd2-915f-1bef5d759d04",
+        "kind": "maior",
+        "beforeNeumeId": "45ccb9c3-e687-4b79-99d9-3c8802b072a6"
+      },
+      {
+        "id": "19b803cc-456c-483e-8a93-4da98a582607",
+        "kind": "minima",
+        "beforeNeumeId": "2b6074c7-924e-44e9-ab81-8313b5e6c88e"
+      },
+      {
+        "id": "c644403d-5500-4be1-a888-2d5fe9e1edfb",
+        "kind": "maior",
+        "beforeNeumeId": "cefa0414-f1ff-4387-9870-ee785b569396"
+      },
+      {
+        "id": "b1c0d81f-f455-4313-938c-b6b30bac6a97",
+        "kind": "minor",
+        "beforeNeumeId": "c8ef5b92-faa7-408a-9f57-314405a14360"
+      },
+      {
+        "id": "5797ab98-687e-4b74-bd4e-98c61a7f2d64",
+        "kind": "maior",
+        "beforeNeumeId": "90d93d81-c9a8-44ff-8089-7e15d79e0566"
+      },
+      {
+        "id": "d848cd71-0322-461e-8355-7033ae75d890",
+        "kind": "maior",
+        "beforeNeumeId": "741c4131-7062-44bc-8bf4-ab91e7633864"
+      },
+      {
+        "id": "653b51ef-3c02-4b7a-ad86-6a4449ba12e6",
+        "kind": "finalis",
+        "beforeNeumeId": null
+      }
+    ],
+    "clefChanges": []
+  }
+}

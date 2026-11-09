@@ -746,3 +746,12 @@ builds at one test-only origin, 12 immediate-refresh commits, real two-app-tab
 conflicts, injected storage failure UI and extreme-pitch rendering. Its read-only
 comparison server never touches user profile data or production storage. See
 the follow-up record for reproduction and actual findings.
+
+## Bundled examples
+
+`examples/bundled-examples.test.ts` validates the canonical Pater Noster through
+its native codec, counts, final phrase, identity/value preservation and v3 round
+trip. The [example browser record](verification/bundled-example/README.md)
+covers deliberate replacement, cancellation, keyboard focus, refresh/export,
+protected caches and responsive controls in Chromium/Firefox. Run its driver
+and the existing local-persistence driver sequentially on disposable profiles.

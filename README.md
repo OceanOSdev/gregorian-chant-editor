@@ -13,10 +13,13 @@ interface may still change.
 The deployed public preview is available at
 [Gregorian Chant Editor](https://oceanosdev.github.io/gregorian-chant-editor/).
 Stage 7A adds browser-local recovery of committed edits and native JSON
-title editing and New / Import / Export controls. First visits start from an example score.
+title editing and New / Import / Export / Load example controls. First visits start from an example score.
 Export files for backups; browser storage is not cloud storage. The deployed
 preview gains these changes only after owner merge/deployment.
-See [native documents and recovery](docs/persistence.md).
+Load example offers the owner-transcribed Pater Noster from
+[GregoBase](https://gregobase.selapa.net/chant.php?id=3326)
+([CC0](https://gregobase.selapa.net/?page_id=2)); unsupported vertical episemata
+are omitted. See [native documents and recovery](docs/persistence.md).
 
 Each push to `master` runs the Pages workflow, which installs
 locked dependencies using the Node version in `.nvmrc`, checks formatting,
