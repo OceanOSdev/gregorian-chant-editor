@@ -1,5 +1,8 @@
 # Conventional rhythmic modifiers — PR #64
 
+Status: Completed (owner-accepted 2026-11-09). The owner accepted the
+implementation and engraving results in PR #64. Merge remains an owner action.
+
 Owner-approved implementation of [ADR 0018](../../../adrs/0018-conventional-mora-patterns.md),
 which supersedes ADR 0017. The [approved proposal](../../../plans/stage-8a-conventional-rhythm-model.md)
 records the chosen profile. Earlier arbitrary-count and editorial-proposal
@@ -99,7 +102,8 @@ The existing local-persistence regression driver also passed in both browsers.
 Browser input uses native pointer/keyboard actions; select/file changes use DOM
 events. Blob contents are inspected at the download boundary; OS save dialogs,
 OS dropdown operation, spoken screen-reader output and foreground zoom are not
-claimed. Owner visual acceptance remains separate from automated geometry.
+claimed. Owner acceptance of the implementation and engraving was recorded on
+2026-11-09; it does not imply that these separate foreground checks were run.
 
 Local final gates passed: `npm run format:check`, `npm run lint` (no warnings),
 `npm test` (69 files / 1,360 tests), `npm run build`, and `git diff --check`.
@@ -112,4 +116,13 @@ The local-persistence driver was run from an unchanged temporary copy with only
 its local ports redirected from 9230/4173 to isolated 9236/4175. The modifier
 driver used its explicit environment overrides. No personal browser profile or
 user document was used. The final paired/single evidence was visually inspected;
-owner engraving acceptance, OS/browser foreground checks and merge remain pending.
+the owner subsequently accepted the implementation and engraving on 2026-11-09.
+OS/browser foreground checks remain unclaimed, and merge remains pending.
+
+## Documentation closeout
+
+The retained Stage 8A plan and roadmap record completion and owner acceptance
+on 2026-11-09. ADR 0018 remains Accepted and ADR 0017 remains Superseded.
+The closeout changes documentation only; formatting and diff checks passed.
+Implementation tests and browser results above belong to the implementation
+verification and were not rerun for this closeout.

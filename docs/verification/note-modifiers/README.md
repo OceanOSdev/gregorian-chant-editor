@@ -3,11 +3,15 @@
 
 # Stage 8A verification
 
-Implementation follows [Accepted ADR 0017](../../adrs/0017-model-rhythmic-modifiers-on-notes.md)
-and the [retained plan](../../plans/stage-8a-rhythmic-note-modifiers.md).
-Owner PR acceptance and plan closeout remain pending; no merge was performed.
-The owning guides describe the semantic, persistence, interaction and engraving
-contracts. No new architectural decision was needed.
+Status: Completed (owner-accepted 2026-11-09). The owner accepted PR #64's
+implementation and engraving. The [current verification record](conventional/README.md)
+and [completed retained plan](../../plans/stage-8a-rhythmic-note-modifiers.md)
+record the final conventional model under
+[Accepted ADR 0018](../../adrs/0018-conventional-mora-patterns.md).
+ADR 0017 remains Superseded. Merge remains an owner action.
+
+The evidence below records the earlier implementation under historical ADR 0017;
+its arbitrary-count behavior and test totals are not the final implementation.
 
 ## Automated and rendered evidence
 

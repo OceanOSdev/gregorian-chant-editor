@@ -3,8 +3,9 @@
 Branch: `feat/stage-8a-note-modifiers`
 Target: `master`
 
-Status: Updated for the owner-approved conventional model in PR #64.
-Owner visual acceptance and final plan closeout remain pending.
+Status: Completed (owner-accepted 2026-11-09).
+The owner accepted the implementation and engraving in PR #64. This completed
+plan is retained for reference; merge remains an owner action.
 
 ## Approved design
 
@@ -46,4 +47,4 @@ No playback, extra signs/neumes, manual positioning, grouping tools, GABC
 adapter or broader engraving rewrite. Stop for material architectural conflicts.
 Commit/push to PR #64 targeting master; do not merge.
 See [current verification](../verification/note-modifiers/conventional/README.md)
-for actual checks and remaining owner acceptance.
+for actual checks, owner acceptance and verification limits.

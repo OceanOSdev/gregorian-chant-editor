@@ -149,6 +149,9 @@ playback, or general neume ledger-line support.
 
 ## Rhythmic note modifiers (Stage 8A)
 
+Completed (owner-accepted 2026-11-09). Implementation and engraving were accepted
+in PR #64; merge remains an owner action.
+
 Stage 8A implements conventional mora (single-note and final-pair signs) plus
 automatic horizontal episema on all seven supported neumes, with atomic history,
 measured shared ink and native format v2. Exact v1 files and the existing v1
