@@ -7,7 +7,12 @@ Revised: 2026-11-08
 
 **Accepted by the owner on 2026-11-08.** This decision includes
 automatically derived custos engraving and the reviewed mixed-event boundary
-rules for Stage 6B. It narrowly qualifies the boundary operations of Accepted
+rules for Stage 6B. **Owner-approved insertion amendment (2026-11-08):**
+the user selects a visible pitch-handling mode before clef placement;
+one click applies it with no further preservation prompt. Editing or
+removing an existing clef retains its staged or conditional confirmation
+lifecycle. This is an interaction change, not a change to pitch semantics.
+It narrowly qualifies the boundary operations of Accepted
 ADR 0012 and the affected range of initial-clef edits in Accepted ADR 0014;
 neither record is superseded. Acceptance authorizes a separate Stage 6B
 implementation handoff, not an implementation in this documentation PR.
@@ -151,7 +156,15 @@ No persistent reference cycles are introduced.
   surviving explicit change remain unaffected.
 - When an explicit-clef operation changes the effective offset of
   existing notes, offer **Preserve melody** (default) or
-  **Preserve noteheads**. Preserve melody translates each affected
+  **Preserve noteheads**. **For insertion**, offer the choice before
+  placement as a visibly selected tool mode: **Keep pitches (move existing
+  notes)** by default, or **Keep note positions (change pitches)**.
+  Click/keyboard insertion applies the selected mode directly with one
+  history entry and **no post-click preservation prompt**, even when
+  existing notes are affected. The mode persists for the editor session
+  when switching between C/F tools but is not part of the chant document.
+  **Existing-clef edits and removals** keep their conditional choice
+  after the proposed change. Preserve melody translates each affected
   passage using ADR 0014's relative diatonic mapping:
 
   ```text
@@ -163,8 +176,11 @@ No persistent reference cycles are introduced.
   Preserve noteheads leaves stored staff positions unchanged,
   reinterpreting their pitches. Preserve note IDs, neume kinds
   and contours, lyric associations and other semantic identities.
-  If there are no affected existing notes, omit the pitch prompt,
-  but retain an authored redundant or trailing clef event.
+  When no notes are affected, insertion commits immediately in either
+  mode, retaining redundant and trailing authored clefs. If the
+  chosen insertion mode fails arithmetic or validation, reject the
+  click without modifying music/history or silently switching to
+  the other mode; show a nearby accessible explanation.
 
 - **Initial-clef edits always preserve melody**, as in Accepted
   ADR 0014. In documents with explicit changes, this transform
@@ -173,8 +189,8 @@ No persistent reference cycles are introduced.
   "all notes" Stage 6A statement; behavior in documents without
   explicit changes remains identical. Do not add a preserve-
   noteheads mode for initial-clef edits in Stage 6B.
-- Stage type/line edits in transient session state with explicit
-  **Apply/Cancel**. Multiple arrow/select adjustments affect
+- Stage type/line edits **of existing explicit clefs** in transient
+  session state with explicit **Apply/Cancel**. Multiple arrow/select adjustments affect
   only the draft; they do not mutate the document or history.
   Apply computes the final candidate relative to the original
   committed document, prompts **once** if necessary, and commits
@@ -270,10 +286,10 @@ No persistent reference cycles are introduced.
 
 Stage 6B covers semantic clef events, expanded insertion
 boundaries, pure validation and reanchoring, scoped pitch
-transformations, minimal insertion/selection/editing,
-measured engraving and guide marks, transient confirmation,
-and atomic history. A later Stage 6C may refine graphical
-insertion ghosts and vertical editing UX, **not horizontal
+transformations, graphical/keyboard clef insertion with preselected
+pitch mode, measured engraving and guide marks, staged existing-clef
+edits, and atomic history. A later Stage 6C may refine graphical
+polish and vertical editing UX, **not horizontal
 clef relocation**. Do not add a generalized persisted
 event model, chromatic/absolute pitch representation,
 playback, accidental editing, persistence migrations,
