@@ -197,12 +197,14 @@ Firefox session via `CHANT_FIREFOX_URL`, as described in the parent record.
 Foreground owner engraving acceptance and spoken screen-reader testing remain
 separate from these headless checks. No merge was performed.
 
-## Reopened ownership question — proposals only
+## Ownership proposals rejected; semantic-model review pending
 
 The owner has requested a comparison of ways to make ambiguous per-note mora
 assignments visually interpretable before choosing another convention. The
 [ownership review](ownership-review/README.md) supplies three rendered approaches,
 including first-only versus third-only, individual-note doubles and mixed
-episema cases. It recommends an explicit editorial supplement for exceptional
-assignments and stops for owner review. It does not change the implemented
-trailing-placement policy or supersede the accepted semantic/persistence model.
+episema cases. The owner rejected all three editorial approaches. The
+[new constrained rhythmic-model proposal](../../../plans/stage-8a-conventional-rhythm-model.md)
+now addresses the semantic assumption instead. No replacement model is approved
+or implemented; the existing trailing policy and native v2 behavior remain
+unchanged pending review.

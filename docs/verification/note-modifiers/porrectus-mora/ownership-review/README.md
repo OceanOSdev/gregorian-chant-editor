@@ -1,6 +1,11 @@
-# Porrectus mora ownership — proposal for owner review
+# Porrectus mora ownership — rejected proposals (historical)
 
-PR #64, 2026-11-09. **Investigation and rendered review specimens only. No new
+PR #64, 2026-11-09. **The owner rejected A, B and C.** This comparison is retained
+as historical evidence, not a live recommendation. See the
+[conventionally constrained model proposal](../../../../plans/stage-8a-conventional-rhythm-model.md)
+for the current review question.
+
+**Investigation and rendered review specimens only. No new
 convention is selected or implemented in the editor.** Production semantics,
 native v2, the approved Porrectus contour and the current renderer are unchanged.
 This reopens the visual-interpretation question after the trailing-placement
@@ -140,7 +145,7 @@ allow grouping choices, but do not establish that arbitrary splitting is an
 editorially neutral substitute. This alternative is outside the current contour
 constraint and is not recommended without reopening that constraint explicitly.
 
-## Recommendation and requested decision
+## Historical recommendation — rejected by owner
 
 **Recommend C**, limited to first-note moras and individual-note doubles.
 It preserves conventional engraving for common final-pair cases and makes the
@@ -155,9 +160,9 @@ current semantic distinctions. We would need either an approved A/B-style
 visual convention or permission to revisit the contour/representation boundary.
 Do not silently choose one on the reader's behalf.
 
-**Stop for owner review here.** Approval would authorize a separate focused
-implementation and owning-guide/ADR review. No candidate is wired into the app,
-no semantic/persistence change is proposed, and no merge was performed.
+The owner has since rejected all three candidates. None is wired into the app;
+no editorial ownership notation, semantic/persistence change or merge resulted
+from this comparison.
 
 ## Reproduction and validation
 

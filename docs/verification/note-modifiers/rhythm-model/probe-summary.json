@@ -1,0 +1,563 @@
+{
+  "generatedBy": "Gregorio 6.0.0; TeX 6.0.0/Greciliae",
+  "scope": "Permissive software-output probes, not historical authorization or editor policy",
+  "checks": "35 cases; pair emits two mora calls; double syntax emits one duplex call; singleton double uses different fallback heights",
+  "rows": [
+    {
+      "label": "Punctum",
+      "gabc": "g.",
+      "glyphs": ["Punctum"],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Double",
+      "gabc": "g..",
+      "glyphs": ["Punctum"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 9,
+          "upperHeight": 10,
+          "positionCase": 0
+        }
+      ]
+    },
+    {
+      "label": "Podatus",
+      "gabc": "fg.",
+      "glyphs": ["PesOneNothing"],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Lower",
+      "gabc": "f.g",
+      "glyphs": ["PesOneNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 1,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "f.g.",
+      "glyphs": ["PesOneNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 1,
+          "positionCase": 1,
+          "inclinatum": 0
+        },
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "fg..",
+      "glyphs": ["PesOneNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 9,
+          "positionCase": 1
+        }
+      ]
+    },
+    {
+      "label": "Clivis",
+      "gabc": "hf.",
+      "glyphs": ["FlexusLongqueueTwoNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Upper",
+      "gabc": "h.f",
+      "glyphs": ["FlexusLongqueueTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 2,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "h.f.",
+      "glyphs": ["FlexusLongqueueTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 2,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "hf..",
+      "glyphs": ["FlexusLongqueueTwoNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 10,
+          "positionCase": 0
+        }
+      ]
+    },
+    {
+      "label": "Scandicus",
+      "gabc": "fgh.",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Middle",
+      "gabc": "fg.h",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "fg.h.",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "fgh..",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 9,
+          "upperHeight": 10,
+          "positionCase": 1
+        }
+      ]
+    },
+    {
+      "label": "Early",
+      "gabc": "f.gh",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Torculus",
+      "gabc": "fhf.",
+      "glyphs": ["TorculusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 1,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Middle",
+      "gabc": "fh.f",
+      "glyphs": ["TorculusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 2,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "fh.f.",
+      "glyphs": ["TorculusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 2,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 1,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "fhf..",
+      "glyphs": ["TorculusTwoTwoNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 10,
+          "positionCase": 0
+        }
+      ]
+    },
+    {
+      "label": "Early",
+      "gabc": "f.hf",
+      "glyphs": ["TorculusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 2,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Climacus",
+      "gabc": "hvGF.",
+      "glyphs": [
+        "VirgaLongqueue",
+        "DescendensPunctumInclinatum",
+        "DescendensPunctumInclinatum"
+      ],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 1,
+          "inclinatum": 1
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Middle",
+      "gabc": "hvG.F",
+      "glyphs": [
+        "VirgaLongqueue",
+        "DescendensPunctumInclinatum",
+        "DescendensPunctumInclinatum"
+      ],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 1
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "hvG.F.",
+      "glyphs": [
+        "VirgaLongqueue",
+        "DescendensPunctumInclinatum",
+        "DescendensPunctumInclinatum"
+      ],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 1
+        },
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 1,
+          "inclinatum": 1
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "hvGF..",
+      "glyphs": [
+        "VirgaLongqueue",
+        "DescendensPunctumInclinatum",
+        "DescendensPunctumInclinatum"
+      ],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 9,
+          "positionCase": 1
+        }
+      ]
+    },
+    {
+      "label": "Early",
+      "gabc": "hv.GF",
+      "glyphs": [
+        "VirgaLongqueue",
+        "DescendensPunctumInclinatum",
+        "DescendensPunctumInclinatum"
+      ],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Porrectus",
+      "gabc": "hfh.",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Middle",
+      "gabc": "hf.h",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "hf.h.",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "hfh..",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 10,
+          "positionCase": 0
+        }
+      ]
+    },
+    {
+      "label": "Early",
+      "gabc": "h.fh",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "All",
+      "gabc": "h.f.h.",
+      "glyphs": ["PorrectusTwoTwoNothing"],
+      "moras": [
+        {
+          "height": 10,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 8,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 10,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Adjacent",
+      "gabc": "efg.",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Middle",
+      "gabc": "ef.g",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Pair",
+      "gabc": "ef.g.",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [
+        {
+          "height": 8,
+          "widthMode": 1,
+          "positionCase": 0,
+          "inclinatum": 0
+        },
+        {
+          "height": 9,
+          "widthMode": 0,
+          "positionCase": 0,
+          "inclinatum": 0
+        }
+      ],
+      "duplexes": []
+    },
+    {
+      "label": "Duplex",
+      "gabc": "efg..",
+      "glyphs": ["ScandicusOneOneNothing"],
+      "moras": [],
+      "duplexes": [
+        {
+          "lowerHeight": 8,
+          "upperHeight": 9,
+          "positionCase": 1
+        }
+      ]
+    }
+  ]
+}
