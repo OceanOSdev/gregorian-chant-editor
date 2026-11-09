@@ -4,7 +4,7 @@ Date: 2026-11-08
 
 ## Status
 
-Proposed — requires owner acceptance before implementation.
+Accepted (owner-approved 2026-11-09)
 
 ## Context
 
