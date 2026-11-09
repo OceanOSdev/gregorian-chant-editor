@@ -2,8 +2,11 @@
 
 Stage 6B implements Accepted ADR 0015's independent clef collection, derived
 mixed score order, scoped pitch preservation and measured custodes. The committed
-handoff plan remains available for review; owner acceptance and plan closeout
-remain separate from implementation.
+[plan](../../plans/stage-6b-mid-score-clefs-and-custos.md) is retained as a
+completed historical record following merge via [PR #60](https://github.com/OceanOSdev/gregorian-chant-editor/pull/60).
+The results below record implementation checkpoints, not checks rerun for the
+documentation closeout. Earlier interfaces and superseded prompts remain
+historical evidence; remaining manual checks do not reopen the milestone.
 
 ## Selected-clef vertical arrow clarification
 
@@ -361,11 +364,11 @@ example. The GABC and edition caveat in ADR 0015 remains unchanged.
 - Spoken screen-reader output, foreground IME, and practical narrow-screen use.
 - Real chant entry with lyrics across repeated clef changes and wraps.
 
-Small responsive notation, fixed system height and absent ledger lines remain
-existing limitations. Horizontal clef relocation requires delete/reinsert;
+Small responsive notation, fixed system height and absent **neume** ledger lines remain
+existing limitations. Custos ledger lines shipped in the follow-up above. Horizontal clef relocation requires delete/reinsert;
 at that historical checkpoint graphical clef insertion ghosts were deferred.
 The current owner-approved correction above implements them. Accidentals, playback,
-save/load and ledger-line redesign remain outside Stage 6B. Headless assertions do not establish comprehensive
+save/load, general neume ledger lines and vertical system collision handling remain deferred. Headless assertions do not establish comprehensive
 accessibility or publication-quality engraving acceptance.
 
 ## Earlier PR #60 review follow-up (`83832f2`; historical interface)

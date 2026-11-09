@@ -1,8 +1,36 @@
-# Plan: Stage 6B mid-score clefs and derived custos
+# Completed plan: Stage 6B mid-score clefs and derived custos
 
-Branch: `feat/stage-6b-mid-score-clefs-custos`
+Implementation branch (historical): `feat/stage-6b-mid-score-clefs-custos`
 Target: `master`
-Status: Implementation handoff; **ADR 0015 Accepted (2026-11-08)**
+Status: **Completed and merged into `master` via [PR #60](https://github.com/OceanOSdev/gregorian-chant-editor/pull/60)**
+(merge commit `d891030`). **ADR 0015 Accepted (2026-11-08)** remains authoritative.
+
+## Closeout and implemented state
+
+This retained plan is a historical implementation record, **not an active
+handoff**. All subsequent requirements, amendments, acceptance criteria and
+delivery instructions record the implementation process. Earlier requirements
+about insertion/edit confirmation were superseded by the shared-mode amendments.
+Pre-merge instructions are not new work to execute, and acceptance criteria
+are not evidence that a check ran.
+
+Stage 6B shipped graphical C/F placement with snapped ghosts and keyboard
+insertion, existing-clef Up/Down draft editing with staged Apply/Cancel, shared
+Keep pitches / Keep note positions modes, derived custodes with ledger lines,
+and atomic undo/redo. Deletion retains its conditional pitch choice; initial
+clef edits preserve melody within their governing passage.
+
+Current behavior belongs to the [editor interaction guide](../editor-interactions.md)
+and [layout guide](../layout-and-rendering.md), under
+[Accepted ADR 0015](../adrs/0015-order-clef-changes-at-score-boundaries.md).
+The [verification record](../verification/mid-score-clefs/README.md) distinguishes
+actual automated runs, historical interfaces and remaining manual checks;
+merge completion does not establish unrecorded manual or accessibility results.
+The [roadmap](../roadmap.md#clef-stages) retains limitations: general neume ledger
+lines and vertical system collision handling remain deferred, and horizontal
+clef relocation requires deletion/reinsertion. The earlier broad ledger-line
+exclusion below is historical; custos-only ledger support shipped.
+No Stage 6C work is authorized by this retained plan.
 
 ## Problem and user-visible goal
 
