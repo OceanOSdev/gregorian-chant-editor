@@ -3,9 +3,12 @@
 Branch: `feat/stage-7a-local-persistence`
 Target: `master`
 
-Status: Implemented for PR review. Automated and foreground verification evidence
-is recorded in [Stage 7A verification](../verification/local-persistence/README.md);
-owner merge/deployment and foreground acceptance remain separate.
+Status: **Completed**. Retained as a historical record of the Stage 7A scope
+and agreed design. Implementation and review refinements are delivered in
+[PR #63](https://github.com/OceanOSdev/gregorian-chant-editor/pull/63).
+Verification results and remaining foreground checks are recorded in
+[Stage 7A verification](../verification/local-persistence/README.md);
+completion does not imply merge, deployment, or comprehensive manual acceptance.
 
 ## Problem and user-visible goal
 
