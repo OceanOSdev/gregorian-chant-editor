@@ -149,8 +149,8 @@ playback, or general neume ledger-line support.
 
 ## Rhythmic note modifiers (Stage 8A)
 
-Completed (owner-accepted 2026-11-09). Implementation and engraving were accepted
-in PR #64; merge remains an owner action.
+Completed and merged in [PR #64](https://github.com/OceanOSdev/gregorian-chant-editor/pull/64)
+(owner-accepted 2026-11-09).
 
 Stage 8A implements conventional mora (single-note and final-pair signs) plus
 automatic horizontal episema on all seven supported neumes, with atomic history,
@@ -160,3 +160,14 @@ browser autosave slot remain recoverable; new saves write v2. See
 [persistence](persistence.md) and [verification](verification/note-modifiers/README.md).
 Vertical episema/ictus, accidentals, manual orientation/spacing, authored bridges,
 across-neume joins, new neume kinds and playback remain deferred.
+
+## Additional authored note shapes (Stage 8B)
+
+Planning is underway on `feat/stage-8b-note-shapes`. The
+[Stage 8B plan](plans/stage-8b-authored-note-shapes.md) and
+[Proposed ADR 0019](adrs/0019-authored-note-forms-and-neume-contours.md)
+outline standalone Virga and Punctum inclinatum, plus Quilisma within
+supported ascending figures. This is **not implemented or approved yet**;
+owner acceptance of the shape model and native v3 compatibility is required
+before implementation. Forced orientation, generic fusion and other new
+forms remain deferred.
