@@ -23,7 +23,8 @@ export function addNoteModifiers(
   bottomStaffY: number,
   kind: Neume['kind'],
 ): NeumeGeometry {
-  if (!modifiers.some((n) => n.mora || n.episema)) return geometry;
+  if (!modifiers.some((n) => n.mora || n.episema || n.verticalEpisema))
+    return geometry;
   const ink = [...geometry.ink];
   const signs: InkShape[] = [];
   const noteSigns: InkShape[][] = geometry.notes.map(() => []);
@@ -139,6 +140,63 @@ export function addNoteModifiers(
     const x = columns.find((x) => singleClear(dot(x, y)));
     if (x !== undefined) append(index, dot(x, y));
   }
+  // Resolve vertical signs last so horizontal episemata and mora retain their
+  // established geometry. Compound occupied boxes include empty apertures;
+  // use the same head regions and the recipes' narrow shafts for this pass.
+  const obstacles = verticalObstacles(geometry, kind);
+  const verticalClear = (bounds: LayoutBounds) =>
+    bounds.x >= geometry.bounds.x &&
+    ![...obstacles, ...signs.map((sign) => sign.bounds)].some((part) =>
+      overlaps(bounds, part),
+    ) &&
+    ![0, 2, 4, 6].some((position) => {
+      const lineY = bottomStaffY - position * 12;
+      // The staff stroke does not scale with the SVG. Four layout units
+      // keep ordinary narrow-view ticks visually separate from its raster ink.
+      return bounds.y < lineY + 4 && bounds.y + bounds.height > lineY - 4;
+    });
+  geometry.notes.forEach((note, index) => {
+    if (!modifiers[index]?.verticalEpisema) return;
+    const candidates: LayoutBounds[] = [];
+    for (const below of [true, false]) {
+      for (const offsetX of [0, -9, 9, -15, 15]) {
+        for (const distance of [10, 14, 18, 22, 26, 30]) {
+          candidates.push({
+            x: note.anchorX + offsetX - 0.75,
+            y: note.anchorY + (below ? distance : -distance - 7),
+            width: 1.5,
+            height: 7,
+          });
+        }
+      }
+    }
+    // Never move an upper tick past a lower constituent in the same column
+    // (or vice versa): clear ink alone would visually assign it to that note.
+    const bounds = candidates.find(
+      (candidate) =>
+        verticalClear(candidate) &&
+        geometry.notes.every((other, otherIndex) => {
+          if (
+            otherIndex === index ||
+            Math.abs(other.anchorX - note.anchorX) > 7
+          )
+            return true;
+          return other.anchorY > note.anchorY
+            ? candidate.y + candidate.height <= other.head.bounds.y - 2
+            : candidate.y >= other.head.bounds.y + other.head.bounds.height + 2;
+        }),
+    );
+    if (!bounds)
+      throw new Error('No local vertical episema placement for this geometry');
+    const sign: InkShape = {
+      kind: 'rect',
+      bounds,
+      radius: 0,
+      rasterization: 'vertical-episema',
+    };
+    signs.push(sign);
+    noteSigns[index].push(sign);
+  });
   ink.push(...signs);
   const bounds = getInkBounds(ink);
   return {
@@ -155,4 +213,44 @@ export function addNoteModifiers(
     bounds,
     advanceX: bounds.width + interNeumeInkGap,
   };
+}
+
+/** Conservative head/shaft partitions of the seven existing contour recipes. */
+function verticalObstacles(
+  geometry: NeumeGeometry,
+  kind: Neume['kind'],
+): LayoutBounds[] {
+  const heads = geometry.notes.map((note) => note.head.bounds);
+  const obstacles = [...heads];
+  const addShaft = (x: number, top: number, bottom: number) => {
+    if (bottom > top)
+      obstacles.push({ x, y: top, width: 1.5, height: bottom - top });
+  };
+  const first = geometry.notes[0];
+  const bottom = geometry.bounds.y + geometry.bounds.height;
+  if (kind === 'punctum') {
+    // An authored virga alone adds a descending right queue.
+    if (bottom > first.head.bounds.y + first.head.bounds.height)
+      addShaft(first.x + first.width - 1.5, first.anchorY, bottom);
+  } else if (kind === 'climacus') {
+    addShaft(first.x + first.width - 1.5, first.anchorY, first.anchorY + 27);
+  } else {
+    if (kind === 'clivis' || kind === 'porrectus')
+      addShaft(geometry.bounds.x, first.anchorY, bottom);
+    for (let index = 1; index < geometry.notes.length; index++) {
+      const previous = geometry.notes[index - 1];
+      const current = geometry.notes[index];
+      const ascending = current.anchorY < previous.anchorY;
+      // Porrectus's first connection is the ribbon, already covered by its
+      // two constituent regions. Its final ascent uses the usual right join.
+      if (kind === 'porrectus' && index === 1) continue;
+      const x = ascending ? previous.x + previous.width - 1.5 : current.x;
+      addShaft(
+        x,
+        Math.min(previous.anchorY, current.anchorY),
+        Math.max(previous.anchorY, current.anchorY),
+      );
+    }
+  }
+  return obstacles;
 }

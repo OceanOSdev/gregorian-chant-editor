@@ -755,3 +755,81 @@ trip. The [example browser record](verification/bundled-example/README.md)
 covers deliberate replacement, cancellation, keyboard focus, refresh/export,
 protected caches and responsive controls in Chromium/Firefox. Run its driver
 and the existing local-persistence driver sequentially on disposable profiles.
+
+## Authored vertical episemata (Stage 8C)
+
+`commands/vertical-episema.test.ts`, `persistence/vertical-episema.test.ts` and
+`layout/vertical-episema.test.ts` cover independent note presence, one-step
+history/no-op identity, surviving-note preservation, strict v4, exact legacy
+hydration, protected recovery, bounded all-kind/form/sign geometry, stacked-note
+ownership, signed ghost parity and whole-neume wrapping. Historical fixtures
+remain exact; the owner Pater Noster stays v3. Future-version rejection probes
+now use v5.
+
+Run `node docs/verification/vertical-episemata/browser-check.mjs` against production
+preview under `/gregorian-chant-editor/`, using disposable Chromium/CDP on 9230
+and Firefox/BiDi via `CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session`. Run existing
+note-shape, note-modifier, local-persistence and bundled-example drivers
+sequentially too. The [Stage 8C record](verification/vertical-episemata/README.md)
+contains reproducible reference comparisons, actual results, actual-build storage
+compatibility, owner visual acceptance and remaining foreground checks. The separate storage-review
+driver accepts `CHANT_CURRENT_VERSION=4` for the current build. ADR 0020 and Stage 8C were owner-accepted on 2026-11-10. That acceptance does
+not imply that unperformed foreground checks were run.
+
+### Contextual note editing review follow-up
+
+`interaction/position-note-toolbar.test.ts` tests client-coordinate placement,
+flipping, viewport clamping, short-viewport scrolling limits, visual viewport
+offsets and separation from note bounds. It does not test DOM focus or native
+select operation. The standalone
+`docs/verification/vertical-episemata/context-browser-check.mjs` exercises the
+actual production editor on lower Pater Noster systems, all four consolidated
+property fields with no duplicate top inspector, native keyboard Form/select
+changes, disabled-role feedback, Escape/Close/offscreen reopening, Tab exit,
+shortcut isolation, exact history/cache/refresh, every legal mora menu, reflow,
+scrolling and narrow/short viewports. Chromium additionally emulates pinch zoom.
+
+Run it with the same disposable-profile/environment overrides as the other
+Stage 8C drivers, then run the existing vertical-episema, note-modifier, note-form,
+persistence and bundled-example drivers sequentially. Blank-score pointer helpers
+now choose a genuinely unobscured canvas point rather than assume a fixed corner
+is free of the contextual panel. See the [actual evidence and remaining manual
+checks](verification/vertical-episemata/contextual-editing.md). No browser test
+dependency or DOM test environment is added.
+
+### Owner consolidation and vertical-tick raster review
+
+The [current owner-feedback record](verification/vertical-episemata/consolidation-and-weight.md)
+links Form/mark screenshots and the rendered weight study. The strengthened
+vertical-episema matrix checks the four-unit staff exclusion band while retaining
+unchanged heads, horizontal/mora ink, widths, measured bounds and preview parity.
+`weight-browser-check.mjs` captures actual repeated Puncta in Chromium/Firefox
+at desktop, narrow and explicit SVG scales, checking source dimensions, overlap,
+CTMs and normalized screenshot darkness. `render-weight-board.mjs` composes the
+native raster crops with actual Gregorio/Solesmes references. These diagnostic
+scripts use local ImageMagick (and GregorioTeX for reference reproduction), not a
+new application/test dependency or screenshot golden. No blanket crispEdges or
+extra screen-only paint is introduced. Follow the record for baseline/current
+build reproduction and limitations of the measurements.
+
+### Tick-only screen phase alignment
+
+`raster-browser-check.mjs` in `docs/verification/vertical-episemata/` compares
+production alignment with `CHANT_TICK_HINT=auto` (the original vector raster),
+`crispEdges` and a same-bounds `stroke` experiment. It measures isolated tick
+columns in actual screenshots, avoiding neighboring ink at 320px. Use disposable
+Chromium/CDP or Firefox/BiDi profiles and the production subpath. The repeated
+Punctum matrix covers x phases, responsive desktop/320px, SVG 1×/approximately
+1.33×/2×, and DPR 1/2. `CHANT_WEIGHT_PATER=1` uses a temporary fully marked owner
+score derivative at desktop, 320px and approximately 1.33×. The bundled source
+remains unchanged. `CHANT_RASTER_PRINT=1` also captures actual print PDFs,
+unchanged canonical vector attributes and zero print translations. Compare
+rasterized PDF pages separately; screen pixel measurements are not print metrics.
+
+Pure screen-adapter tests cover physical bounds, grid alignment, invalid display
+inputs, canvas clipping, tiny-scale fallback and adjacent-tick clearances. The
+existing engraving matrix protects all forms/modifiers and exact vector metrics.
+Run the existing vertical-episema, contextual editing, authored form, modifier,
+local-persistence and bundled-example browser drivers after rendering changes.
+Native OS print dialogs, spoken output and real multi-monitor/pinch compositor
+behavior still require foreground checks. No browser-testing dependency is added.

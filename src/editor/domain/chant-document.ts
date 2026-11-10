@@ -43,6 +43,7 @@ export interface LyricSyllable {
 export interface NoteModifiers {
   mora?: 1;
   episema?: true;
+  verticalEpisema?: true;
 }
 
 export type NoteForm = 'virga' | 'inclinatum' | 'quilisma';

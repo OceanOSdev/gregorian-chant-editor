@@ -18,7 +18,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
 
   const marked = neumes
     .flatMap((n) => n.notes)
-    .filter((n) => n.mora || n.episema).length;
+    .filter((n) => n.mora || n.episema || n.verticalEpisema).length;
   const clef = layout.systems[0]?.clef;
   const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);

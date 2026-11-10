@@ -123,6 +123,9 @@ const status = () =>
     `document.querySelector('section[aria-label="Document"] .document-header__save-status').textContent`,
   );
 const button = async (text) => {
+  await ev(
+    `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
+  );
   const point = await ev(
     `(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}); if(!b)throw Error('Missing '+${JSON.stringify(text)});b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
@@ -219,9 +222,18 @@ async function select(id) {
   );
 }
 async function clearNote() {
-  const point = await ev(
-    `(()=>{const svg=document.querySelector('svg.score');svg.scrollIntoView({block:'center'});const r=svg.getBoundingClientRect();return {x:r.x+8,y:r.y+8}})()`,
+  await ev(
+    `document.querySelector('svg.score').scrollIntoView({block:'center'})`,
   );
+  await pause();
+  const point = await ev(`(()=>{
+    const svg=document.querySelector('svg.score'),r=svg.getBoundingClientRect();
+    for(let y=Math.max(8,r.top+8);y<Math.min(innerHeight-8,r.bottom-8);y+=20){
+      const x=r.left+8;
+      if(document.elementFromPoint(x,y)===svg)return {x,y};
+    }
+    throw Error('No unobscured blank score point');
+  })()`);
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
       type,
@@ -271,10 +283,8 @@ async function checkSelectionPosition(width) {
       );
   };
   assert.equal(
-    await ev(
-      `document.querySelector('[aria-label="Mora scope"]').matches(':disabled')`,
-    ),
-    true,
+    await ev(`!!document.querySelector('[aria-label="Mora scope"]')`),
+    false,
   );
   await pointer('[data-note-id="note-0-0"] .score__note-hit-target');
   assert.equal(
@@ -323,6 +333,14 @@ async function checkSelectionPosition(width) {
   await clearNote();
 }
 async function change(label, value) {
+  if (
+    !(await ev(`!!document.querySelector('select[aria-label="${label}"]')`))
+  ) {
+    const id = await ev(
+      `document.querySelector('[data-note-id][aria-pressed="true"]')?.dataset.noteId`,
+    );
+    if (id) await select(id);
+  }
   return ev(
     `(()=>{const e=document.querySelector('select[aria-label="${label}"]');e.focus();e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));return JSON.parse(localStorage.getItem('${storageKey}'));})()`,
   );
@@ -417,7 +435,7 @@ try {
     expected.neumes[0].notes[0].mora = 1;
     assert.deepEqual(saved, {
       format: base.format,
-      version: 3,
+      version: 4,
       document: expected,
     });
     await navigate();
@@ -431,7 +449,7 @@ try {
     await importText(text);
     assert.deepEqual(
       JSON.parse(await raw()),
-      { ...baseline, version: 3 },
+      { ...baseline, version: 4 },
       'v1 file import preserves every semantic value',
     );
   }
@@ -558,6 +576,7 @@ try {
   await button('Redo');
   assert.equal(await raw(), narrowAfter);
   // Native Tab traversal into and within the contextual controls.
+  await select('note-6-0');
   await ev(`document.querySelector('[aria-label="Mora scope"]').focus()`);
   await key('Tab');
   assert.equal(
@@ -650,7 +669,7 @@ try {
         mobile: false,
       });
       await pause();
-      assert.deepEqual(JSON.parse(await raw()), { ...fixture, version: 3 });
+      assert.deepEqual(JSON.parse(await raw()), { ...fixture, version: 4 });
       assert.equal(
         await ev('document.documentElement.scrollWidth<=innerWidth'),
         true,

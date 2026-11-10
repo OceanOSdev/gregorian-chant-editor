@@ -142,6 +142,9 @@ async function importText(text) {
   await pause();
 }
 async function pointer(selector) {
+  await ev(
+    `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
+  );
   const point = await ev(
     `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing target');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
@@ -207,9 +210,18 @@ async function select(id) {
   );
 }
 async function clearNote() {
-  const point = await ev(
-    `(()=>{const svg=document.querySelector('svg.score');svg.scrollIntoView({block:'center'});const r=svg.getBoundingClientRect();return {x:r.x+8,y:r.y+8}})()`,
+  await ev(
+    `document.querySelector('svg.score').scrollIntoView({block:'center'})`,
   );
+  await pause();
+  const point = await ev(`(()=>{
+    const svg=document.querySelector('svg.score'),r=svg.getBoundingClientRect();
+    for(let y=Math.max(8,r.top+8);y<Math.min(innerHeight-8,r.bottom-8);y+=20){
+      const x=r.left+8;
+      if(document.elementFromPoint(x,y)===svg)return {x,y};
+    }
+    throw Error('No unobscured blank score point');
+  })()`);
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
       type,
@@ -372,7 +384,7 @@ try {
     mobile: false,
   });
   await navigate();
-  // Actual historical files: hydration never rewrites, first commit writes v3.
+  // Actual historical files: hydration never rewrites, first commit writes v4.
   for (const source of [baselineV1, baselineV2]) {
     await hydrate(source);
     assert.equal(await raw(), source);
@@ -381,7 +393,7 @@ try {
     await select(id);
     const form = original.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
     const saved = await change('Form', form);
-    assert.equal(saved.version, 3);
+    assert.equal(saved.version, 4);
     const expected = structuredClone(original);
     expected.neumes[0].notes[0].form = form;
     assert.deepEqual(saved.document, expected);
@@ -550,6 +562,9 @@ try {
       await ev(
         `window.exported=null;window.realCreate=URL.createObjectURL;URL.createObjectURL=blob=>{window.exported=blob;return realCreate(blob)};HTMLAnchorElement.prototype.click=function(){}`,
       );
+      await ev(
+        `document.querySelector('.note-context-toolbar button[aria-label="Close note properties"]')?.click()`,
+      );
       const exportPoint = await ev(
         `(()=>{const b=[...document.querySelectorAll('section[aria-label="Document"] button')].find(b=>b.textContent.trim()==='Export');b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
       );
@@ -611,7 +626,7 @@ try {
   await ev('window.confirm=()=>true');
   const before = await raw();
   for (const invalid of [
-    { ...fixture, version: 4 },
+    { ...fixture, version: 5 },
     {
       ...fixture,
       document: {

@@ -1,3 +1,4 @@
+import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
 import { getNoteModifierDescription } from './note-accessible-label';
 import {
   custosLedgerThickness,
@@ -47,6 +48,7 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  onFocusNoteModifiers?: () => boolean;
   clefPreview: ClefPlacementPreview | null;
   clefDraftPreview: { id: string; clef: ClefGeometry } | null;
   onPlaceClef: (point?: SvgPoint) => void;
@@ -100,6 +102,7 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  onFocusNoteModifiers,
   clefPreview,
   clefDraftPreview,
   onPlaceClef,
@@ -144,6 +147,7 @@ export function ScoreSvg({
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
   const scoreElement = useRef<SVGSVGElement>(null);
+  useVerticalEpisemaRasterization(scoreElement);
   const lyricElements = useRef(new Map<string, SVGTextElement>());
   const divisionElements = useRef(new Map<string, SVGGElement>());
   const noteElements = useRef(new Map<string, SVGGElement>());
@@ -351,6 +355,20 @@ export function ScoreSvg({
       return;
     }
 
+    if (
+      isNoteSelected &&
+      event.key === 'Tab' &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      onFocusNoteModifiers?.()
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       event.stopPropagation();
@@ -464,7 +482,9 @@ export function ScoreSvg({
         {getScoreAccessibleDescription(layout)}
       </desc>
       <desc id="whole-neume-selection-instruction">
-        {wholeNeumeSelectionInstruction}
+        {wholeNeumeSelectionInstruction} When a note is selected, Tab opens its
+        nearby properties. Escape in the properties closes them and returns to
+        the note.
       </desc>
 
       {layout.systems.map((system) => (

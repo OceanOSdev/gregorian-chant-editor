@@ -10,7 +10,22 @@ export function InkShapeView({
   if (shape.kind === 'path') {
     return <path d={shape.d} className={className} />;
   }
-  return <rect {...shape.bounds} rx={shape.radius} className={className} />;
+  return (
+    <rect
+      {...shape.bounds}
+      rx={shape.radius}
+      className={
+        [
+          className,
+          shape.rasterization === 'vertical-episema'
+            ? 'score__vertical-episema'
+            : undefined,
+        ]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
+    />
+  );
 }
 
 /** Shared by committed notation and previews; no engraving calculations here. */

@@ -56,6 +56,15 @@ implementation reviews informed acceptance of this decision. Acceptance does
 not establish publication-quality engraving or resolve the existing vertical
 collision and extreme-pitch limitations.
 
+## Narrow qualification
+
+[Accepted ADR 0020](0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007),
+owner-approved 2026-11-10, qualifies only vertical-episema screen rasterization:
+up to half a physical pixel of guarded horizontal phase alignment, with unchanged
+canonical geometry, measured bounds, wrapping, hit geometry and print. All other
+ink follows the general contract above. This ADR remains Accepted and is not
+superseded.
+
 ## Consequences
 
 ### Positive

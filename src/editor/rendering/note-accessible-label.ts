@@ -85,6 +85,7 @@ export function getNoteModifierDescription(
         ? '. Punctum mora, part of auctum duplex affecting final two notes'
         : '. Punctum mora'
       : '') +
-    (note.episema ? '. Horizontal episema' : '')
+    (note.episema ? '. Horizontal episema' : '') +
+    (note.verticalEpisema ? '. Vertical episema' : '')
   );
 }

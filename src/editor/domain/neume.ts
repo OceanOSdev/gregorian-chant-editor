@@ -61,7 +61,8 @@ export function isValidNeume(neume: Neume): boolean {
       (note) =>
         !note ||
         ('mora' in note && note.mora !== 1) ||
-        ('episema' in note && note.episema !== true),
+        ('episema' in note && note.episema !== true) ||
+        ('verticalEpisema' in note && note.verticalEpisema !== true),
     )
   )
     return false;

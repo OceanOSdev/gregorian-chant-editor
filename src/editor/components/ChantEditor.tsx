@@ -1,11 +1,11 @@
 import {
-  allowedNoteForms,
-  isNoteForm,
-  noteFormLabels,
-} from '../domain/note-forms';
+  NoteContextToolbar,
+  type NoteContextToolbarHandle,
+} from './NoteContextToolbar';
+import { noteFormLabels } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
 import { entryAppearance, toolNoteForm } from '../state/editor-tool';
-import { getMoraScope, moraChoices } from '../domain/mora';
+import type { MoraScope } from '../domain/mora';
 import {
   updateMoraScope,
   updateNoteModifiers,
@@ -25,7 +25,7 @@ import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import { isDivisionKind } from '../domain/divisions';
-import type { DivisionKind } from '../domain/chant-document';
+import type { DivisionKind, NoteForm } from '../domain/chant-document';
 import { useLyricMeasurement } from '../rendering/use-lyric-measurement';
 import {
   updateLyricLanguage,
@@ -121,6 +121,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
   const rememberedName = entryName(rememberedKind, session.rememberedForm);
+  const scoreWorkspace = useRef<HTMLDivElement>(null);
+  const noteToolbar = useRef<NoteContextToolbarHandle>(null);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
   // Presentation-only browser focus; never dispatch a semantic selection on Tab.
@@ -153,6 +155,46 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       ? findNote(history.present, selection.noteId)
       : null;
   const selectedNote = selectedNoteLocation?.note;
+  const selectedNoteId = selectedNote?.id;
+  const getSelectedNoteElement = useCallback(
+    () =>
+      selectedNoteId
+        ? (scoreWorkspace.current?.querySelector<SVGGElement>(
+            `[data-note-id="${CSS.escape(selectedNoteId)}"]`,
+          ) ?? null)
+        : null,
+    [selectedNoteId],
+  );
+  const noteToolbarAvailable = Boolean(
+    selectedNote &&
+    activeTool.kind === 'select' &&
+    !session.pendingHistory &&
+    !session.lyricMove &&
+    !session.clefTransaction,
+  );
+  function changeNoteForm(form: NoteForm | undefined) {
+    if (!selectedNote) return;
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) => updateNoteForm(document, selectedNote.id, form),
+    });
+  }
+  function changeMoraScope(scope: MoraScope) {
+    if (!selectedNoteLocation) return;
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) =>
+        updateMoraScope(document, selectedNoteLocation.neume.id, scope),
+    });
+  }
+  function changeEpisema(kind: 'episema' | 'verticalEpisema', value: boolean) {
+    if (!selectedNote) return;
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) =>
+        updateNoteModifiers(document, selectedNote.id, { kind, value }),
+    });
+  }
   const selectedDivision =
     selection.kind === 'division'
       ? history.present.divisions.find((d) => d.id === selection.divisionId)
@@ -980,133 +1022,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         recoverySource={persistence.recoverySource}
       />
       <ClefChangeControls session={session} dispatch={dispatch} />
-      <fieldset
-        className="note-modifiers"
-        aria-describedby="note-modifier-target"
-        disabled={
-          !selectedNote ||
-          placing ||
-          !!session.pendingHistory ||
-          !!session.lyricMove ||
-          !!session.clefTransaction
-        }
-      >
-        <legend>Selected note form and modifiers</legend>
-        <p
-          id="note-modifier-target"
-          className="note-modifiers__target"
-          title={session.noteFormError ?? undefined}
-        >
-          {session.noteFormError
-            ? 'Edit rejected: preserve the form’s partners.'
-            : selectedNoteLocation
-              ? selectedNoteLocation.neume.kind +
-                ' mora scope; form and episema on note ' +
-                (selectedNoteLocation.noteIndex + 1)
-              : 'Select a note to edit'}
-        </p>
-        <div className="note-modifiers__controls">
-          <label>
-            Form{' '}
-            <select
-              aria-label="Form"
-              value={selectedNote?.form ?? 'default'}
-              disabled={
-                !selectedNoteLocation ||
-                !allowedNoteForms(
-                  selectedNoteLocation.neume.kind,
-                  selectedNoteLocation.noteIndex,
-                ).length
-              }
-              onChange={(event) => {
-                if (!selectedNote) return;
-                const value = event.target.value;
-                if (value !== 'default' && !isNoteForm(value)) return;
-                dispatch({
-                  type: 'engraving-edit',
-                  edit: (document) =>
-                    updateNoteForm(
-                      document,
-                      selectedNote.id,
-                      value === 'default' ? undefined : value,
-                    ),
-                });
-              }}
-            >
-              <option value="default">Default form</option>
-              {(selectedNoteLocation
-                ? allowedNoteForms(
-                    selectedNoteLocation.neume.kind,
-                    selectedNoteLocation.noteIndex,
-                  )
-                : []
-              ).map((form) => (
-                <option key={form} value={form}>
-                  {noteFormLabels[form]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Mora scope{' '}
-            <select
-              aria-label="Mora scope"
-              aria-describedby="note-modifier-target"
-              value={
-                selectedNoteLocation
-                  ? (getMoraScope(selectedNoteLocation.neume) ?? 'none')
-                  : 'none'
-              }
-              onChange={(event) => {
-                if (!selectedNoteLocation) return;
-                const choice = moraChoices(
-                  selectedNoteLocation.neume.kind,
-                ).find((c) => c.value === event.target.value);
-                if (choice)
-                  dispatch({
-                    type: 'engraving-edit',
-                    edit: (document) =>
-                      updateMoraScope(
-                        document,
-                        selectedNoteLocation.neume.id,
-                        choice.value,
-                      ),
-                  });
-              }}
-            >
-              {moraChoices(selectedNoteLocation?.neume.kind ?? 'punctum').map(
-                (choice) => (
-                  <option key={choice.value} value={choice.value}>
-                    {choice.label}
-                  </option>
-                ),
-              )}
-            </select>
-          </label>{' '}
-          <label>
-            Horizontal episema{' '}
-            <select
-              aria-label="Horizontal episema"
-              value={selectedNote?.episema ? 'on' : 'off'}
-              onChange={(event) => {
-                if (!selectedNote) return;
-                const value = event.target.value === 'on';
-                dispatch({
-                  type: 'engraving-edit',
-                  edit: (document) =>
-                    updateNoteModifiers(document, selectedNote.id, {
-                      kind: 'episema',
-                      value,
-                    }),
-                });
-              }}
-            >
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>
-          </label>
-        </div>
-      </fieldset>
       {activeTool.kind === 'place-clef' ? (
         <div className="clef-placement-help">
           <span>{placementDescription}</span>{' '}
@@ -1121,7 +1036,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </button>
         </div>
       ) : null}
-      <div className="score-workspace">
+      <div className="score-workspace" ref={scoreWorkspace}>
         <div
           className="score-viewport"
           tabIndex={layout.width > 720 ? 0 : undefined}
@@ -1129,6 +1044,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
         >
           <ScoreSvg
+            onFocusNoteModifiers={
+              noteToolbarAvailable
+                ? () => noteToolbar.current?.focus() ?? false
+                : undefined
+            }
             clefPreview={clefPlacement?.preview ?? null}
             clefDraftPreview={clefDraftPreview}
             onPlaceClef={(point) => {
@@ -1243,6 +1163,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               dispatch({ type: 'focus-handled', request });
             }}
             onSelectNote={(noteId) => {
+              if (noteId === selectedNoteId) noteToolbar.current?.show();
               const note = findNote(history.present, noteId);
               if (session.lyrics && session.lyrics.kind !== 'recovery' && note)
                 lyricAction({ type: 'navigate', neumeId: note.neume.id });
@@ -1287,14 +1208,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 focusNoteId: invokingNoteId,
               })
             }
-            onDeleteNote={(noteId) =>
+            onDeleteNote={(noteId) => {
+              noteToolbar.current?.show();
               dispatch({
                 type: 'edit',
                 formDeletionNoteId: noteId,
                 edit: (document) => deleteNote(document, noteId),
                 clearSelection: true,
-              })
-            }
+              });
+            }}
             onDeleteNeume={(neumeId) =>
               dispatch({
                 type: 'edit',
@@ -1308,6 +1230,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             }
           />
         </div>
+        {noteToolbarAvailable && selectedNote && selectedNoteLocation ? (
+          <NoteContextToolbar
+            key={selectedNote.id}
+            ref={noteToolbar}
+            note={selectedNote}
+            neume={selectedNoteLocation.neume}
+            layout={layout}
+            getNoteElement={getSelectedNoteElement}
+            onFormChange={changeNoteForm}
+            formError={session.noteFormError}
+            onMoraChange={changeMoraScope}
+            onEpisemaChange={changeEpisema}
+            onHistory={navigateHistory}
+          />
+        ) : null}
         <SyllableControls
           onAlignment={(syllableId, range) =>
             dispatch({
@@ -1340,7 +1277,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         />
       </div>
-      {session.noteFormError ? (
+      {session.noteFormError && !noteToolbarAvailable ? (
         <p className="note-form-error" role="alert">
           {session.noteFormError}
         </p>

@@ -237,7 +237,7 @@ async function setTitle(title) {
 }
 const fixture = {
   format: 'gregorian-chant-editor',
-  version: 3,
+  version: 4,
   document: {
     title: 'Salve / Regina',
     lyricLanguage: 'la',

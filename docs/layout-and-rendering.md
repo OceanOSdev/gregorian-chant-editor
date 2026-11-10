@@ -318,6 +318,15 @@ owns each committed division's SVG control, accessible label, and event handlers
 `NeumeInk` displays the same supplied ink for committed notation and previews;
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.
+Vertical episemata alone use the owner-approved screen rasterization tolerance
+specified in [Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007).
+Their tagged rectangles retain canonical vector attributes and measured bounds;
+a shared SVG adapter aligns horizontal pixel phase by at most half a physical
+device pixel, also capped below the existing obstacle clearance. It skips unsafe
+clip-edge/very small-scale shifts. Width/height, anchors, wrapping and hit geometry
+remain unchanged, and print has no translation. All other ink follows the exact
+shared geometry contract without snapping or crisp-edge hints.
+
 Individual note selection adds a stroke-only contour overlay, including ribbon
 regions for Porrectus.
 A selected whole neume
@@ -633,3 +642,17 @@ See [metrics](engraving-metrics.md) and [comparison/verification](verification/n
 Complete authored ink also participates in vertical canvas extents. Fixed system
 and lyric spacing, absent ordinary-note ledgers, and extreme-pitch vertical
 collisions remain existing limitations; this stage adds no vertical collision engine.
+
+## Vertical episema geometry (Stage 8C)
+
+`addNoteModifiers` derives vertical ticks after the existing horizontal episema
+and mora passes, keeping their ink exactly stable. It uses bounded local
+candidates, head/shaft collision partitions and staff/sign clearance. A tick
+cannot cross a fellow constituent in the same vertical column. All tick ink
+enters the existing measured bounds, advance, per-note modifier bounds, canvas
+and wrapping pipeline; rendering adds no positioning policy. Head silhouettes,
+hit targets and musical/lyric anchors remain unchanged. The builder's left-edge
+contract still holds. [Metrics](engraving-metrics.md#vertical-episema-stage-8c)
+own the recipe, and [comparisons](verification/vertical-episemata/README.md)
+distinguish Gregorio/Solesmes reference observations from project choices.
+New-neume ghosts remain unmarked and share the same appearance-aware builder.

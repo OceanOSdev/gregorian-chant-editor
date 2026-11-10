@@ -1,0 +1,2543 @@
+{
+  "browser": "firefox",
+  "paterCanonicalVectorAttributesIdentical": true,
+  "paterVectorAttributesSha256": "ca5acb826eaa1d28fa2775f6daa232f5236c7448c1f03bc979a9a1f663e12408",
+  "repeatedBefore": {
+    "label": "before",
+    "hint": "auto",
+    "measurement": "isolated center row including antialiased fringe",
+    "specimen": "repeated line/space Puncta",
+    "browser": "Firefox",
+    "results": [
+      {
+        "config": {
+          "name": "desktop",
+          "width": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 452.316650390625,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.316650390625,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506727,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.6860986547085202, 1, 0.18385650224215247, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 508.183349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.183349609375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.8116591928251121, 1, 0.05829596412556054, 0, 0]
+          },
+          {
+            "id": "weight-2-0",
+            "x": 564.066650390625,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.066650390625,
+            "peakCoverage": 0.9372197309417041,
+            "integratedWidth": 1.8744394618834082,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.9372197309417041, 0.9372197309417041, 0, 0, 0]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 619.933349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.933349609375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.05829596412556054, 1, 0.8116591928251121, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "medium",
+          "width": 1024
+        },
+        "pixels": [1024, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 244.31666564941406,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.3166656494140625,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506727,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.6860986547085202, 1, 0.18385650224215247, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 300.183349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.183349609375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.8116591928251121, 1, 0.05829596412556054, 0, 0]
+          },
+          {
+            "id": "weight-2-0",
+            "x": 356.066650390625,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.066650390625,
+            "peakCoverage": 0.9372197309417041,
+            "integratedWidth": 1.8744394618834082,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.9372197309417041, 0.9372197309417041, 0, 0, 0]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 411.933349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.933349609375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.05829596412556054, 1, 0.8116591928251121, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.8699551569506725,
+          "max": 1.8744394618834082
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.883331298828125
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow",
+          "width": 320
+        },
+        "pixels": [320, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 73.78334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.7833404541015625,
+            "peakCoverage": 0.3721973094170404,
+            "integratedWidth": 0.57847533632287,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.2062780269058296, 0.3721973094170404, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 90.91667175292969,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.9166717529296875,
+            "peakCoverage": 0.4977578475336323,
+            "integratedWidth": 0.57847533632287,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.08071748878923767, 0.4977578475336323, 0, 0]
+          },
+          {
+            "id": "weight-2-0",
+            "x": 108.03334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.0333404541015625,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "weight-7-0",
+            "x": 193.6666717529297,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.6666717529296875,
+            "peakCoverage": 0.33183856502242154,
+            "integratedWidth": 0.57847533632287,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.33183856502242154, 0.24663677130044842, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 0
+        },
+        "paintedColumns": {
+          "min": 1,
+          "max": 2
+        },
+        "peak": {
+          "min": 0.33183856502242154,
+          "max": 0.5695067264573991
+        },
+        "integrated": {
+          "min": 0.5695067264573991,
+          "max": 0.57847533632287
+        },
+        "staffGap": {
+          "min": 1.5166674852371216,
+          "max": 1.9110922813415527
+        },
+        "expected": {
+          "min": 0.5833282470703125,
+          "max": 0.5999908447265625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "svg-1x",
+          "width": 1440,
+          "svgWidth": 720
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 415.83331298828125,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.83331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 1.5022421524663678,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.16591928251121077, 1, 0.336322869955157, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 460.70001220703125,
+            "y": 577.2833251953125,
+            "width": 1.51666259765625,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.70001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 1.5022421524663676,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.2914798206278027, 1, 0.21076233183856502, 0, 0]
+          },
+          {
+            "id": "weight-6-0",
+            "x": 685.0833129882812,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.08331298828125,
+            "peakCoverage": 0.9192825112107623,
+            "integratedWidth": 1.506726457399103,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.9192825112107623, 0.5874439461883408, 0, 0, 0]
+          },
+          {
+            "id": "weight-7-0",
+            "x": 729.9500122070312,
+            "y": 577.2833251953125,
+            "width": 1.51666259765625,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.95001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 1.5022421524663676,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.04035874439461883, 1, 0.4618834080717489, 0, 0]
+          },
+          {
+            "id": "weight-5-0",
+            "x": 640.2000122070312,
+            "y": 577.2833251953125,
+            "width": 1.51666259765625,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.20001220703125,
+            "peakCoverage": 0.7937219730941704,
+            "integratedWidth": 1.506726457399103,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.7937219730941704, 0.7130044843049327, 0, 0, 0]
+          },
+          {
+            "id": "weight-4-0",
+            "x": 595.3333129882812,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.33331298828125,
+            "peakCoverage": 0.8385650224215246,
+            "integratedWidth": 1.506726457399103,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.6681614349775785, 0.8385650224215246, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 0.7937219730941704,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.5022421524663676,
+          "max": 1.506726457399103
+        },
+        "staffGap": {
+          "min": 5.21669864654541,
+          "max": 6.227794647216797
+        },
+        "expected": {
+          "min": 1.5,
+          "max": 1.51666259765625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "ordinary-960",
+          "width": 1440,
+          "svgWidth": 960
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 465.58331298828125,
+            "y": 365.95001220703125,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.58331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.4170403587443946, 1, 0.5874439461883408, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 525.4500122070312,
+            "y": 365.95001220703125,
+            "width": 2.01666259765625,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.45001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [
+              0, 0, 0.5426008968609866, 1, 0.4618834080717489, 0, 0, 0
+            ]
+          },
+          {
+            "id": "weight-4-0",
+            "x": 705.0833129882812,
+            "y": 365.95001220703125,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.08331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.004484304932735,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.9192825112107623, 1, 0.08520179372197309, 0, 0]
+          },
+          {
+            "id": "weight-5-0",
+            "x": 764.9500122070312,
+            "y": 365.95001220703125,
+            "width": 2.01666259765625,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.95001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.004484304932735,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.04035874439461883, 1, 0.9641255605381166, 0, 0, 0
+            ]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 3,
+          "max": 3
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 2.004484304932735,
+          "max": 2.0044843049327357
+        },
+        "staffGap": {
+          "min": 7.216675281524658,
+          "max": 8.561147689819336
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.01666259765625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "desktop-dpr2",
+          "width": 1440,
+          "dpr": 2
+        },
+        "pixels": [2880, 2800],
+        "ratio": 2,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 452.316650390625,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.63330078125,
+            "peakCoverage": 1,
+            "integratedWidth": 3.7354260089686098,
+            "darkColumns": 3,
+            "coverage": [
+              0, 0, 0.36771300448430494, 1, 1, 1, 0.36771300448430494, 0, 0
+            ]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 508.183349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.36669921875,
+            "peakCoverage": 1,
+            "integratedWidth": 3.7354260089686098,
+            "darkColumns": 3,
+            "coverage": [
+              0, 0, 0.6188340807174888, 1, 1, 1, 0.11659192825112108, 0, 0
+            ]
+          },
+          {
+            "id": "weight-2-0",
+            "x": 564.066650390625,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.13330078125,
+            "peakCoverage": 1,
+            "integratedWidth": 3.739910313901345,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.8699551569506726, 1, 1, 0.8699551569506726, 0, 0, 0
+            ]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 619.933349609375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.86669921875,
+            "peakCoverage": 1,
+            "integratedWidth": 3.7354260089686098,
+            "darkColumns": 3,
+            "coverage": [
+              0, 0, 0.11659192825112108, 1, 1, 1, 0.6188340807174888, 0, 0
+            ]
+          }
+        ],
+        "darkColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "paintedColumns": {
+          "min": 4,
+          "max": 5
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 3.7354260089686098,
+          "max": 3.739910313901345
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 3.73333740234375,
+          "max": 3.76666259765625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow-dpr2",
+          "width": 320,
+          "dpr": 2
+        },
+        "pixels": [640, 2800],
+        "ratio": 2,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 73.78334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.566680908203125,
+            "peakCoverage": 0.7443946188340808,
+            "integratedWidth": 1.147982062780269,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.40358744394618834, 0.7443946188340808, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 90.91667175292969,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.833343505859375,
+            "peakCoverage": 0.9955156950672646,
+            "integratedWidth": 1.147982062780269,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.15246636771300448, 0.9955156950672646, 0, 0, 0]
+          },
+          {
+            "id": "weight-2-0",
+            "x": 108.03334045410156,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.066680908203125,
+            "peakCoverage": 0.905829596412556,
+            "integratedWidth": 1.147982062780269,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.905829596412556, 0.242152466367713, 0, 0, 0]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 125.16667175292969,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0,
+            "pixelPhase": 0.333343505859375,
+            "peakCoverage": 0.6547085201793722,
+            "integratedWidth": 1.147982062780269,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.6547085201793722, 0.49327354260089684, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 0.6547085201793722,
+          "max": 0.9955156950672646
+        },
+        "integrated": {
+          "min": 1.147982062780269,
+          "max": 1.147982062780269
+        },
+        "staffGap": {
+          "min": 1.5166674852371216,
+          "max": 1.9110922813415527
+        },
+        "expected": {
+          "min": 1.166656494140625,
+          "max": 1.199981689453125
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "svg-2x",
+          "width": 1440,
+          "svgWidth": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 565.0833129882812,
+            "y": 220.68333435058594,
+            "width": 3,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.08331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 3.0044843049327357,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.9192825112107623, 1, 1, 0.08520179372197309, 0, 0
+            ]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 654.9500122070312,
+            "y": 220.68333435058594,
+            "width": 3.01666259765625,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": 0,
+            "pixelPhase": 0.95001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 3.004484304932735,
+            "darkColumns": 3,
+            "coverage": [
+              0, 0, 0.04035874439461883, 1, 1, 0.9641255605381166, 0, 0, 0
+            ]
+          }
+        ],
+        "darkColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "paintedColumns": {
+          "min": 4,
+          "max": 4
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 3.004484304932735,
+          "max": 3.0044843049327357
+        },
+        "staffGap": {
+          "min": 11.216729164123535,
+          "max": 13.227764129638672
+        },
+        "expected": {
+          "min": 3,
+          "max": 3.01666259765625
+        },
+        "sampleCount": 16,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      }
+    ]
+  },
+  "repeatedAfter": {
+    "label": "after",
+    "hint": "production screen alignment",
+    "measurement": "isolated center row including antialiased fringe",
+    "specimen": "repeated line/space Puncta",
+    "browser": "Firefox",
+    "results": [
+      {
+        "config": {
+          "name": "desktop",
+          "width": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 452,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.318756103515625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 508,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.193756103515625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-7-0",
+            "x": 843,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.443756103515625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-6-0",
+            "x": 788,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.431243896484375,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.8699551569506725,
+          "max": 1.8699551569506725
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.866668701171875
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.443756103515625,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "medium",
+          "width": 1024
+        },
+        "pixels": [1024, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 244,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.3187522888183594,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 300,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.19375228881835938,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-7-0",
+            "x": 635,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.4437522888183594,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "weight-6-0",
+            "x": 580,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.4312477111816406,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.8699551569506725,
+          "max": 1.8699551569506725
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.866668701171875
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.4437522888183594,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow",
+          "width": 320
+        },
+        "pixels": [320, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 73.98333740234375,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.2020854949951172,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0, 0.5695067264573991, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 91,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.07708549499511719,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "weight-5-0",
+            "x": 159,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": -0.4229106903076172,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "weight-6-0",
+            "x": 177,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.4520893096923828,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 0
+        },
+        "paintedColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "peak": {
+          "min": 0.5695067264573991,
+          "max": 0.5695067264573991
+        },
+        "integrated": {
+          "min": 0.5695067264573991,
+          "max": 0.5695067264573991
+        },
+        "staffGap": {
+          "min": 1.5166674852371216,
+          "max": 1.9110922813415527
+        },
+        "expected": {
+          "min": 0.5833282470703125,
+          "max": 0.5999908447265625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.4520893096923828,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "svg-1x",
+          "width": 1440,
+          "svgWidth": 720
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 416,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0.164581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.4977578475336322,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.4977578475336323, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 461,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0.289581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.4977578475336322,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.4977578475336323, 0, 0, 0]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 550,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": -0.460418701171875,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.4977578475336322,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.4977578475336323, 0, 0, 0]
+          },
+          {
+            "id": "weight-10-0",
+            "x": 865,
+            "y": 577.2833251953125,
+            "width": 1.5,
+            "height": 7,
+            "scale": 0.9972221851348877,
+            "shiftPixels": 0.41461181640625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.4977578475336322,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.4977578475336323, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.4977578475336322,
+          "max": 1.4977578475336322
+        },
+        "staffGap": {
+          "min": 5.21669864654541,
+          "max": 6.227794647216797
+        },
+        "expected": {
+          "min": 1.5,
+          "max": 1.5
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.460418701171875,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "ordinary-960",
+          "width": 1440,
+          "svgWidth": 960
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 466,
+            "y": 365.95001220703125,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.414581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 525,
+            "y": 365.95001220703125,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.460418701171875,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "weight-4-0",
+            "x": 704.9833374023438,
+            "y": 365.95001220703125,
+            "width": 2.01666259765625,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.085418701171875,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 2,
+          "max": 2
+        },
+        "staffGap": {
+          "min": 7.216675281524658,
+          "max": 8.561147689819336
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.01666259765625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.460418701171875,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "desktop-dpr2",
+          "width": 1440,
+          "dpr": 2
+        },
+        "pixels": [2880, 2800],
+        "ratio": 2,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 452.48333740234375,
+            "y": 431.16668701171875,
+            "width": 1.883331298828125,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.36248779296875,
+            "pixelPhase": 0.9666748046875,
+            "peakCoverage": 1,
+            "integratedWidth": 3.7309417040358746,
+            "darkColumns": 3,
+            "coverage": [0, 0, 0, 1, 1, 1, 0.7309417040358744, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 508,
+            "y": 431.16668701171875,
+            "width": 1.866668701171875,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.38751220703125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 3.7309417040358746,
+            "darkColumns": 3,
+            "coverage": [0, 0, 1, 1, 1, 0.7309417040358744, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 3,
+          "max": 3
+        },
+        "paintedColumns": {
+          "min": 4,
+          "max": 4
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 3.7309417040358746,
+          "max": 3.7309417040358746
+        },
+        "staffGap": {
+          "min": 6.683290004730225,
+          "max": 7.933366775512695
+        },
+        "expected": {
+          "min": 3.73333740234375,
+          "max": 3.76666259765625
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.38751220703125,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow-dpr2",
+          "width": 320,
+          "dpr": 2
+        },
+        "pixels": [640, 2800],
+        "ratio": 2,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 73.98333740234375,
+            "y": 793.0499877929688,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.4041709899902344,
+            "pixelPhase": 0.9666748046875,
+            "peakCoverage": 1,
+            "integratedWidth": 1.1434977578475336,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0, 1, 0.14349775784753363, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 91,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.15417098999023438,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.1434977578475336,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.14349775784753363, 0, 0, 0]
+          },
+          {
+            "id": "weight-3-0",
+            "x": 125,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": -0.3458251953125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.1434977578475336,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.14349775784753363, 0, 0, 0]
+          },
+          {
+            "id": "weight-8-0",
+            "x": 211,
+            "y": 793.0499877929688,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055554032325745,
+            "shiftPixels": 0.40418243408203125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.1434977578475336,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.14349775784753363, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.1434977578475336,
+          "max": 1.1434977578475336
+        },
+        "staffGap": {
+          "min": 1.5166674852371216,
+          "max": 1.9110922813415527
+        },
+        "expected": {
+          "min": 1.166656494140625,
+          "max": 1.199981689453125
+        },
+        "sampleCount": 24,
+        "maxAbsoluteShiftPixels": 0.40418243408203125,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "svg-2x",
+          "width": 1440,
+          "svgWidth": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "weight-0-0",
+            "x": 565,
+            "y": 220.68333435058594,
+            "width": 3,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": -0.085418701171875,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 3,
+            "darkColumns": 3,
+            "coverage": [0, 0, 1, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "weight-1-0",
+            "x": 655,
+            "y": 220.68333435058594,
+            "width": 3,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": 0.039581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 3,
+            "darkColumns": 3,
+            "coverage": [0, 0, 1, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "weight-5-0",
+            "x": 1014,
+            "y": 220.68333435058594,
+            "width": 3,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": -0.46038818359375,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 3,
+            "darkColumns": 3,
+            "coverage": [0, 0, 1, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "weight-4-0",
+            "x": 925,
+            "y": 220.68333435058594,
+            "width": 3,
+            "height": 14,
+            "scale": 1.9972221851348877,
+            "shiftPixels": 0.414581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 3,
+            "darkColumns": 3,
+            "coverage": [0, 0, 1, 1, 1, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 3,
+          "max": 3
+        },
+        "paintedColumns": {
+          "min": 3,
+          "max": 3
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 3,
+          "max": 3
+        },
+        "staffGap": {
+          "min": 11.216729164123535,
+          "max": 13.227764129638672
+        },
+        "expected": {
+          "min": 3,
+          "max": 3
+        },
+        "sampleCount": 16,
+        "maxAbsoluteShiftPixels": 0.46038818359375,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      }
+    ]
+  },
+  "paterBefore": {
+    "label": "pater-before",
+    "hint": "auto",
+    "measurement": "nominal tick-column window; nearby ink excluded; coverage sum is not a full-width estimate",
+    "specimen": "marked Pater Noster derivative",
+    "browser": "Firefox",
+    "results": [
+      {
+        "config": {
+          "name": "desktop",
+          "width": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 452.316650390625,
+            "y": 162.4166717529297,
+            "width": 1.866668701171875,
+            "height": 8.699996948242188,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.316650390625,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506727,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.6860986547085202, 1, 0.18385650224215247, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 472.7166748046875,
+            "y": 137.56666564941406,
+            "width": 1.9000091552734375,
+            "height": 8.7166748046875,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.7166748046875,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.27802690582959644, 1, 0.5919282511210763, 0, 0]
+          },
+          {
+            "id": "46ea0ab3-1dfb-4956-8b10-f57f259b2981-0",
+            "x": 784.0166625976562,
+            "y": 1344.4833984375,
+            "width": 1.9000091552734375,
+            "height": 8.699996948242188,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.01666259765625,
+            "peakCoverage": 0.968609865470852,
+            "integratedWidth": 1.8744394618834082,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.968609865470852, 0.905829596412556, 0, 0, 0]
+          },
+          {
+            "id": "9e327895-43d1-47ee-871a-5a71f6ec54a4-0",
+            "x": 476.98333740234375,
+            "y": 738.5333251953125,
+            "width": 1.899993896484375,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0, 1, 0.8699551569506726, 0, 0]
+          },
+          {
+            "id": "fe343d09-1681-4aff-9ed1-35b54ce0b335-0",
+            "x": 644.0499877929688,
+            "y": 743.5,
+            "width": 1.899993896484375,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0,
+            "pixelPhase": 0.04998779296875,
+            "peakCoverage": 0.9372197309417041,
+            "integratedWidth": 1.8744394618834082,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.9372197309417041, 0.9372197309417041, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 0.9372197309417041,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.865470852017937,
+          "max": 1.8744394618834082
+        },
+        "staffGap": {
+          "min": 6.6832594871521,
+          "max": 7.933351516723633
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.9000091552734375
+        },
+        "sampleCount": 73,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow",
+          "width": 320
+        },
+        "pixels": [320, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 73.78334045410156,
+            "y": 300.66668701171875,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0.7833404541015625,
+            "peakCoverage": 0.3721973094170404,
+            "integratedWidth": 0.57847533632287,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.2062780269058296, 0.3721973094170404, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 80.05000305175781,
+            "y": 293.04998779296875,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0.0500030517578125,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "c8ef5b92-faa7-408a-9f57-314405a14360-0",
+            "x": 101,
+            "y": 757.3333129882812,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "acb19fbd-e8ca-4159-93bd-a2ee0aeda3e8-0",
+            "x": 105.96665954589844,
+            "y": 672.0833129882812,
+            "width": 0.600006103515625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0.9666595458984375,
+            "peakCoverage": 0.5515695067264574,
+            "integratedWidth": 0.57847533632287,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.026905829596412557, 0.5515695067264574, 0, 0]
+          },
+          {
+            "id": "32fe71ae-a0cc-41fe-b7db-2770269405f5-0",
+            "x": 185.6999969482422,
+            "y": 384.3833312988281,
+            "width": 0.600006103515625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0.6999969482421875,
+            "peakCoverage": 0.2914798206278027,
+            "integratedWidth": 0.5739910313901345,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.2914798206278027, 0.2825112107623318, 0, 0]
+          },
+          {
+            "id": "b45cb545-5f23-41c8-9f4f-1caf729d40c8-0",
+            "x": 238.31666564941406,
+            "y": 293.04998779296875,
+            "width": 0.600006103515625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0,
+            "pixelPhase": 0.3166656494140625,
+            "peakCoverage": 0.5739910313901345,
+            "integratedWidth": 0.5739910313901345,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5739910313901345, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 0
+        },
+        "paintedColumns": {
+          "min": 1,
+          "max": 2
+        },
+        "peak": {
+          "min": 0.2914798206278027,
+          "max": 0.5739910313901345
+        },
+        "integrated": {
+          "min": 0.5695067264573991,
+          "max": 0.5829596412556054
+        },
+        "staffGap": {
+          "min": 1.5194118022918701,
+          "max": 7.608281373977661
+        },
+        "expected": {
+          "min": 0.5833282470703125,
+          "max": 0.600006103515625
+        },
+        "sampleCount": 111,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "ordinary-960",
+          "width": 1440,
+          "svgWidth": 960
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 465.58331298828125,
+            "y": 173.96665954589844,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.58331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.4170403587443946, 1, 0.5874439461883408, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 487.45001220703125,
+            "y": 147.35000610351562,
+            "width": 2.0333404541015625,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.45001220703125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [
+              0, 0, 0.5560538116591929, 1, 0.4484304932735426, 0, 0, 0
+            ]
+          },
+          {
+            "id": "9e327895-43d1-47ee-871a-5a71f6ec54a4-0",
+            "x": 492.01666259765625,
+            "y": 791.3499755859375,
+            "width": 2.0333404541015625,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.01666259765625,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.9730941704035875, 1, 0.026905829596412557, 0, 0, 0
+            ]
+          },
+          {
+            "id": "0a52fe19-2100-4549-937b-85cb5803eb16-0",
+            "x": 911.9833374023438,
+            "y": 1089.38330078125,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "e785e65b-cf58-4aeb-85cf-1f3ef46fd873-1",
+            "x": 882.0333251953125,
+            "y": 173.96665954589844,
+            "width": 2.01666259765625,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.0333251953125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.004484304932735,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.9551569506726457, 1, 0.04932735426008968, 0, 0, 0
+            ]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.9955156950672643,
+          "max": 2.0044843049327357
+        },
+        "staffGap": {
+          "min": 7.219415664672852,
+          "max": 8.563857555389404
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.0500030517578125
+        },
+        "sampleCount": 58,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "lower-score",
+          "width": 1440,
+          "svgWidth": 960,
+          "systemIndex": 4
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "bc49db3c-0c66-480c-954c-9caa06d77556-0",
+            "x": 465.58331298828125,
+            "y": 103.98333740234375,
+            "width": 2,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.58331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0.4170403587443946, 1, 0.5874439461883408, 0, 0]
+          },
+          {
+            "id": "5db5dd22-9dbb-4026-a772-aa7041cfbcd4-0",
+            "x": 491.8833312988281,
+            "y": 98.64999389648438,
+            "width": 2.0333404541015625,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.883331298828125,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 1,
+            "coverage": [
+              0, 0, 0.09865470852017937, 1, 0.905829596412556, 0, 0, 0
+            ]
+          },
+          {
+            "id": "39feb24a-e9a7-4058-9198-6cdb54e6a4c9-0",
+            "x": 551,
+            "y": 1077.949951171875,
+            "width": 2.0333404541015625,
+            "height": 9.316665649414062,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2.0044843049327357,
+            "darkColumns": 2,
+            "coverage": [
+              0, 0, 0.9775784753363229, 1, 0.026905829596412557, 0, 0, 0
+            ]
+          },
+          {
+            "id": "7ff3aefc-8925-453e-9871-dfd14c70a97c-0",
+            "x": 793.9833374023438,
+            "y": 103.98333740234375,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 3
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.9999999999999998,
+          "max": 2.0044843049327357
+        },
+        "staffGap": {
+          "min": 7.219405651092529,
+          "max": 28.508315563201904
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.0500030517578125
+        },
+        "sampleCount": 53,
+        "maxAbsoluteShiftPixels": 0,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      }
+    ]
+  },
+  "paterAfter": {
+    "label": "pater-after",
+    "hint": "production screen alignment",
+    "measurement": "nominal tick-column window; nearby ink excluded; coverage sum is not a full-width estimate",
+    "specimen": "marked Pater Noster derivative",
+    "browser": "Firefox",
+    "results": [
+      {
+        "config": {
+          "name": "desktop",
+          "width": 1440
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 452,
+            "y": 162.4166717529297,
+            "width": 1.866668701171875,
+            "height": 8.699996948242188,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.318756103515625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 473,
+            "y": 137.56666564941406,
+            "width": 1.883331298828125,
+            "height": 8.7166748046875,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.276519775390625,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 1, 0.8699551569506726, 0, 0, 0]
+          },
+          {
+            "id": "8b5f535e-ac19-4413-9f29-8dec6b0493f3-1",
+            "x": 562.9833374023438,
+            "y": 132.61666870117188,
+            "width": 1.883331298828125,
+            "height": 8.699996948242188,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.34259033203125,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0, 1, 0.8699551569506726, 0, 0]
+          },
+          {
+            "id": "aa8fb70e-9a1c-4dc5-9093-76c8b3c07172-1",
+            "x": 639.9833374023438,
+            "y": 440.5333251953125,
+            "width": 1.899993896484375,
+            "height": 8.716659545898438,
+            "scale": 1.2416666746139526,
+            "shiftPixels": -0.495391845703125,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0, 1, 0.8699551569506726, 0, 0]
+          },
+          {
+            "id": "8cc3d374-f3c8-456e-a480-9f0cf5b167f2-0",
+            "x": 747.9833374023438,
+            "y": 1041.5166015625,
+            "width": 1.899993896484375,
+            "height": 8.699996948242188,
+            "scale": 1.2416666746139526,
+            "shiftPixels": 0.483245849609375,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 1.8699551569506725,
+            "darkColumns": 1,
+            "coverage": [0, 0, 0, 1, 0.8699551569506726, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 1.8699551569506725,
+          "max": 1.8699551569506725
+        },
+        "staffGap": {
+          "min": 6.6832594871521,
+          "max": 7.933351516723633
+        },
+        "expected": {
+          "min": 1.866668701171875,
+          "max": 1.9000091552734375
+        },
+        "sampleCount": 73,
+        "maxAbsoluteShiftPixels": 0.495391845703125,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "narrow",
+          "width": 320
+        },
+        "pixels": [320, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 74,
+            "y": 300.66668701171875,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0.20208168029785156,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 80,
+            "y": 293.04998779296875,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": -0.051715850830078125,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "8b5f535e-ac19-4413-9f29-8dec6b0493f3-1",
+            "x": 107.98333740234375,
+            "y": 291.5333251953125,
+            "width": 0.5999908447265625,
+            "height": 2.683319091796875,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0.3846416473388672,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0, 0.5695067264573991, 0, 0]
+          },
+          {
+            "id": "129114d0-a00b-40f8-89a1-a20d36df2bd9-0",
+            "x": 95,
+            "y": 393.51666259765625,
+            "width": 0.5833282470703125,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": -0.48958587646484375,
+            "pixelPhase": 0,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0.5695067264573991, 0, 0, 0]
+          },
+          {
+            "id": "e5e04e8e-8d74-45a0-b32f-1bf36e4db2c6-1",
+            "x": 240.98333740234375,
+            "y": 393.51666259765625,
+            "width": 0.5999908447265625,
+            "height": 2.6833343505859375,
+            "scale": 0.38055557012557983,
+            "shiftPixels": 0.4908447265625,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 0.5695067264573991,
+            "integratedWidth": 0.5695067264573991,
+            "darkColumns": 0,
+            "coverage": [0, 0, 0, 0.5695067264573991, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 0,
+          "max": 0
+        },
+        "paintedColumns": {
+          "min": 1,
+          "max": 1
+        },
+        "peak": {
+          "min": 0.5695067264573991,
+          "max": 0.5695067264573991
+        },
+        "integrated": {
+          "min": 0.5695067264573991,
+          "max": 0.5695067264573991
+        },
+        "staffGap": {
+          "min": 1.5194118022918701,
+          "max": 7.608281373977661
+        },
+        "expected": {
+          "min": 0.5833282470703125,
+          "max": 0.5999908447265625
+        },
+        "sampleCount": 111,
+        "maxAbsoluteShiftPixels": 0.4908447265625,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "ordinary-960",
+          "width": 1440,
+          "svgWidth": 960
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "97388192-e80e-4f2e-96e3-2aac04742c81-0",
+            "x": 466,
+            "y": 173.96665954589844,
+            "width": 2,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.414581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "27288943-052a-499a-9395-b87ea89bd6b0-0",
+            "x": 487,
+            "y": 147.35000610351562,
+            "width": 2.0333404541015625,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.45086669921875,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0, 0]
+          },
+          {
+            "id": "2ba67b3f-8d8e-4fb1-bd75-93fb1421b2f0-0",
+            "x": 1064.9833984375,
+            "y": 142.03334045410156,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.052490234375,
+            "pixelPhase": 0.9833984375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "3bb344b2-73ba-45b8-b2f8-95f9a03f507a-0",
+            "x": 855.9833374023438,
+            "y": 147.35000610351562,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.48712158203125,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "ff724fcd-e0b0-4658-914c-b8be189749f5-0",
+            "x": 870,
+            "y": 796.6666870117188,
+            "width": 2.0333404541015625,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.480072021484375,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 2,
+          "max": 2
+        },
+        "staffGap": {
+          "min": 7.219415664672852,
+          "max": 8.563857555389404
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.0500030517578125
+        },
+        "sampleCount": 58,
+        "maxAbsoluteShiftPixels": 0.48712158203125,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      },
+      {
+        "config": {
+          "name": "lower-score",
+          "width": 1440,
+          "svgWidth": 960,
+          "systemIndex": 4
+        },
+        "pixels": [1440, 1400],
+        "ratio": 1,
+        "samples": [
+          {
+            "id": "bc49db3c-0c66-480c-954c-9caa06d77556-0",
+            "x": 466,
+            "y": 103.98333740234375,
+            "width": 2,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.414581298828125,
+            "pixelPhase": 0,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "5db5dd22-9dbb-4026-a772-aa7041cfbcd4-0",
+            "x": 491.98333740234375,
+            "y": 98.64999389648438,
+            "width": 2.0333251953125,
+            "height": 9.333343505859375,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.098419189453125,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "404387fc-6703-4fc1-9f80-c14812be36b7-0",
+            "x": 1071.9833984375,
+            "y": 103.98333740234375,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.21673583984375,
+            "pixelPhase": 0.9833984375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "eb3417e0-540d-4a33-9b18-6cbc960bc234-1",
+            "x": 853.9833374023438,
+            "y": 428.6333312988281,
+            "width": 2.0333251953125,
+            "height": 9.333328247070312,
+            "scale": 1.3305555582046509,
+            "shiftPixels": -0.471343994140625,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          },
+          {
+            "id": "80bb9ce9-0f31-43a5-b109-e9ae1f675c82-0",
+            "x": 1008.9833374023438,
+            "y": 455.25,
+            "width": 2.0333251953125,
+            "height": 9.316665649414062,
+            "scale": 1.3305555582046509,
+            "shiftPixels": 0.492462158203125,
+            "pixelPhase": 0.98333740234375,
+            "peakCoverage": 1,
+            "integratedWidth": 2,
+            "darkColumns": 2,
+            "coverage": [0, 0, 0, 1, 1, 0, 0, 0]
+          }
+        ],
+        "darkColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "paintedColumns": {
+          "min": 2,
+          "max": 2
+        },
+        "peak": {
+          "min": 1,
+          "max": 1
+        },
+        "integrated": {
+          "min": 2,
+          "max": 2
+        },
+        "staffGap": {
+          "min": 7.219405651092529,
+          "max": 28.508315563201904
+        },
+        "expected": {
+          "min": 2,
+          "max": 2.0500030517578125
+        },
+        "sampleCount": 53,
+        "maxAbsoluteShiftPixels": 0.492462158203125,
+        "sourceInkAssertions": {
+          "width": 1.5,
+          "height": 7,
+          "stroke": "none",
+          "opacity": 1,
+          "noHeadOrStaffOverlap": true
+        }
+      }
+    ]
+  },
+  "print": {
+    "pagesIdentical": 2,
+    "pageSha256": [
+      "850fde8348a1c566d2340401697bc3f2b7c6f7b405dbca9d7d1a74714acc363f",
+      "e160aa1d4e22bb85c362087fceb01b181714a38eab4b1248ae3d5530f115f2a2"
+    ],
+    "canonicalVectorAttributesIdentical": true,
+    "beforePrintShifts": [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ],
+    "afterPrintShifts": [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ]
+  }
+}

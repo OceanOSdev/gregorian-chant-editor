@@ -8,7 +8,8 @@ import {
 import { isValidNeume, findNote } from '../domain/neume';
 
 export type NoteModifierEdit =
-  { kind: 'mora'; value: 0 | 1 } | { kind: 'episema'; value: boolean };
+  | { kind: 'mora'; value: 0 | 1 }
+  | { kind: 'episema' | 'verticalEpisema'; value: boolean };
 
 /** One note, one semantic edit. Omitted properties are the canonical off state. */
 export function updateNoteModifiers(
@@ -24,11 +25,11 @@ export function updateNoteModifiers(
     if ((note.mora ?? 0) === edit.value) return document;
     if (edit.value === 0) delete note.mora;
     else note.mora = edit.value;
-  } else if (edit.kind === 'episema') {
+  } else if (edit.kind === 'episema' || edit.kind === 'verticalEpisema') {
     if (typeof edit.value !== 'boolean') return document;
-    if (!!note.episema === edit.value) return document;
-    if (edit.value) note.episema = true;
-    else delete note.episema;
+    if (!!note[edit.kind] === edit.value) return document;
+    if (edit.value) note[edit.kind] = true;
+    else delete note[edit.kind];
   } else return document;
   // Reconstruct the existing correlated tuple without widening the Neume union.
   const replace = (n: ChantNote) => (n.id === noteId ? note : n);

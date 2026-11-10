@@ -1,0 +1,73 @@
+{
+  "productionSubpath": "/gregorian-chant-editor/",
+  "automated": {
+    "testFiles": 78,
+    "tests": 1568,
+    "format": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "diffCheck": "passed"
+  },
+  "browserResults": [
+    {
+      "browser": "Firefox",
+      "driver": "vertical",
+      "result": "passed"
+    },
+    {
+      "browser": "Firefox",
+      "driver": "context",
+      "result": "PASS"
+    },
+    {
+      "browser": "Firefox",
+      "driver": "note-modifiers",
+      "result": "PASS"
+    },
+    {
+      "browser": "Firefox",
+      "driver": "note-shapes",
+      "result": "passed"
+    },
+    {
+      "browser": "Firefox",
+      "driver": "local-persistence",
+      "result": "PASS"
+    },
+    {
+      "browser": "Firefox",
+      "driver": "bundled-example",
+      "result": "PASS"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "vertical",
+      "result": "passed"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "context",
+      "result": "PASS"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "note-modifiers",
+      "result": "PASS"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "note-shapes",
+      "result": "passed"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "local-persistence",
+      "result": "PASS"
+    },
+    {
+      "browser": "Chromium",
+      "driver": "bundled-example",
+      "result": "PASS"
+    }
+  ]
+}

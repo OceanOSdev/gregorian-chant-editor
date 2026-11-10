@@ -544,3 +544,42 @@ splits at min((u+v)/2,u-7.5): the terminal owns the upper exposed shaft and
 the quilisma owns its complete jagged head. Note selection paths remain head
 contours rather than a new square replacement. Existing mora/episema placement
 uses complete form ink, preserving collision clearance and affected-note identity.
+
+## Vertical episema (Stage 8C)
+
+[Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
+keeps presence semantic and side derived. Actual Gregorio/Solesmes comparisons
+and reproducible source files are in the [Stage 8C record](verification/vertical-episemata/README.md).
+The independently constructed rule is 1.5 × 7 units: the existing stem weight,
+shorter than a head. No substitute symbol, font outline or ownership label is used.
+
+Resolve after existing signs. Try below then above; on each side try horizontal
+anchor offsets 0, −9, +9, −15, +15, each with near-edge distances
+10, 14, 18, 22, 26, 30 from nominal pitch. Keep the complete tick right of the
+builder's existing left ink origin. Reject candidates within 2 units of occupied
+head/shaft regions or earlier signs, or crossing a staff line's ±4-unit band. The wider staff clearance is based on
+the [rendered stroke-weight investigation](verification/vertical-episemata/consolidation-and-weight.md):
+fixed-width staff strokes previously visually joined space-note ticks at 320px.
+For another note whose nominal x differs by at most 7 units, do not pass that
+note's head: preserve 2 units on its nearer vertical edge. This prevents an
+upper tick from migrating under the lower head and appearing to mark it.
+
+Compound outer rectangles include empty space. The vertical pass conservatively
+partitions the existing head regions, their 1.5-unit joining shafts and virga/
+Clivis/Porrectus queues; the ribbon's constituent regions bound its sweep.
+This is a collision partition of existing recipes, not alternate painted ink.
+The search has at most 60 candidates per marked note, no exterior/unbounded
+fallback, and never silently omits an authored tick. An exhausted search is an
+explicit geometry error, covered by the supported interval/form/sign matrix.
+
+These are project metrics, not GregorioTeX's font-specific optical formulas.
+Gregorio sometimes uses another side or lateral offset; automatic placement is
+not a facsimile promise. Manual orientation remains deferred, and owner visual
+acceptance is separate from collision/bounds checks. Fixed inter-system/lyric
+spacing and the pre-existing extreme-pitch limitations remain unchanged.
+
+Vertical-tick screen rasterization is narrowly qualified in
+[Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007):
+the 1.5 × 7 vector recipe and all bounds remain unchanged, with at most half a
+physical pixel of horizontal screen phase alignment. Print retains exact vector
+ink. See the [normal-size browser and print comparisons](verification/vertical-episemata/rasterization.md).
