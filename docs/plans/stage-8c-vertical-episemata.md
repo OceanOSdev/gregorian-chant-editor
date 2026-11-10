@@ -2,7 +2,14 @@
 
 Branch: `feat/stage-8c-vertical-episema`
 Target: `master`
-Status: **Implemented for review; owner visual acceptance and closeout pending.**
+Status: **Completed (owner-accepted 2026-11-10).**
+
+The owner accepted the final engraving, consolidated contextual note properties
+and ADR 0020, including its narrow screen-rendering qualification to ADR 0007.
+ADR 0007 remains Accepted. This retained plan records completed scope and its
+implementation history; PR #67 remains unmerged for the owner. Deferred manual
+orientation overrides, blocked-autosave warnings and extreme-pitch layout work
+remain outside this milestone. See the [acceptance record](../verification/vertical-episemata/README.md).
 
 ## Problem / intended experience
 
@@ -20,7 +27,7 @@ engine or a blanket re-engraving of the bundled example.
 
 ## Research and decision record
 
-Read [Proposed ADR 0020](../adrs/0020-vertical-episema-presence-and-derived-placement.md)
+Read [Accepted ADR 0020](../adrs/0020-vertical-episema-presence-and-derived-placement.md)
 and the existing Accepted ADRs 0002, 0003, 0004, 0007, 0016, 0018, 0019.
 Reference documentation:
 
@@ -49,7 +56,7 @@ with context-derived placement under our current geometry, _stop that
 specific geometry decision_ and present reference evidence and alternatives
 to the owner before introducing a new field or artistic convention.
 
-## Agreed initial scope / proposed ADR
+## Agreed initial scope / accepted ADR
 
 - **Authored presence, not inferred rhythm.** Add optional
   `verticalEpisema?: true` to the existing note-level modifier semantics.
@@ -97,16 +104,17 @@ to the owner before introducing a new field or artistic convention.
   later committed edit writes v4 once. Preserve the bundled owner-authored
   Pater Noster as its **unchanged v3 source**.
 - If ADR 0020 needs material revision or conflicts with an Accepted ADR,
-  stop and report the conflict to the owner. Keep ADR 0020 **Proposed**
-  during implementation, and request explicit owner acceptance before
-  changing it to Accepted at milestone closeout.
+  stop and report the conflict to the owner. ADR 0020 was kept Proposed during
+  implementation; explicit owner acceptance was received on 2026-11-10 and
+  its status is now Accepted.
 
 ## Owner-approved contextual editing follow-up (PR #67)
 
 Approved in the [owner review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
-The original convenience panel is implemented; the consolidation below is
-implemented for review below. Owner acceptance remains pending.
-The scope approval is not engraving acceptance or permission to merge.
+The original convenience panel was implemented, then replaced by the completed
+consolidation below. The initial scope approval was not
+engraving acceptance; the owner subsequently accepted the final result on
+2026-11-10. Merge remains the owner’s responsibility.
 
 - In Select mode, show a small contextual editing surface near the selected
   note for **Mora scope**, **Horizontal episema** and **Vertical episema**.
@@ -135,15 +143,14 @@ The scope approval is not engraving acceptance or permission to merge.
   Retain before/after and narrow contextual screenshots and update the owning
   interaction/testing guides and verification record.
 
-ADR 0020 remains Proposed pending separate owner acceptance. This is a transient
+ADR 0020 is Accepted (owner-approved 2026-11-10). This is a transient
 interaction addition within the existing semantic/layout/rendering boundaries;
 report any material architectural conflict before implementing divergent behavior.
 
 ## Owner feedback: consolidation and stroke weight (PR #67)
 
 Approved in the [latest owner comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740779436).
-This explicitly replaces the earlier request to keep the top inspector. The scope update was committed before implementation. The changes are now for
-review, not Stage 8C acceptance.
+This explicitly replaces the earlier request to keep the top inspector. The scope update was committed before implementation. The final changes were owner-accepted on 2026-11-10.
 
 - Make the contextual panel the sole primary note-property editor, adding
   **Form** with the existing `allowedNoteForms`, default/disabled behavior and
@@ -173,7 +180,7 @@ review, not Stage 8C acceptance.
   Retain updated UI screenshots, rendered tick before/after crops and numeric
   findings, explicitly separating unverified foreground/browser-menu checks.
 
-ADR 0020 remains Proposed; owner visual acceptance and closeout remain pending.
+ADR 0020 and Stage 8C were owner-accepted on 2026-11-10.
 
 ## Exclusions
 
@@ -246,7 +253,7 @@ existing horizontal `episema` field.
 
 Update the authoritative domain, engraving, persistence and testing guides
 for the additional modifier and v4 compatibility; update roadmap and ADR log
-with a link to Proposed ADR 0020 (do not label it Accepted yet). Document that
+with a link to Accepted ADR 0020 (owner-approved 2026-11-10). Document that
 vertical episema is _authored notation_, not inferred rhythm, and that manual
 above/below override is deferred. Keep evidence in
 `docs/verification/vertical-episemata/`.
@@ -254,10 +261,10 @@ above/below override is deferred. Keep evidence in
 Commit focused changes to this branch and open a PR against `master`.
 Report visual reference comparisons, actual CI/local test results, semantics
 and compatibility evidence, open research questions and what remains for
-foreground owner inspection. **Do not merge.** The owner will visually
-accept the engraving and decide ADR status before merge.
+foreground owner inspection. **Do not merge.** The owner accepted the engraving
+and ADR 0020 on 2026-11-10 and will handle merge after CI.
 
-## Follow-up: uniform vertical-tick rasterization (owner review pending)
+## Completed follow-up: uniform vertical-tick rasterization
 
 The [latest owner feedback](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6741412693)
 reports one versus two dark pixel columns at the same zoom after the clearance
@@ -271,20 +278,20 @@ geometry, measured bounds, relative size, preview parity and staff clearance.
 Do not apply global hints, change other ink, add persisted display state or
 redesign editing. If uniformity requires material geometry/bounds compromises,
 report alternatives before implementing that approach. Update the owning rendering
-guide and run affected regression checks. ADR 0020 remains Proposed; this is
-implementation for visual review, not acceptance or permission to merge.
+guide and run affected regression checks. This follow-up was owner-accepted
+on 2026-11-10; merge remains the owner’s responsibility.
 
 Owner clarification authorizes option 1: a vertical-episema-only screen
 rasterization tolerance of at most half a physical device pixel. Canonical vector
 geometry, anchors, print, wrapping and hit geometry stay unchanged. Qualify ADR
-0007 narrowly in Proposed ADR 0020; do not weaken the general geometry contract.
+0007 narrowly in Accepted ADR 0020; do not weaken the general geometry contract.
 Re-align on screen scale/origin changes, reset for print, and retain canonical
 rendering where a safe bounded alignment cannot be made. Guard the existing
 collision and canvas clearances rather than expanding layout. Commit actual
 normal-size before/after browser and print/vector comparisons for owner review.
 
-Implementation is available for review: tagged ticks share a screen-only phase
+The completed implementation uses tagged ticks sharing a screen-only phase
 adapter, with physical/clearance/clip guards and unchanged print/vector attributes.
 The [comparison record](../verification/vertical-episemata/rasterization.md) retains
 normal-size browser pairs, raster measurements and identical print-page evidence.
-Owner visual acceptance and Stage 8C closeout remain pending.
+Owner visual acceptance and Stage 8C closeout were recorded on 2026-11-10.

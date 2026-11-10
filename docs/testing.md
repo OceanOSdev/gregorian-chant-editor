@@ -772,9 +772,9 @@ and Firefox/BiDi via `CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session`. Run existi
 note-shape, note-modifier, local-persistence and bundled-example drivers
 sequentially too. The [Stage 8C record](verification/vertical-episemata/README.md)
 contains reproducible reference comparisons, actual results, actual-build storage
-compatibility and remaining foreground/owner checks. The separate storage-review
-driver accepts `CHANT_CURRENT_VERSION=4` for the current build. ADR 0020 remains
-Proposed, and visual owner acceptance remains required before milestone closeout.
+compatibility, owner visual acceptance and remaining foreground checks. The separate storage-review
+driver accepts `CHANT_CURRENT_VERSION=4` for the current build. ADR 0020 and Stage 8C were owner-accepted on 2026-11-10. That acceptance does
+not imply that unperformed foreground checks were run.
 
 ### Contextual note editing review follow-up
 

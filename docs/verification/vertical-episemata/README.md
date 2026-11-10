@@ -1,20 +1,44 @@
-# Stage 8C — vertical episemata: implementation and review evidence
+# Stage 8C — vertical episemata: completed and owner-accepted
 
 Latest review: [tick-only screen phase alignment, native-size comparisons and print proof](rasterization.md).
 The earlier clearance-only comparison below did not resolve optical weight; it is
-retained as historical investigation. ADR 0020 remains Proposed.
+retained as historical investigation.
 
-2026-11-09. Implemented on `feat/stage-8c-vertical-episema` for review against
-`master`. **Owner visual acceptance and milestone closeout remain pending.**
-[ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md)
-remains **Proposed**. No Accepted ADR is superseded or amended.
+**Completed (owner-accepted 2026-11-10).** The owner explicitly accepted the
+final engraving, consolidated contextual note-editing UX and
+[ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md),
+including its narrow vertical-tick screen rasterization qualification to ADR 0007.
+ADR 0007 remains Accepted; no ADR is superseded. PR #67 remains unmerged for
+the owner to merge after CI.
 
-## Latest owner feedback
+The records below preserve the 2026-11-09 implementation verification and earlier
+PR states. Owner visual acceptance is separate from automated evidence and does
+not assert that any previously unperformed foreground/manual check was run.
+The [final rasterization record](rasterization.md) records 78 files / 1,568 tests
+and both-browser comparisons; original counts below describe the initial slice.
+Manual orientation overrides, blocked-autosave warning improvements and
+extreme-pitch layout issues remain deferred/separate follow-ups.
+
+## Documentation closeout checks (2026-11-10)
+
+This closeout changes Markdown only; implementation, fixtures, screenshots and
+numeric reports remain unchanged. Formatting, lint, 78 Vitest files / 1,568 tests,
+production build and diff whitespace checks passed again locally. Browser/print
+comparisons were not rerun for these documentation edits; their recorded runs
+and the owner's explicit final visual acceptance are separate evidence.
+
+The last implementation commit `b0e7d99` passed all four hosted CI jobs
+(Format, Lint, Test, Build) in [CI run 165](https://github.com/OceanOSdev/gregorian-chant-editor/actions/runs/42631188274).
+The closeout head's hosted status is tracked separately on PR #67; a filtered or
+skipped workflow is not a passed run.
+
+## Implementation review history
 
 The [consolidation and rendered weight investigation](consolidation-and-weight.md)
 records the current four-field contextual editor, removal of the top duplicate,
 and the measured staff-clearance correction. Earlier screenshots/results below
-are retained evidence for prior PR states; they are not owner acceptance.
+are retained evidence for prior PR states; owner acceptance applies to the final
+implementation, not to superseded intermediate designs.
 
 ## Traditional notation investigation
 
@@ -82,8 +106,9 @@ retaining forms, horizontal episemata and morae.
 
 Local final gates passed: `npm run format:check`, `npm run lint`, `npm test`
 (**76 files / 1,559 tests**), `npm run build`, and `git diff --check`.
-The handoff plan and Proposed ADR required pre-existing emphasis-format fixes;
-ADR 0020's status and proposed decision are unchanged. No dependency was added.
+The initial handoff plan and then-Proposed ADR required pre-existing
+emphasis-format fixes; the implementation did not change that decision.
+ADR 0020 was subsequently accepted on 2026-11-10. No dependency was added.
 Local Node was v24.12.0; `.nvmrc` specifies v24.18.0. Hosted CI is separate.
 
 Pure tests cover all seven kinds; authored Virga, Inclinatum and Quilisma;
@@ -184,20 +209,22 @@ The owner approved nearby note marking controls in
 [PR #67's review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401).
 The scope was committed to the plan before implementation. The [follow-up record](contextual-editing.md)
 contains its actual lower-score, keyboard, responsive and compatibility results
-and screenshots. This convenience retains the inspector and existing commands,
-engraving and native format. It is not Stage 8C visual acceptance or closeout.
+and screenshots. That historical convenience retained the inspector; the later consolidation
+removed it and added Form to the contextual panel, preserving existing commands
+and native format. The final UX was owner-accepted on 2026-11-10.
 
-## Owner review still required
+## Owner visual acceptance and remaining manual checks
 
-Review the contours, note ownership, local side choices and crowded cases against
-the printed reference, especially the unchanged Pater Noster with added signs.
-Explicitly accept or revise Proposed ADR 0020 before changing its status or
-closing Stage 8C. Nothing here authorizes a merge or claims that acceptance.
+On 2026-11-10 the owner reported that the final engraving, rasterization and
+contextual note-editing UX passed review, explicitly accepted ADR 0020 and
+declared Stage 8C owner-accepted. This completes the milestone. The owner will
+merge PR #67 after CI; this closeout does not merge it.
 
 Native select/file changes use DOM events; note selection, Tab, pitch arrows and
 blank-score clicks use browser input. Export Blob contents are inspected without
 an OS save dialog. Foreground keyboard/OS-select behavior, actual browser/OS
-zoom, IME, spoken screen-reader output and publication-quality visual acceptance
-were **not** tested or inferred from headless checks. Existing palette/ghost
+zoom, IME and spoken screen-reader output were **not** tested or inferred from
+headless checks. Owner acceptance of the final engraving does not establish
+exhaustive publication-quality coverage or imply those manual checks were run. Existing palette/ghost
 regressions and pure signed-preview parity do not create an authoring tool for
 preselecting vertical marks on new notes; selected-note authoring is the scope.

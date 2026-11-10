@@ -1,10 +1,15 @@
-# Vertical episema screen phase alignment — owner review
+# Vertical episema screen phase alignment — owner-accepted 2026-11-10
 
 2026-11-09. Implements the owner's approved **option 1** following
 [the latest PR #67 feedback](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6741412693).
 The investigation plan was committed as `011ff0f`; the subsequent owner-approved
-screen tolerance was recorded in `10dbe04` before implementation. ADR 0020 remains
-**Proposed**. This is evidence for visual review, not Stage 8C acceptance.
+screen tolerance was recorded in `10dbe04` before implementation.
+
+**Owner-accepted 2026-11-10.** The owner explicitly accepted the final engraving,
+contextual editing UX and ADR 0020, including the narrow screen rasterization
+qualification to ADR 0007. Stage 8C is completed; PR #67 remains unmerged. The
+2026-11-09 automated/browser evidence and unperformed manual checks below are
+preserved as recorded; owner visual acceptance does not imply new test runs.
 
 ## Normal-size before/after
 
@@ -55,8 +60,8 @@ CSS translation is limited to **half a physical device pixel**, also capped at
 **0.4954px Firefox / 0.4989px Chromium**. No stroke, minimum black-pixel width,
 crisp-edge hint or permanent display coordinates are added.
 
-The narrowly proposed qualification to [ADR 0007](../../adrs/0007-share-derived-neume-engraving-geometry.md)
-is documented explicitly in [Proposed ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md#proposed-narrow-screen-rasterization-qualification-to-adr-0007).
+The narrowly accepted qualification to [ADR 0007](../../adrs/0007-share-derived-neume-engraving-geometry.md)
+is documented explicitly in [Accepted ADR 0020](../../adrs/0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007).
 Canonical measured bounds, wrapping, selection/hit geometry, note ownership,
 commands, history, autosave and v4 semantics are unchanged. Nominal bounds and
 screen ink may differ only by the declared horizontal raster tolerance.
@@ -149,7 +154,9 @@ print dialogs, spoken screen-reader output, real monitor changes and interactive
 pinch/browser-menu zoom remain foreground checks. Visual viewport scale is
 included in the displacement cap, but compositor resampling during pinch is not
 a promise of identical pixels. Extremely small scales and clip-edge fallback
-can retain phase variation. Final visual acceptance remains the owner's decision.
+can retain phase variation. The owner accepted the final visual result on 2026-11-10; these manual-check
+limitations remain unchanged. Manual orientation overrides, blocked-autosave
+warning improvements and extreme-pitch layout issues remain deferred.
 
 ## Reproduction
 

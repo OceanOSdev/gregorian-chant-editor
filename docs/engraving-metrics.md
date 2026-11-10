@@ -547,7 +547,7 @@ uses complete form ink, preserving collision clearance and affected-note identit
 
 ## Vertical episema (Stage 8C)
 
-[Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
+[Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
 keeps presence semantic and side derived. Actual Gregorio/Solesmes comparisons
 and reproducible source files are in the [Stage 8C record](verification/vertical-episemata/README.md).
 The independently constructed rule is 1.5 × 7 units: the existing stem weight,
@@ -579,7 +579,7 @@ acceptance is separate from collision/bounds checks. Fixed inter-system/lyric
 spacing and the pre-existing extreme-pitch limitations remain unchanged.
 
 Vertical-tick screen rasterization is narrowly qualified in
-[Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#proposed-narrow-screen-rasterization-qualification-to-adr-0007):
+[Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007):
 the 1.5 × 7 vector recipe and all bounds remain unchanged, with at most half a
 physical pixel of horizontal screen phase alignment. Print retains exact vector
 ink. See the [normal-size browser and print comparisons](verification/vertical-episemata/rasterization.md).

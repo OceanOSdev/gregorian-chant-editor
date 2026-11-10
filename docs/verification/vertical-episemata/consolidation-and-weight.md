@@ -1,7 +1,13 @@
 # Stage 8C owner feedback: consolidated properties and tick weight
 
+Closeout: the final Stage 8C engraving and contextual UX were owner-accepted on
+2026-11-10, including Accepted ADR 0020 and its narrow qualification to ADR 0007.
+This intermediate record preserves its original verification and scope history;
+see the [final acceptance record](README.md). Previously unperformed manual
+checks remain unperformed, and deferred work remains deferred.
+
 2026-11-09. Implemented for PR #67 review; **not owner acceptance or closeout**.
-ADR 0020 remains **Proposed**. The scope update was committed as `965d2b8`
+ADR 0020 was Proposed at this historical review stage. The scope update was committed as `965d2b8`
 before implementation, following the [owner comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740779436).
 It supersedes the earlier instruction to retain the top inspector.
 
@@ -131,7 +137,7 @@ retaining the existing thin rectangular mark.
   exceptions. Original native fixtures and the owner v3 Pater Noster are unchanged.
 
 No commands, history reducer, persistence codec/adapter or note-form rules changed.
-ADR 0020 remains Proposed. Local Node was v24.12.0 versus declared v24.18.0;
+ADR 0020 was Proposed at this historical review stage. Local Node was v24.12.0 versus declared v24.18.0;
 hosted CI is separate. Native dropdown/file matrices use DOM change events;
 closed-select keyboard operations and pointer note/Close actions use browser
 input. OS dropdown presentation, screen-reader speech, IME and real browser-menu
@@ -176,4 +182,4 @@ CHANT_CHROMIUM_URL=http://127.0.0.1:9246/json node docs/verification/vertical-ep
 
 The source crops stay at native screenshot resolution until the board enlarges
 them. Source/reference captures and the retained comparison were visually
-inspected; final engraving and UI acceptance remain the owner’s decision.
+inspected; final engraving and UI acceptance were subsequently recorded on 2026-11-10.

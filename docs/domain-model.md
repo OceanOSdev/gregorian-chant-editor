@@ -283,5 +283,5 @@ inferred rhythmic count, accent, duration or playback instruction. The sign
 has no separate identity. Moves, clef translations, form edits and accepted
 normalization preserve it on the same surviving note ID; deleting that note
 removes it. Placement is derived, with no saved side or coordinates.
-See [Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
+See [Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
 and [native v4](persistence.md#vertical-episema-in-native-v4-stage-8c).

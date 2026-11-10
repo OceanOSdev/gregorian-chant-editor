@@ -803,4 +803,4 @@ Native select keys retain their behavior; insertion, delete and pitch shortcuts
 do not escape the panel. Ctrl/Cmd+Z and Redo use existing semantic history.
 Placement and pending history/lyric-move/clef workflows retain their guards.
 Only browser presentation state is added; semantics, history and native v4 are
-unchanged. ADR 0020 remains Proposed. See [current owner-feedback verification](verification/vertical-episemata/consolidation-and-weight.md).
+unchanged. ADR 0020 is Accepted (owner-approved 2026-11-10). See [current owner-feedback verification](verification/vertical-episemata/consolidation-and-weight.md).

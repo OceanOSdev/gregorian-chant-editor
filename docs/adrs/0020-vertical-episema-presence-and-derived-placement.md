@@ -4,7 +4,10 @@ Date: 2026-11-09
 
 ## Status
 
-**Proposed — awaiting owner acceptance.** No accepted ADR is superseded.
+**Accepted (owner-approved 2026-11-10).** No accepted ADR is superseded.
+ADR 0007 remains Accepted; only its screen-rendering contract is narrowly
+qualified below. The owner explicitly accepted the final engraving, contextual
+note-editing UX and this rasterization qualification on 2026-11-10.
 Stage 8C extends [ADR 0018](0018-conventional-mora-patterns.md) and
 [ADR 0016](0016-persist-versioned-semantic-chant-documents.md), without
 changing their existing semantics or historical formats.
@@ -26,7 +29,7 @@ is automatic by default; `'0` explicitly forces below and `'1` explicitly
 forces above. The source notation and its auto-layout conventions are
 research references, not a request to implement GABC interchange.
 
-## Proposed decision
+## Decision
 
 1. Model authored _presence_ as an optional `verticalEpisema?: true` on
    the existing stable-ID `ChantNote`, independently of optional
@@ -54,7 +57,9 @@ research references, not a request to implement GABC interchange.
    collect comparison evidence and return to the owner for a separately
    approved extension rather than silently inventing syntax.
 
-## Proposed narrow screen rasterization qualification to ADR 0007
+## Narrow screen rasterization qualification to ADR 0007
+
+<a id="proposed-narrow-screen-rasterization-qualification-to-adr-0007"></a>
 
 Owner feedback on PR #67 authorizes a vertical-episema-only display tolerance.
 Identical 1.5 × 7 vector rectangles otherwise produce visibly different one/two
@@ -65,7 +70,7 @@ Canonical derived geometry, musical anchors, measured vector bounds, wrapping,
 interaction geometry and print remain unchanged. Only tagged vertical ticks may
 receive a transient **horizontal screen translation of at most half a physical
 device pixel**, aligning their left-edge phase while retaining width, height,
-fill and normal antialiasing. This is the sole proposed qualification to ADR
+fill and normal antialiasing. This is the sole qualification to ADR
 0007's exact geometry/rendering contract: nominal ink bounds can differ from
 screen ink by this declared tolerance. It does not authorize renderer-derived
 musical placement, other marks, global snapping, arbitrary thickening or a
@@ -89,10 +94,10 @@ and uses exact vector attributes. Native documents/history never contain it.
 Device pixel ratio and visual viewport scale bound physical displacement;
 compositor resampling during pinch zoom is not a promise of identical pixels.
 
-This proposal records the owner's approved implementation scope, **not ADR or
-engraving acceptance**. ADR 0007 stays Accepted and its general shared geometry
-contract remains in force. ADR 0020 remains Proposed pending owner review of the
-committed actual browser and print comparisons.
+The owner accepted this decision and the final engraving/contextual editing UX
+on 2026-11-10, including this narrow screen rasterization qualification. ADR 0007
+stays Accepted and its general shared geometry contract remains in force.
+See the [owner acceptance and verification record](../verification/vertical-episemata/README.md).
 
 ## Consequences
 

@@ -319,7 +319,7 @@ owns each committed division's SVG control, accessible label, and event handlers
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.
 Vertical episemata alone use the owner-approved screen rasterization tolerance
-specified in [Proposed ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#proposed-narrow-screen-rasterization-qualification-to-adr-0007).
+specified in [Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md#narrow-screen-rasterization-qualification-to-adr-0007).
 Their tagged rectangles retain canonical vector attributes and measured bounds;
 a shared SVG adapter aligns horizontal pixel phase by at most half a physical
 device pixel, also capped below the existing obstacle clearance. It skips unsafe

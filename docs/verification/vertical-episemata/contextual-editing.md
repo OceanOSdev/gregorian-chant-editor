@@ -1,11 +1,17 @@
 # Stage 8C contextual note editing follow-up — historical
 
+Closeout: the final Stage 8C engraving and contextual UX were owner-accepted on
+2026-11-10, including Accepted ADR 0020 and its narrow qualification to ADR 0007.
+This intermediate record preserves its original verification and scope history;
+see the [final acceptance record](README.md). Previously unperformed manual
+checks remain unperformed, and deferred work remains deferred.
+
 The subsequent [consolidation and weight review](consolidation-and-weight.md)
 supersedes the inspector-retention and three-field design below. This record
 preserves the first follow-up’s actual verification.
 
 2026-11-09. Implemented for owner review in PR #67; **not visual acceptance,
-milestone closeout or permission to merge**. ADR 0020 remains **Proposed**.
+milestone closeout or permission to merge**. ADR 0020 was Proposed at this historical review stage.
 
 The owner-approved [review comment](https://github.com/OceanOSdev/gregorian-chant-editor/pull/67#issuecomment-6740210401)
 was incorporated into the committed plan in `9b5ff0d` before implementation.
