@@ -122,9 +122,7 @@ const ev = async (expression) => {
   return r.result.value;
 };
 
-const url =
-  process.env.CHANT_PREVIEW_URL ??
-  'http://127.0.0.1:4180/gregorian-chant-editor/';
+const url = process.env.CHANT_PREVIEW_URL ?? 'http://127.0.0.1:4180/';
 const label = process.argv[2] ?? 'probe';
 const hint = process.env.CHANT_TICK_HINT;
 assert.ok(!hint || ['auto', 'crispEdges', 'stroke'].includes(hint));

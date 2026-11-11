@@ -113,9 +113,7 @@ const ev = async (expression) => {
   if (r.exceptionDetails) throw Error(JSON.stringify(r.exceptionDetails));
   return r.result.value;
 };
-const url =
-  process.env.CHANT_PREVIEW_URL ??
-  'http://127.0.0.1:4173/gregorian-chant-editor/';
+const url = process.env.CHANT_PREVIEW_URL ?? 'http://127.0.0.1:4173/';
 const storageKey = 'gregorian-chant-editor:active-document:v1';
 const raw = () => ev(`localStorage.getItem('${storageKey}')`);
 const status = () =>

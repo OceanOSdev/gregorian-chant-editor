@@ -118,10 +118,9 @@ use it for the standard verification gate or CI.
 `npm run dev` is the normal manual-interaction environment.
 
 For a production check, run `npm run build`, then `npm run preview` and open
-`http://localhost:4173/gregorian-chant-editor/` (or the port Vite reports).
-Production builds and preview use `/gregorian-chant-editor/`; the development
-server continues to use `/`. Inspect `dist/index.html` and verify that the
-referenced JS, CSS and favicon load under the project subpath. Check the page
+`http://localhost:4173/` (or the port Vite reports).
+Production builds, development and preview use `/`. Inspect `dist/index.html`
+and verify that the referenced JS, CSS and favicon load from the root. Check the page
 title, experimental notice, basic editing and committed-score refresh recovery in the
 real browser, including a narrow viewport.
 
@@ -167,7 +166,7 @@ serialized without canceling an in-progress run.
 
 Follow the [README setup steps](../README.md#public-preview-and-deployment) to
 enable Pages or manually rerun deployment. Local checks and a passing PR CI run
-do not prove hosted deployment. After deployment, verify the public project URL
+do not prove hosted deployment. After deployment, verify `https://chantpad.com/`
 in Firefox and Chromium: all assets load without 404s, the title and preview
 notice appear, and a basic editor interaction works. Record these checks as
 pending owner deployment until the site can actually be tested.
@@ -773,7 +772,7 @@ fixtures remain available; the bundled owner Pater Noster is now v4. Future-vers
 rejection probes now use v5.
 
 Run `node docs/verification/vertical-episemata/browser-check.mjs` against production
-preview under `/gregorian-chant-editor/`, using disposable Chromium/CDP on 9230
+preview under `/`, using disposable Chromium/CDP on 9230
 and Firefox/BiDi via `CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session`. Run existing
 note-shape, note-modifier, local-persistence and bundled-example drivers
 sequentially too. The [Stage 8C record](verification/vertical-episemata/README.md)
@@ -824,7 +823,7 @@ build reproduction and limitations of the measurements.
 production alignment with `CHANT_TICK_HINT=auto` (the original vector raster),
 `crispEdges` and a same-bounds `stroke` experiment. It measures isolated tick
 columns in actual screenshots, avoiding neighboring ink at 320px. Use disposable
-Chromium/CDP or Firefox/BiDi profiles and the production subpath. The repeated
+Chromium/CDP or Firefox/BiDi profiles and the production root path. The repeated
 Punctum matrix covers x phases, responsive desktop/320px, SVG 1×/approximately
 1.33×/2×, and DPR 1/2. `CHANT_WEIGHT_PATER=1` uses a temporary fully marked owner
 score derivative at desktop, 320px and approximately 1.33×. The bundled source
