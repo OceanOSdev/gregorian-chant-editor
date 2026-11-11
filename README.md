@@ -10,8 +10,9 @@ interface may still change.
 
 ## Public preview and deployment
 
-The deployed public preview is available at
-[Gregorian Chant Editor](https://oceanosdev.github.io/gregorian-chant-editor/).
+The custom-domain public preview is
+[Gregorian Chant Editor](https://chantpad.com/), once domain setup and deployment
+are complete.
 Stage 7A adds browser-local recovery of committed edits and native JSON
 title editing and New / Import / Export / Load example controls. First visits start from an example score.
 Export files for backups; browser storage is not cloud storage. The deployed
@@ -40,8 +41,13 @@ Confirm the workflow succeeds, then check the public URL in Firefox and Chromium
 for asset errors and a basic editor edit.
 
 For a local production check, run `npm run build` and `npm run preview`, then
-open `http://localhost:4173/gregorian-chant-editor/`. Production assets use this
-project subpath; ordinary `npm run dev` continues to serve at `/`.
+open `http://localhost:4173/`. Production builds, development and preview all
+use `/`.
+
+DNS and the GitHub Pages custom domain setting are configured separately. After
+deployment, verify HTTPS and asset loading at `https://chantpad.com/`. Browser-local
+recovery is scoped to the origin: export saved scores from the old GitHub Pages
+URL before switching domains, then import them at the new domain.
 
 This setup follows the [Vite deployment guide](https://vite.dev/guide/static-deploy)
 and [GitHub Pages source instructions](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
