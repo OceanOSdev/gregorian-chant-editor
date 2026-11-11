@@ -1,6 +1,6 @@
 {
   "format": "gregorian-chant-editor",
-  "version": 3,
+  "version": 4,
   "document": {
     "title": "Pater Noster",
     "lyricLanguage": "la",
@@ -46,7 +46,8 @@
           {
             "id": "f11f9d8d-f9c4-40b8-80e2-73dcdf883fac",
             "staffPosition": 3,
-            "episema": true
+            "episema": true,
+            "verticalEpisema": true
           }
         ]
       },
@@ -546,7 +547,8 @@
           {
             "id": "d53fb49b-3309-4ad3-bc0d-23fff91fac09",
             "staffPosition": 3,
-            "episema": true
+            "episema": true,
+            "verticalEpisema": true
           }
         ]
       },
@@ -667,7 +669,8 @@
         "notes": [
           {
             "id": "1288b8d1-19b6-41ec-8b4c-d52c009c0d96",
-            "staffPosition": 3
+            "staffPosition": 3,
+            "verticalEpisema": true
           }
         ]
       },
@@ -799,7 +802,8 @@
           {
             "id": "074d4008-6ad4-47f1-8fbc-e2cd86606c94",
             "staffPosition": 2,
-            "episema": true
+            "episema": true,
+            "verticalEpisema": true
           }
         ]
       },
@@ -930,7 +934,8 @@
         "notes": [
           {
             "id": "c8c953ff-08b0-4a47-b466-d2e7f1fdf032",
-            "staffPosition": 2
+            "staffPosition": 2,
+            "verticalEpisema": true
           }
         ]
       },
