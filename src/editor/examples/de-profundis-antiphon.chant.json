@@ -1,0 +1,229 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 4,
+  "document": {
+    "title": "De Profundis Antiphon",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "14213e99-de34-4469-84ac-bc226c28375b",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d83d5c07-d6c7-4247-91e8-eb327361be7d",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "26e33858-316a-4888-8c41-d70a21566f7b",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "6b7241a5-2001-4337-a0e0-8f9141d9471a",
+            "staffPosition": 3,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "a08a9b6d-08ce-470d-8f92-b0538a306985",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "6233f242-4cf9-4ee9-91d6-40405c6823f9",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "4a4d0dcc-08f4-4899-8ad6-3a99d3b3cd80",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f367eff7-f77d-4908-838f-0530dfc3372b",
+            "staffPosition": 2,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "4072c5d7-4cb6-4d96-89d8-bf21647fa902",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "b989c166-9e1b-4d2d-890a-96a72b0200ad",
+            "staffPosition": 1
+          },
+          {
+            "id": "69a3fa3a-777f-4359-a80b-f75bea7b6678",
+            "staffPosition": 0
+          }
+        ]
+      },
+      {
+        "id": "c7e1416c-101d-4e07-b28a-7907f28d77f2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "2f2bed77-63d2-42e3-b9c5-79d638582045",
+            "staffPosition": 1,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "5d056bee-58d3-4d0a-a1a3-05f9b4f0c774",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f2b456a7-7b6c-45a6-b10a-0c2aca09c3e2",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "c1a25b82-1a8e-40cc-a197-a016cc55e508",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "fde9d163-15bd-490c-beff-9e811cf2c103",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "cb630e89-546d-4a43-8421-54f4921b5536",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "6ff61d24-ba53-4fe7-9736-55b8aedfe5ed",
+            "staffPosition": 2
+          },
+          {
+            "id": "e54c7c1b-6816-4189-9f5d-ea214463259d",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "27bb61d4-b999-4450-b237-9eaa6c8b0a07",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "5f00402f-43fa-4147-87eb-0d181ce7b7cd",
+            "staffPosition": 2,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "b017367d-b045-440a-a757-0e699e77d9ae",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a06dbf07-71f2-4916-8aae-d87f582a34f7",
+            "staffPosition": 1
+          }
+        ]
+      },
+      {
+        "id": "4489bee5-995e-4570-8e90-68010267bde6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e53a97af-797e-426b-a7bc-8180ecbfc86d",
+            "staffPosition": 1,
+            "mora": 1
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "5cd34cd0-fc55-47bc-b1b6-40ec69500c03",
+        "text": "De",
+        "startsAtNeumeId": "14213e99-de34-4469-84ac-bc226c28375b",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "2c7c7b0c-7696-4b71-89f0-83a9a0a2a4b5",
+        "text": "pro",
+        "startsAtNeumeId": "26e33858-316a-4888-8c41-d70a21566f7b",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "45d8c31b-da6c-4efa-9c92-5331d2c37a2c",
+        "text": "fun",
+        "startsAtNeumeId": "a08a9b6d-08ce-470d-8f92-b0538a306985",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "f3163f3b-12da-45d2-81b1-689b8c14c1a1",
+        "text": "dis",
+        "startsAtNeumeId": "4a4d0dcc-08f4-4899-8ad6-3a99d3b3cd80",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "5d7f5c4a-0c5e-4fe9-a8f6-20275b4314d8",
+        "text": "cla",
+        "startsAtNeumeId": "4072c5d7-4cb6-4d96-89d8-bf21647fa902",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "ffb9d49d-4897-4ece-b403-576a8b936c61",
+        "text": "ma",
+        "startsAtNeumeId": "c7e1416c-101d-4e07-b28a-7907f28d77f2",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "44c4e553-9a31-4726-8b17-7c1c8e18055e",
+        "text": "vi",
+        "startsAtNeumeId": "5d056bee-58d3-4d0a-a1a3-05f9b4f0c774",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "d6be27ef-1548-44ba-a4f0-b5b0a1288b0b",
+        "text": "ad",
+        "startsAtNeumeId": "c1a25b82-1a8e-40cc-a197-a016cc55e508",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "f227d6a4-9fe5-4676-a280-5c285ff10a7a",
+        "text": "te",
+        "startsAtNeumeId": "cb630e89-546d-4a43-8421-54f4921b5536",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "e58ba958-0f49-4191-8e97-35d006da88e7",
+        "text": "Do",
+        "startsAtNeumeId": "27bb61d4-b999-4450-b237-9eaa6c8b0a07",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "3662267c-0d13-403c-b0fb-8cc594456cbc",
+        "text": "mi",
+        "startsAtNeumeId": "b017367d-b045-440a-a757-0e699e77d9ae",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "ccd551e4-7ec4-4884-aa19-4f90c64d7241",
+        "text": "ne.",
+        "startsAtNeumeId": "4489bee5-995e-4570-8e90-68010267bde6",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [
+      {
+        "id": "18f6d573-9699-4ac8-b984-eca883aaa9f3",
+        "kind": "finalis",
+        "beforeNeumeId": null
+      }
+    ],
+    "clefChanges": []
+  }
+}

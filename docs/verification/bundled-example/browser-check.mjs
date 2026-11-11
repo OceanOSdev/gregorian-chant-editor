@@ -196,12 +196,16 @@ try {
   await checkResponsiveHeader('before-example');
   const choose = async (accept) => {
     await ev(`window.confirm=message=>{window.lastConfirmation=message;return ${accept}};
-      (()=>{const e=document.querySelector('[aria-label="Load example"]');e.focus();e.value='pater-noster';e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+      (()=>{const e=document.querySelector('[aria-label="Load example"]');e.focus();e.value='./pater-noster.chant.json';e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
     await pause();
   };
   await ev(
     `window.confirm=message=>{window.lastConfirmation=message;return false};document.querySelector('[aria-label="Load example"]').focus()`,
   );
+  const keyboardExampleName = await ev(
+    `document.querySelector('[aria-label="Load example"]').options[1].textContent`,
+  );
+  assert.ok(keyboardExampleName);
   if (firefox) {
     await rawSend('input.performActions', {
       context,
@@ -229,7 +233,9 @@ try {
         });
   }
   await pause();
-  assert.match(await ev('window.lastConfirmation'), /Pater Noster/);
+  assert.ok(
+    (await ev('window.lastConfirmation')).includes(keyboardExampleName),
+  );
   assert.equal(
     await ev(`document.activeElement.getAttribute('aria-label')`),
     'Load example',

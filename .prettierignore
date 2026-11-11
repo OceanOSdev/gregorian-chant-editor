@@ -7,5 +7,5 @@ coverage/
 .codex/
 *.tsbuildinfo
 
-# Preserve the canonical owner-authored example byte-for-byte.
-src/editor/examples/pater-noster.chant.json
+# Preserve bundled musical sources byte-for-byte.
+src/editor/examples/*.chant.json

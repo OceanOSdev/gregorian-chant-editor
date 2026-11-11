@@ -178,7 +178,7 @@ app versions cannot be assumed to import v3. See the
 
 ## Bundled examples
 
-**Load example → Pater Noster** deliberately replaces the active score after a
+**Load example** deliberately replaces the active score after a
 native confirmation naming the example, warning that undo/redo history is reset,
 and advising Export first. Cancel leaves the score, history and cache unchanged
 (apart from a title already committed by leaving its editor, as with New/Import).
@@ -188,6 +188,18 @@ the import codec, creates a fresh session and attempts guarded synchronous autos
 Recovery/conflict protection remains in force: an in-memory load is not proof of
 saving; consult the local saving status and existing recovery choices. Startup
 still uses the small fallback score and never seeds the cache with this example.
+
+Adding a `.chant.json` file directly to `src/editor/examples/` automatically
+registers it through `import.meta.glob()`. IDs retain the relative file paths;
+display names come from codec-validated document titles and are sorted by name.
+Invalid files are omitted with a console error identifying the path and validation
+failure, so they cannot block startup. Tests validate every discovered source
+independently and fail for invalid examples before deployment. Keep source bytes
+unchanged and record verified provenance and licensing when adding a file.
+
+De Profundis Antiphon is also bundled. Its source and licensing are not documented
+in the repository; the owner must supply verified provenance and reuse terms.
+Pater Noster's CC0 attribution below does not establish De Profundis's license.
 
 The project owner transcribed the supported notation from
 [GregoBase Pater noster (A)](https://gregobase.selapa.net/chant.php?id=3326), whose
