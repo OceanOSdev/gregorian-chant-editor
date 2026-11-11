@@ -9,13 +9,13 @@ const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 const pages = firefox
   ? []
   : await (
-    await fetch(
-      process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json',
-    )
-  ).json();
+      await fetch(
+        process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json',
+      )
+    ).json();
 const ws = new WebSocket(
   process.env.CHANT_FIREFOX_URL ??
-  pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
+    pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
 );
 await new Promise((resolve) => ws.addEventListener('open', resolve));
 let serial = 0;

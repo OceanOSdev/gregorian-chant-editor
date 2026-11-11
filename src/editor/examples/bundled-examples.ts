@@ -7,16 +7,14 @@ const demos = import.meta.glob<string>('./*.chant.json', {
   eager: true,
 });
 
-export const bundledExamples = Object.entries(demos).map(
-  ([path, contents]) => {
-    const parsed = JSON.parse(contents);
+export const bundledExamples = Object.entries(demos).map(([path, contents]) => {
+  const parsed = JSON.parse(contents);
 
-    return {
-      id: path,
-      name: parsed.document.title,
-    };
-  },
-);
+  return {
+    id: path,
+    name: parsed.document.title,
+  };
+});
 
 // Decode on each deliberate load: no shared mutable semantic document.
 export function loadBundledExample(id: string) {
