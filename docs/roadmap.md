@@ -194,11 +194,11 @@ These are separate follow-up items, not blockers for the completed Stage 8B:
 ## Authored vertical episemata (Stage 8C)
 
 **Completed (owner-accepted 2026-11-10).** Final engraving and contextual
-note-editing UX are owner-accepted; PR #67 remains unmerged for the owner to merge.
+note-editing UX are owner-accepted; PR #67 was merged on 2026-11-10.
 Selected-note Off/On authors independent ictus presence on all seven kinds and
 supported forms, with measured automatic local placement and native v4 writes.
-Exact v1/v2/v3 readers and protected recovery remain; the bundled v3 Pater Noster
-source is unchanged. See the [plan](plans/stage-8c-vertical-episemata.md),
+Exact v1/v2/v3 readers and protected recovery remain; the bundled Pater Noster
+was subsequently updated to owner-authored native v4 with five vertical episemata. See the [plan](plans/stage-8c-vertical-episemata.md),
 [Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
 and [reference/verification evidence](verification/vertical-episemata/README.md).
 The contextual panel consolidates Form, Mora scope and both episema controls.
