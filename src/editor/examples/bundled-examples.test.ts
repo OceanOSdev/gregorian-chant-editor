@@ -4,9 +4,9 @@ import { loadBundledExample } from './bundled-examples';
 import { decodeDocument, encodeDocument } from '../persistence/native-document';
 
 describe('bundled Pater Noster', () => {
-  it('loads the complete owner-authored v3 document without changing values or identities', () => {
+  it('loads the complete owner-authored v4 document with vertical episemata intact', () => {
     const document = loadBundledExample('pater-noster');
-    expect(JSON.parse(source).version).toBe(3);
+    expect(JSON.parse(source).version).toBe(4);
     expect(document).toEqual(JSON.parse(source).document);
     expect(document.title).toBe('Pater Noster');
     expect(document.lyricLanguage).toBe('la');
@@ -23,6 +23,7 @@ describe('bundled Pater Noster', () => {
     expect(notes).toHaveLength(111);
     expect(notes.filter((n) => n.mora === 1)).toHaveLength(10);
     expect(notes.filter((n) => n.episema)).toHaveLength(3);
+    expect(notes.filter((n) => n.verticalEpisema)).toHaveLength(5);
     expect(
       document.syllables
         .slice(-8)
