@@ -1,0 +1,418 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 4,
+  "document": {
+    "title": "Blessing at the end of Compline",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "799ac131-b7f5-4338-9806-318a26ab8afa",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "73e7cadd-1544-48e9-9274-f98a1bc55731",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "f915ada4-2b9c-405f-aadd-8bd30f200dd2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "033dec66-3b1c-411c-87d0-11034c38d7c4",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "759bb8b4-b2aa-4314-8e54-3836d27a8891",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "bf10c747-6b11-425a-8d27-abbeb0bc528a",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "4c449774-57a1-4846-a1be-797e34957900",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c25e991a-e040-4b99-9b67-55d874ca6285",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "62219fb7-2e5c-4e5f-83b1-fda5b8a87b2a",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "47d13784-ad1e-4178-b4bc-550e3f51cc82",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "acda90b5-138d-4392-8bd2-e2939ceee148",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "566ff625-add8-442d-b606-7de24bb51885",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "1ff5e565-b8cd-49ee-89c3-b5105b22545e",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d3386da7-d54f-42a4-a156-e3e8d6e41819",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "3e0042b7-668c-48e6-be17-c8c47d834c39",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f2e8806c-8c8e-48fa-93b3-10d1e35c227c",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "9b60ecc9-f772-4067-949c-93583c4a81c2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "dbe264e9-f553-4ea6-8cd0-10ee919d4f4c",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "3b7f8278-4cb5-4fa0-af9a-9dd5ddce0a26",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "84fca86f-b7ab-4d0b-92ab-1a44cfa95f4e",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "ac24c904-8234-4fa1-85be-54eb496286c1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "74136250-0389-4acc-83cc-20968880e7f6",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "b3614fae-637b-489c-b054-e36cc708c486",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "d781a7c1-d5d1-4a86-99e5-4a78322e59f9",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "fa834386-9a14-4097-a5ad-f675c73b1b69",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "18824e58-d994-40f3-b866-2a911caeebad",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "a6b3b511-7180-4c5c-b915-2ea94ccee444",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "be31a5fd-3c08-4fa9-a251-54ea5fa62bab",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "af1299a8-acf7-4a81-b979-438a50b50710",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0becab3e-106f-41e5-9c78-658c73eb07a9",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "4b93f576-6fab-4566-a312-6064db27d7b6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "96e65d67-0268-43ba-b358-54c5eb02d5be",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "a77b1f6e-740a-44cc-acf8-36d9e6e08721",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ad1dbee1-a222-4a0f-8be5-511afc377224",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "5ebbf9a0-f4ed-4ed9-a09a-e303108f618c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "0cfad0a9-901b-492d-b8e8-a37d7ac5b2d7",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "06d3b5b3-5ea4-4a13-8466-3d0c623b6ef3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a74b8d49-7eb8-4c82-8b98-114d12007e76",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "2531632c-5e02-443c-b056-0b936c03888d",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "f7ea0824-d68e-4722-9332-c5d15fc6bdde",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "f649b825-005b-4a50-82d1-2da7de51b2d8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "e339447e-4df9-49cf-8249-4f987917c627",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "ed22d7dc-6d85-4fe1-a199-d15d2805d52c",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "dbbd60d6-ee15-4bb7-bd46-43b33712fe86",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "a7ee64df-6305-4b89-9a75-009b1d36e3fe",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "5a1b507c-dc4f-4526-9065-be4148b30d15",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "2305ef0b-7e85-417b-a7b3-f9d3ac8097d8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "fbd4e2d7-8cfb-429a-8b31-874a5f633930",
+            "staffPosition": 4
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "8bbc237c-8911-450d-844d-4627d52af544",
+        "text": "Noc",
+        "startsAtNeumeId": "799ac131-b7f5-4338-9806-318a26ab8afa",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "f330d06b-3771-4b72-ae3b-716bf459105a",
+        "text": "tem",
+        "startsAtNeumeId": "f915ada4-2b9c-405f-aadd-8bd30f200dd2",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "bd4c23b9-4b5a-403c-9f6f-956c4a102dc0",
+        "text": "quie",
+        "startsAtNeumeId": "759bb8b4-b2aa-4314-8e54-3836d27a8891",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "1267d4da-6805-4675-9698-da265d2c4dda",
+        "text": "tam",
+        "startsAtNeumeId": "4c449774-57a1-4846-a1be-797e34957900",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "5b22c900-1c7d-406f-93c2-8e2bd6836b77",
+        "text": "et",
+        "startsAtNeumeId": "62219fb7-2e5c-4e5f-83b1-fda5b8a87b2a",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "d2a5fc52-4685-4dce-aa8d-006e23f09063",
+        "text": "fin",
+        "startsAtNeumeId": "acda90b5-138d-4392-8bd2-e2939ceee148",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "b45363df-f477-47c4-a9a0-de09a9b0fb11",
+        "text": "em",
+        "startsAtNeumeId": "1ff5e565-b8cd-49ee-89c3-b5105b22545e",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "cdf548ae-c5bb-4bf8-bb51-ef6f4f8cdb5f",
+        "text": "per",
+        "startsAtNeumeId": "3e0042b7-668c-48e6-be17-c8c47d834c39",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "193c5205-6163-487c-a3cd-c1a1c9c9fad8",
+        "text": "fec",
+        "startsAtNeumeId": "9b60ecc9-f772-4067-949c-93583c4a81c2",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "29a0ba1d-ebe4-43c0-b528-fdfc43319c7e",
+        "text": "tum",
+        "startsAtNeumeId": "3b7f8278-4cb5-4fa0-af9a-9dd5ddce0a26",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "a25348f1-3b2e-47f8-8f57-89980483d449",
+        "text": "con",
+        "startsAtNeumeId": "ac24c904-8234-4fa1-85be-54eb496286c1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "88202d14-250b-4a32-9145-ed608f343599",
+        "text": "ce",
+        "startsAtNeumeId": "b3614fae-637b-489c-b054-e36cc708c486",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "14a32aa7-7a2e-42bf-bf95-68ebc9bbf023",
+        "text": "dat",
+        "startsAtNeumeId": "fa834386-9a14-4097-a5ad-f675c73b1b69",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "2648c67b-a4e4-411a-b732-0cc752037fca",
+        "text": "no",
+        "startsAtNeumeId": "a6b3b511-7180-4c5c-b915-2ea94ccee444",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "7cf759b8-b033-461f-8685-c3245d5c2730",
+        "text": "bis",
+        "startsAtNeumeId": "af1299a8-acf7-4a81-b979-438a50b50710",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "825dcc46-92b5-46b8-9b74-4a5e72d55371",
+        "text": "Do",
+        "startsAtNeumeId": "4b93f576-6fab-4566-a312-6064db27d7b6",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "71c90170-2daf-474f-a35a-4282c9e2a02b",
+        "text": "mi",
+        "startsAtNeumeId": "a77b1f6e-740a-44cc-acf8-36d9e6e08721",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "8f0fe488-6b37-4ee3-92be-d7ca9d2b4c99",
+        "text": "nus",
+        "startsAtNeumeId": "5ebbf9a0-f4ed-4ed9-a09a-e303108f618c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "d81adf9a-1654-471b-a165-92a51727c9cb",
+        "text": "om",
+        "startsAtNeumeId": "06d3b5b3-5ea4-4a13-8466-3d0c623b6ef3",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "d16c815b-1eac-419b-9c43-1fd11bfc37ad",
+        "text": "ni",
+        "startsAtNeumeId": "2531632c-5e02-443c-b056-0b936c03888d",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "82383888-fbf6-4680-9011-56cad5b88858",
+        "text": "po",
+        "startsAtNeumeId": "f649b825-005b-4a50-82d1-2da7de51b2d8",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "59c631dc-fb86-46f0-aaab-6c2e146f5888",
+        "text": "tens.",
+        "startsAtNeumeId": "ed22d7dc-6d85-4fe1-a199-d15d2805d52c",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "56d76c35-119e-43bd-bb4f-33a86d5ddc17",
+        "text": "A",
+        "startsAtNeumeId": "a7ee64df-6305-4b89-9a75-009b1d36e3fe",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "62f6f8e9-717e-4d56-a3b5-9ffc9d1c79fb",
+        "text": "men.",
+        "startsAtNeumeId": "2305ef0b-7e85-417b-a7b3-f9d3ac8097d8",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [
+      {
+        "id": "86620e9f-8b9f-40c1-8f0a-41d03909f8e4",
+        "kind": "minima",
+        "beforeNeumeId": "ac24c904-8234-4fa1-85be-54eb496286c1"
+      },
+      {
+        "id": "b0e6d55c-1d2e-4198-bedc-4cada07cd9ae",
+        "kind": "finalis",
+        "beforeNeumeId": "a7ee64df-6305-4b89-9a75-009b1d36e3fe"
+      },
+      {
+        "id": "0defda8e-6646-47a1-b90f-ec62e074e369",
+        "kind": "finalis",
+        "beforeNeumeId": null
+      }
+    ],
+    "clefChanges": []
+  }
+}
