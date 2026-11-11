@@ -1,10 +1,30 @@
-import paterNosterSource from './pater-noster.chant.json?raw';
 import { decodeDocument } from '../persistence/native-document';
 
-export const bundledExamples = [{ id: 'pater-noster', name: 'Pater Noster' }];
+// Discover all .chant.json files in the examples directory.
+const demos = import.meta.glob<string>('./*.chant.json', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+export const bundledExamples = Object.entries(demos).map(
+  ([path, contents]) => {
+    const parsed = JSON.parse(contents);
+
+    return {
+      id: path,
+      name: parsed.document.title,
+    };
+  },
+);
 
 // Decode on each deliberate load: no shared mutable semantic document.
 export function loadBundledExample(id: string) {
-  if (id !== 'pater-noster') throw new Error('Unknown bundled example.');
-  return decodeDocument(paterNosterSource);
+  const contents = demos[id];
+
+  if (contents === undefined) {
+    throw new Error('Unknown bundled example.');
+  }
+
+  return decodeDocument(contents);
 }

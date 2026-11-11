@@ -5,7 +5,8 @@ import { decodeDocument, encodeDocument } from '../persistence/native-document';
 
 describe('bundled Pater Noster', () => {
   it('loads the complete owner-authored v4 document with vertical episemata intact', () => {
-    const document = loadBundledExample('pater-noster');
+    const chantId = './pater-noster.chant.json';
+    const document = loadBundledExample(chantId);
     expect(JSON.parse(source).version).toBe(4);
     expect(document).toEqual(JSON.parse(source).document);
     expect(document.title).toBe('Pater Noster');
@@ -32,7 +33,7 @@ describe('bundled Pater Noster', () => {
         .trim(),
     ).toBe('sed libera nos a malo.');
     expect(decodeDocument(encodeDocument(document))).toEqual(document);
-    expect(loadBundledExample('pater-noster')).not.toBe(document);
+    expect(loadBundledExample(chantId)).not.toBe(document);
   });
   it('rejects unknown choices', () => {
     expect(() => loadBundledExample('unknown')).toThrow(
