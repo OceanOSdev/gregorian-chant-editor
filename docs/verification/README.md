@@ -14,6 +14,17 @@ browser checks. Current contracts belong to [ADRs](../adrs/README.md),
 [engraving metrics](../engraving-metrics.md), [editor interactions](../editor-interactions.md)
 and [testing](../testing.md); dated verification records do not override them.
 
+## Current build reproduction URLs
+
+Historical records retain `/gregorian-chant-editor/` URLs as evidence of the
+builds tested at the time. The current build serves from `/`. When reproducing
+checks against the current build, use `http://127.0.0.1:4173/` (or the preview
+port in the record), including any `CHANT_PREVIEW_URL` override. Keep recorded
+results unchanged. The dedicated `note-shapes/storage-review-server.mjs` and
+`storage-review.mjs` baseline comparison retain their own historical subpath;
+use their documented URLs when reproducing that comparison. See the
+[current testing guide](../testing.md) for production preview checks.
+
 ## File classification and decisions
 
 Patterns below cover every file in the seven audited directories. A generated

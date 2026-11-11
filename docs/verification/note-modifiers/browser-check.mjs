@@ -744,7 +744,7 @@ try {
   }
   assert.equal(
     await ev(
-      `[...document.querySelectorAll('script[src],link[rel="stylesheet"]')].every(e=>(e.src||e.href).includes('/assets/'))`,
+      `[...document.querySelectorAll('script[src],link[rel="stylesheet"]')].every(e=>new URL(e.src||e.href).pathname.startsWith('/assets/'))`,
     ),
     true,
   );
