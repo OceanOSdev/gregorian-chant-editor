@@ -10,7 +10,7 @@ import { BrowserDocument } from './browser-document';
 import { updateNoteModifiers } from '../commands/update-note-modifiers';
 import v1 from '../../../docs/verification/note-modifiers/baseline-events-v1.chant.json?raw';
 import v2 from '../../../docs/verification/note-modifiers/conventional/editor-cases.chant.json?raw';
-import v3 from '../examples/pater-noster.chant.json?raw';
+import v3 from '../../../docs/verification/note-shapes/editor-cases-v3.chant.json?raw';
 
 describe('strict v4 vertical episema and legacy recovery', () => {
   it.each([v1, v2, v3])(
