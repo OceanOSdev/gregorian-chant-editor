@@ -750,8 +750,8 @@ the follow-up record for reproduction and actual findings.
 ## Bundled examples
 
 `examples/bundled-examples.test.ts` validates the canonical Pater Noster through
-its native codec, counts, final phrase, identity/value preservation and v3 round
-trip. The [example browser record](verification/bundled-example/README.md)
+its native codec, counts, five authored vertical episemata, final phrase,
+identity/value preservation and v4 round trip. The [example browser record](verification/bundled-example/README.md)
 covers deliberate replacement, cancellation, keyboard focus, refresh/export,
 protected caches and responsive controls in Chromium/Firefox. Run its driver
 and the existing local-persistence driver sequentially on disposable profiles.
@@ -762,9 +762,9 @@ and the existing local-persistence driver sequentially on disposable profiles.
 `layout/vertical-episema.test.ts` cover independent note presence, one-step
 history/no-op identity, surviving-note preservation, strict v4, exact legacy
 hydration, protected recovery, bounded all-kind/form/sign geometry, stacked-note
-ownership, signed ghost parity and whole-neume wrapping. Historical fixtures
-remain exact; the owner Pater Noster stays v3. Future-version rejection probes
-now use v5.
+ownership, signed ghost parity and whole-neume wrapping. Historical v1/v2/v3
+fixtures remain available; the bundled owner Pater Noster is now v4. Future-version
+rejection probes now use v5.
 
 Run `node docs/verification/vertical-episemata/browser-check.mjs` against production
 preview under `/gregorian-chant-editor/`, using disposable Chromium/CDP on 9230

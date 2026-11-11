@@ -18,8 +18,8 @@ Export files for backups; browser storage is not cloud storage. The deployed
 preview gains these changes only after owner merge/deployment.
 Load example offers the owner-transcribed Pater Noster from
 [GregoBase](https://gregobase.selapa.net/chant.php?id=3326)
-([CC0](https://gregobase.selapa.net/?page_id=2)); unsupported vertical episemata
-are omitted. See [native documents and recovery](docs/persistence.md).
+([CC0](https://gregobase.selapa.net/?page_id=2)); the bundled native v4
+example includes five owner-authored vertical episemata. See [native documents and recovery](docs/persistence.md).
 
 Each push to `master` runs the Pages workflow, which installs
 locked dependencies using the Node version in `.nvmrc`, checks formatting,

@@ -192,7 +192,8 @@ still uses the small fallback score and never seeds the cache with this example.
 The project owner transcribed the supported notation from
 [GregoBase Pater noster (A)](https://gregobase.selapa.net/chant.php?id=3326), whose
 transcriptions are [CC0/public domain](https://gregobase.selapa.net/?page_id=2).
-This is not a complete facsimile: the bundled v3 source predates vertical episema authoring and remains unchanged.
+The bundled native v4 source includes five owner-authored vertical episemata; it
+is not a complete facsimile of the printed edition.
 
 ## Vertical episema in native v4 (Stage 8C)
 
@@ -209,6 +210,6 @@ committed edit/undo/redo writes v4 through the same established storage key,
 byte conflict guard and synchronous save path. No conversion invents signs,
 forms or IDs. Failed imports, corrupt caches, storage failures and conflicts
 retain the original-source recovery and confirmed-replacement protections.
-The bundled owner-authored Pater Noster remains its exact committed **v3 source**;
-loading it and adding a sign produces a separate v4 score. Older builds reject
-v4 through their existing recovery path. See [compatibility evidence](verification/vertical-episemata/README.md).
+The bundled owner-authored Pater Noster is now an exact committed **v4 source**,
+including five vertical episemata. Historical v3 documents remain readable;
+older builds reject v4 through their existing recovery path. See [compatibility evidence](verification/vertical-episemata/README.md).

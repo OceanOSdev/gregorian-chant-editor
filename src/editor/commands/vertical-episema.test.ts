@@ -17,6 +17,21 @@ import {
 } from '../persistence/native-document';
 import source from '../examples/pater-noster.chant.json?raw';
 
+// The bundled example now contains five authored ticks. Start these command
+// invariants from the same score with those signs cleared, so the original
+// toggle/no-op assertions still exercise both adding and removing a mark.
+const baseline = (() => {
+  let document = decodeDocument(source);
+  for (const neume of document.neumes)
+    for (const note of neume.notes)
+      if (note.verticalEpisema)
+        document = updateNoteModifiers(document, note.id, {
+          kind: 'verticalEpisema',
+          value: false,
+        });
+  return document;
+})();
+
 const toggle = (
   document: ReturnType<typeof blankDocument>,
   id: string,
@@ -24,7 +39,7 @@ const toggle = (
 ) => updateNoteModifiers(document, id, { kind: 'verticalEpisema', value });
 describe('selected-note vertical episema semantics', () => {
   it('targets every constituent, shares unaffected objects, and removes only its own field', () => {
-    const doc = decodeDocument(source);
+    const doc = baseline;
     for (const neume of doc.neumes)
       for (const note of neume.notes) {
         const marked = toggle(doc, note.id, true);
@@ -52,7 +67,7 @@ describe('selected-note vertical episema semantics', () => {
     ).toBe(doc);
   });
   it('coexists with both signs, forms, movement and clefs; never retargets after deletion', () => {
-    let doc = decodeDocument(source);
+    let doc = baseline;
     const id = doc.neumes[0].notes[0].id;
     doc = updateNoteModifiers(doc, id, { kind: 'mora', value: 1 });
     doc = updateNoteModifiers(doc, id, { kind: 'episema', value: true });
@@ -91,7 +106,7 @@ describe('selected-note vertical episema semantics', () => {
     expect(findNote(deleteNote(signed, survivor), survivor)).toBeNull();
   });
   it('one action creates one exact history snapshot, including following a move', () => {
-    const doc = decodeDocument(source),
+    const doc = baseline,
       id = doc.neumes[0].notes[0].id;
     let session = createEditorSession(doc);
     session = reduceEditorSession(session, {
