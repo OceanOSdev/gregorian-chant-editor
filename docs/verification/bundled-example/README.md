@@ -38,6 +38,21 @@ Selected screenshots: [before loading](before-chromium.png),
 [loaded desktop](after-chromium.png), [loaded Firefox 320px](after-firefox-320.png).
 The before image shows the starter with the new selector available.
 
+## Discovery cleanup verification (2026-11-11)
+
+- Production preview: bundled-example driver PASS in headless Chromium and
+  Firefox at 1440px and 320px. Keyboard cancellation checks the selected option's
+  display name independently of example ordering; Pater Noster load, persistence,
+  focus, cancellation and protected-cache assertions remain in place.
+- Format, lint, 78 Vitest files / 1,575 tests, production build and diff whitespace
+  checks PASS. Tests discover and validate every bundled source independently.
+- Both musical sources retain their bytes; De Profundis was renamed to
+  `de-profundis-antiphon.chant.json`. All bundled sources are excluded from
+  automatic formatting. No schema, UI, dependency or ADR change.
+- De Profundis provenance and reuse terms remain undocumented and need owner
+  confirmation; see the [persistence guide](../../persistence.md#bundled-examples).
+  Foreground native-dialog and screen-reader checks were not repeated.
+
 ## Remaining owner acceptance
 
 - Inspect native confirmation and OS select presentation in a foreground browser.

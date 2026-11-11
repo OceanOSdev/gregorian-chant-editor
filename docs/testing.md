@@ -749,7 +749,13 @@ the follow-up record for reproduction and actual findings.
 
 ## Bundled examples
 
-`examples/bundled-examples.test.ts` validates the canonical Pater Noster through
+Adding a `.chant.json` file directly to `src/editor/examples/` automatically
+registers it. `examples/bundled-examples.test.ts` independently discovers every
+source and checks codec validity, registration completeness, title/name equality,
+display-name sorting, successful loading and encode/decode round trips. Invalid
+sources fail tests even though runtime discovery safely omits them with a console
+diagnostic. Unknown IDs, including inherited property names, must reject.
+The suite also preserves detailed assertions for the canonical Pater Noster through
 its native codec, counts, five authored vertical episemata, final phrase,
 identity/value preservation and v4 round trip. The [example browser record](verification/bundled-example/README.md)
 covers deliberate replacement, cancellation, keyboard focus, refresh/export,

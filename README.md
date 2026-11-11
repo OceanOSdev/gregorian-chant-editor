@@ -20,6 +20,10 @@ Load example offers the owner-transcribed Pater Noster from
 [GregoBase](https://gregobase.selapa.net/chant.php?id=3326)
 ([CC0](https://gregobase.selapa.net/?page_id=2)); the bundled native v4
 example includes five owner-authored vertical episemata. See [native documents and recovery](docs/persistence.md).
+Adding a `.chant.json` file to `src/editor/examples/` automatically registers it
+under its validated document title, sorted by display name. De Profundis Antiphon
+is also bundled; its provenance and licensing still require owner confirmation
+and are not covered by the Pater Noster CC0 attribution.
 
 Each push to `master` runs the Pages workflow, which installs
 locked dependencies using the Node version in `.nvmrc`, checks formatting,
