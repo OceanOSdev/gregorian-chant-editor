@@ -160,6 +160,7 @@ it('bounded clef comparison finds no accidental-only preservation rejection for 
     })),
   );
   let checked = 0;
+  let preserved = 0;
   for (const clef of clefs)
     for (const boundary of ['g0', 'g1', 'g2', 'g3']) {
       const d = anchored();
@@ -175,10 +176,14 @@ it('bounded clef comparison finds no accidental-only preservation rejection for 
       if (signed) {
         expect(pitches(signed)).toEqual(pitches(d));
         expect(signed.accidentals).toEqual(d.accidentals);
+        preserved++;
       }
       checked++;
     }
   expect(checked).toBe(32);
+  // Every valid normal-range candidate, including clefs between the earlier
+  // anchor (g0) and owner (g2), reaches the success-path assertions.
+  expect(preserved).toBe(32);
 });
 
 it('reports ownership conflict explicitly and leaves unrelated no-ops and contour rejections silent with two signs', () => {
