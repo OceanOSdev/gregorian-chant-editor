@@ -134,3 +134,11 @@ records Stage 8C's independent note flag, local derived placement, strict native
 v4 compatibility and vertical-tick-only screen rasterization tolerance.
 **Owner-approved 2026-11-10.** It narrowly qualifies ADR 0007's screen-rendering
 contract; ADR 0007 remains Accepted and is not superseded.
+
+[Accepted ADR 0021: Author B accidentals at neume boundaries with stable note ownership](0021-author-b-accidentals-at-neume-boundaries.md)
+records the owner-approved Stage 8D design (2026-11-11): Roman/Solesmes
+word/division resets, register-specific derived pitch interpretation,
+independent written signs owned by stable B notes, shared repeated-B
+neume placement, targeted destructive-clef confirmation and strict
+native v5. ADR 0015 is narrowly qualified; no existing ADR is superseded.
+Implementation and visual acceptance remain pending.
