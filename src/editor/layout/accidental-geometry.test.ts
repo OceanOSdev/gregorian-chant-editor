@@ -389,3 +389,138 @@ it('keeps continuation hyphen ink clear of an intervening low natural', () => {
     }
   expect(layout.systems.flatMap((s) => s.hyphens)).toHaveLength(1);
 });
+
+it.each(['earlier-anchor', 'default-prefix'] as const)(
+  'reserves an unobstructed continuation hyphen before the current %s group',
+  (placement) => {
+    const d = blankDocument();
+    d.clef = { type: 'c', staffLine: 3 };
+    d.lyricLanguage = 'und';
+    d.neumes = [4, 4, -4].map((p, i) => ({
+      id: `g${i}`,
+      kind: 'punctum',
+      notes: [{ id: `n${i}`, staffPosition: staffPosition(p) }],
+    }));
+    d.syllables = [
+      { id: 'a', text: 'A', startsAtNeumeId: 'g0', boundaryBefore: 'word' },
+      {
+        id: 'men',
+        text: 'men',
+        startsAtNeumeId: placement === 'earlier-anchor' ? 'g1' : 'g2',
+        boundaryBefore: 'continuation',
+      },
+    ];
+    let signed = updateAccidental(d, 'n2', 'natural', 'natural');
+    if (placement === 'earlier-anchor')
+      signed = placeAccidental(signed, 'natural', 'n1');
+    const layout = layoutChant(signed, measure);
+    const system = layout.systems[0];
+    expect(layout.systems).toHaveLength(1);
+    expect(system.hyphens).toHaveLength(1);
+    const sign = system.neumes.flatMap((n) => n.accidentals ?? [])[0].ink
+      .bounds;
+    const hyphen = system.hyphens[0];
+    const before = system.lyrics[0],
+      after = system.lyrics[1];
+    const metrics = {
+      before: [before.left, before.right],
+      natural: [sign.x, sign.x + sign.width],
+      after: [after.left, after.right],
+      hyphen: [hyphen.x - 10, hyphen.x + 10],
+    };
+    expect(metrics).toEqual(
+      placement === 'earlier-anchor'
+        ? {
+            before: [140, 160],
+            natural: [184, 192],
+            after: [196, 256],
+            hyphen: [162, 182],
+          }
+        : {
+            before: [140, 160],
+            natural: [234, 242],
+            after: [246, 306],
+            hyphen: [187, 207],
+          },
+    );
+    expect(hyphen.x - 10, JSON.stringify(metrics)).toBeGreaterThanOrEqual(
+      (before.right ?? 0) + 2,
+    );
+    expect(hyphen.x + 10, JSON.stringify(metrics)).toBeLessThanOrEqual(
+      sign.x - 2,
+    );
+    expect(hyphen.x + 10).toBeLessThanOrEqual((after.left ?? 0) - 2);
+    expect(after.anchorX).toBe(
+      system.neumes.find(
+        (n) => n.neumeId === (placement === 'earlier-anchor' ? 'g1' : 'g2'),
+      )?.lyricAnchorX,
+    );
+    expect(signed.accidentals[0].ownerNoteId).toBe('n2');
+    expect(system.neumes.map((n) => n.notes[0].anchorY)).toEqual([76, 76, 172]);
+  },
+);
+
+it.each([0, 10, 12])(
+  'keeps hyphens clear of both preceding and current low signs with %s fillers',
+  (fillers) => {
+    const d = blankDocument();
+    d.clef = { type: 'c', staffLine: 3 };
+    d.lyricLanguage = 'und';
+    d.neumes = [
+      ...Array.from({ length: fillers }, (_, i) => ({
+        id: `fill${i}`,
+        kind: 'punctum' as const,
+        notes: [{ id: `f${i}`, staffPosition: staffPosition(4) }] as [
+          ChantNote,
+        ],
+      })),
+      ...[4, -4, 4, -4].map((p, i) => ({
+        id: `g${i}`,
+        kind: 'punctum' as const,
+        notes: [{ id: `n${i}`, staffPosition: staffPosition(p) }] as [
+          ChantNote,
+        ],
+      })),
+    ];
+    d.syllables = [
+      { id: 'a', text: 'A', startsAtNeumeId: 'g0', boundaryBefore: 'word' },
+      {
+        id: 'men',
+        text: 'men',
+        startsAtNeumeId: 'g2',
+        boundaryBefore: 'continuation',
+      },
+    ];
+    let signed = updateAccidental(
+      updateAccidental(d, 'n1', 'natural', 'prior'),
+      'n3',
+      'natural',
+      'current',
+    );
+    signed = placeAccidental(signed, 'current', 'n2');
+    const layout = layoutChant(signed, measure);
+    expect(layout.systems.flatMap((s) => s.neumes)).toHaveLength(fillers + 4);
+    expect(layout.systems.flatMap((s) => s.hyphens)).toHaveLength(1);
+    for (const system of layout.systems) {
+      for (const h of system.hyphens) {
+        for (const a of system.neumes.flatMap((n) => n.accidentals ?? [])) {
+          const b = a.ink.bounds;
+          expect(h.x + 10 <= b.x - 2 || h.x - 10 >= b.x + b.width + 2).toBe(
+            true,
+          );
+        }
+      }
+      for (const lyric of system.lyrics) {
+        const anchor = signed.syllables.find(
+          (s) => s.id === lyric.syllableId,
+        )?.startsAtNeumeId;
+        expect(lyric.anchorX).toBe(
+          system.neumes.find((n) => n.neumeId === anchor)?.lyricAnchorX,
+        );
+      }
+    }
+    expect(
+      signed.accidentals.find((a) => a.id === 'current')?.placement,
+    ).toEqual({ kind: 'above-note', noteId: 'n2' });
+  },
+);

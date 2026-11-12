@@ -152,3 +152,64 @@ performance benchmark or redesign all contextual overlays. Structural validation
 remains exact: the native parser checks schema, the shared accidental shape check
 protects resolver inputs, and semantic validation no longer repeats those same
 shape predicates a third time.
+
+## Follow-up: continuation hyphen beside current-group accidental
+
+The owner re-review of `947e5de` identified a further synthetic C3 case. It was
+added as a failing regression **before changing layout behavior**: three puncta
+at positions 4, 4, −4; `und`; “A” on the first group with word boundary, “men”
+on the second with continuation; the third note owns a natural anchored above
+the second note. Measurements are exactly 20 units per character, including
+20 units for the hyphen. The observed bounds confirm the static trace:
+
+| Case                       | First lyric | Natural | Second lyric | Hyphen                             |
+| -------------------------- | ----------- | ------- | ------------ | ---------------------------------- |
+| Earlier anchor, before fix | 140–160     | 172–180 | 184–244      | **172–192: overlaps sign and men** |
+| Earlier anchor, after fix  | 140–160     | 184–192 | 196–256      | **162–182: clear interval**        |
+| Default prefix, before fix | 140–160     | 234–242 | 246–306      | **234–254: overlaps sign and men** |
+| Default prefix, after fix  | 140–160     | 234–242 | 246–306      | **187–207: clear interval**        |
+
+The equivalent default-prefix case puts “men” on the third, owning group and
+omits explicit placement. Both new tests failed on the original implementation;
+both now pass. A sign and its own lyric translate together, so shifting that
+group cannot enlarge their fixed intervening gap. Reservation now accounts for
+the current group's leading low ink and leaves space **before** it. Final
+same-system placement chooses the rightmost fitting clear interval, rather than
+forcing the hyphen after every sign. Both phases share the same measured
+vertical-band accidental exclusions. Existing division/clef/custos clearance,
+lyric alignment, local musical anchors, whole-group wrapping and progress remain
+in the existing layout walker. No semantic, command, persistence or architectural
+contract changed.
+
+Five additional tests cover both exact reproductions plus preceding-and-current
+low signs at three filler counts, including wrapping. They assert unobstructed
+hyphen intervals, stable semantic placement, lyric-to-neume anchors and retained
+neume counts. The complete gate passes on Node 24.18.0:
+
+- `npm run format:check`
+- `npm run lint`
+- `npm test`: **82 files / 1,699 tests**
+- `npm run build`
+- `git diff --check`
+
+The expanded Stage 8D production driver passed in Chromium 157/CDP and Firefox
+146/BiDi, including the two new native-font SVG overlap assertions and a 320px
+capture. Outputs: `/tmp/chant-b-accidentals-b8sm6x` and
+`/tmp/chant-b-accidentals-TOzSF4`. The retained [anchored](current-group-true.png),
+[default-prefix](current-group-false.png) and [320px](current-group-320.png)
+captures use real browser font measurements; the table's exact 20-unit metrics
+are the separate deterministic unit regression, not a claim about native fonts.
+The synthetic default-prefix specimen also puts its low notehead in the lyric
+band; that existing notehead/text overlap is unchanged. These new assertions
+establish hyphen clearance, not general low-notehead vertical clearance.
+
+The existing word-composition corpus driver (`CHANT_CORPUS=1`) also passed
+**47 cases with zero errors in each browser**, covering ordinary joins, hyphens,
+word spacing and outgoing continuations. Corpus outputs:
+`/tmp/chant-word-composition-kRCnqs` (Chromium) and
+`/tmp/chant-word-composition-fvXx1R` (Firefox). All existing pure layout and
+compaction tests passed. Historical reference path/hit metrics compare equal to
+the retained originals after parsing JSON; the existing specimens remain in the
+production browser driver. Historical evidence and bundled examples were not
+rewritten. Prior foreground/manual acceptance limits remain unchanged; no new
+foreground speech or native printer checks are claimed for this follow-up.

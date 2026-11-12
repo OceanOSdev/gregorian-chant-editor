@@ -53,6 +53,7 @@ import {
   interNeumeInkGap,
   type NeumeGeometry,
   type NoteGeometry,
+  type LayoutBounds,
 } from './neume-geometry';
 export {
   staffStartX,
@@ -246,6 +247,40 @@ export const compactNeumeInkGap = 2;
 export const lyricJoinThreshold = lyricFontSize / 10;
 export const lyricJoinClearance = lyricFontSize / 20;
 const hyphenClearance = lyricFontSize / 10;
+
+/** The same measured low-sign exclusions drive reservation and final placement. */
+function lyricBandAccidentals(
+  groups: readonly Pick<NeumeGeometry, 'accidentals'>[],
+  baseline: number,
+): LayoutBounds[] {
+  return groups.flatMap((g) =>
+    (g.accidentals ?? [])
+      .map((a) => a.ink.bounds)
+      .filter(
+        (b) =>
+          b.y < baseline + lyricFontSize / 4 + 3 &&
+          b.y + b.height > baseline - lyricFontSize - 3,
+      ),
+  );
+}
+
+/** Prefer the rightmost clear interval. Reservation guarantees a fitting gap. */
+function continuationHyphenLeft(
+  start: number,
+  end: number,
+  obstacles: readonly LayoutBounds[],
+  width: number,
+): number {
+  for (const b of obstacles
+    .filter((b) => b.x < end && b.x + b.width > start)
+    .sort((a, b) => b.x - a.x)) {
+    const right = Math.max(start, b.x + b.width);
+    if (end - right >= width + 2 * hyphenClearance)
+      return right + (end - right - width) / 2;
+    end = Math.min(end, b.x);
+  }
+  return start + (end - start - width) / 2;
+}
 
 /** One walker owns music minima, lyric clearance, wrapping and oversized progress. */
 function placeNeumeSequence(
@@ -517,28 +552,21 @@ function placeNeumeSequence(
             (lyric.boundaryBefore === 'word'
               ? lyricFontSize / 4
               : lyricJoinClearance);
+      const baseline =
+        firstSystemLyricBaselineY + systems.length * systemVerticalAdvance;
+      const previousSigns = lyricBandAccidentals(geometries, baseline);
+      const currentSigns = lyricBandAccidentals([initial], baseline);
       const minimum = Math.max(
         lyricMinimum,
-        ...geometries.flatMap((g) =>
-          (g.accidentals ?? []).flatMap((a) => {
-            const b = a.ink.bounds;
-            const top =
-              firstSystemLyricBaselineY +
-              systems.length * systemVerticalAdvance -
-              lyricFontSize;
-            return b.y < top + lyricFontSize * 1.25 + 3 &&
-              b.y + b.height > top - 3
-              ? [
-                  b.x +
-                    b.width +
-                    4 +
-                    (lyric.boundaryBefore === 'continuation' &&
-                    previousLyricRight !== null
-                      ? hyphenWidth + 2 * hyphenClearance
-                      : 0),
-                ]
-              : [];
-          }),
+        ...previousSigns.map(
+          (b) =>
+            b.x +
+            b.width +
+            4 +
+            (lyric.boundaryBefore === 'continuation' &&
+            previousLyricRight !== null
+              ? hyphenWidth + 2 * hyphenClearance
+              : 0),
         ),
         lastBoundaryEventRight === null
           ? -Infinity
@@ -550,13 +578,25 @@ function placeNeumeSequence(
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
         Math.max(left, minimum) - previousLyricRight > lyricJoinThreshold;
+      // Current signs translate with their lyric: reserve before their leading
+      // ink, rather than attempting to enlarge the fixed sign-to-lyric gap.
       const shift = Math.max(
         0,
         (separated && previousLyricRight !== null
-          ? Math.max(previousLyricRight, lastBoundaryEventRight ?? -Infinity) +
+          ? Math.max(
+              previousLyricRight,
+              lastBoundaryEventRight ?? -Infinity,
+              ...previousSigns.map((b) => b.x + b.width),
+            ) +
             hyphenWidth +
             2 * hyphenClearance
-          : minimum) - left,
+          : minimum) -
+          (separated
+            ? Math.min(
+                left,
+                ...currentSigns.filter((b) => b.x < left).map((b) => b.x),
+              )
+            : left),
         minimum - left,
       );
       const shifted = () =>
@@ -1000,17 +1040,6 @@ export function layoutChant(
                 ...before.system.divisions,
                 ...before.system.clefChanges,
                 ...before.system.custodes,
-                ...before.system.neumes.flatMap((n) =>
-                  (n.accidentals ?? [])
-                    .filter(
-                      (a) =>
-                        a.ink.bounds.y <
-                          before.lyric.y + lyricFontSize / 4 + 3 &&
-                        a.ink.bounds.y + a.ink.bounds.height >
-                          before.lyric.y - lyricFontSize - 3,
-                    )
-                    .map((a) => ({ bounds: a.ink.bounds })),
-                ),
               ]
                 .filter(
                   (d) =>
@@ -1019,7 +1048,12 @@ export function layoutChant(
                 )
                 .map((d) => d.bounds.x + d.bounds.width),
             );
-            return start + (after.lyric.left - start - hyphenWidth) / 2;
+            return continuationHyphenLeft(
+              start,
+              after.lyric.left,
+              lyricBandAccidentals(before.system.neumes, before.lyric.y),
+              hyphenWidth,
+            );
           })();
       before.system.hyphens.push({
         x: left - hyphenExtents.left,

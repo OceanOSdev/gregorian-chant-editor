@@ -847,6 +847,74 @@ try {
     assert.equal(collisions, 0);
     await snapshot(`lyric-collision-${continuation}`);
   }
+  // Current-group low signs must leave a real interval for the incoming hyphen.
+  for (const explicit of [true, false]) {
+    const edge = fixture();
+    edge.document.title = `Current group hyphen ${explicit ? 'anchored' : 'prefix'}`;
+    edge.document.clef = { type: 'c', staffLine: 3 };
+    edge.document.lyricLanguage = 'und';
+    edge.document.neumes = [4, 4, -4].map((staffPosition, i) => ({
+      id: `g${i}`,
+      kind: 'punctum',
+      notes: [{ id: `n${i}`, staffPosition }],
+    }));
+    edge.document.syllables = [
+      { id: 'a', text: 'A', startsAtNeumeId: 'g0', boundaryBefore: 'word' },
+      {
+        id: 'men',
+        text: 'men',
+        startsAtNeumeId: explicit ? 'g1' : 'g2',
+        boundaryBefore: 'continuation',
+      },
+    ];
+    edge.document.accidentals = [
+      {
+        id: 'current-natural',
+        kind: 'natural',
+        ownerNoteId: 'n2',
+        ...(explicit
+          ? { placement: { kind: 'above-note', noteId: 'n1' } }
+          : {}),
+      },
+    ];
+    await hydrate(edge);
+    const metrics = await ev(
+      `(()=>{const box=e=>{const b=e.getBBox();return {x:b.x,y:b.y,width:b.width,height:b.height}};return {signs:[...document.querySelectorAll('.score__accidental-ink')].map(box),hyphens:[...document.querySelectorAll('.score__hyphens text')].map(box),lyrics:[...document.querySelectorAll('.score__lyric')].map(box)}})()`,
+    );
+    assert.equal(metrics.hyphens.length, 1);
+    assert.equal(metrics.signs.length, 1);
+    for (const h of metrics.hyphens)
+      for (const b of [...metrics.signs, ...metrics.lyrics]) {
+        assert.ok(
+          h.x + h.width <= b.x ||
+            h.x >= b.x + b.width ||
+            h.y + h.height <= b.y ||
+            h.y >= b.y + b.height,
+          JSON.stringify(metrics),
+        );
+      }
+    assert.deepEqual((await score()).accidentals, edge.document.accidentals);
+    await writeFile(
+      join(output, `current-group-${explicit}-metrics.json`),
+      JSON.stringify(metrics, null, 2),
+    );
+    await snapshot(`current-group-${explicit}`);
+    if (explicit) {
+      await send('Emulation.setDeviceMetricsOverride', {
+        width: 320,
+        height: 900,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await snapshot('current-group-320');
+      await send('Emulation.setDeviceMetricsOverride', {
+        width: 1440,
+        height: 900,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+    }
+  }
   // A clef boundary between the written anchor and B must preserve exact placement.
   const crossing = structuredClone(reference);
   crossing.document.clefChanges = [

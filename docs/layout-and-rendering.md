@@ -683,6 +683,9 @@ accidental record, without object-identity filtering or parallel metadata arrays
 
 Lyric collision constraints work in both directions: new signs clear existing
 lyrics, and new lyrics clear earlier signs in the same vertical band. Continuation
-hyphens also clear intervening low signs. Accidental-bearing groups enter the
-existing measured vertical canvas expansion, including high plain puncta and
+hyphens also clear intervening low signs. Reservation includes the current
+group’s leading low ink, because the sign and lyric translate together. Final
+placement uses the same measured sign exclusions to select the rightmost fitting
+clear interval, which may precede a current-group sign. Accidental-bearing groups
+enter the existing measured vertical canvas expansion, including high plain puncta and
 explicit earlier anchors; this is separate from extreme-pitch limitations.
