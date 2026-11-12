@@ -1,0 +1,18 @@
+{
+  "browser": "Firefox/BiDi",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0",
+  "bundle": "http://127.0.0.1:4173/assets/index-VQtrrR16.js",
+  "output": "/tmp/chant-8d-acceptance-cjcZIz",
+  "htmlPlacementStart": "DOM activation; native Tab and SVG Arrow/Enter verified",
+  "checks": [
+    "default/written/inherited pitch indications",
+    "natural cancellation reflected on following B",
+    "other register remains default",
+    "native keyboard new-anchor commit and glyph focus",
+    "no false lyric-history dialog during targeting; genuine dirty-history prompt retained",
+    "atomic keyboard-placement undo/redo",
+    "owner deletion preserves other B/natural",
+    "live ordinary/repeated-B/lyric visual sheet",
+    "live note/glyph properties and Beata targeting/cancel"
+  ]
+}

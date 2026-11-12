@@ -5,6 +5,9 @@ engraving acceptance. The branch was fetched and checked out with a clean
 working tree. No application code, native format, Accepted ADR or bundled
 example was changed.
 
+See the [final acceptance audit](acceptance.md) for the functional coverage map
+and three representative visual review images.
+
 ## Owner resolution
 
 The owner subsequently approved option 2, a narrow earlier-note placement

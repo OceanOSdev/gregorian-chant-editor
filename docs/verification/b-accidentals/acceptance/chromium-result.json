@@ -1,0 +1,18 @@
+{
+  "browser": "Chromium/CDP",
+  "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+  "bundle": "http://127.0.0.1:4173/assets/index-VQtrrR16.js",
+  "output": "/tmp/chant-8d-acceptance-VLpWjg",
+  "htmlPlacementStart": "native Tab/Space activation",
+  "checks": [
+    "default/written/inherited pitch indications",
+    "natural cancellation reflected on following B",
+    "other register remains default",
+    "native keyboard new-anchor commit and glyph focus",
+    "no false lyric-history dialog during targeting; genuine dirty-history prompt retained",
+    "atomic keyboard-placement undo/redo",
+    "owner deletion preserves other B/natural",
+    "live ordinary/repeated-B/lyric visual sheet",
+    "live note/glyph properties and Beata targeting/cancel"
+  ]
+}

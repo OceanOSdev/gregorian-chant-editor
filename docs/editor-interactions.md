@@ -828,3 +828,7 @@ Starting another placement and Delete are disabled during targeting; invalid
 targets preserve the exact document and history. Focused glyph deletion returns
 focus to its owning B even when Tab did not select the glyph. The contextual
 accidental toolbar exposes a typed focus handle independent of accessible labels.
+
+During accidental targeting, lyric controls are inert. Their history-resolution
+prompt is driven only by a genuine pending history request, so targeting cannot
+show a lyric-draft prompt or steal the requested score focus.

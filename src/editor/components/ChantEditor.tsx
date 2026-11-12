@@ -1490,9 +1490,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           selectedNeumeId={selectedNeume?.id ?? null}
           focusedSyllableId={focusedLyricId}
           focusRequest={session.focusRequest}
-          pendingHistory={Boolean(
-            session.pendingHistory || session.accidentalTargetId,
-          )}
+          pendingHistory={Boolean(session.pendingHistory)}
+          interactionBlocked={Boolean(session.accidentalTargetId)}
           onAction={lyricAction}
           onHistoryChoice={(choice) =>
             dispatch({
