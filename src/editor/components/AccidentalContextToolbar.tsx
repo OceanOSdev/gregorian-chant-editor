@@ -35,32 +35,38 @@ export function AccidentalContextToolbar({
   onHistory: (direction: 'undo' | 'redo') => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
-  const refreshPosition = useRef<(() => void) | null>(null);
+  const refreshPosition = useRef<(() => NoteToolbarPosition | null) | null>(
+    null,
+  );
   const focusRequested = useRef(false);
+  const [position, setPosition] = useState<NoteToolbarPosition | null>(null);
+  const firstControl = () =>
+    panel.current?.querySelector<HTMLSelectElement | HTMLButtonElement>(
+      'select:not(:disabled),button:not(:disabled)',
+    );
   useImperativeHandle(
     ref,
     () => ({
+      // Like the note toolbar: only a refresh that can actually position the
+      // panel leaves a deferred focus request; otherwise the caller keeps Tab.
       focus: () => {
         const glyph = document.querySelector<SVGGElement>(
           `[data-accidental-id="${CSS.escape(id)}"]`,
         );
         if (!glyph) return false;
-        focusAndReveal(glyph);
-        focusRequested.current = true;
-        refreshPosition.current?.();
-        const control = panel.current?.querySelector<
-          HTMLSelectElement | HTMLButtonElement
-        >('select:not(:disabled),button:not(:disabled)');
-        if (control && panel.current?.style.visibility === 'visible') {
-          control.focus();
-          focusRequested.current = false;
+        const control = firstControl();
+        if (position && control) {
+          control.focus({ preventScroll: true });
+          return true;
         }
+        focusAndReveal(glyph);
+        if (!refreshPosition.current?.()) return false;
+        focusRequested.current = true;
         return true;
       },
     }),
-    [id],
+    [id, position],
   );
-  const [position, setPosition] = useState<NoteToolbarPosition | null>(null);
   useLayoutEffect(() => {
     const update = () => {
       const glyph = document.querySelector<SVGGElement>(
@@ -69,7 +75,7 @@ export function AccidentalContextToolbar({
       const surface = panel.current;
       if (!glyph || !surface) {
         setPosition(null);
-        return;
+        return null;
       }
       const b = glyph.getBoundingClientRect(),
         v = window.visualViewport;
@@ -88,15 +94,15 @@ export function AccidentalContextToolbar({
         !surface.contains(document.activeElement)
       ) {
         setPosition(null);
-        return;
+        return null;
       }
-      setPosition(
-        positionNoteToolbar(b, viewport, {
-          width: Math.min(320, viewport.right - viewport.left - 16),
-          height:
-            surface.scrollHeight + surface.offsetHeight - surface.clientHeight,
-        }),
-      );
+      const next = positionNoteToolbar(b, viewport, {
+        width: Math.min(320, viewport.right - viewport.left - 16),
+        height:
+          surface.scrollHeight + surface.offsetHeight - surface.clientHeight,
+      });
+      setPosition(next);
+      return next;
     };
     refreshPosition.current = update;
     update();
@@ -107,6 +113,7 @@ export function AccidentalContextToolbar({
     window.visualViewport?.addEventListener('resize', update);
     window.visualViewport?.addEventListener('scroll', update);
     return () => {
+      refreshPosition.current = null;
       observer.disconnect();
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
@@ -116,12 +123,8 @@ export function AccidentalContextToolbar({
   }, [id, layout]);
   useLayoutEffect(() => {
     if (position && focusRequested.current) {
-      panel.current
-        ?.querySelector<HTMLSelectElement | HTMLButtonElement>(
-          'select:not(:disabled),button:not(:disabled)',
-        )
-        ?.focus();
       focusRequested.current = false;
+      firstControl()?.focus({ preventScroll: true });
     }
   }, [position]);
   return createPortal(

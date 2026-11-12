@@ -322,6 +322,37 @@ describe('placement session feedback and deletion focus', () => {
       expect(next.focusRequest).toEqual({ kind: 'note', noteId: 'n2' });
     },
   );
+  it.each(['', 'men'])(
+    'focused glyph deletion during a lyric entry with draft %j deletes once and preserves the draft',
+    (draft) => {
+      let s = createEditorSession(anchored());
+      s = reduceEditorSession(s, {
+        type: 'lyrics',
+        action: { type: 'start', neumeId: 'g3' },
+        newId: 'lyric',
+      });
+      if (draft)
+        s = reduceEditorSession(s, {
+          type: 'lyrics',
+          action: { type: 'text', text: draft },
+          newId: 'lyric',
+        });
+      expect(s.lyrics?.kind).toBe('draft');
+      const lyrics = s.lyrics;
+      const next = reduceEditorSession(s, {
+        type: 'delete-accidental',
+        id: 'flat',
+      });
+      expect(next.history.present.accidentals).toEqual([]);
+      expect(next.history.present.neumes).toBe(s.history.present.neumes);
+      expect(next.history.present.syllables).toBe(s.history.present.syllables);
+      expect(next.history.past).toEqual([...s.history.past, s.history.present]);
+      expect(next.lyrics).toBe(lyrics);
+      expect(next.pendingHistory).toBeNull();
+      expect(next.focusRequest).toEqual({ kind: 'note', noteId: 'n2' });
+      expect(next.announcement.text).toBe('Accidental deleted.');
+    },
+  );
 });
 
 it('distinguishes intermediate clef candidates from finalized public edits', () => {

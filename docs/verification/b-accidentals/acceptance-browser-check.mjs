@@ -374,6 +374,100 @@ try {
   await button('Cancel draft and exit');
   assert.equal(await raw(), placed);
 
+  // A focusable glyph remains operable during clean and dirty lyric entry:
+  // Delete removes only the sign, keeps the draft and shows no history prompt.
+  const lyricInput = `document.querySelector('#lyric-input')`;
+  const historyDialogs = `document.querySelectorAll('[aria-label="Resolve lyric draft before history"]').length`;
+  const naturalId = (await score()).accidentals.find(
+    (a) => a.id !== flat.id,
+  ).id;
+  await ev(
+    `document.querySelector('[data-syllable-id="word"]').dispatchEvent(new MouseEvent('dblclick',{bubbles:true}))`,
+  );
+  await pause();
+  assert.equal(await ev(`${lyricInput}.value`), 'Proba');
+  // Tab from a selected glyph whose properties are unavailable keeps native Tab.
+  await ev(
+    `document.querySelector('[data-accidental-id="${flat.id}"]').focus()`,
+  );
+  await key('Enter');
+  await key('Tab');
+  assert.notEqual(
+    await ev('document.activeElement.dataset.accidentalId ?? null'),
+    flat.id,
+    'Tab is not swallowed during lyric entry',
+  );
+  assert.equal(await ev(`${lyricInput}.value`), 'Proba');
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-accidental-id="${naturalId}"]').tabIndex`,
+    ),
+    0,
+  );
+  await ev(
+    `document.querySelector('[data-accidental-id="${naturalId}"]').focus()`,
+  );
+  await key('Delete');
+  assert.deepEqual(
+    (await score()).accidentals.map((a) => a.id),
+    [flat.id],
+  );
+  assert.equal(await ev(`${lyricInput}.value`), 'Proba');
+  assert.equal(await ev(historyDialogs), 0);
+  assert.equal(await ev('document.activeElement.dataset.noteId'), 'n3');
+  await ev(
+    `(()=>{const e=${lyricInput};Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'Draft');e.dispatchEvent(new Event('input',{bubbles:true}))})()`,
+  );
+  await pause();
+  await ev(
+    `document.querySelector('[data-accidental-id="${flat.id}"]').focus()`,
+  );
+  await key('Delete');
+  assert.deepEqual((await score()).accidentals, []);
+  assert.equal(await ev(`${lyricInput}.value`), 'Draft');
+  assert.equal(await ev(historyDialogs), 0);
+  assert.equal(await ev('document.activeElement.dataset.noteId'), 'n2');
+  await button('Cancel draft and exit');
+  await button('Undo last edit');
+  await button('Undo last edit');
+  assert.equal(await raw(), placed, 'two one-step sign deletions undo exactly');
+
+  // A properties request that cannot position the toolbar (glyph outside the
+  // pinch-zoomed visual viewport) must not leave deferred focus that later
+  // steals focus from wherever the user went next.
+  if (!firefox) {
+    await select('n2');
+    await selectGlyph(flat.id);
+    await rawSend('Emulation.setPageScaleFactor', { pageScaleFactor: 6 });
+    await pause();
+    const outside = await ev(
+      `(()=>{const b=document.querySelector('[data-accidental-id="${flat.id}"]').getBoundingClientRect(),v=visualViewport;return b.right<v.offsetLeft||b.left>v.offsetLeft+v.width||b.bottom<v.offsetTop||b.top>v.offsetTop+v.height})()`,
+    );
+    assert.ok(outside, 'the glyph is outside the visual viewport');
+    await ev(
+      `document.querySelector('[data-accidental-id="${flat.id}"]').focus({preventScroll:true})`,
+    );
+    await key('Tab');
+    await ev(
+      `document.querySelector('[data-note-id="n0"]').focus({preventScroll:true})`,
+    );
+    await rawSend('Emulation.setPageScaleFactor', { pageScaleFactor: 1 });
+    await pause();
+    await pause();
+    assert.equal(
+      await ev(
+        `getComputedStyle(document.querySelector('[aria-label="Selected accidental properties"]')).visibility`,
+      ),
+      'visible',
+    );
+    assert.equal(
+      await ev('document.activeElement.dataset.noteId'),
+      'n0',
+      'no stale deferred focus after the failed request',
+    );
+    await key('Escape');
+  }
+
   const groups = [
     { id: 'ordinary-flat', kind: 'punctum', notes: [note('flat-note', 5)] },
     {
@@ -484,6 +578,10 @@ try {
       'other register remains default',
       'native keyboard new-anchor commit and glyph focus',
       'no false lyric-history dialog during targeting; genuine dirty-history prompt retained',
+      'glyph Delete during clean/dirty lyric entry keeps the draft; native Tab kept',
+      ...(firefox
+        ? []
+        : ['no stale deferred toolbar focus after an unpositionable request']),
       'atomic keyboard-placement undo/redo',
       'owner deletion preserves other B/natural',
       'live ordinary/repeated-B/lyric visual sheet',

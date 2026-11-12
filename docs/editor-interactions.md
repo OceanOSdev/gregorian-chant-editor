@@ -832,3 +832,12 @@ accidental toolbar exposes a typed focus handle independent of accessible labels
 During accidental targeting, lyric controls are inert. Their history-resolution
 prompt is driven only by a genuine pending history request, so targeting cannot
 show a lyric-draft prompt or steal the requested score focus.
+
+Glyphs stay focusable during a clean or dirty lyric entry. As with note and
+division edits, Delete/Backspace then removes only the sign in one history entry,
+keeps the lyric draft intact, shows no history prompt and returns focus to the
+owning B. The accidental properties toolbar is not offered during lyric entry;
+Tab from a selected glyph then keeps native focus navigation. A properties focus
+request that cannot position the toolbar (for example, a glyph outside a
+pinch-zoomed visual viewport) is refused like the note toolbar's: Tab is not
+consumed and no deferred focus remains to move focus later.

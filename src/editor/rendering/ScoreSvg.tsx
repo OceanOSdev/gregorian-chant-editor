@@ -51,7 +51,7 @@ export interface SvgPoint {
 interface ScoreSvgProps {
   accidentalTargetIds: readonly string[] | null;
   onAccidentalTarget: (id: string) => void;
-  onFocusAccidentalProperties: () => void;
+  onFocusAccidentalProperties: () => boolean;
   onSelectAccidental: (id: string) => void;
   onDeleteAccidental: (id: string) => void;
   onFocusNoteModifiers?: () => boolean;
@@ -974,11 +974,11 @@ export function ScoreSvg({
                             e.key === 'Tab' &&
                             !e.shiftKey &&
                             selection.kind === 'accidental' &&
-                            selection.accidentalId === id
+                            selection.accidentalId === id &&
+                            onFocusAccidentalProperties()
                           ) {
                             e.preventDefault();
                             e.stopPropagation();
-                            onFocusAccidentalProperties();
                             return;
                           }
                           if (e.key === 'Enter' || e.key === ' ') {

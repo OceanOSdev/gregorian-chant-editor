@@ -755,10 +755,11 @@ export function reduceEditorSession(
   action: EditorAction,
 ): EditorSession {
   if (action.type === 'delete-accidental') {
+    // Like note and division edits, this leaves any lyric entry and its draft
+    // intact; it cannot change the syllables or neumes that the entry targets.
     if (
       state.accidentalTargetId ||
       state.clefTransaction ||
-      state.lyrics ||
       state.lyricMove ||
       state.pendingHistory
     )

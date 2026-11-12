@@ -1111,7 +1111,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         >
           <ScoreSvg
             onFocusAccidentalProperties={() =>
-              accidentalToolbar.current?.focus()
+              accidentalToolbar.current?.focus() ?? false
             }
             accidentalTargetIds={accidentalTarget ? targetIds : null}
             onAccidentalTarget={(id) => finishAccidentalPlacement(id)}
