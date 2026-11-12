@@ -5,6 +5,19 @@ engraving acceptance. The branch was fetched and checked out with a clean
 working tree. No application code, native format, Accepted ADR or bundled
 example was changed.
 
+## Owner resolution
+
+The owner subsequently approved option 2, a narrow earlier-note placement
+extension. [Accepted ADR 0021](../../adrs/0021-author-b-accidentals-at-neume-boundaries.md)
+and the [Stage 8D plan](../../plans/stage-8d-b-accidentals.md) now authorize
+implementation on this branch. The sign retains stable B-note ownership
+but may be written above an eligible earlier note; invalidated placement
+returns to the default before-owner-neume position. The historical gate
+is resolved for this specimen, not waived. The remaining comparison
+matrix, actual editor engraving and feature verification are still pending.
+The original investigation, alternatives and baseline results below
+describe the state at the stop.
+
 ## Verified printed placement
 
 The plan requires comparing [Beata gens, GregoBase 1044](https://gregobase.selapa.net/chant.php?id=1044).
@@ -83,7 +96,8 @@ option was ignored; the GABC was explicitly compiled beforehand.
 ## Why the affected work stopped
 
 [Accepted ADR 0021](../../adrs/0021-author-b-accidentals-at-neume-boundaries.md)
-requires a B owner and placement immediately before that owner's containing
+in its original pre-amendment form required a B owner and placement
+immediately before that owner's containing
 neume. There is no B owner in the preceding F or G–A groups. Moving the flat
 to the later B virga would preserve its effect on that B but would change this
 verified written placement. Combining all these notes into one owning neume
@@ -95,7 +109,7 @@ note-internal or floating signs, retain the evidence and stop that affected
 design decision; do not silently extend the vocabulary.” This is a placement
 limitation of the agreed vocabulary, not a reason to revisit octave scope.
 
-Concrete alternatives for the owner:
+Concrete alternatives presented to the owner at the stop (option 2 accepted):
 
 1. Retain ADR 0021 and explicitly accept that this printed placement cannot be
    transcribed exactly. Amend the plan to permit proceeding with the B-neume
