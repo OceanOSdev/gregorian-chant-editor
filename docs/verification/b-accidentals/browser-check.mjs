@@ -915,6 +915,65 @@ try {
       });
     }
   }
+  // A sign that ends before the previous lyric's right edge cannot obstruct a
+  // hyphen, so it must not force a narrow native-font join apart (Stage 8D
+  // final revision). Unsigned and signed layouts keep the same compact gap.
+  for (const text of ['i', 'e']) {
+    const gaps = [];
+    for (const signed of [false, true]) {
+      const narrow = fixture();
+      narrow.document.title = `Narrow join ${text} ${signed ? 'signed' : 'unsigned'}`;
+      narrow.document.clef = { type: 'c', staffLine: 3 };
+      narrow.document.lyricLanguage = 'und';
+      narrow.document.neumes = [4, 4, 4, -4].map((staffPosition, i) => ({
+        id: `g${i}`,
+        kind: 'punctum',
+        notes: [{ id: `n${i}`, staffPosition }],
+      }));
+      narrow.document.syllables = [
+        { id: 'w', text: 'A', startsAtNeumeId: 'g0', boundaryBefore: 'word' },
+        { id: 'x', text, startsAtNeumeId: 'g1', boundaryBefore: 'word' },
+        {
+          id: 'men',
+          text: 'men',
+          startsAtNeumeId: 'g2',
+          boundaryBefore: 'continuation',
+        },
+      ];
+      narrow.document.accidentals = signed
+        ? [
+            {
+              id: 'anchored-natural',
+              kind: 'natural',
+              ownerNoteId: 'n3',
+              placement: { kind: 'above-note', noteId: 'n1' },
+            },
+          ]
+        : [];
+      await hydrate(narrow);
+      const metrics = await ev(
+        `(()=>{const box=e=>{const b=e.getBBox();return {x:b.x,y:b.y,width:b.width,height:b.height}};return {signs:[...document.querySelectorAll('.score__accidental-ink')].map(box),hyphens:[...document.querySelectorAll('.score__hyphens text')].map(box),lyrics:[...document.querySelectorAll('.score__lyric')].map(box)}})()`,
+      );
+      assert.equal(metrics.hyphens.length, 0, JSON.stringify(metrics));
+      assert.equal(metrics.signs.length, signed ? 1 : 0);
+      const [, before, after] = metrics.lyrics;
+      if (signed)
+        assert.ok(
+          metrics.signs[0].x + metrics.signs[0].width <=
+            before.x + before.width,
+          'the sign ends before the previous lyric edge',
+        );
+      gaps.push(after.x - (before.x + before.width));
+      if (signed) {
+        await writeFile(
+          join(output, `narrow-join-${text}-metrics.json`),
+          JSON.stringify(metrics, null, 2),
+        );
+        await snapshot(`narrow-join-${text}`);
+      }
+    }
+    assert.ok(Math.abs(gaps[0] - gaps[1]) < 0.01, JSON.stringify(gaps));
+  }
   // A clef boundary between the written anchor and B must preserve exact placement.
   const crossing = structuredClone(reference);
   crossing.document.clefChanges = [
@@ -999,7 +1058,7 @@ try {
       legacyBuildVerified: !!process.env.CHANT_LEGACY_URL,
       output,
       checks:
-        'authoring, repeated-B, glyph keyboard, placement/cancel/restore, anchor loss, history, refresh, narrow, cross-system, export/import, legacy upgrade',
+        'authoring, repeated-B, glyph keyboard, placement/cancel/restore, anchor loss, history, refresh, narrow, native-font narrow continuation joins, cross-system, export/import, legacy upgrade',
     }),
   );
 } finally {

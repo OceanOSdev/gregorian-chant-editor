@@ -556,18 +556,11 @@ function placeNeumeSequence(
         firstSystemLyricBaselineY + systems.length * systemVerticalAdvance;
       const previousSigns = lyricBandAccidentals(geometries, baseline);
       const currentSigns = lyricBandAccidentals([initial], baseline);
-      const minimum = Math.max(
+      // Genuine music, lyric and sign clearance decides whether a continuation
+      // must separate; hyphen space is reserved only after that decision.
+      const clearance = Math.max(
         lyricMinimum,
-        ...previousSigns.map(
-          (b) =>
-            b.x +
-            b.width +
-            4 +
-            (lyric.boundaryBefore === 'continuation' &&
-            previousLyricRight !== null
-              ? hyphenWidth + 2 * hyphenClearance
-              : 0),
-        ),
+        ...previousSigns.map((b) => b.x + b.width + 4),
         lastBoundaryEventRight === null
           ? -Infinity
           : lastBoundaryEventRight + divisionGap,
@@ -577,7 +570,21 @@ function placeNeumeSequence(
       const separated =
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
-        Math.max(left, minimum) - previousLyricRight > lyricJoinThreshold;
+        Math.max(left, clearance) - previousLyricRight > lyricJoinThreshold;
+      // A hyphen starts after the previous lyric, so only signs ending beyond
+      // that edge can intersect its interval.
+      const hyphenStart = previousLyricRight;
+      const minimum =
+        separated && hyphenStart !== null
+          ? Math.max(
+              clearance,
+              ...previousSigns
+                .filter((b) => b.x + b.width > hyphenStart)
+                .map(
+                  (b) => b.x + b.width + 4 + hyphenWidth + 2 * hyphenClearance,
+                ),
+            )
+          : clearance;
       // Current signs translate with their lyric: reserve before their leading
       // ink, rather than attempting to enlarge the fixed sign-to-lyric gap.
       const shift = Math.max(
