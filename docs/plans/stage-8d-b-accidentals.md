@@ -2,7 +2,11 @@
 
 Branch: `feat/stage-8d-b-accidentals`
 Target: `master`
-Status: **Ready for implementation (owner-approved design, 2026-11-11).**
+Status: **Stopped at the historical placement gate (2026-11-11), pending
+owner decision.** The required Beata gens printed reference includes a flat
+whose placement is outside ADR 0021's owner-neume vocabulary. See the
+[evidence, reproduction and alternatives](../verification/b-accidentals/README.md).
+No application implementation or ADR amendment has been made.
 
 ## Problem and user-visible goal
 
