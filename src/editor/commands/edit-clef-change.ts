@@ -13,6 +13,11 @@ import {
 import { isValidClef, clefOffset } from '../domain/clef';
 import { isValidNeume } from '../domain/neume';
 import { transposeNeume } from './move-neume';
+import {
+  hasValidAccidentals,
+  reconcileAccidentals,
+  resolveEffectivePitches,
+} from '../domain/accidentals';
 
 export function effectiveOffsets(
   document: ChantDocument,
@@ -75,12 +80,46 @@ export function preserveClefMelody(
     )
   )
     return null;
-  return {
+  const translated = {
     ...candidate,
     neumes: candidate.neumes.map((n, i) =>
       deltas[i] ? transposeNeume(n, deltas[i]) : n,
     ),
   };
+  const result = reconcileAccidentals(before, translated);
+  if (
+    !result ||
+    result.accidentals.length !== before.accidentals.length ||
+    before.accidentals.some(
+      (a) =>
+        !result.accidentals.some(
+          (b) =>
+            b.id === a.id &&
+            b.kind === a.kind &&
+            b.ownerNoteId === a.ownerNoteId,
+        ),
+    ) ||
+    !hasValidAccidentals(result)
+  )
+    return null;
+  if (before.accidentals.length) {
+    const oldPitches = resolveEffectivePitches(before),
+      nextPitches = resolveEffectivePitches(result);
+    if (
+      !oldPitches ||
+      !nextPitches ||
+      [...oldPitches].some(([id, pitch]) => {
+        const nextPitch = nextPitches.get(id);
+        return (
+          nextPitch &&
+          (nextPitch.degree !== pitch.degree ||
+            nextPitch.alteration !== pitch.alteration)
+        );
+      })
+    )
+      return null;
+  }
+  return result;
 }
 
 export function insertClefChange(
@@ -100,7 +139,8 @@ export function insertClefChange(
     document.neumes.some((n) =>
       n.notes.some((note) => note.id === change.id),
     ) ||
-    document.syllables.some((s) => s.id === change.id)
+    document.syllables.some((s) => s.id === change.id) ||
+    document.accidentals.some((a) => a.id === change.id)
   )
     return document;
   order.splice(resolved.scoreIndex, 0, { type: 'clef', entity: change });

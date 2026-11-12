@@ -1,7 +1,8 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import { isValidLyricText } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 
-export function updateLyricSyllableText(
+function updateLyricSyllableTextCandidate(
   document: ChantDocument,
   syllableId: string,
   text: string,
@@ -20,4 +21,13 @@ export function updateLyricSyllableText(
   syllables[syllableIndex] = { ...rest, text };
 
   return { ...document, syllables };
+}
+
+export function updateLyricSyllableText(
+  ...args: Parameters<typeof updateLyricSyllableTextCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], updateLyricSyllableTextCandidate(...args)) ??
+    args[0]
+  );
 }

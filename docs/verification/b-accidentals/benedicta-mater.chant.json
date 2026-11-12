@@ -1,0 +1,123 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 5,
+  "document": {
+    "accidentals": [
+      {
+        "id": "flat",
+        "kind": "flat",
+        "ownerNoteId": "bag-0",
+        "placement": {
+          "kind": "above-note",
+          "noteId": "fga-0"
+        }
+      }
+    ],
+    "clefChanges": [],
+    "divisions": [],
+    "lyricLanguage": "la",
+    "title": "benedicta-mater",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "syllables": [
+      {
+        "id": "ma",
+        "text": "ma",
+        "startsAtNeumeId": "dc",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "ter",
+        "text": "ter",
+        "startsAtNeumeId": "a",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "dc",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "dc-0",
+            "staffPosition": 0
+          },
+          {
+            "id": "dc-1",
+            "staffPosition": -1
+          }
+        ]
+      },
+      {
+        "id": "fga",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "fga-0",
+            "staffPosition": 2
+          },
+          {
+            "id": "fga-1",
+            "staffPosition": 3,
+            "verticalEpisema": true
+          },
+          {
+            "id": "fga-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "a",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "a-0",
+            "staffPosition": 4,
+            "mora": 1
+          }
+        ]
+      },
+      {
+        "id": "bag",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "bag-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "bag-1",
+            "staffPosition": 4
+          },
+          {
+            "id": "bag-2",
+            "staffPosition": 3,
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "efg",
+        "kind": "scandicus",
+        "notes": [
+          {
+            "id": "efg-0",
+            "staffPosition": 1
+          },
+          {
+            "id": "efg-1",
+            "staffPosition": 2,
+            "verticalEpisema": true
+          },
+          {
+            "id": "efg-2",
+            "staffPosition": 3
+          }
+        ]
+      }
+    ]
+  }
+}

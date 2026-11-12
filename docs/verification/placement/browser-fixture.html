@@ -18,6 +18,9 @@
       const root = createRoot(document.getElementById('root'));
       let fixtureKey = 0;
       window.mountChantFixture = (document) => {
+        // Each requested fixture is a fresh session, independent of earlier test saves.
+        localStorage.removeItem('gregorian-chant-editor:active-document:v1');
+        document = { accidentals: [], ...document };
         root.render(
           React.createElement(
             React.StrictMode,

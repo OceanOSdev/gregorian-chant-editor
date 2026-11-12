@@ -718,7 +718,7 @@ v3 round trips and protected malformed caches. `layout/authored-forms.test.ts`
 covers connected geometry across intervals 1/2/3/5/12 and line/space transpositions,
 partitioned upper-pair rectangular targets, five simultaneous signs, complete bounds/advances, ordinary
 Climacus virga parity and mixed wrapping. Existing strict codec/recovery suites
-remain regression gates; future-version fixtures now use v4.
+remain regression gates; future-version fixtures now use v6.
 
 Run `node docs/verification/note-shapes/browser-check.mjs` against the production
 preview subpath and isolated Chromium/CDP on 9230. Set
@@ -769,7 +769,7 @@ history/no-op identity, surviving-note preservation, strict v4, exact legacy
 hydration, protected recovery, bounded all-kind/form/sign geometry, stacked-note
 ownership, signed ghost parity and whole-neume wrapping. Historical v1/v2/v3
 fixtures remain available; the bundled owner Pater Noster is now v4. Future-version
-rejection probes now use v5.
+rejection probes now use v6.
 
 Run `node docs/verification/vertical-episemata/browser-check.mjs` against production
 preview under `/`, using disposable Chromium/CDP on 9230
@@ -838,3 +838,19 @@ Run the existing vertical-episema, contextual editing, authored form, modifier,
 local-persistence and bundled-example browser drivers after rendering changes.
 Native OS print dialogs, spoken output and real multi-monitor/pinch compositor
 behavior still require foreground checks. No browser-testing dependency is added.
+
+## Authored B accidentals (Stage 8D)
+
+`domain/accidentals.test.ts` and `layout/accidental-geometry.test.ts` cover scope,
+registers, canonical ownership, placement validation/repair, identity/history,
+strict v5/legacy compatibility, clef transactions, measured signs and wrapping.
+Run the full standard gate above. The standalone
+`docs/verification/b-accidentals/browser-check.mjs` runs production interaction,
+keyboard/pointer targeting, refresh/export/import, narrow layout and print checks.
+It uses disposable Chromium/CDP (`CHANT_CHROMIUM_URL`) or Firefox/BiDi
+(`CHANT_FIREFOX_URL`) with `CHANT_PREVIEW_URL`; optional `CHANT_LEGACY_URL` verifies
+an actual v4 build on the same origin. The existing storage-review driver accepts
+`CHANT_CURRENT_VERSION=5` for actual v2/current conflict tests. Run existing note,
+contextual, persistence, bundled-example, clef and division drivers sequentially
+per browser. These scripts add no application dependency. See the
+[actual results and foreground limitations](verification/b-accidentals/implementation.md).

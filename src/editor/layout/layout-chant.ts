@@ -1,3 +1,5 @@
+import { writtenAccidentals } from '../domain/accidentals';
+import type { AccidentalSpec } from './accidental-geometry';
 import type { NoteAppearance } from '../domain/chant-document';
 import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
@@ -88,6 +90,8 @@ export interface NoteLayout extends NoteGeometry, NoteAppearance {
 }
 
 export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
+  accidentalIds?: readonly string[];
+  accidentalLabels?: readonly string[];
   neumeId: string;
   /** Horizontal ownership interval for contextual pointer padding and decorations. */
   hitClip?: { left: number; right: number };
@@ -185,6 +189,7 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 }
 
 interface GeometryInput {
+  accidentals?: readonly AccidentalSpec[];
   modifiers?: readonly NoteAppearance[];
   kind: Neume['kind'];
   staffPositions: readonly StaffPosition[];
@@ -410,6 +415,17 @@ function placeNeumeSequence(
   for (const [inputIndex, input] of inputs.entries()) {
     const lyric = lyrics.get(inputIndex);
     const extents = lyric ? lyricTextExtents(lyric.alignment) : null;
+    const accidentalLyricBox = extents
+      ? {
+          ...extents,
+          top:
+            firstSystemLyricBaselineY - firstSystemBottomStaffY - lyricFontSize,
+          bottom:
+            firstSystemLyricBaselineY -
+            firstSystemBottomStaffY +
+            lyricFontSize / 4,
+        }
+      : undefined;
     const build = () => {
       const previous = geometries.at(-1);
       const compact =
@@ -419,7 +435,7 @@ function placeNeumeSequence(
           ?.some((item) => item.type === 'division') &&
         lyric?.boundaryBefore === 'continuation' &&
         lyrics.has(inputIndex - 1);
-      const initial = buildNeumeGeometry(
+      let initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         hasItems()
@@ -434,7 +450,45 @@ function placeNeumeSequence(
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
         input.modifiers,
+        input.accidentals,
+        accidentalLyricBox,
       );
+      if (previousLyricRight !== null && initial.accidentals?.length) {
+        const textRight = previousLyricRight;
+        const textTop =
+          firstSystemLyricBaselineY +
+          systems.length * systemVerticalAdvance -
+          lyricFontSize;
+        const textBottom = textTop + lyricFontSize * 1.25;
+        const previousExtents = activeLyric
+          ? lyricTextExtents(activeLyric.alignment)
+          : null;
+        const previousLeft = previousExtents
+          ? textRight - (previousExtents.right - previousExtents.left)
+          : -Infinity;
+        const shift = Math.max(
+          0,
+          ...initial.accidentals.map((a) => {
+            const b = a.ink.bounds;
+            return b.y < textBottom + 3 &&
+              b.y + b.height > textTop - 3 &&
+              b.x < textRight + 4 &&
+              b.x + b.width > previousLeft - 3
+              ? textRight + 4 - b.x
+              : 0;
+          }),
+        );
+        if (shift)
+          initial = buildNeumeGeometry(
+            input.kind,
+            input.staffPositions,
+            initial.bounds.x + shift,
+            firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+            input.modifiers,
+            input.accidentals,
+            accidentalLyricBox,
+          );
+      }
       if (!extents || !lyric) return initial;
       const left = initial.lyricAnchorX + extents.left;
       // Word clearance is a deterministic quarter-em minimum (5 score units).
@@ -473,6 +527,8 @@ function placeNeumeSequence(
           initial.bounds.x + shift,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
           input.modifiers,
+          input.accidentals,
+          accidentalLyricBox,
         );
       // If an empty system cannot contain this anchored unit, retain its normal
       // musical anchor. Canvas expansion exposes both overhangs without scaling.
@@ -561,6 +617,8 @@ function placeNeumeSequence(
           geometry.bounds.x - missing,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
           input.modifiers,
+          input.accidentals,
+          accidentalLyricBox,
         );
     }
     geometries.push(geometry);
@@ -720,8 +778,18 @@ export function layoutChant(
         item,
       ]);
   }
+  const signs = writtenAccidentals(document) ?? [];
+  const signsForNeume = (id: string) =>
+    signs.filter((s) => s.location.neume.id === id);
   const wrappedSystems = placeNeumeSequence(
-    document.neumes.map(geometryInput),
+    document.neumes.map((neume) => ({
+      ...geometryInput(neume),
+      accidentals: signsForNeume(neume.id).map((s) => ({
+        kind: s.entity.kind,
+        staffPosition: s.owner.degree - s.location.offset,
+        noteIndex: s.entity.placement ? s.location.noteIndex : null,
+      })),
+    })),
     staffEndX,
     requirements,
     hyphenWidth,
@@ -768,12 +836,25 @@ export function layoutChant(
           clefX,
           staffLineY(leadingClef.staffLine, bottomStaffY),
         ),
-        neumes: geometries.map((geometry, offset) =>
-          layoutCommittedNeume(
+        neumes: geometries.map((geometry, offset) => ({
+          ...layoutCommittedNeume(
             document.neumes[startNeumeIndex + offset],
             geometry,
           ),
-        ),
+          ...(signsForNeume(document.neumes[startNeumeIndex + offset].id).length
+            ? {
+                accidentalIds: signsForNeume(
+                  document.neumes[startNeumeIndex + offset].id,
+                ).map((s) => s.entity.id),
+                accidentalLabels: signsForNeume(
+                  document.neumes[startNeumeIndex + offset].id,
+                ).map(
+                  (s) =>
+                    `Written B-${s.entity.kind}, owned by note ${s.owner.noteIndex + 1} of ${s.owner.neume.kind} ${s.owner.neumeIndex + 1}${s.entity.placement ? `, above note ${s.location.noteIndex + 1} of ${s.location.neume.kind} ${s.location.neumeIndex + 1}` : ', before owning neume'}`,
+                ),
+              }
+            : {}),
+        })),
         divisions,
         leadingClefChangeId,
         clefChanges,

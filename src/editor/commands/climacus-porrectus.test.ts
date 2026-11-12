@@ -29,6 +29,7 @@ import { resolveToolbarNeumeInsertion } from './resolve-toolbar-neume-insertion'
 
 function documentWith(neumes: Neume[] = []): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

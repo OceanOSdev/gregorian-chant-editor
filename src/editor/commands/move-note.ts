@@ -1,3 +1,4 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import {
   staffPosition,
   type ChantDocument,
@@ -7,7 +8,7 @@ import { findNote, isValidNeume } from '../domain/neume';
 
 export type StaffPositionDelta = -1 | 1;
 
-export function moveNoteVertically(
+function moveNoteVerticallyCandidate(
   document: ChantDocument,
   noteId: string,
   delta: StaffPositionDelta,
@@ -88,4 +89,13 @@ export function moveNoteVertically(
       index === locatedNote.neumeIndex ? movedNeume : neume,
     ),
   };
+}
+
+export function moveNoteVertically(
+  ...args: Parameters<typeof moveNoteVerticallyCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], moveNoteVerticallyCandidate(...args)) ??
+    args[0]
+  );
 }

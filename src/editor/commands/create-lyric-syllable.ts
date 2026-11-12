@@ -1,8 +1,9 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import { hasValidDivisions, semanticIds } from '../domain/divisions';
 import type { ChantDocument, LyricSyllable } from '../domain/chant-document';
 import { hasValidLyricAnchors } from '../domain/lyrics';
 
-export function createLyricSyllable(
+function createLyricSyllableCandidate(
   document: ChantDocument,
   syllable: LyricSyllable,
 ): ChantDocument {
@@ -33,4 +34,13 @@ export function createLyricSyllable(
     ],
   };
   return hasValidLyricAnchors(candidate) ? candidate : document;
+}
+
+export function createLyricSyllable(
+  ...args: Parameters<typeof createLyricSyllableCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], createLyricSyllableCandidate(...args)) ??
+    args[0]
+  );
 }

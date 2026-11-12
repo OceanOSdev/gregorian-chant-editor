@@ -50,6 +50,7 @@ const scandicus: ScandicusNeume = {
 
 function createDocument(): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

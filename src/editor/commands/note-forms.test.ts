@@ -272,7 +272,7 @@ describe('atomic direct insertion and matching ghost', () => {
 
 describe('exact versioned readers and guarded upgrade', () => {
   it.each([v1Source, v2Source])(
-    'loads actual old source unchanged, then saves v4 in the same key',
+    'loads actual old source unchanged, then saves v5 in the same key',
     (source) => {
       const originalKey = 'gregorian-chant-editor:active-document:v1';
       expect(autosaveKey).toBe(originalKey);
@@ -289,14 +289,14 @@ describe('exact versioned readers and guarded upgrade', () => {
       }));
       const doc = adapter.load(blankDocument());
       expect(bytes).toBe(source);
-      expect(doc).toEqual(JSON.parse(source).document);
+      expect(doc).toEqual({ ...JSON.parse(source).document, accidentals: [] });
       const id = doc.neumes[0].notes[0].id;
       const form = doc.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
       const edit = updateNoteForm(doc, id, form);
       expect(edit).not.toBe(doc);
       expect(edit.neumes[0].notes[0].form).toBe(form);
       adapter.save(edit);
-      expect(JSON.parse(bytes).version).toBe(4);
+      expect(JSON.parse(bytes).version).toBe(5);
       expect(decodeDocument(bytes)).toEqual(edit);
       expect(doc.neumes.flatMap((n) => n.notes).some((n) => 'form' in n)).toBe(
         false,
@@ -328,7 +328,8 @@ describe('exact versioned readers and guarded upgrade', () => {
     const payload = JSON.parse(
       encodeDocument(updateNoteForm(document(), 'pes0', 'quilisma')),
     );
-    for (const version of [1, 2, 5])
+    delete payload.document.accidentals;
+    for (const version of [1, 2, 6])
       expect(() =>
         decodeDocument(JSON.stringify({ ...payload, version })),
       ).toThrow();

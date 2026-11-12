@@ -216,7 +216,11 @@ try {
       '3',
     );
     await ev(`document.querySelector('.editor-help summary').focus()`);
-    await key('Tab');
+    for (let step = 0; step < 12; step += 1) {
+      await key('Tab');
+      if (await ev(`document.activeElement.hasAttribute('data-initial-clef')`))
+        break;
+    }
     assert.equal(
       await ev(`document.activeElement.hasAttribute('data-initial-clef')`),
       true,

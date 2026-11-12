@@ -2,15 +2,13 @@
 
 Branch: `feat/stage-8d-b-accidentals`
 Target: `master`
-Status: **Ready to resume implementation (owner-approved placement amendment).**
+Status: **Implemented in PR #72; owner visual acceptance and review pending.**
 
-PR #72 stopped at the historical placement gate on 2026-11-11.
-The owner chose option 2: retain B-note ownership but permit an explicit
-earlier-note engraving anchor. [Accepted ADR 0021](../adrs/0021-author-b-accidentals-at-neume-boundaries.md)
-now incorporates that decision. The
-[placement-gate evidence](../verification/b-accidentals/README.md) remains
-the historical record of the stop. Application implementation, native v5,
-the broader comparison matrix and feature verification remain pending.
+The owner-approved placement amendment resolves the original historical gate.
+The retained [gate record](../verification/b-accidentals/README.md) and
+[implementation evidence](../verification/b-accidentals/implementation.md)
+distinguish the investigation, implementation, actual verification and remaining
+foreground/owner checks. The following scope remains the review contract.
 
 ## Problem and user-visible goal
 

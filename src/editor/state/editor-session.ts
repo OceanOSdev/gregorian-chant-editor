@@ -1,3 +1,8 @@
+import { reconcileAccidentals } from '../domain/accidentals';
+import {
+  eligibleAccidentalAnchors,
+  placeAccidental,
+} from '../commands/update-accidental';
 import { noteFormLabels } from '../domain/note-forms';
 import {
   resolveGraphicalClefPlacement,
@@ -80,6 +85,7 @@ const noteFormRejection =
   'Edit rejected: preserve the ascending contour and supported context of the authored form. Change Form to default before removing its required partner.';
 
 export type EditorFocusRequest =
+  | { kind: 'accidental'; accidentalId: string }
   | { kind: 'clef-placement'; clefChangeId?: string }
   | { kind: 'clef' }
   | { kind: 'clef-change'; clefChangeId: string }
@@ -91,6 +97,7 @@ export type EditorFocusRequest =
   | { kind: 'palette'; tool: PaletteTool };
 
 export interface ClefTransaction {
+  accidentalLossCount?: number;
   keepScoreFocus?: boolean;
   placementTool?: Extract<EditorTool, { kind: 'place-clef' }>;
   policyError?: string;
@@ -103,6 +110,7 @@ export interface ClefTransaction {
 }
 
 export interface EditorSession {
+  accidentalTargetId: string | null;
   noteFormError: string | null;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
@@ -170,6 +178,9 @@ export type ClefKeyboardCommand =
   'start' | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last';
 
 export type EditorAction =
+  | { type: 'start-accidental-placement'; id: string }
+  | { type: 'cancel-accidental-placement' }
+  | { type: 'commit-accidental-placement'; noteId: string }
   | { type: 'clef-insertion-policy'; preserve: 'melody' | 'noteheads' }
   | { type: 'clef-keyboard'; command: ClefKeyboardCommand }
   | {
@@ -250,6 +261,7 @@ export type EditorAction =
 
 export function createEditorSession(document: ChantDocument): EditorSession {
   return {
+    accidentalTargetId: null,
     noteFormError: null,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
@@ -303,6 +315,11 @@ export function getSelectFocusRequest(
 ): EditorFocusRequest {
   const document = state.history.present;
   const selection = state.selection;
+  if (
+    selection.kind === 'accidental' &&
+    document.accidentals.some((a) => a.id === selection.accidentalId)
+  )
+    return { kind: 'accidental', accidentalId: selection.accidentalId };
   if (selection.kind === 'clef-change')
     return { kind: 'clef-change', clefChangeId: selection.clefChangeId };
   if (selection.kind === 'clef') return { kind: 'clef' };
@@ -338,6 +355,9 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'start-accidental-placement':
+    case 'cancel-accidental-placement':
+    case 'commit-accidental-placement':
     case 'clef-insertion-policy':
     case 'place-clef':
     case 'clef-keyboard':
@@ -597,7 +617,12 @@ function reduceSessionAction(
               },
               noteFormRejection,
             )
-          : state;
+          : state.history.present.accidentals.length > 1
+            ? announce(
+                state,
+                'Edit rejected: preserve the neume contour and one written sign per B register in each neume. Remove a conflicting accidental before retrying.',
+              )
+            : state;
       const next = reconcile({
         ...state,
         history,
@@ -719,7 +744,102 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
-  const next = transitionEditorSession(state, action);
+  if (action.type === 'start-accidental-placement') {
+    if (
+      state.accidentalTargetId ||
+      state.clefTransaction ||
+      state.lyricMove ||
+      state.pendingHistory ||
+      state.lyrics ||
+      state.activeTool.kind !== 'select'
+    )
+      return state;
+    const ids = eligibleAccidentalAnchors(state.history.present, action.id);
+    return ids.length
+      ? announce(
+          {
+            ...state,
+            accidentalTargetId: action.id,
+            focusRequest: { kind: 'note', noteId: ids[0] },
+          },
+          'Choose an eligible earlier note. Enter places the accidental; Escape cancels.',
+        )
+      : announce(state, 'No eligible earlier note.');
+  }
+  if (action.type === 'cancel-accidental-placement')
+    return state.accidentalTargetId
+      ? announce(
+          {
+            ...state,
+            accidentalTargetId: null,
+            focusRequest: {
+              kind: 'accidental',
+              accidentalId: state.accidentalTargetId,
+            },
+          },
+          'Accidental placement canceled.',
+        )
+      : state;
+  if (action.type === 'commit-accidental-placement') {
+    if (!state.accidentalTargetId) return state;
+    const id = state.accidentalTargetId;
+    const candidate = placeAccidental(state.history.present, id, action.noteId);
+    if (candidate === state.history.present) {
+      if (
+        state.history.present.accidentals.some(
+          (a) => a.id === id && a.placement?.noteId === action.noteId,
+        )
+      )
+        return announce(
+          {
+            ...state,
+            accidentalTargetId: null,
+            focusRequest: { kind: 'accidental', accidentalId: id },
+          },
+          'Accidental placement unchanged.',
+        );
+      return announce(state, 'That note is not an eligible placement target.');
+    }
+    return announce(
+      {
+        ...state,
+        accidentalTargetId: null,
+        history: applyDocumentEdit(state.history, () => candidate),
+        focusRequest: { kind: 'accidental', accidentalId: id },
+      },
+      'Accidental placement updated.',
+    );
+  }
+  if (state.accidentalTargetId && action.type !== 'focus-handled') return state;
+  let next = transitionEditorSession(state, action);
+  if (next.history.present !== state.history.present) {
+    const before = state.history.present,
+      after = next.history.present;
+    const restored = before.accidentals.filter(
+      (a) =>
+        a.placement &&
+        after.accidentals.some((b) => b.id === a.id && !b.placement),
+    ).length;
+    if (restored)
+      next = announce(
+        next,
+        `${restored} accidental placement${restored === 1 ? '' : 's'} restored to before the owning neume.`,
+      );
+    if (state.selection.kind === 'accidental') {
+      const id = state.selection.accidentalId;
+      if (!after.accidentals.some((a) => a.id === id)) {
+        const owner = before.accidentals.find((a) => a.id === id)?.ownerNoteId;
+        next = {
+          ...next,
+          selection: reconcileSelection(after, next.selection),
+          focusRequest:
+            owner && findNote(after, owner)
+              ? { kind: 'note', noteId: owner }
+              : getSelectFocusRequest({ ...next, selection: clearSelection() }),
+        };
+      }
+    }
+  }
   return next.history.present !== state.history.present &&
     next.noteFormError !== null
     ? { ...next, noteFormError: null }
@@ -922,6 +1042,8 @@ function transitionEditorSession(
         return { ...state, clefTransaction: { ...transaction, candidate } };
       }
     } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
+      if (transaction.accidentalLossCount && action.preserve !== 'noteheads')
+        return state;
       candidate =
         action.preserve === 'melody'
           ? preserveClefMelody(transaction.original, transaction.candidate)
@@ -944,6 +1066,24 @@ function transitionEditorSession(
       );
     }
     if (!hasValidClefCandidate(candidate)) return state;
+    const repaired = reconcileAccidentals(transaction.original, candidate);
+    if (!repaired)
+      return announce(
+        state,
+        'Clef change rejected: relative pitch arithmetic is unsafe or distinct written accidentals would merge. Revise the clef or remove a conflicting sign.',
+      );
+    const lost =
+      transaction.original.accidentals.length - repaired.accidentals.length;
+    if (lost > 0 && action.type !== 'confirm-clef-change')
+      return {
+        ...state,
+        clefTransaction: {
+          ...transaction,
+          candidate: repaired,
+          accidentalLossCount: lost,
+        },
+      };
+    candidate = repaired;
     const surviving = candidate.clefChanges.some(
       (c) => c.id === transaction.id,
     );

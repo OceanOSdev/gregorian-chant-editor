@@ -14,7 +14,8 @@ implementation on this branch. The sign retains stable B-note ownership
 but may be written above an eligible earlier note; invalidated placement
 returns to the default before-owner-neume position. The historical gate
 is resolved for this specimen, not waived. The remaining comparison
-matrix, actual editor engraving and feature verification are still pending.
+matrix, actual editor engraving and feature verification are recorded in the
+[implementation and comparison record](implementation.md).
 The original investigation, alternatives and baseline results below
 describe the state at the stop.
 

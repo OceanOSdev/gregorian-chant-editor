@@ -86,6 +86,7 @@ function specimen(
   prefix = 0,
 ): CompositionCase {
   const document: ChantDocument = {
+    accidentals: [],
     title: `Et lux perpetua — ${id}`,
     clefChanges: [],
     divisions: [],

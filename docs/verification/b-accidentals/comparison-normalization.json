@@ -1,0 +1,65 @@
+[
+  {
+    "file": "laetatus-printed.png",
+    "width": 1360,
+    "height": 280,
+    "firstStaffLine": 25,
+    "staffSpacing": 40,
+    "printCropLeft": 400,
+    "scale": 1.2,
+    "editorUnitsToPixels": 2,
+    "editorViewBox": [130, 20, 130, 175]
+  },
+  {
+    "file": "ecce-printed.png",
+    "width": 1040,
+    "height": 220,
+    "firstStaffLine": 41,
+    "staffSpacing": 40,
+    "printCropLeft": 250,
+    "scale": 1.2,
+    "editorUnitsToPixels": 2,
+    "editorViewBox": [130, 20, 150, 175]
+  },
+  {
+    "file": "benedicta-printed.png",
+    "width": 940,
+    "height": 260,
+    "firstStaffLine": 50,
+    "staffSpacing": 41,
+    "printCropLeft": 250,
+    "scale": 1.170731707317073,
+    "editorUnitsToPixels": 2,
+    "editorViewBox": [130, 20, 370, 175]
+  },
+  {
+    "file": "beata-natural-printed.png",
+    "width": 1680,
+    "height": 248,
+    "firstStaffLine": 53,
+    "staffSpacing": 40,
+    "printCropLeft": 350,
+    "scale": 1.2,
+    "editorUnitsToPixels": 2,
+    "editorViewBox": [130, 20, 570, 175]
+  },
+  {
+    "file": "beata-gens-printed-omnis.png",
+    "width": 1680,
+    "height": 272,
+    "firstStaffLine": 58,
+    "staffSpacing": 41,
+    "printCropLeft": 360,
+    "scale": 1.170731707317073,
+    "editorUnitsToPixels": 2,
+    "editorViewBox": [130, 20, 350, 175]
+  },
+  {
+    "file": "beata-gens-gregorio-omnis.png",
+    "width": 1560,
+    "height": 150,
+    "firstStaffLine": 25,
+    "staffSpacing": 29,
+    "scale": 1.6551724137931034
+  }
+]

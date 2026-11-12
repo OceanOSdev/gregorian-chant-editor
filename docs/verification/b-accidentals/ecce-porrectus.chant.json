@@ -1,0 +1,49 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 5,
+  "document": {
+    "accidentals": [
+      {
+        "id": "flat",
+        "kind": "flat",
+        "ownerNoteId": "por-0"
+      }
+    ],
+    "clefChanges": [],
+    "divisions": [],
+    "lyricLanguage": "la",
+    "title": "ecce-porrectus",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "syllables": [
+      {
+        "id": "text",
+        "text": "bi",
+        "startsAtNeumeId": "por",
+        "boundaryBefore": "word"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "por",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "por-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "por-1",
+            "staffPosition": 4
+          },
+          {
+            "id": "por-2",
+            "staffPosition": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 5,
+  "document": {
+    "accidentals": [
+      {
+        "id": "flat",
+        "kind": "flat",
+        "ownerNoteId": "tor-0"
+      }
+    ],
+    "clefChanges": [],
+    "divisions": [],
+    "lyricLanguage": "la",
+    "title": "laetatus-torculus",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "syllables": [
+      {
+        "id": "text",
+        "text": "ia",
+        "startsAtNeumeId": "tor",
+        "boundaryBefore": "word"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "tor",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "tor-0",
+            "staffPosition": 5
+          },
+          {
+            "id": "tor-1",
+            "staffPosition": 6
+          },
+          {
+            "id": "tor-2",
+            "staffPosition": 5
+          }
+        ]
+      }
+    ]
+  }
+}

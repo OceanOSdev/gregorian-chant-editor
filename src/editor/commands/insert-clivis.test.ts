@@ -39,6 +39,7 @@ function clivis(
 
 function createDocument(): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

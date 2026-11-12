@@ -4,6 +4,7 @@ import { findNeume, findNote } from '../domain/neume';
 
 /** Transient semantic targets: stable entity IDs or the singleton clef tag. */
 export type EditorSelection =
+  | { kind: 'accidental'; accidentalId: string }
   | { kind: 'clef' }
   | { kind: 'clef-change'; clefChangeId: string }
   | { kind: 'division'; divisionId: string }
@@ -32,6 +33,10 @@ export function reconcileSelection(
   if (selection.kind === 'none' || selection.kind === 'clef') {
     return selection;
   }
+  if (selection.kind === 'accidental')
+    return document.accidentals.some((a) => a.id === selection.accidentalId)
+      ? selection
+      : clearSelection();
 
   if (selection.kind === 'clef-change')
     return document.clefChanges.some((c) => c.id === selection.clefChangeId)

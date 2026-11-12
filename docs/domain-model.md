@@ -285,3 +285,20 @@ normalization preserve it on the same surviving note ID; deleting that note
 removes it. Placement is derived, with no saved side or coordinates.
 See [Accepted ADR 0020](adrs/0020-vertical-episema-presence-and-derived-placement.md)
 and [native v4](persistence.md#vertical-episema-in-native-v4-stage-8c).
+
+## Authored B accidentals (Stage 8D)
+
+`ChantDocument.accidentals` contains stable-ID `flat`/`natural` entities owned by
+existing B notes. A repeated B in one neume/register has one sign, canonically
+owned by its earliest B. Signs are independent of note forms and rhythmic marks.
+Optional `placement: { kind: 'above-note', noteId }` identifies an earlier engraving
+anchor; omission means before the entire owning neume.
+
+The pure `domain/accidentals.ts` resolver derives effective diatonic degrees,
+register-specific alterations and source-sign provenance in score order. Default
+signs take effect at the neume prefix; explicit signs at their written note.
+Word starts and all four divisions reset scope; clefs and system wrapping do not.
+The owner determines the affected B register, while the effective clef at the
+written location determines sign height. Placement requires the first following
+matching B owner, with no intervening reset or conflicting same-register sign.
+This isolated interpretation policy follows [ADR 0021](adrs/0021-author-b-accidentals-at-neume-boundaries.md).

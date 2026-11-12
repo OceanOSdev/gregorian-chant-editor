@@ -1,4 +1,10 @@
 import { buildAuthoredGeometry } from './neumes/authored-forms';
+import {
+  addAccidentalGeometry,
+  accidentalPrefixAdvance,
+  type AccidentalSpec,
+  type AccidentalLyricBox,
+} from './accidental-geometry';
 import { addNoteModifiers } from './note-modifiers';
 import type {
   NoteAppearance,
@@ -36,14 +42,38 @@ export function buildNeumeGeometry(
   leftX: number,
   bottomStaffY: number,
   modifiers: readonly NoteAppearance[] = [],
+  accidentals: readonly AccidentalSpec[] = [],
+  lyricBox?: AccidentalLyricBox,
 ): NeumeGeometry {
-  return addNoteModifiers(
-    buildAuthoredGeometry(kind, positions, leftX, bottomStaffY, modifiers) ??
-      buildUnmodifiedGeometry(kind, positions, leftX, bottomStaffY),
-    modifiers,
-    bottomStaffY,
-    kind,
-  );
+  const buildAt = (groupX: number) => {
+    const shiftedX =
+      groupX +
+      accidentals.filter((a) => a.noteIndex === null).length *
+        accidentalPrefixAdvance;
+    const base = addNoteModifiers(
+      buildAuthoredGeometry(
+        kind,
+        positions,
+        shiftedX,
+        bottomStaffY,
+        modifiers,
+      ) ?? buildUnmodifiedGeometry(kind, positions, shiftedX, bottomStaffY),
+      modifiers,
+      bottomStaffY,
+      kind,
+    );
+    return addAccidentalGeometry(
+      base,
+      accidentals,
+      groupX,
+      bottomStaffY,
+      lyricBox,
+    );
+  };
+  const result = buildAt(leftX);
+  return accidentals.length && result.bounds.x < leftX
+    ? buildAt(leftX + leftX - result.bounds.x)
+    : result;
 }
 
 function buildUnmodifiedGeometry(

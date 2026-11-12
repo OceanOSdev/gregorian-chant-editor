@@ -206,3 +206,12 @@ changed committed snapshots before publishing React state. Commands and renderin
 remain browser-independent. `DocumentControls` owns file selection/download and
 replacement confirmation; there is no new mutable score alongside history.
 See [persistence](persistence.md) for format, recovery and compatibility contracts.
+
+## Accidental interpretation boundary
+
+Stage 8D keeps authored accidental entities in the semantic document and derives
+register-specific effective pitches in a pure domain resolver. Optional earlier
+engraving anchors do not change B-note ownership. Commands own mutation repair;
+layout owns measured placement; SVG consumes geometry; persistence validates exact
+v5 entities. [ADR 0021](adrs/0021-author-b-accidentals-at-neume-boundaries.md)
+owns this decision; no playback or interchange adapter is introduced.

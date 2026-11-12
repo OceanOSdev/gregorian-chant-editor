@@ -1,4 +1,5 @@
 import type { ChantDocument } from '../domain/chant-document';
+import { reconcileAccidentals } from '../domain/accidentals';
 
 export interface DocumentHistory {
   readonly past: readonly ChantDocument[];
@@ -26,7 +27,9 @@ export function applyDocumentEdit(
   history: DocumentHistory,
   edit: DocumentEdit,
 ): DocumentHistory {
-  const nextDocument = edit(history.present);
+  const nextDocument =
+    reconcileAccidentals(history.present, edit(history.present)) ??
+    history.present;
 
   if (nextDocument === history.present) {
     return history;

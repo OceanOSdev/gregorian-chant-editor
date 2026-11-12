@@ -22,6 +22,10 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
   const clef = layout.systems[0]?.clef;
   const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);
+  const accidentalCount = neumes.reduce(
+    (count, n) => count + (n.accidentalIds?.length ?? 0),
+    0,
+  );
   return (
     `A Gregorian chant score with ${countLabel(
       layout.systems.length,
@@ -32,6 +36,9 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
       lyricCount,
       'rendered lyric syllable',
       'rendered lyric syllables',
-    )}.${marked ? ' ' + countLabel(marked, 'note with rhythmic modifiers', 'notes with rhythmic modifiers') + '.' : ''}${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}`
+    )}.${marked ? ' ' + countLabel(marked, 'note with rhythmic modifiers', 'notes with rhythmic modifiers') + '.' : ''}${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}` +
+    (accidentalCount
+      ? ` ${countLabel(accidentalCount, 'written B accidental', 'written B accidentals')}.`
+      : '')
   );
 }

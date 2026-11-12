@@ -656,3 +656,19 @@ contract still holds. [Metrics](engraving-metrics.md#vertical-episema-stage-8c)
 own the recipe, and [comparisons](verification/vertical-episemata/README.md)
 distinguish Gregorio/Solesmes reference observations from project choices.
 New-neume ghosts remain unmarked and share the same appearance-aware builder.
+
+## Written accidental geometry (Stage 8D)
+
+`accidental-geometry.ts` adds ID-free sign specifications to shared neume geometry.
+Default signs reserve a prefix before the entire owner; explicit signs belong to
+the placement neume. Height uses owner B degree minus the clef offset at that
+location. Measured ink, advance and hit bounds include each sign and lyric
+clearance. Musical/lyric anchors and existing unsigned silhouettes are preserved.
+Wrapping keeps each placement group and its signs together, without making the
+span to the owner indivisible. Oversized groups retain forward progress.
+
+SVG renders independent selectable glyphs after note controls, with hit regions
+partitioned against neighboring ink and clipped to group ownership. It consumes
+layout geometry rather than resolving musical effect. Screen and print use the
+same paths. See [comparison evidence](verification/b-accidentals/implementation.md)
+and [metrics](engraving-metrics.md).

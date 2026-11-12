@@ -44,7 +44,10 @@ describe('bundled Pater Noster', () => {
     const chantId = './pater-noster.chant.json';
     const document = loadBundledExample(chantId);
     expect(JSON.parse(source).version).toBe(4);
-    expect(document).toEqual(JSON.parse(source).document);
+    expect(document).toEqual({
+      ...JSON.parse(source).document,
+      accidentals: [],
+    });
     expect(document.title).toBe('Pater Noster');
     expect(document.lyricLanguage).toBe('la');
     expect(document.clef).toEqual({ type: 'c', staffLine: 3 });

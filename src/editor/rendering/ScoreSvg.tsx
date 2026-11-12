@@ -48,6 +48,12 @@ export interface SvgPoint {
 }
 
 interface ScoreSvgProps {
+  accidentalTargetIds: readonly string[] | null;
+  onAccidentalTarget: (id: string) => void;
+  onCancelAccidentalTarget: () => void;
+  onFocusAccidentalProperties: () => void;
+  onSelectAccidental: (id: string) => void;
+  onDeleteAccidental: (id: string) => void;
   onFocusNoteModifiers?: () => boolean;
   clefPreview: ClefPlacementPreview | null;
   clefDraftPreview: { id: string; clef: ClefGeometry } | null;
@@ -102,6 +108,12 @@ interface ScoreSvgProps {
 }
 
 export function ScoreSvg({
+  accidentalTargetIds,
+  onAccidentalTarget,
+  onCancelAccidentalTarget,
+  onFocusAccidentalProperties,
+  onSelectAccidental,
+  onDeleteAccidental,
   onFocusNoteModifiers,
   clefPreview,
   clefDraftPreview,
@@ -154,7 +166,7 @@ export function ScoreSvg({
   // Reflow can reparent keyed controls between system groups. Track browser
   // focus separately from selection so measurement changes can restore that ID.
   const focusedEntity = useRef<{
-    kind: 'note' | 'lyric' | 'division' | 'clef-change';
+    kind: 'note' | 'lyric' | 'division' | 'clef-change' | 'accidental';
     id: string;
     element: Element;
   } | null>(null);
@@ -172,15 +184,18 @@ export function ScoreSvg({
       const divisionId = target.getAttribute('data-division-id');
       const noteId = target.getAttribute('data-note-id');
       const syllableId = target.getAttribute('data-syllable-id');
-      focusedEntity.current = clefChangeId
-        ? { kind: 'clef-change', id: clefChangeId, element: target }
-        : divisionId
-          ? { kind: 'division', id: divisionId, element: target }
-          : noteId
-            ? { kind: 'note', id: noteId, element: target }
-            : syllableId
-              ? { kind: 'lyric', id: syllableId, element: target }
-              : null;
+      const accidentalId = target.getAttribute('data-accidental-id');
+      focusedEntity.current = accidentalId
+        ? { kind: 'accidental', id: accidentalId, element: target }
+        : clefChangeId
+          ? { kind: 'clef-change', id: clefChangeId, element: target }
+          : divisionId
+            ? { kind: 'division', id: divisionId, element: target }
+            : noteId
+              ? { kind: 'note', id: noteId, element: target }
+              : syllableId
+                ? { kind: 'lyric', id: syllableId, element: target }
+                : null;
     };
     document.addEventListener('focusin', track);
     return () => document.removeEventListener('focusin', track);
@@ -195,13 +210,17 @@ export function ScoreSvg({
     )
       return;
     const element =
-      target.kind === 'clef-change'
-        ? clefChangeElements.current.get(target.id)
-        : target.kind === 'division'
-          ? divisionElements.current.get(target.id)
-          : target.kind === 'note'
-            ? noteElements.current.get(target.id)
-            : lyricElements.current.get(target.id);
+      target.kind === 'accidental'
+        ? scoreElement.current?.querySelector<SVGGElement>(
+            `[data-accidental-id="${CSS.escape(target.id)}"]`,
+          )
+        : target.kind === 'clef-change'
+          ? clefChangeElements.current.get(target.id)
+          : target.kind === 'division'
+            ? divisionElements.current.get(target.id)
+            : target.kind === 'note'
+              ? noteElements.current.get(target.id)
+              : lyricElements.current.get(target.id);
     if (element) focusAndReveal(element);
   });
   const placementActive = isPlacementTool(activeTool);
@@ -253,6 +272,14 @@ export function ScoreSvg({
       onFocusHandled(focusRequest);
       return;
     }
+    if (focusRequest.kind === 'accidental') {
+      const element = scoreElement.current?.querySelector<SVGGElement>(
+        `[data-accidental-id="${CSS.escape(focusRequest.accidentalId)}"]`,
+      );
+      if (element) focusAndReveal(element);
+      onFocusHandled(focusRequest);
+      return;
+    }
     const note = noteElements.current.get(focusRequest.noteId);
     if (
       focusRequest.kind === 'placement' &&
@@ -272,6 +299,11 @@ export function ScoreSvg({
   }, [focusRequest, onFocusHandled, placementActive]);
 
   function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
+    if (accidentalTargetIds) {
+      event.stopPropagation();
+      onAccidentalTarget(noteId);
+      return;
+    }
     event.stopPropagation();
     if (placementActive || transactionBlocked) return;
     if (lyricMove) {
@@ -742,7 +774,12 @@ export function ScoreSvg({
                       </text>
                     </g>
                   ) : null}
-                  <NeumeInk ink={neume.ink} />
+                  <NeumeInk
+                    ink={neume.ink.filter(
+                      (shape) =>
+                        !neume.accidentals?.some((a) => a.ink === shape),
+                    )}
+                  />
                   {neume.notes.map((note, noteIndex) => {
                     const isNoteSelected =
                       selection.kind === 'note' &&
@@ -768,7 +805,12 @@ export function ScoreSvg({
                         data-note-id={note.noteId}
                         role="button"
                         tabIndex={
-                          placementActive || transactionBlocked ? -1 : 0
+                          placementActive ||
+                          transactionBlocked ||
+                          (accidentalTargetIds &&
+                            !accidentalTargetIds.includes(note.noteId))
+                            ? -1
+                            : 0
                         }
                         pointerEvents={
                           placementActive || lyricMove || transactionBlocked
@@ -786,18 +828,76 @@ export function ScoreSvg({
                             : `whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
                         }
                         aria-pressed={isNoteSelected}
-                        aria-disabled={placementActive || transactionBlocked}
+                        aria-disabled={
+                          placementActive ||
+                          transactionBlocked ||
+                          (!!accidentalTargetIds &&
+                            !accidentalTargetIds.includes(note.noteId))
+                        }
                         onClick={(event) => handleNoteClick(event, note.noteId)}
-                        onKeyDown={(event) =>
+                        onKeyDown={(event) => {
+                          if (accidentalTargetIds) {
+                            if (event.key === 'Escape') {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onCancelAccidentalTarget();
+                            } else if (
+                              event.key === 'Enter' ||
+                              event.key === ' '
+                            ) {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onAccidentalTarget(note.noteId);
+                            } else if (
+                              [
+                                'ArrowLeft',
+                                'ArrowRight',
+                                'ArrowUp',
+                                'ArrowDown',
+                              ].includes(event.key)
+                            ) {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              const current = accidentalTargetIds.indexOf(
+                                note.noteId,
+                              );
+                              const delta =
+                                event.key === 'ArrowLeft' ||
+                                event.key === 'ArrowUp'
+                                  ? -1
+                                  : 1;
+                              const id =
+                                accidentalTargetIds[
+                                  (current +
+                                    delta +
+                                    accidentalTargetIds.length) %
+                                    accidentalTargetIds.length
+                                ];
+                              const element = noteElements.current.get(id);
+                              if (element) focusAndReveal(element);
+                            }
+                            return;
+                          }
                           handleNoteKeyDown(
                             event,
                             note.noteId,
                             neume.neumeId,
                             isNoteSelected,
                             isNeumeSelected,
-                          )
-                        }
+                          );
+                        }}
                       >
+                        {accidentalTargetIds?.includes(note.noteId) ? (
+                          <rect
+                            className="score__accidental-placement-target"
+                            {...note.hitBounds}
+                            fill="none"
+                            stroke="#a33"
+                            strokeWidth="2"
+                            pointerEvents="none"
+                            aria-hidden="true"
+                          />
+                        ) : null}
                         <g
                           aria-hidden="true"
                           clipPath={
@@ -843,6 +943,94 @@ export function ScoreSvg({
                         ) : null}
                       </g>
                     );
+                  })}
+                  {neume.accidentals?.map((a, index) => {
+                    const id = neume.accidentalIds?.[index];
+                    return id ? (
+                      <g
+                        className="score__accidental"
+                        pointerEvents={
+                          activeTool.kind === 'select' &&
+                          !transactionBlocked &&
+                          !accidentalTargetIds
+                            ? 'all'
+                            : 'none'
+                        }
+                        aria-disabled={
+                          activeTool.kind !== 'select' ||
+                          transactionBlocked ||
+                          !!accidentalTargetIds
+                        }
+                        key={id}
+                        data-accidental-id={id}
+                        tabIndex={
+                          activeTool.kind === 'select' &&
+                          !transactionBlocked &&
+                          !accidentalTargetIds
+                            ? 0
+                            : -1
+                        }
+                        role="button"
+                        aria-label={
+                          neume.accidentalLabels?.[index] ??
+                          `Written B-${a.kind}`
+                        }
+                        aria-pressed={
+                          selection.kind === 'accidental' &&
+                          selection.accidentalId === id
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!transactionBlocked) onSelectAccidental(id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (transactionBlocked) return;
+                          if (
+                            e.key === 'Tab' &&
+                            !e.shiftKey &&
+                            selection.kind === 'accidental' &&
+                            selection.accidentalId === id
+                          ) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onFocusAccidentalProperties();
+                            return;
+                          }
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onSelectAccidental(id);
+                          }
+                          if (e.key === 'Delete' || e.key === 'Backspace') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onDeleteAccidental(id);
+                          }
+                        }}
+                      >
+                        <InkShapeView
+                          shape={a.ink}
+                          className="score__accidental-ink"
+                        />
+                        <rect
+                          className="score__accidental-target"
+                          clipPath={
+                            neume.hitClip
+                              ? `url(#hit-clip-${neume.neumeId})`
+                              : undefined
+                          }
+                          {...a.hitBounds}
+                          fill="transparent"
+                          stroke={
+                            selection.kind === 'accidental' &&
+                            selection.accidentalId === id
+                              ? 'var(--accent, #a33)'
+                              : 'none'
+                          }
+                          strokeWidth="2"
+                        />
+                      </g>
+                    ) : null;
                   })}
                   {lyricMove ? (
                     <rect

@@ -25,6 +25,7 @@ const measure: MeasureLyricText = (text) => ({
 const ids = { neumeId: 'X', noteIds: ['x0', 'x1', 'x2'] as const };
 function fixture(count = 2): ChantDocument {
   return {
+    accidentals: [],
     title: 'Divisions',
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },

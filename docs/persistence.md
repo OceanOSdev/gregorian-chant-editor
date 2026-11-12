@@ -5,13 +5,13 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1, 2, 3 and 4
+## Native versions 1–5
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 4`, and `document: ChantDocument`. The reader accepts exact v1, finalized v2, v3 and v4. All seven document properties are
+`version: 5`, and `document: ChantDocument`. The reader accepts exact v1–v5. The original seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in all four versions. V2, v3 and v4 additionally accept
+arrays. Optional syllable alignment is supported in all five versions. V2–v5 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v4. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v5. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 8C: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1/v2/v3 bytes untouched. The next
-successful committed save writes v4 into that same key, after comparing the
+retained for Stage 8D: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1/v2/v3/v4 bytes untouched. The next
+successful committed save writes v5 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot be assumed to read a v4 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v5 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -161,7 +161,7 @@ editor or retain the original for later resolution.
 
 ## Authored forms in native v3 (Stage 8B)
 
-V3 and v4 additionally permit optional note `form` with exact values `virga`,
+V3–v5 additionally permit optional note `form` with exact values `virga`,
 `inclinatum` and `quilisma`. The shared within-neume whitelist and strict pitch
 contour checks reject unsupported configurations. Explicit default/null/false,
 unknown strings/types and unknown fields reject before document replacement.
@@ -170,8 +170,8 @@ separate full old-syntax validation and withdrawn-draft recovery are retained.
 
 Importing/hydrating v1/v2 never synthesizes forms or changes note identities,
 marks, lyrics or event order. Hydration does not write; the next committed edit,
-including undo/redo, saves v4 through the same cache key and byte conflict guard.
-Exports and confirmed imports write v4. Failed imports and unreadable caches
+including undo/redo, saves v5 through the same cache key and byte conflict guard.
+Exports and confirmed imports write v5. Failed imports and unreadable caches
 retain their existing original-source download/replacement safeguards. Older
 app versions cannot be assumed to import v3. See the
 [migration and browser record](verification/note-shapes/implementation.md).
@@ -209,7 +209,7 @@ is not a complete facsimile of the printed edition.
 
 ## Vertical episema in native v4 (Stage 8C)
 
-Writes now use **version 4**. Its note shape adds only optional
+Stage 8C introduced **version 4**. Its note shape adds only optional
 `verticalEpisema: true`, independently of v3's fields. Explicit false, zero,
 null, strings, objects and unknown keys reject. V1, finalized v2 and v3 retain
 exact field whitelists and reject the v4-only field. Shared validation still
@@ -218,10 +218,27 @@ anchors, unknown envelopes and payloads exceeding 1 MiB. Withdrawn draft-v2
 classification continues only after complete legacy-syntax validation.
 
 Hydration of an untouched v1/v2/v3 cache never rewrites its bytes. The next
-committed edit/undo/redo writes v4 through the same established storage key,
+committed edit/undo/redo writes v5 through the same established storage key,
 byte conflict guard and synchronous save path. No conversion invents signs,
 forms or IDs. Failed imports, corrupt caches, storage failures and conflicts
 retain the original-source recovery and confirmed-replacement protections.
 The bundled owner-authored Pater Noster is now an exact committed **v4 source**,
 including five vertical episemata. Historical v3 documents remain readable;
 older builds reject v4 through their existing recovery path. See [compatibility evidence](verification/vertical-episemata/README.md).
+
+## B accidentals in native v5 (Stage 8D)
+
+The current writer emits **version 5**. Its required eighth document property is
+`accidentals`, an array of exact `{ id, kind, ownerNoteId, placement? }` entities.
+`kind` is `flat` or `natural`; optional placement is exactly
+`{ kind: 'above-note', noteId: string }`. Global ID uniqueness, existing canonical
+B ownership, one sign per neume/register and written-location constraints are
+validated. Explicit null, malformed/unknown fields, invalid owners and invalid
+placements reject the entire import; import never performs editing repair.
+
+Exact v1–v4 field whitelists remain unchanged and reject v5 accidentals. They
+hydrate an empty in-memory collection without rewriting original bytes. The next
+successful commit/export writes v5 through the existing cache key and byte
+conflict guard. Unknown future versions, malformed data, write failures and
+cross-tab conflicts retain the established protected recovery behavior. The
+bundled owner Pater Noster remains its original v4 source, unchanged.

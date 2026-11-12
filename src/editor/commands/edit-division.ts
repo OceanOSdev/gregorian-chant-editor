@@ -1,3 +1,4 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import type {
   ChantDocument,
   ChantDivision,
@@ -14,7 +15,7 @@ import {
   semanticIds,
 } from '../domain/divisions';
 
-export function insertDivision(
+function insertDivisionCandidate(
   document: ChantDocument,
   division: ChantDivision,
   boundary: ScoreInsertionBoundary,
@@ -34,7 +35,7 @@ export function insertDivision(
   return { ...document, ...reanchorScoreOrder(order) };
 }
 
-export function updateDivisionKind(
+function updateDivisionKindCandidate(
   document: ChantDocument,
   id: string,
   kind: DivisionKind,
@@ -53,7 +54,7 @@ export function updateDivisionKind(
   };
 }
 
-export function deleteDivision(
+function deleteDivisionCandidate(
   document: ChantDocument,
   id: string,
 ): ChantDocument {
@@ -70,4 +71,29 @@ export function deleteDivision(
       ),
     ),
   };
+}
+
+export function insertDivision(
+  ...args: Parameters<typeof insertDivisionCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], insertDivisionCandidate(...args)) ?? args[0]
+  );
+}
+
+export function updateDivisionKind(
+  ...args: Parameters<typeof updateDivisionKindCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], updateDivisionKindCandidate(...args)) ??
+    args[0]
+  );
+}
+
+export function deleteDivision(
+  ...args: Parameters<typeof deleteDivisionCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], deleteDivisionCandidate(...args)) ?? args[0]
+  );
 }

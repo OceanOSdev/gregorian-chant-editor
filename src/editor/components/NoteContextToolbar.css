@@ -69,3 +69,9 @@
 .note-context-toolbar select:disabled {
   opacity: 0.7;
 }
+
+@media print {
+  .accidental-context-toolbar {
+    display: none;
+  }
+}

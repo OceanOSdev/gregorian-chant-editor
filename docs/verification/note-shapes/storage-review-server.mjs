@@ -6,6 +6,7 @@ import { basename, join, resolve } from 'node:path';
 // share one disposable profile's cache without modifying either build or data.
 const oldDist = process.argv[2];
 if (!oldDist) throw Error('Supply the baseline v2 dist directory');
+const port = Number(process.argv[3] ?? 4255);
 const roots = [resolve('dist'), resolve(oldDist)];
 const prefix = '/gregorian-chant-editor/';
 createServer(async (request, response) => {
@@ -15,9 +16,17 @@ createServer(async (request, response) => {
     if (url.pathname === prefix) {
       file = 'index.html';
       content = await readFile(
-        join(roots[url.searchParams.get('build') === 'v2' ? 1 : 0], file),
+        join(
+          roots[
+            ['v2', 'legacy'].includes(url.searchParams.get('build')) ? 1 : 0
+          ],
+          file,
+        ),
       );
-    } else if (url.pathname.startsWith(prefix + 'assets/')) {
+    } else if (
+      url.pathname.startsWith(prefix + 'assets/') ||
+      url.pathname.startsWith('/assets/')
+    ) {
       file = basename(url.pathname);
       for (const root of roots) {
         try {
@@ -45,8 +54,8 @@ createServer(async (request, response) => {
     response.writeHead(404);
     response.end('Not found');
   }
-}).listen(4255, '127.0.0.1', () =>
+}).listen(port, '127.0.0.1', () =>
   process.stdout.write(
-    'Disposable v2/v3 comparison: http://127.0.0.1:4255/gregorian-chant-editor/?build=v3\n',
+    `Disposable old/current comparison: http://127.0.0.1:${port}/gregorian-chant-editor/?build=current\n`,
   ),
 );

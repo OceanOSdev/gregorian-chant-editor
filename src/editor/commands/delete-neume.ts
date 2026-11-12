@@ -1,10 +1,11 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import { deriveScoreOrder, reanchorScoreOrder } from '../domain/divisions';
 import { deleteLyricSyllable } from './delete-lyric-syllable';
 import { findSyllableAtNeume } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNeume } from '../domain/neume';
 
-export function deleteNeume(
+function deleteNeumeCandidate(
   document: ChantDocument,
   neumeId: string,
 ): ChantDocument {
@@ -27,4 +28,12 @@ export function deleteNeume(
       (_, index) => index !== locatedNeume.neumeIndex,
     ),
   };
+}
+
+export function deleteNeume(
+  ...args: Parameters<typeof deleteNeumeCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], deleteNeumeCandidate(...args)) ?? args[0]
+  );
 }

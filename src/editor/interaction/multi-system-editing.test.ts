@@ -3,6 +3,7 @@ import { staffPosition, type ChantDocument } from '../domain/chant-document';
 import { getSurvivingFocusNoteId } from './multi-system-editing';
 
 const document: ChantDocument = {
+  accidentals: [],
   clefChanges: [],
   divisions: [],
   lyricLanguage: 'la',

@@ -302,3 +302,22 @@ note changes. Repeated values and invalid/stale intents return the exact input;
 one accepted `engraving-edit` records one snapshot. All other modifiers and
 forms remain independent, including through movement and surviving-note
 normalization. Existing pending-workflow guards still govern the transaction.
+
+## Accidental mutation and clef transactions (Stage 8D)
+
+Accidental authoring, kind changes, deletion and placement are immutable commands.
+None removes only the neume/register's authored sign; inherited alteration can
+remain. Deleting an owner removes its sign before canonicalization. Deleting an
+inheriting note does not. Surviving repeated B ownership is canonicalized;
+conflating distinct signs rejects the edit. Invalidating only an earlier anchor
+restores default placement while retaining sign ID, kind and owner. Public
+semantic edit commands and the history adoption seam apply this repair policy;
+strict import rejects invalid placement instead of repairing it.
+
+Keep pitches compares every surviving note's diatonic degree and alteration,
+and retains authored sign IDs, kinds and owners. Clef candidates are repaired
+and validated after translation. Keep note positions commits normally if no
+written sign is lost, including placement-only restoration. Otherwise a targeted
+counted confirmation is required; Cancel leaves document, history and cache
+unchanged. Confirmation creates one atomic undoable snapshot, including clef
+and sign changes. Existing clef deletion choices share that transaction.

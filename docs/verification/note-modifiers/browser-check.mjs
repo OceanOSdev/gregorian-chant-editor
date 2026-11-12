@@ -382,9 +382,10 @@ const kinds = [
 ];
 const specimen = {
   format: base.format,
-  version: 2,
+  version: 5,
   document: {
     ...base.document,
+    accidentals: [],
     title: 'Rhythmic signs — all seven neumes',
     syllables: [],
     divisions: [],
@@ -430,10 +431,11 @@ try {
     );
     const saved = await change('Mora scope', 'sole');
     const expected = structuredClone(baseline.document);
+    expected.accidentals = [];
     expected.neumes[0].notes[0].mora = 1;
     assert.deepEqual(saved, {
       format: base.format,
-      version: 4,
+      version: 5,
       document: expected,
     });
     await navigate();
@@ -447,7 +449,11 @@ try {
     await importText(text);
     assert.deepEqual(
       JSON.parse(await raw()),
-      { ...baseline, version: 4 },
+      {
+        ...baseline,
+        version: 5,
+        document: { ...baseline.document, accidentals: [] },
+      },
       'v1 file import preserves every semantic value',
     );
   }
@@ -667,7 +673,11 @@ try {
         mobile: false,
       });
       await pause();
-      assert.deepEqual(JSON.parse(await raw()), { ...fixture, version: 4 });
+      assert.deepEqual(JSON.parse(await raw()), {
+        ...fixture,
+        version: 5,
+        document: { ...fixture.document, accidentals: [] },
+      });
       assert.equal(
         await ev('document.documentElement.scrollWidth<=innerWidth'),
         true,

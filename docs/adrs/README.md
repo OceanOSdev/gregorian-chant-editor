@@ -142,4 +142,4 @@ independent written signs owned by stable B notes, shared repeated-B
 neume placement, targeted destructive-clef confirmation and strict
 native v5. The owner-approved placement amendment in PR #72 permits a
 stable earlier-note engraving anchor, independent of musical B ownership. ADR 0015 is narrowly qualified; no existing ADR is superseded.
-Implementation and visual acceptance remain pending.
+Implementation is in PR #72; owner visual acceptance remains pending.

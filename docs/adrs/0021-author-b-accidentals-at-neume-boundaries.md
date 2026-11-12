@@ -5,8 +5,8 @@ Revised: 2026-11-11
 
 ## Status
 
-**Accepted (owner-approved design, 2026-11-11).** Implementation and visual
-acceptance remain pending Stage 8D review. **Owner-approved placement amendment
+**Accepted (owner-approved design, 2026-11-11).** Implementation is in PR #72; owner visual
+acceptance remains pending Stage 8D review. **Owner-approved placement amendment
 (2026-11-11):** PR #72's historical placement gate is resolved by allowing a
 stable earlier-note engraving anchor independently of B-note ownership, as
 specified below. No existing ADR is superseded.

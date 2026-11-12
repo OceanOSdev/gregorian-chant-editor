@@ -30,6 +30,7 @@ export interface NoteGeometry extends LayoutBounds {
 
 /** Discardable, ID-free geometry. Musical anchors are independent of ink bounds. */
 export interface NeumeGeometry {
+  accidentals?: readonly import('../accidental-geometry').AccidentalGeometry[];
   notes: readonly NoteGeometry[];
   ink: readonly InkShape[];
   bounds: LayoutBounds;
