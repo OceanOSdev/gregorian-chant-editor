@@ -20,7 +20,7 @@ are unchanged. Review threads are left for their reviewers to resolve.
 | Giga #4 Cancel claim                            | Corrected: Cancel preserves the committed score/history/cache and discards the pending clef draft.                                                                                                                                                                                                                                                                                                                                |
 | Giga #5 accessible labels                       | Rendering's `accidental-accessible-label.ts` constructs labels from structured context; pure tests distinguish owner from earlier engraving anchor. Layout constructs no presentation strings.                                                                                                                                                                                                                                    |
 | Giga #6 parallel arrays                         | Each committed `AccidentalLayout` contains its ID, measured geometry and owner/placement context. One grouping by placement neume replaces repeated filtering and index-matched metadata arrays.                                                                                                                                                                                                                                  |
-| Giga #7 toolbar handle                          | Typed `AccidentalContextToolbarHandle.focus()` replaces accessible-label queries. It reveals the glyph and handles deferred overlay focus without a component rAF. Contextual keyboard, reflow and viewport drivers remain regression gates.                                                                                                                                                                                      |
+| Giga #7 toolbar handle                          | Typed `AccidentalContextToolbarHandle.focus()` replaces accessible-label queries. It reveals the glyph and handles deferred overlay focus without a component rAF. Contextual keyboard, reflow and viewport drivers remain regression gates. _Qualified in the final revision: a request that could not position the toolbar left stale deferred focus._                                                                          |
 | Shared ink / Giga #16                           | Complete `ink` remains authoritative for measurement. Explicit `bodyInk` excludes separately rendered signs. Rendering draws body plus structured accidental records without object-identity filtering; tests protect complete bounds/advances, and browser references retain one glyph per entity.                                                                                                                               |
 
 ## Reconciliation decision
@@ -59,6 +59,7 @@ matching B survives, proving that the sign is removed rather than transferred.
    clef candidates.** A bounded comparison of all eight C/F clefs at four score
    boundaries (32 candidates) with/without accidentals finds no additional
    rejection, and verifies full chromatic pitches and exact placement on success.
+   (The final revision asserts that all 32 candidates reach that success path.)
    This does not prove arbitrary invalid candidates safe. A separate owner-loss
    candidate passes without signs and fails sign preservation without overflow;
    the result now diagnoses accidental-preservation explicitly. The session uses
@@ -182,7 +183,9 @@ in the existing layout walker. No semantic, command, persistence or architectura
 contract changed.
 
 Five additional tests cover both exact reproductions plus preceding-and-current
-low signs at three filler counts, including wrapping. They assert unobstructed
+low signs at three filler counts, including wrapping. (Qualified in the final
+revision: wrapping was not asserted; 10 and 12 fillers wrap the whole sequence,
+and the split-continuation case is now covered separately.) They assert unobstructed
 hyphen intervals, stable semantic placement, lyric-to-neume anchors and retained
 neume counts. The complete gate passes on Node 24.18.0:
 
@@ -213,3 +216,140 @@ the retained originals after parsing JSON; the existing specimens remain in the
 production browser driver. Historical evidence and bundled examples were not
 rewritten. Prior foreground/manual acceptance limits remain unchanged; no new
 foreground speech or native printer checks are claimed for this follow-up.
+
+## Final targeted revision: Giga Review of `40a60f2`
+
+Scope follows the owner adjudication of that review: two confirmed test/layout
+findings, one test-coverage suggestion and two hypotheses. Command API shapes,
+the finalized-command/history boundary, clef transactions, a shared toolbar
+abstraction and the remaining optional suggestions are deliberately unchanged.
+Semantics, native v5, persistence, notation vocabulary and bundled examples are
+unchanged. Every reproduction below was observed **before** the correction; the
+base comparison build is `40a60f2` (`index-VQtrrR16.js`, the audited bundle).
+
+### 1. Unnecessary continuation-hyphen reservation: confirmed and corrected
+
+The walker added the full hyphen reservation (`hyphenWidth + 2 × clearance`)
+after **every** earlier low sign in the minimum used to decide separation. A
+sign ending before the previous lyric's right edge cannot obstruct a hyphen,
+which starts after that edge, yet it could force a compact join apart.
+
+Deterministic reproduction (C3, puncta at −4/4, default flat on the lower B,
+“A” word + “men” continuation, `und`, 20 units per character, written as a
+failing test first): unsigned lyrics join at 160→161. Signed, the flat ink
+(144–156) lies before “A” (160–180), yet the reservation term
+156 + 4 + 20 + 4 = 184 exceeded the join threshold: a hyphen was inserted
+(anchor 192) and “men” moved to 204–264. “Al”/“le” stays joined in both builds
+and is retained as the control.
+
+Native fonts (Chromium 157, Georgia 20 px; hyphen 6.66, “i” 5.56): default
+prefixes centre narrow syllables well clear of the sign, so they do not trigger
+it. An earlier-anchored natural does, because it pushes its anchor's syllable
+against itself:
+
+| First syllable (C3; 4, 4, 4, −4; natural on −4 above note 2) | Base `40a60f2`                             | Corrected                |
+| ------------------------------------------------------------ | ------------------------------------------ | ------------------------ |
+| i, I, l, j, t (≤ 6.66 wide)                                  | **hyphen**; gap 12.67 (hyphen 210.5–217.2) | joined; gap 2 = unsigned |
+| e, a (8.88)                                                  | no hyphen; “men” 0.67 further right        | gap 2 = unsigned         |
+| A, in                                                        | joined; gap 2                              | unchanged                |
+
+Correction (`layout-chant.ts`): separation is decided from genuine clearance
+only (lyric minimum, previous signs + 4, structural events). Only after
+separation is required are hyphen intervals reserved, and only beyond earlier
+signs that end past the previous lyric edge. Reservation for genuinely
+obstructing signs, current-group leading ink, final interval selection,
+anchors, structural clearance and wrapping are unchanged; every existing
+exact-coordinate hyphen test and historical-specimen browser check passes.
+The [native-font capture](final-narrow-join-i.png) and its
+[metrics](final-narrow-join-i-metrics.json) show the corrected “i”/“men” join.
+
+Regression coverage: `keeps the compact A-men join …` (failed before, passes),
+plus a new native-font check in `browser-check.mjs` comparing signed/unsigned
+gaps for “i” and “e”; it fails on the base build with one unexpected hyphen and
+passes in Chromium and Firefox. The 47-case word-composition corpus passes with
+zero errors in both browsers; it contains no accidentals, so it verifies only
+that unsigned compaction is unchanged (the new decision equals the old one when
+no signs are present).
+
+### 2. Strengthened assertions: corrected tests, no behavior change
+
+- The intervening-natural hyphen test now checks the hyphen's measured ink
+  interval (from the same measurer as layout), asserts that the natural truly
+  lies between the syllables, and requires clearance on both sides. The
+  current-group tests use the same measured interval instead of a hard-coded
+  ±10.
+- Wrapping is now asserted, not assumed. For the later-lyric test, 0 and 5
+  fillers stay on one system and 12 fillers place the signed group and lyric
+  together on system 2. For the preceding-and-current test, 10 and 12 fillers
+  wrap the whole sequence; a new 8-filler case splits the continuation across
+  systems with an outgoing hyphen. Each case asserts its system placement.
+- The 32-candidate clef comparison now counts successful preservations and
+  asserts all 32 reach the pitch/placement assertions.
+
+### 3. Accidental deletion during lyric entry: reproduced and corrected
+
+Reproduced in production Chromium and in session tests, with both a clean entry
+(“Proba”) and a dirty draft (“Draft”). Glyphs keep `tabIndex=0`, but
+`delete-accidental` returned the unchanged session whenever `state.lyrics` was
+set: Delete did nothing, with no feedback and focus left on the glyph. The same
+investigation found that Tab on a glyph selected during lyric entry was
+consumed, although its toolbar is not offered then.
+
+The existing lyric-workflow contract lets note, division and clef edits apply
+while preserving a dirty draft; accidental deletion behaved that way before the
+dedicated action. The smallest consistent correction removes only the lyric
+guard. Deletion is one history entry, the draft object is unchanged, no history
+prompt appears and focus returns to the owning B. Targeting, clef-transaction,
+lyric-move and pending-history guards remain. The glyph Tab handler now consumes
+Tab only when properties focus succeeds, matching notes. Start-placement and the
+other toolbar actions are unreachable during lyric entry, so they needed no change.
+
+Coverage: two session tests (clean/dirty) failed before and pass; the acceptance
+driver now deletes both signs during clean then dirty entry, checks draft text,
+dialogs, focus and exact two-step undo, and checks native Tab. On the base build
+it fails first on swallowed Tab and, with that assertion removed, on the
+retained sign; it passes in Chromium and Firefox on the corrected build.
+
+### 4. Stale deferred toolbar focus: reproduced and corrected
+
+`AccidentalContextToolbar.focus()` set `focusRequested` before refreshing and
+returned `true` regardless. Reproduced in Chromium: a selected glyph outside a
+pinch-zoomed visual viewport (page scale 2.5) gets no toolbar position, so Tab
+was consumed and the request stayed pending. After moving focus to another note
+and restoring scale 1, the resize positioned the toolbar and moved focus into
+“Accidental kind”.
+
+Following `NoteContextToolbar`, `update()` now returns its position. `focus()`
+focuses an already positioned panel immediately; otherwise it reveals the glyph
+and leaves a deferred request only when that refresh produced a position, else
+returns `false` so native Tab continues. The cleanup clears the refresh hook.
+The typed handle, glyph/properties keyboard path, Escape/Close restoration,
+viewport clipping and reflow are unchanged; no shared toolbar abstraction was
+introduced. The acceptance driver's Chromium-only check (page scale 6) fails on
+the base build and passes after correction. Firefox/BiDi has no pinch emulation,
+so this hypothesis is not browser-verified there; the corrected logic is
+engine-independent. Physical pinch/touch remains a foreground check.
+
+### Verification
+
+Local gate on Node 24.12.0 (24.18.0 from `.nvmrc` was unavailable locally; hosted
+CI uses `.nvmrc`): `npm run format:check`, `npm run lint`, `npm test`
+(**82 files / 1,704 tests**), `npm run build` and `git diff --check` pass.
+Production bundle `index-DsZpsuuK.js`; Chromium 157/CDP and Firefox 146/BiDi
+with disposable profiles:
+
+- `browser-check.mjs` passes in both browsers. Its historical-specimen glyph
+  metrics equal the retained `reference-metrics.json` exactly in Chromium; in
+  Firefox the only difference is the previously recorded Domini natural
+  x=205.552 (versus 206.010).
+- `acceptance-browser-check.mjs` passes in both browsers
+  ([Chromium](acceptance/final-revision-chromium-result.json),
+  [Firefox](acceptance/final-revision-firefox-result.json)).
+- `CHANT_CORPUS=1` word composition: 47 cases, zero errors in each browser.
+
+The optional actual-v4-build branch, storage-review and unrelated subsystem
+drivers were not repeated; persistence, notes, divisions and clefs are
+unchanged. Local run output directories are not retained. The owner-approved
+images remain valid: only rare narrow continuation joins after an earlier low
+sign change, by removing an unnecessary hyphen. Spoken output, physical
+keyboard/IME/touch/pinch and native printing remain foreground items.

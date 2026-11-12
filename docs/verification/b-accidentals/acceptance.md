@@ -8,6 +8,12 @@ implementation or architectural changes are necessary for these items.
 Subjective visual approval remains the owner's decision. This is real-browser
 headless automation, not foreground physical-device or spoken-accessibility testing.
 
+The later [final targeted revision](review-revisions.md#final-targeted-revision-giga-review-of-40a60f2)
+qualifies items 12 and 14: it removes an unnecessary continuation hyphen after
+earlier low signs, keeps glyph deletion and native Tab working during lyric
+entry, and removes stale deferred toolbar focus. The results below remain the
+record for the audited `bffb5af` build and its UI correction.
+
 ## Coverage and actual results
 
 Sources: [D: accidental domain/command/session tests](../../../src/editor/domain/accidentals.test.ts),

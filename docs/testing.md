@@ -862,3 +862,8 @@ order, actual anchor/owner clef transactions, typed rejection and focused-glyph
 deletion. The Stage 8D driver now repeats feedback/cancellation/IME guard,
 focused-vs-selected deletion, high default/anchored signs and PDF, later lyrics,
 hyphens and clef-boundary preservation in both browser transports.
+The final targeted revision adds native-font narrow continuation joins to that
+driver, and clean/dirty lyric-entry glyph deletion plus native Tab retention to
+`acceptance-browser-check.mjs` in both transports. Its stale deferred
+toolbar-focus check uses Chromium `Emulation.setPageScaleFactor` and is skipped
+over Firefox/BiDi, which offers no equivalent pinch-zoom emulation.
