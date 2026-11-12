@@ -1,13 +1,13 @@
 # 21. Author B accidentals at neume boundaries with stable note ownership
 
 Date: 2026-11-11
-Revised: 2026-11-12
+Revised: 2026-11-11
 
 ## Status
 
 **Accepted (owner-approved design, 2026-11-11).** Implementation and visual
 acceptance remain pending Stage 8D review. **Owner-approved placement amendment
-(2026-11-12):** PR #72's historical placement gate is resolved by allowing a
+(2026-11-11):** PR #72's historical placement gate is resolved by allowing a
 stable earlier-note engraving anchor independently of B-note ownership, as
 specified below. No existing ADR is superseded.
 This extends [ADR 0015](0015-order-clef-changes-at-score-boundaries.md) with
@@ -269,7 +269,7 @@ have different cancellation rules.
   anchor and hit/focus bounds in the authoritative layout pipeline.
   Respect staff lines, ledger needs, preceding ink, clefs/divisions,
   neume connectors and all existing note forms/modifiers, lyrics and
-  custodes. The prefix consumes real width and contributes to wrapping,
+  custodes. Default prefixes consume real width and all placement ink contributes to wrapping,
   same-word compaction, overflow and print. Do not use unmeasured
   renderer-only decorations, change the semantic contour, or change
   the lyric's neume anchor. For an above-note sign derive horizontal
@@ -307,8 +307,8 @@ have different cancellation rules.
 - Deleting a canonical owner can change the effective pitches of surviving
   dependent notes; this is intentional and undoable.
 - The initial vocabulary cannot represent a floating accidental, distinct
-  same-register alterations between matching constituents, or consecutive same-register
-  signs at one boundary. Collect reference evidence and return to the owner
+  same-register alterations between matching constituents, or consecutive
+  same-register signs at one boundary. Collect reference evidence and return to the owner
   if a real score requires them.
 - Excludes signatures, sharps, non-B alterations, freehand placement, alternative
   scope settings, playback, GABC interchange and new neume forms.
