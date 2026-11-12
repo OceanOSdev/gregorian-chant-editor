@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest';
 import type { MeasureLyricText } from './lyric-text-metrics';
-import { staffPosition, type Neume } from '../domain/chant-document';
+import {
+  staffPosition,
+  type Neume,
+  type ChantNote,
+} from '../domain/chant-document';
 import { buildNeumeGeometry } from './neume-geometry';
 import { accidentalPrefixAdvance } from './accidental-geometry';
 import { blankDocument } from '../persistence/native-document';
@@ -158,7 +162,10 @@ it('keeps two-register prefix order independent of collection order', () => {
   );
   const layout = layoutChant(signed),
     n = layout.systems[0].neumes[0];
-  expect(n.accidentalIds).toEqual(['lo-sign', 'hi-sign']);
+  expect(n.accidentals?.map((a) => a.accidentalId)).toEqual([
+    'lo-sign',
+    'hi-sign',
+  ]);
   expect(n.accidentals?.map((a) => a.ink.bounds.x)).toEqual([
     n.bounds.x,
     n.bounds.x + 20,
@@ -257,6 +264,128 @@ it('bounds signed oversized groups and retains every group once after wrapping',
   expect(
     layout.systems
       .flatMap((s) => s.neumes)
-      .flatMap((n) => n.accidentalIds ?? []),
+      .flatMap((n) => n.accidentals?.map((a) => a.accidentalId) ?? []),
   ).toHaveLength(25);
+});
+
+it.each(['flat', 'natural'] as const)(
+  'expands SVG/print canvas for a high %s with default and explicit placement',
+  (kind) => {
+    for (const explicit of [false, true]) {
+      const d = blankDocument();
+      d.clef = { type: 'f', staffLine: 4 };
+      d.neumes = [
+        {
+          id: 'anchor',
+          kind: 'punctum',
+          notes: [{ id: 'a', staffPosition: staffPosition(8) }],
+        },
+        {
+          id: 'owner',
+          kind: 'punctum',
+          notes: [{ id: 'b', staffPosition: staffPosition(9) }],
+        },
+      ];
+      let signed = updateAccidental(d, 'b', kind, 'sign');
+      if (explicit) signed = placeAccidental(signed, 'sign', 'a');
+      const layout = layoutChant(signed);
+      const groups = layout.systems.flatMap((s) => s.neumes);
+      const sign = groups.flatMap((g) => g.accidentals ?? [])[0];
+      expect(layout.y).toBeLessThan(0);
+      expect(sign.ink.bounds.y).toBeGreaterThanOrEqual(layout.y);
+      expect(sign.ink.bounds.y + sign.ink.bounds.height).toBeLessThanOrEqual(
+        layout.y + layout.height,
+      );
+      const group = groups.find((g) => g.accidentals?.length);
+      expect(group?.ink).toContainEqual(sign.ink);
+      expect(group?.bodyInk).not.toContainEqual(sign.ink);
+      expect(sign.accidentalId).toBe('sign');
+      expect(sign.owner.noteId).toBe('b');
+      expect(sign.placement?.noteId ?? null).toBe(explicit ? 'a' : null);
+    }
+  },
+);
+
+it.each([0, 5, 12])(
+  'clears a later centered lyric against earlier low accidental ink with %s fillers',
+  (fillers) => {
+    const d = blankDocument();
+    d.clef = { type: 'c', staffLine: 4 };
+    d.lyricLanguage = 'und';
+    d.neumes = [
+      ...Array.from({ length: fillers }, (_, i) => ({
+        id: `fill${i}`,
+        kind: 'punctum' as const,
+        notes: [{ id: `f${i}`, staffPosition: staffPosition(4) }] as [
+          ChantNote,
+        ],
+      })),
+      {
+        id: 'low',
+        kind: 'punctum',
+        notes: [{ id: 'b', staffPosition: staffPosition(-2) }],
+      },
+      {
+        id: 'text',
+        kind: 'punctum',
+        notes: [{ id: 't', staffPosition: staffPosition(4) }],
+      },
+    ];
+    d.syllables = [
+      {
+        id: 'lyric',
+        text: 'Benedictus',
+        startsAtNeumeId: 'text',
+        boundaryBefore: 'word',
+      },
+    ];
+    const layout = layoutChant(
+      updateAccidental(d, 'b', 'natural', 'sign'),
+      measure,
+    );
+    const system = layout.systems.find((s) => s.lyrics.length);
+    if (!system) throw Error('Expected lyric');
+    const lyric = system.lyrics[0];
+    for (const glyph of system.neumes.flatMap((n) => n.accidentals ?? [])) {
+      expect(lyric.left).toBeGreaterThanOrEqual(
+        glyph.ink.bounds.x + glyph.ink.bounds.width + 4,
+      );
+    }
+    expect(lyric.anchorX).toBe(
+      system.neumes.find((n) => n.neumeId === 'text')?.lyricAnchorX,
+    );
+    expect(layout.systems.flatMap((s) => s.neumes)).toHaveLength(fillers + 2);
+  },
+);
+
+it('keeps continuation hyphen ink clear of an intervening low natural', () => {
+  const d = blankDocument();
+  d.clef = { type: 'c', staffLine: 4 };
+  d.lyricLanguage = 'und';
+  d.neumes = [4, -2, 4].map((p, i) => ({
+    id: `g${i}`,
+    kind: 'punctum',
+    notes: [{ id: `n${i}`, staffPosition: staffPosition(p) }],
+  }));
+  d.syllables = [
+    { id: 'first', text: 'A', startsAtNeumeId: 'g0', boundaryBefore: 'word' },
+    {
+      id: 'last',
+      text: 'Benedictus',
+      startsAtNeumeId: 'g2',
+      boundaryBefore: 'continuation',
+    },
+  ];
+  const layout = layoutChant(
+    updateAccidental(d, 'n1', 'natural', 'sign'),
+    measure,
+  );
+  for (const s of layout.systems)
+    for (const glyph of s.neumes.flatMap((n) => n.accidentals ?? [])) {
+      for (const hyphen of s.hyphens)
+        expect(hyphen.x).toBeGreaterThanOrEqual(
+          glyph.ink.bounds.x + glyph.ink.bounds.width,
+        );
+    }
+  expect(layout.systems.flatMap((s) => s.hyphens)).toHaveLength(1);
 });

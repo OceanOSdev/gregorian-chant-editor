@@ -182,27 +182,10 @@ export function hasValidAccidentals(document: ChantDocument): boolean {
   const owners = new Set<string>();
   for (const sign of signs) {
     const a = sign.entity;
-    if (
-      typeof a.id !== 'string' ||
-      !a.id.trim() ||
-      ids.has(a.id) ||
-      (a.kind !== 'flat' && a.kind !== 'natural') ||
-      Object.keys(a).some(
-        (k) => !['id', 'kind', 'ownerNoteId', 'placement'].includes(k),
-      )
-    )
-      return false;
+    if (ids.has(a.id)) return false;
     if (
       canonicalBOwner(contexts, a.ownerNoteId)?.note.id !== a.ownerNoteId ||
       owners.has(a.ownerNoteId)
-    )
-      return false;
-    if (
-      'placement' in a &&
-      (!a.placement ||
-        a.placement.kind !== 'above-note' ||
-        typeof a.placement.noteId !== 'string' ||
-        Object.keys(a.placement).length !== 2)
     )
       return false;
     if (!validPlacement(sign, signs, contexts)) return false;
@@ -279,13 +262,14 @@ export function resolveEffectivePitches(
 }
 
 /** Ordinary edits lose original owners first, then canonicalize and repair anchors. */
-export function reconcileAccidentals(
+export function reconcileAccidentalsResult(
   before: ChantDocument,
   candidate: ChantDocument,
-): ChantDocument | null {
-  if (before === candidate || !candidate.accidentals.length) return candidate;
+): AccidentalEditResult {
+  if (before === candidate || !candidate.accidentals.length)
+    return { document: candidate, rejection: null };
   const contexts = pitchContexts(candidate);
-  if (!contexts) return null;
+  if (!contexts) return { document: before, rejection: 'unsafe-pitch' };
   const ids = new Set<string>();
   let changed = false;
   let accidentals: ChantAccidental[] = [];
@@ -295,7 +279,8 @@ export function reconcileAccidentals(
       changed = true;
       continue;
     }
-    if (ids.has(owner.note.id)) return null;
+    if (ids.has(owner.note.id))
+      return { document: before, rejection: 'ownership-conflict' };
     ids.add(owner.note.id);
     accidentals.push(
       owner.note.id === a.ownerNoteId
@@ -304,8 +289,10 @@ export function reconcileAccidentals(
     );
     changed ||= owner.note.id !== a.ownerNoteId;
   }
-  // Repair in owner order and recheck: restoring a default can interrupt another span.
-  for (let pass = 0; pass <= accidentals.length; pass++) {
+  // First restore intrinsically invalid spans, then conflicts, in musical owner
+  // order. Revalidate after each restoration: a conflicting sign may itself
+  // require default placement, making the other authored anchor valid again.
+  for (let pass = 0; pass < accidentals.length; pass++) {
     const signs =
       writtenAccidentals(
         {
@@ -316,17 +303,43 @@ export function reconcileAccidentals(
         },
         contexts,
       ) ?? [];
-    let repaired = false;
-    accidentals = accidentals.map((a) => {
-      if (!a.placement) return a;
+    const ordered = [...accidentals].sort(
+      (a, b) =>
+        (contexts.get(a.ownerNoteId)?.order ?? 0) -
+        (contexts.get(b.ownerNoteId)?.order ?? 0),
+    );
+    const invalid = (a: ChantAccidental, conflicts: boolean) => {
+      if (!a.placement) return false;
       const sign = signs.find((s) => s.entity.id === a.id);
-      if (sign && validPlacement(sign, signs, contexts)) return a;
+      return !sign || !validPlacement(sign, conflicts ? signs : [], contexts);
+    };
+    const repair =
+      ordered.find((a) => invalid(a, false)) ??
+      ordered.find((a) => invalid(a, true));
+    if (!repair) break;
+    accidentals = accidentals.map((a) => {
+      if (a !== repair) return a;
       const { placement: _placement, ...rest } = a;
-      repaired = true;
       return rest;
     });
-    changed ||= repaired;
-    if (!repaired) break;
+    changed = true;
   }
-  return changed ? { ...candidate, accidentals } : candidate;
+  return {
+    document: changed ? { ...candidate, accidentals } : candidate,
+    rejection: null,
+  };
+}
+
+export interface AccidentalEditResult {
+  document: ChantDocument;
+  rejection: 'ownership-conflict' | 'unsafe-pitch' | null;
+}
+
+/** Finalize or preflight a complete candidate when detailed rejection is not needed. */
+export function reconcileAccidentals(
+  before: ChantDocument,
+  candidate: ChantDocument,
+): ChantDocument | null {
+  const result = reconcileAccidentalsResult(before, candidate);
+  return result.rejection ? null : result.document;
 }

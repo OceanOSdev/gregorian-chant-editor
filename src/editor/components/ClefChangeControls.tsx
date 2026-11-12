@@ -1,4 +1,3 @@
-import { reconcileAccidentals } from '../domain/accidentals';
 import { useLayoutEffect, useRef, type Dispatch } from 'react';
 import { isPlacementTool } from '../state/editor-tool';
 import type { Clef } from '../domain/chant-document';
@@ -64,17 +63,8 @@ export function ClefChangeControls({
   if (!transaction && (!target || isPlacementTool(session.activeTool)))
     return null;
   const confirming = !!candidate;
-  const noteheadCandidate =
-    candidate && transaction
-      ? reconcileAccidentals(transaction.original, candidate)
-      : null;
-  const lossCount = transaction
-    ? (transaction.accidentalLossCount ??
-      (noteheadCandidate
-        ? transaction.original.accidentals.length -
-          noteheadCandidate.accidentals.length
-        : 0))
-    : 0;
+  const lossCount =
+    transaction?.accidentalLossCount ?? transaction?.noteheadLossCount ?? 0;
   return (
     <div
       ref={panel}

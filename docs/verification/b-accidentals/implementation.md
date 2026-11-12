@@ -1,6 +1,7 @@
 # Stage 8D implementation and reference comparison
 
-Date: 2026-11-11. Implementation for [PR #72](https://github.com/OceanOSdev/gregorian-chant-editor/pull/72).
+Date: 2026-11-11. Original implementation evidence for `8e77a3f`;
+[review revisions and current verification](review-revisions.md) supersede its test/bundle totals. Implementation for [PR #72](https://github.com/OceanOSdev/gregorian-chant-editor/pull/72).
 The [original gate record](README.md) is historical. The owner-approved amendment
 to [ADR 0021](../../adrs/0021-author-b-accidentals-at-neume-boundaries.md) resolves
 that gate by separating stable B ownership from optional earlier-note placement.
@@ -19,8 +20,8 @@ original project contours preclude an exact facsimile claim.
 
 | Specimen                                                                   | Verified printed evidence                                                                                                                                 | Editor comparison and interpretation                                                                                                                                                                                                                                                            |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Laetatus sum, 292](https://gregobase.selapa.net/chant.php?id=292)         | [Liber Usualis p. 18 scan](https://gregobase.selapa.net/sources/4/18.png), `340x70+75+530`, enlarged 4×; `ixiji`                                          | [B–C–B Torculus](laetatus-torculus.chant.json): one prefix flat, earliest B owner; no duplicate sign on final B.                                                                                                                                                                                |
-| [Ecce virgo, 1144](https://gregobase.selapa.net/chant.php?id=1144)         | [Liber Usualis scan](https://gregobase.selapa.net/sources/16/183.png), `260x55+150+192`, enlarged 4×; `ixihi`                                             | [B–A–B Porrectus](ecce-porrectus.chant.json): one prefix flat on the complete group.                                                                                                                                                                                                            |
+| [Laetatus sum, 292](https://gregobase.selapa.net/chant.php?id=292)         | [Graduale Romanum (1974), p. 19 scan](https://gregobase.selapa.net/sources/4/18.png), `340x70+75+530`, enlarged 4×; `ixiji`                               | [B–C–B Torculus](laetatus-torculus.chant.json): one prefix flat, earliest B owner; no duplicate sign on final B.                                                                                                                                                                                |
+| [Ecce virgo, 1144](https://gregobase.selapa.net/chant.php?id=1144)         | [Gregorian Missal (1990), p. 184 scan](https://gregobase.selapa.net/sources/16/183.png), `260x55+150+192`, enlarged 4×; `ixihi`                           | [B–A–B Porrectus](ecce-porrectus.chant.json): one prefix flat on the complete group.                                                                                                                                                                                                            |
 | [Benedicta, 392](https://gregobase.selapa.net/chant.php?id=392)            | [Graduale Romanum scan](https://gregobase.selapa.net/sources/2/802.png), `235x65+112+343`, enlarged 4×; `ma(dc/[1]{/[-3]ix}fg'h)ter(h.0/[-0.5]ivHG'ef'g)` | [Supported ma-/ter groups](benedicta-mater.chant.json): flat associated with earlier F, B owner in later ter. Clearance shifts ink left of the rising group without moving the semantic anchor.                                                                                                 |
 | [Beata gens, 1044](https://gregobase.selapa.net/chant.php?id=1044), Domini | [Retained scan](https://gregobase.selapa.net/sources/2/408.png), `420x62+40+444`, enlarged 4×; `ni(iyhjH'Gh!jjh//jjjvIH'jggf.0)`                          | [Supported Domini context](beata-natural.chant.json): explicit natural at earlier A, later B owner, with preceding flat context. This is an isolated supported excerpt, not a full source transcription.                                                                                        |
 | Beata gens, omnis                                                          | Original crop, exact suffix and source hashes retained in [gate record](README.md).                                                                       | [Actual editor excerpt](beata-editor.chant.json): flat above terminal F, G–A intervening, first following B owner. The supported C–A–G / F / G–A / B–A–G / A–G groups isolate the placement; omitted introductory repeated notes and source grouping are not claimed to be transcribed exactly. |
@@ -95,9 +96,9 @@ positions still produce impractically tall/clipped viewports in v2 and v5;
 cache bytes and New remain available. This pre-existing limitation was reproduced,
 not fixed or reclassified as supported engraving.
 
-## Final verification and acceptance limits
+## Verification at 8e77a3f and acceptance limits
 
-Final local gate used Node **24.18.0**, matching `.nvmrc` (the initially installed
+The original implementation gate used Node **24.18.0**, matching `.nvmrc` (the initially installed
 24.12.0 also passed). No dependency changes were needed.
 
 | Check                                                                                                       | Actual result                                                                  |
@@ -114,7 +115,7 @@ Final local gate used Node **24.18.0**, matching `.nvmrc` (the initially install
 | Existing initial-clef driver                                                                                | Chromium pass; this driver has no Firefox transport.                           |
 | Actual v2/current storage review                                                                            | Chromium/Firefox pass, including cross-tab/write-failure protection.           |
 
-The final production bundle is `index-BhumhlfL.js`; the reference captures use the
+The original production bundle was `index-BhumhlfL.js`; the reference captures use the
 same engraving geometry as that bundle. Feature runs retained disposable output
 in `/tmp/chant-b-accidentals-GJLgM5` (Chromium) and `/tmp/chant-b-accidentals-y3Wi8R` (Firefox); repository captures retain the representative evidence rather than
 all temporary exports. Existing regressions run sequentially per browser.

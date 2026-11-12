@@ -23,7 +23,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
   const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);
   const accidentalCount = neumes.reduce(
-    (count, n) => count + (n.accidentalIds?.length ?? 0),
+    (count, n) => count + (n.accidentals?.length ?? 0),
     0,
   );
   return (

@@ -1,4 +1,4 @@
-import { reconcileAccidentals } from '../domain/accidentals';
+import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
   staffPosition,
   type ChantDocument,
@@ -23,6 +23,7 @@ function moveNoteVerticallyCandidate(
     ...locatedNote.note,
     staffPosition: staffPosition(locatedNote.note.staffPosition + delta),
   };
+  if (!Number.isSafeInteger(movedNote.staffPosition)) return document;
   let movedNeume: Neume;
 
   // Rebuild the owning kind's fixed tuple before validation so movement never
@@ -91,11 +92,17 @@ function moveNoteVerticallyCandidate(
   };
 }
 
+export function moveNoteVerticallyResult(
+  ...args: Parameters<typeof moveNoteVerticallyCandidate>
+) {
+  return reconcileAccidentalsResult(
+    args[0],
+    moveNoteVerticallyCandidate(...args),
+  );
+}
+
 export function moveNoteVertically(
   ...args: Parameters<typeof moveNoteVerticallyCandidate>
 ): ChantDocument {
-  return (
-    reconcileAccidentals(args[0], moveNoteVerticallyCandidate(...args)) ??
-    args[0]
-  );
+  return moveNoteVerticallyResult(...args).document;
 }

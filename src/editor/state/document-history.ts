@@ -1,5 +1,4 @@
 import type { ChantDocument } from '../domain/chant-document';
-import { reconcileAccidentals } from '../domain/accidentals';
 
 export interface DocumentHistory {
   readonly past: readonly ChantDocument[];
@@ -20,16 +19,15 @@ export function createDocumentHistory(
 }
 
 /**
- * Applies the edit once. Returning the exact present document signals rejection
- * or a no-op and preserves the exact history without creating an entry.
+ * Records a finalized semantic command once. Candidate builders must be finalized
+ * before adoption; history does not perform semantic repair. Returning the exact
+ * present document signals rejection or a no-op and preserves history identity.
  */
 export function applyDocumentEdit(
   history: DocumentHistory,
   edit: DocumentEdit,
 ): DocumentHistory {
-  const nextDocument =
-    reconcileAccidentals(history.present, edit(history.present)) ??
-    history.present;
+  const nextDocument = edit(history.present);
 
   if (nextDocument === history.present) {
     return history;

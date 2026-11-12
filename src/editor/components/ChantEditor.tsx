@@ -1,4 +1,7 @@
-import { AccidentalContextToolbar } from './AccidentalContextToolbar';
+import {
+  AccidentalContextToolbar,
+  type AccidentalContextToolbarHandle,
+} from './AccidentalContextToolbar';
 import {
   NoteContextToolbar,
   type NoteContextToolbarHandle,
@@ -9,7 +12,6 @@ import {
   resolveEffectivePitches,
 } from '../domain/accidentals';
 import {
-  deleteAccidental,
   eligibleAccidentalAnchors,
   placeAccidental,
   updateAccidental,
@@ -53,11 +55,12 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
-import { deleteNeume } from '../commands/delete-neume';
-import { deleteNote } from '../commands/delete-note';
-import { moveNeumeVertically } from '../commands/move-neume';
-import { moveNoteVertically } from '../commands/move-note';
+import { deleteNeumeResult } from '../commands/delete-neume';
+import { deleteNoteResult } from '../commands/delete-note';
+import { moveNeumeVerticallyResult } from '../commands/move-neume';
+import { moveNoteVerticallyResult } from '../commands/move-note';
 import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
@@ -133,30 +136,24 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
   const accidentalTarget = session.accidentalTargetId;
-  const [accidentalFeedback, setAccidentalFeedback] = useState('');
   const selectedAccidental =
     selection.kind === 'accidental'
       ? history.present.accidentals.find((a) => a.id === selection.accidentalId)
       : null;
-  const targetIds = accidentalTarget
-    ? eligibleAccidentalAnchors(history.present, accidentalTarget)
-    : [];
-  function finishAccidentalPlacement(noteId: string | null) {
-    if (!accidentalTarget || (noteId !== null && !targetIds.includes(noteId)))
-      return;
-    const id = accidentalTarget;
-    if (noteId !== null)
-      dispatch({ type: 'commit-accidental-placement', noteId });
-    setAccidentalFeedback('Accidental placement updated.');
-    requestAnimationFrame(() =>
-      scoreWorkspace.current
-        ?.querySelector<SVGGElement>(`[data-accidental-id="${CSS.escape(id)}"]`)
-        ?.focus(),
-    );
+  const targetIds = useMemo(
+    () =>
+      accidentalTarget
+        ? eligibleAccidentalAnchors(history.present, accidentalTarget)
+        : [],
+    [history.present, accidentalTarget],
+  );
+  function finishAccidentalPlacement(noteId: string) {
+    dispatch({ type: 'commit-accidental-placement', noteId });
   }
   const rememberedName = entryName(rememberedKind, session.rememberedForm);
   const scoreWorkspace = useRef<HTMLDivElement>(null);
   const noteToolbar = useRef<NoteContextToolbarHandle>(null);
+  const accidentalToolbar = useRef<AccidentalContextToolbarHandle>(null);
   const accidentalAnchorList = useRef<HTMLSelectElement>(null);
   const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
@@ -550,12 +547,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       className="chant-editor"
       onKeyUpCapture={syncNotationFocus}
       onKeyDownCapture={(event) => {
-        if (accidentalTarget && event.key === 'Escape') {
-          event.preventDefault();
-          event.stopPropagation();
-          dispatch({ type: 'cancel-accidental-placement' });
-          return;
-        }
         if (
           !session.lyricMove ||
           event.nativeEvent.isComposing ||
@@ -1120,17 +1111,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         >
           <ScoreSvg
             onFocusAccidentalProperties={() =>
-              document
-                .querySelector<HTMLSelectElement>(
-                  '[aria-label="Selected accidental properties"] select',
-                )
-                ?.focus()
+              accidentalToolbar.current?.focus()
             }
             accidentalTargetIds={accidentalTarget ? targetIds : null}
             onAccidentalTarget={(id) => finishAccidentalPlacement(id)}
-            onCancelAccidentalTarget={() =>
-              dispatch({ type: 'cancel-accidental-placement' })
-            }
             onSelectAccidental={(id) =>
               dispatch({
                 type: 'select',
@@ -1138,10 +1122,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               })
             }
             onDeleteAccidental={(id) =>
-              dispatch({
-                type: 'engraving-edit',
-                edit: (doc) => deleteAccidental(doc, id),
-              })
+              dispatch({ type: 'delete-accidental', id })
             }
             onFocusNoteModifiers={
               noteToolbarAvailable
@@ -1295,7 +1276,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoveNote={(noteId, delta) =>
               dispatch({
                 type: 'edit',
-                edit: (document) => moveNoteVertically(document, noteId, delta),
+                edit: (document) =>
+                  moveNoteVerticallyResult(document, noteId, delta),
                 focusNoteId: noteId,
               })
             }
@@ -1303,7 +1285,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               dispatch({
                 type: 'edit',
                 edit: (document) =>
-                  moveNeumeVertically(document, neumeId, delta),
+                  moveNeumeVerticallyResult(document, neumeId, delta),
                 focusNoteId: invokingNoteId,
               })
             }
@@ -1312,14 +1294,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               dispatch({
                 type: 'edit',
                 formDeletionNoteId: noteId,
-                edit: (document) => deleteNote(document, noteId),
+                edit: (document) => deleteNoteResult(document, noteId),
                 clearSelection: true,
               });
             }}
             onDeleteNeume={(neumeId) =>
               dispatch({
                 type: 'edit',
-                edit: (document) => deleteNeume(document, neumeId),
+                edit: (document) => deleteNeumeResult(document, neumeId),
                 clearSelection: true,
               })
             }
@@ -1360,6 +1342,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         !session.lyrics &&
         !session.lyricMove ? (
           <AccidentalContextToolbar
+            ref={accidentalToolbar}
             key={selectedAccidental.id}
             id={selectedAccidental.id}
             layout={layout}
@@ -1401,23 +1384,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             </p>
             <button
               type="button"
-              onClick={() => {
-                const ids = eligibleAccidentalAnchors(
-                  history.present,
-                  selectedAccidental.id,
-                );
-                if (!ids.length) {
-                  setAccidentalFeedback('No eligible earlier note.');
-                  return;
-                }
+              disabled={!!accidentalTarget}
+              onClick={() =>
                 dispatch({
                   type: 'start-accidental-placement',
                   id: selectedAccidental.id,
-                });
-                setAccidentalFeedback(
-                  'Choose an eligible earlier note. Escape cancels.',
-                );
-              }}
+                })
+              }
             >
               Place above earlier note
             </button>
@@ -1436,27 +1409,18 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             </button>
             <button
               type="button"
+              disabled={!!accidentalTarget}
               onClick={() =>
                 dispatch({
-                  type: 'engraving-edit',
-                  edit: (doc) => deleteAccidental(doc, selectedAccidental.id),
+                  type: 'delete-accidental',
+                  id: selectedAccidental.id,
                 })
               }
             >
               Delete accidental
             </button>
             {accidentalTarget ? (
-              <div
-                role="group"
-                aria-label="Choose accidental placement"
-                onKeyDown={(e) => {
-                  e.stopPropagation();
-                  if (e.key === 'Escape') {
-                    dispatch({ type: 'cancel-accidental-placement' });
-                    setAccidentalFeedback('Placement canceled.');
-                  }
-                }}
-              >
+              <div role="group" aria-label="Choose accidental placement">
                 <label>
                   Earlier note
                   <select
@@ -1468,6 +1432,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                     size={Math.min(6, targetIds.length)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
                         finishAccidentalPlacement(e.currentTarget.value);
                       }
@@ -1499,7 +1464,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                   type="button"
                   onClick={() => {
                     dispatch({ type: 'cancel-accidental-placement' });
-                    setAccidentalFeedback('Placement canceled.');
                   }}
                 >
                   Cancel placement
@@ -1508,7 +1472,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             ) : null}
           </AccidentalContextToolbar>
         ) : null}
-        <p role="status">{accidentalFeedback}</p>
         <SyllableControls
           onAlignment={(syllableId, range) =>
             dispatch({

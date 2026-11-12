@@ -1,4 +1,4 @@
-import { reconcileAccidentals } from '../domain/accidentals';
+import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
   staffPosition,
   type ChantDocument,
@@ -34,6 +34,8 @@ function moveNeumeVerticallyCandidate(
   }
 
   const movedNeume = transposeNeume(locatedNeume.neume, delta);
+  if (movedNeume.notes.some((n) => !Number.isSafeInteger(n.staffPosition)))
+    return document;
 
   if (!isValidNeume(movedNeume)) {
     return document;
@@ -85,11 +87,17 @@ export function transposeNeume(neume: Neume, delta: number): Neume {
   }
 }
 
+export function moveNeumeVerticallyResult(
+  ...args: Parameters<typeof moveNeumeVerticallyCandidate>
+) {
+  return reconcileAccidentalsResult(
+    args[0],
+    moveNeumeVerticallyCandidate(...args),
+  );
+}
+
 export function moveNeumeVertically(
   ...args: Parameters<typeof moveNeumeVerticallyCandidate>
 ): ChantDocument {
-  return (
-    reconcileAccidentals(args[0], moveNeumeVerticallyCandidate(...args)) ??
-    args[0]
-  );
+  return moveNeumeVerticallyResult(...args).document;
 }

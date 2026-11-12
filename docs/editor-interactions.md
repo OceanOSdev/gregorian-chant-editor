@@ -821,4 +821,10 @@ Selecting the current anchor is a no-op. Competing document actions are guarded
 while targeting. Feedback describes selection, invalid targets and automatic
 placement restoration, with focus returned to the glyph or surviving owner.
 Clef warnings describe the number of flat/natural signs that would be removed;
-Cancel preserves the draft and committed score.
+Cancel preserves the committed score, history and cache; it discards the pending clef draft.
+
+Accidental placement feedback uses only the session announcement and focus request.
+Starting another placement and Delete are disabled during targeting; invalid
+targets preserve the exact document and history. Focused glyph deletion returns
+focus to its owning B even when Tab did not select the glyph. The contextual
+accidental toolbar exposes a typed focus handle independent of accessible labels.

@@ -1,3 +1,4 @@
+import { getAccidentalAccessibleLabel } from './accidental-accessible-label';
 import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
 import { getNoteModifierDescription } from './note-accessible-label';
 import {
@@ -50,7 +51,6 @@ export interface SvgPoint {
 interface ScoreSvgProps {
   accidentalTargetIds: readonly string[] | null;
   onAccidentalTarget: (id: string) => void;
-  onCancelAccidentalTarget: () => void;
   onFocusAccidentalProperties: () => void;
   onSelectAccidental: (id: string) => void;
   onDeleteAccidental: (id: string) => void;
@@ -110,7 +110,6 @@ interface ScoreSvgProps {
 export function ScoreSvg({
   accidentalTargetIds,
   onAccidentalTarget,
-  onCancelAccidentalTarget,
   onFocusAccidentalProperties,
   onSelectAccidental,
   onDeleteAccidental,
@@ -774,12 +773,7 @@ export function ScoreSvg({
                       </text>
                     </g>
                   ) : null}
-                  <NeumeInk
-                    ink={neume.ink.filter(
-                      (shape) =>
-                        !neume.accidentals?.some((a) => a.ink === shape),
-                    )}
-                  />
+                  <NeumeInk ink={neume.bodyInk ?? neume.ink} />
                   {neume.notes.map((note, noteIndex) => {
                     const isNoteSelected =
                       selection.kind === 'note' &&
@@ -837,14 +831,8 @@ export function ScoreSvg({
                         onClick={(event) => handleNoteClick(event, note.noteId)}
                         onKeyDown={(event) => {
                           if (accidentalTargetIds) {
-                            if (event.key === 'Escape') {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              onCancelAccidentalTarget();
-                            } else if (
-                              event.key === 'Enter' ||
-                              event.key === ' '
-                            ) {
+                            if (event.nativeEvent.isComposing) return;
+                            if (event.key === 'Enter' || event.key === ' ') {
                               event.preventDefault();
                               event.stopPropagation();
                               onAccidentalTarget(note.noteId);
@@ -944,8 +932,8 @@ export function ScoreSvg({
                       </g>
                     );
                   })}
-                  {neume.accidentals?.map((a, index) => {
-                    const id = neume.accidentalIds?.[index];
+                  {neume.accidentals?.map((a) => {
+                    const id = a.accidentalId;
                     return id ? (
                       <g
                         className="score__accidental"
@@ -971,10 +959,7 @@ export function ScoreSvg({
                             : -1
                         }
                         role="button"
-                        aria-label={
-                          neume.accidentalLabels?.[index] ??
-                          `Written B-${a.kind}`
-                        }
+                        aria-label={getAccidentalAccessibleLabel(a)}
                         aria-pressed={
                           selection.kind === 'accidental' &&
                           selection.accidentalId === id

@@ -150,6 +150,7 @@ export function addAccidentalGeometry(
   return {
     ...base,
     ink,
+    bodyInk: base.ink,
     bounds,
     accidentals,
     advanceX: bounds.width + interNeumeInkGap,

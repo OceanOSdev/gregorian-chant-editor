@@ -1,4 +1,12 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { focusAndReveal } from '../rendering/focus-visibility';
+import {
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   positionNoteToolbar,
@@ -7,13 +15,19 @@ import {
 import type { ChantLayout } from '../layout/layout-chant';
 import './NoteContextToolbar.css';
 
+export interface AccidentalContextToolbarHandle {
+  focus: () => boolean;
+}
+
 export function AccidentalContextToolbar({
+  ref,
   id,
   layout,
   children,
   onEscape,
   onHistory,
 }: {
+  ref: Ref<AccidentalContextToolbarHandle>;
   id: string;
   layout: ChantLayout;
   children: ReactNode;
@@ -21,6 +35,31 @@ export function AccidentalContextToolbar({
   onHistory: (direction: 'undo' | 'redo') => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const refreshPosition = useRef<(() => void) | null>(null);
+  const focusRequested = useRef(false);
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => {
+        const glyph = document.querySelector<SVGGElement>(
+          `[data-accidental-id="${CSS.escape(id)}"]`,
+        );
+        if (!glyph) return false;
+        focusAndReveal(glyph);
+        focusRequested.current = true;
+        refreshPosition.current?.();
+        const control = panel.current?.querySelector<
+          HTMLSelectElement | HTMLButtonElement
+        >('select:not(:disabled),button:not(:disabled)');
+        if (control && panel.current?.style.visibility === 'visible') {
+          control.focus();
+          focusRequested.current = false;
+        }
+        return true;
+      },
+    }),
+    [id],
+  );
   const [position, setPosition] = useState<NoteToolbarPosition | null>(null);
   useLayoutEffect(() => {
     const update = () => {
@@ -59,6 +98,7 @@ export function AccidentalContextToolbar({
         }),
       );
     };
+    refreshPosition.current = update;
     update();
     const observer = new ResizeObserver(update);
     if (panel.current) observer.observe(panel.current);
@@ -74,6 +114,16 @@ export function AccidentalContextToolbar({
       window.visualViewport?.removeEventListener('scroll', update);
     };
   }, [id, layout]);
+  useLayoutEffect(() => {
+    if (position && focusRequested.current) {
+      panel.current
+        ?.querySelector<HTMLSelectElement | HTMLButtonElement>(
+          'select:not(:disabled),button:not(:disabled)',
+        )
+        ?.focus();
+      focusRequested.current = false;
+    }
+  }, [position]);
   return createPortal(
     <div
       ref={panel}

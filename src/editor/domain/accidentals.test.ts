@@ -210,7 +210,12 @@ describe('register-specific written accidentals', () => {
     };
     expect(reconcileAccidentals(signed, collision)).toBe(null);
     const h = createDocumentHistory(signed);
-    expect(applyDocumentEdit(h, () => collision)).toBe(h);
+    expect(
+      applyDocumentEdit(
+        h,
+        () => reconcileAccidentals(signed, collision) ?? signed,
+      ),
+    ).toBe(h);
   });
   it('None and glyph deletion remove only the written entity, preserving inherited effects', () => {
     const d = updateAccidental(flat(), 'nextn', 'natural', 'cancel');
@@ -252,6 +257,13 @@ describe('earlier-note placement and mutation', () => {
     expect(moveNoteVertically(signed, 'first', 1).accidentals).toEqual([
       { id: 's', kind: 'flat', ownerNoteId: 'first' },
     ]);
+    const canonical = moveNoteVertically(signed, 'first', 1);
+    expect(
+      deleteNote(canonical, 'first').neumes[0].notes.some(
+        (n) => n.id === 'last',
+      ),
+    ).toBe(true);
+    expect(deleteNote(canonical, 'first').accidentals).toEqual([]);
     expect(deleteNote(signed, 'last').accidentals).toEqual([]);
   });
   it('round trips default and explicit signs with all note fields, divisions and clefs', () => {

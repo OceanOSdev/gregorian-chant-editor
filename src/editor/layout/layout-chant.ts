@@ -1,5 +1,9 @@
-import { writtenAccidentals } from '../domain/accidentals';
-import type { AccidentalSpec } from './accidental-geometry';
+import {
+  writtenAccidentals,
+  type PitchContext,
+  type WrittenAccidental,
+} from '../domain/accidentals';
+import type { AccidentalGeometry, AccidentalSpec } from './accidental-geometry';
 import type { NoteAppearance } from '../domain/chant-document';
 import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
@@ -89,9 +93,23 @@ export interface NoteLayout extends NoteGeometry, NoteAppearance {
   noteId: string;
 }
 
-export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
-  accidentalIds?: readonly string[];
-  accidentalLabels?: readonly string[];
+export interface AccidentalNoteContext {
+  noteId: string;
+  noteIndex: number;
+  neumeId: string;
+  neumeIndex: number;
+  neumeKind: Neume['kind'];
+}
+export interface AccidentalLayout extends AccidentalGeometry {
+  accidentalId: string;
+  owner: AccidentalNoteContext;
+  placement: AccidentalNoteContext | null;
+}
+export interface NeumeLayout extends Omit<
+  NeumeGeometry,
+  'notes' | 'accidentals'
+> {
+  accidentals?: readonly AccidentalLayout[];
   neumeId: string;
   /** Horizontal ownership interval for contextual pointer padding and decorations. */
   hitClip?: { left: number; right: number };
@@ -501,6 +519,27 @@ function placeNeumeSequence(
               : lyricJoinClearance);
       const minimum = Math.max(
         lyricMinimum,
+        ...geometries.flatMap((g) =>
+          (g.accidentals ?? []).flatMap((a) => {
+            const b = a.ink.bounds;
+            const top =
+              firstSystemLyricBaselineY +
+              systems.length * systemVerticalAdvance -
+              lyricFontSize;
+            return b.y < top + lyricFontSize * 1.25 + 3 &&
+              b.y + b.height > top - 3
+              ? [
+                  b.x +
+                    b.width +
+                    4 +
+                    (lyric.boundaryBefore === 'continuation' &&
+                    previousLyricRight !== null
+                      ? hyphenWidth + 2 * hyphenClearance
+                      : 0),
+                ]
+              : [];
+          }),
+        ),
         lastBoundaryEventRight === null
           ? -Infinity
           : lastBoundaryEventRight + divisionGap,
@@ -698,7 +737,7 @@ export function getNeumeBoundaryCenterX(
 
 function layoutCommittedNeume(
   neume: Neume,
-  geometry: NeumeGeometry,
+  geometry: Omit<NeumeGeometry, 'accidentals'>,
 ): NeumeLayout {
   return {
     ...geometry,
@@ -779,8 +818,21 @@ export function layoutChant(
       ]);
   }
   const signs = writtenAccidentals(document) ?? [];
-  const signsForNeume = (id: string) =>
-    signs.filter((s) => s.location.neume.id === id);
+  const signsByNeume = new Map<string, WrittenAccidental[]>();
+  for (const sign of signs) {
+    const id = sign.location.neume.id;
+    const group = signsByNeume.get(id) ?? [];
+    group.push(sign);
+    signsByNeume.set(id, group);
+  }
+  const signsForNeume = (id: string) => signsByNeume.get(id) ?? [];
+  const signContext = (c: PitchContext): AccidentalNoteContext => ({
+    noteId: c.note.id,
+    noteIndex: c.noteIndex,
+    neumeId: c.neume.id,
+    neumeIndex: c.neumeIndex,
+    neumeKind: c.neume.kind,
+  });
   const wrappedSystems = placeNeumeSequence(
     document.neumes.map((neume) => ({
       ...geometryInput(neume),
@@ -836,25 +888,26 @@ export function layoutChant(
           clefX,
           staffLineY(leadingClef.staffLine, bottomStaffY),
         ),
-        neumes: geometries.map((geometry, offset) => ({
-          ...layoutCommittedNeume(
-            document.neumes[startNeumeIndex + offset],
-            geometry,
-          ),
-          ...(signsForNeume(document.neumes[startNeumeIndex + offset].id).length
-            ? {
-                accidentalIds: signsForNeume(
-                  document.neumes[startNeumeIndex + offset].id,
-                ).map((s) => s.entity.id),
-                accidentalLabels: signsForNeume(
-                  document.neumes[startNeumeIndex + offset].id,
-                ).map(
-                  (s) =>
-                    `Written B-${s.entity.kind}, owned by note ${s.owner.noteIndex + 1} of ${s.owner.neume.kind} ${s.owner.neumeIndex + 1}${s.entity.placement ? `, above note ${s.location.noteIndex + 1} of ${s.location.neume.kind} ${s.location.neumeIndex + 1}` : ', before owning neume'}`,
-                ),
-              }
-            : {}),
-        })),
+        neumes: geometries.map((geometry, offset) => {
+          const neume = document.neumes[startNeumeIndex + offset];
+          const groupSigns = signsForNeume(neume.id);
+          const { accidentals: glyphs, ...body } = geometry;
+          return {
+            ...layoutCommittedNeume(neume, body),
+            ...(glyphs?.length
+              ? {
+                  accidentals: glyphs.map((glyph, i) => ({
+                    ...glyph,
+                    accidentalId: groupSigns[i].entity.id,
+                    owner: signContext(groupSigns[i].owner),
+                    placement: groupSigns[i].entity.placement
+                      ? signContext(groupSigns[i].location)
+                      : null,
+                  })),
+                }
+              : {}),
+          };
+        }),
         divisions,
         leadingClefChangeId,
         clefChanges,
@@ -947,6 +1000,17 @@ export function layoutChant(
                 ...before.system.divisions,
                 ...before.system.clefChanges,
                 ...before.system.custodes,
+                ...before.system.neumes.flatMap((n) =>
+                  (n.accidentals ?? [])
+                    .filter(
+                      (a) =>
+                        a.ink.bounds.y <
+                          before.lyric.y + lyricFontSize / 4 + 3 &&
+                        a.ink.bounds.y + a.ink.bounds.height >
+                          before.lyric.y - lyricFontSize - 3,
+                    )
+                    .map((a) => ({ bounds: a.ink.bounds })),
+                ),
               ]
                 .filter(
                   (d) =>
@@ -1064,11 +1128,13 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
-    for (const marked of system.neumes.filter((n) =>
-      n.notes.some(
-        (note) =>
-          note.mora || note.episema || note.verticalEpisema || note.form,
-      ),
+    for (const marked of system.neumes.filter(
+      (n) =>
+        n.accidentals?.length ||
+        n.notes.some(
+          (note) =>
+            note.mora || note.episema || note.verticalEpisema || note.form,
+        ),
     )) {
       canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
       canvasBottom = Math.max(

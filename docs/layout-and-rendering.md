@@ -672,3 +672,17 @@ partitioned against neighboring ink and clipped to group ownership. It consumes
 layout geometry rather than resolving musical effect. Screen and print use the
 same paths. See [comparison evidence](verification/b-accidentals/implementation.md)
 and [metrics](engraving-metrics.md).
+
+Committed `AccidentalLayout` records pair each semantic ID with its geometry and
+structured owner/placement note contexts. Layout groups written signs once by
+placement neume; rendering constructs accessible labels in
+`accidental-accessible-label.ts`. `NeumeGeometry.ink` remains the complete measured
+ink collection for bounds, spacing, wrapping and print. Optional `bodyInk`
+explicitly excludes independently rendered signs; SVG draws that body plus each
+accidental record, without object-identity filtering or parallel metadata arrays.
+
+Lyric collision constraints work in both directions: new signs clear existing
+lyrics, and new lyrics clear earlier signs in the same vertical band. Continuation
+hyphens also clear intervening low signs. Accidental-bearing groups enter the
+existing measured vertical canvas expansion, including high plain puncta and
+explicit earlier anchors; this is separate from extreme-pitch limitations.

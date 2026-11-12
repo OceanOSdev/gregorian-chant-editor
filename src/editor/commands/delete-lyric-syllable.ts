@@ -1,7 +1,8 @@
 import { reconcileAccidentals } from '../domain/accidentals';
 import type { ChantDocument } from '../domain/chant-document';
 
-function deleteLyricSyllableCandidate(
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function deleteLyricSyllableCandidate(
   document: ChantDocument,
   syllableId: string,
 ): ChantDocument {

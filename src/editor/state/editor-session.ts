@@ -1,3 +1,5 @@
+import type { AccidentalEditResult } from '../domain/accidentals';
+import { deleteAccidental } from '../commands/update-accidental';
 import { reconcileAccidentals } from '../domain/accidentals';
 import {
   eligibleAccidentalAnchors,
@@ -11,11 +13,11 @@ import {
 } from '../interaction/resolve-graphical-clef-placement';
 import type { PaletteTool } from '../interaction/palette-navigation';
 import {
-  insertClefChange,
-  updateClefChange,
-  deleteClefChange,
+  insertClefChangeCandidate,
+  updateClefChangeCandidate,
+  deleteClefChangeCandidate,
   hasChangedEffectivePitches,
-  preserveClefMelody,
+  preserveClefMelodyResult,
   hasValidClefCandidate,
 } from '../commands/edit-clef-change';
 import { isValidClef } from '../domain/clef';
@@ -98,6 +100,9 @@ export type EditorFocusRequest =
 
 export interface ClefTransaction {
   accidentalLossCount?: number;
+  /** Preflight count for the existing deletion choice, not a loss-confirmation flag. */
+  noteheadLossCount?: number;
+  noteheadCandidate?: ChantDocument;
   keepScoreFocus?: boolean;
   placementTool?: Extract<EditorTool, { kind: 'place-clef' }>;
   policyError?: string;
@@ -178,6 +183,7 @@ export type ClefKeyboardCommand =
   'start' | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last';
 
 export type EditorAction =
+  | { type: 'delete-accidental'; id: string }
   | { type: 'start-accidental-placement'; id: string }
   | { type: 'cancel-accidental-placement' }
   | { type: 'commit-accidental-placement'; noteId: string }
@@ -247,7 +253,7 @@ export type EditorAction =
   | {
       type: 'edit';
       formDeletionNoteId?: string;
-      edit: DocumentEdit;
+      edit: (document: ChantDocument) => ChantDocument | AccidentalEditResult;
       focusNoteId?: string;
       clearSelection?: boolean;
     }
@@ -355,6 +361,7 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'delete-accidental':
     case 'start-accidental-placement':
     case 'cancel-accidental-placement':
     case 'commit-accidental-placement':
@@ -603,7 +610,10 @@ function reduceSessionAction(
       return history === state.history ? state : { ...state, history };
     }
     case 'edit': {
-      const history = applyDocumentEdit(state.history, action.edit);
+      const edited = action.edit(state.history.present);
+      const result =
+        'document' in edited ? edited : { document: edited, rejection: null };
+      const history = applyDocumentEdit(state.history, () => result.document);
       if (history === state.history)
         return action.formDeletionNoteId &&
           findNote(
@@ -617,10 +627,10 @@ function reduceSessionAction(
               },
               noteFormRejection,
             )
-          : state.history.present.accidentals.length > 1
+          : result.rejection === 'ownership-conflict'
             ? announce(
                 state,
-                'Edit rejected: preserve the neume contour and one written sign per B register in each neume. Remove a conflicting accidental before retrying.',
+                'Edit rejected: written accidentals would share the same B register in one neume. Remove a conflicting accidental before retrying.',
               )
             : state;
       const next = reconcile({
@@ -744,6 +754,30 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  if (action.type === 'delete-accidental') {
+    if (
+      state.accidentalTargetId ||
+      state.clefTransaction ||
+      state.lyrics ||
+      state.lyricMove ||
+      state.pendingHistory
+    )
+      return state;
+    const sign = state.history.present.accidentals.find(
+      (a) => a.id === action.id,
+    );
+    if (!sign) return state;
+    const document = deleteAccidental(state.history.present, action.id);
+    return announce(
+      {
+        ...state,
+        history: applyDocumentEdit(state.history, () => document),
+        selection: reconcileSelection(document, state.selection),
+        focusRequest: { kind: 'note', noteId: sign.ownerNoteId },
+      },
+      'Accidental deleted.',
+    );
+  }
   if (action.type === 'start-accidental-placement') {
     if (
       state.accidentalTargetId ||
@@ -979,11 +1013,15 @@ function transitionEditorSession(
         },
       };
     let candidate: ChantDocument | null = null;
+    let finalized = false;
+    let preservationFailure: ReturnType<
+      typeof preserveClefMelodyResult
+    >['reason'] = null;
     if (action.type === 'apply-clef-change' && !transaction.candidate) {
       candidate = action.remove
-        ? deleteClefChange(transaction.original, transaction.id)
+        ? deleteClefChangeCandidate(transaction.original, transaction.id)
         : transaction.boundary
-          ? insertClefChange(
+          ? insertClefChangeCandidate(
               transaction.original,
               {
                 id: transaction.id,
@@ -993,7 +1031,7 @@ function transitionEditorSession(
               },
               transaction.boundary,
             )
-          : updateClefChange(
+          : updateClefChangeCandidate(
               transaction.original,
               transaction.id,
               transaction.clef,
@@ -1019,14 +1057,16 @@ function transitionEditorSession(
         transaction.placementTool ||
         (!action.remove && !transaction.boundary)
       ) {
-        const selected =
+        const preservation =
           state.clefInsertionPolicy === 'melody'
-            ? preserveClefMelody(transaction.original, candidate)
-            : candidate;
+            ? preserveClefMelodyResult(transaction.original, candidate)
+            : { document: candidate, reason: null };
+        const selected = preservation.document;
+        preservationFailure = preservation.reason;
         if (!selected || !hasValidClefCandidate(selected)) {
           const message = transaction.placementTool
-            ? 'Cannot insert with Keep pitches: note positions would overflow. Choose Keep note positions or a different clef and retry.'
-            : 'Cannot apply Keep pitches: note positions would overflow. Choose Keep note positions or revise the draft and retry Apply.';
+            ? `Cannot insert with Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or a different clef and retry.`
+            : `Cannot apply Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or revise the draft and retry Apply.`;
           return announce(
             transaction.placementTool
               ? { ...restore(), clefInsertionError: message }
@@ -1038,19 +1078,39 @@ function transitionEditorSession(
           );
         }
         candidate = selected;
+        finalized = state.clefInsertionPolicy === 'melody';
       } else if (hasChangedEffectivePitches(transaction.original, candidate)) {
-        return { ...state, clefTransaction: { ...transaction, candidate } };
+        const repaired = reconcileAccidentals(transaction.original, candidate);
+        return {
+          ...state,
+          clefTransaction: {
+            ...transaction,
+            candidate,
+            noteheadCandidate: repaired ?? undefined,
+            noteheadLossCount: repaired
+              ? transaction.original.accidentals.length -
+                repaired.accidentals.length
+              : 0,
+          },
+        };
       }
     } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
       if (transaction.accidentalLossCount && action.preserve !== 'noteheads')
         return state;
-      candidate =
-        action.preserve === 'melody'
-          ? preserveClefMelody(transaction.original, transaction.candidate)
-          : action.preserve === 'noteheads'
-            ? transaction.candidate
-            : null;
+      if (action.preserve === 'melody') {
+        const preservation = preserveClefMelodyResult(
+          transaction.original,
+          transaction.candidate,
+        );
+        candidate = preservation.document;
+        preservationFailure = preservation.reason;
+      } else if (action.preserve === 'noteheads') {
+        candidate = transaction.noteheadCandidate ?? transaction.candidate;
+        finalized = !!transaction.noteheadCandidate;
+      }
     }
+    finalized ||=
+      action.type === 'confirm-clef-change' && action.preserve === 'melody';
     if (!candidate) {
       if (
         action.type !== 'confirm-clef-change' ||
@@ -1058,15 +1118,16 @@ function transitionEditorSession(
         action.preserve !== 'melody'
       )
         return state;
-      const policyError =
-        'Cannot preserve melody: note positions would overflow. Choose Preserve noteheads or cancel.';
+      const policyError = `Cannot preserve melody: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Preserve noteheads or cancel.`;
       return announce(
         { ...state, clefTransaction: { ...transaction, policyError } },
         policyError,
       );
     }
     if (!hasValidClefCandidate(candidate)) return state;
-    const repaired = reconcileAccidentals(transaction.original, candidate);
+    const repaired = finalized
+      ? candidate
+      : reconcileAccidentals(transaction.original, candidate);
     if (!repaired)
       return announce(
         state,
@@ -1081,6 +1142,7 @@ function transitionEditorSession(
           ...transaction,
           candidate: repaired,
           accidentalLossCount: lost,
+          noteheadCandidate: repaired,
         },
       };
     candidate = repaired;
@@ -1188,7 +1250,7 @@ function transitionEditorSession(
         : null;
     if (
       !placement ||
-      insertClefChange(
+      insertClefChangeCandidate(
         state.history.present,
         {
           id: action.id,

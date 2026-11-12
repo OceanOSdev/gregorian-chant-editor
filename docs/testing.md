@@ -854,3 +854,11 @@ an actual v4 build on the same origin. The existing storage-review driver accept
 contextual, persistence, bundled-example, clef and division drivers sequentially
 per browser. These scripts add no application dependency. See the
 [actual results and foreground limitations](verification/b-accidentals/implementation.md).
+
+The [Stage 8D review revisions](verification/b-accidentals/review-revisions.md)
+add deterministic accidental/lyric and hyphen collisions, high-sign canvas bounds,
+structured labels/ink ownership, public command finalization, placement repair
+order, actual anchor/owner clef transactions, typed rejection and focused-glyph
+deletion. The Stage 8D driver now repeats feedback/cancellation/IME guard,
+focused-vs-selected deletion, high default/anchored signs and PDF, later lyrics,
+hyphens and clef-boundary preservation in both browser transports.

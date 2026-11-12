@@ -6,6 +6,7 @@ import { join } from 'node:path';
 // Composes real captured editor SVG and printed excerpts. No notation is drawn here.
 const capturedDirectory = process.argv[2];
 if (!capturedDirectory) throw Error('Supply a browser-check output directory');
+const outputPrefix = process.argv[3] ?? '';
 const root = fileURLToPath(new URL('.', import.meta.url));
 function spacing(path) {
   const [width, height] = execFileSync('identify', ['-format', '%w %h', path], {
@@ -134,7 +135,7 @@ panels.push(
 const html = `<!doctype html><meta charset="utf-8"><style>${css}
 body{margin:0;padding:24px;background:white;color:#111;max-width:none;font:18px Georgia,serif}h1{font-size:28px}h2{font-size:22px;margin:20px 0 4px}h3{font-size:17px;margin:0 0 12px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}article{border:1px solid #bbb;padding:12px;overflow:hidden}.crop{height:350px;overflow:hidden}img,svg.score{display:block;max-width:none}svg.score{pointer-events:none}.note-context-toolbar{display:none}</style><h1>Stage 8D — printed evidence and actual editor geometry</h1><p>Uniform staff-scale normalization; different editions and original project contours are not exact facsimiles. The editor specimens isolate supported groups; the Domini context and omitted source details are documented in implementation.md. Above-note clearances retain the authored anchor.</p>${panels.join('')}`;
 await writeFile(
-  join(root, 'comparison-normalization.json'),
+  join(root, outputPrefix + 'comparison-normalization.json'),
   JSON.stringify(normalization, null, 2) + '\n',
 );
 const pages = await (
@@ -192,7 +193,7 @@ try {
     clip: { x: 0, y: 0, width: 2200, height, scale: 1 },
   });
   await writeFile(
-    join(root, 'editor-vs-printed.png'),
+    join(root, outputPrefix + 'editor-vs-printed.png'),
     Buffer.from(screenshot.data, 'base64'),
   );
   console.log(JSON.stringify({ height, normalization }));

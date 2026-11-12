@@ -404,8 +404,47 @@ try {
     'Accidental kind',
   );
   await button('Place above earlier note');
+  assert.equal(
+    await ev(
+      `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Delete accidental').disabled`,
+    ),
+    true,
+  );
+  assert.equal(
+    await ev(
+      `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Place above earlier note').disabled`,
+    ),
+    true,
+  );
+  await pointer('[data-note-id="ownerB"]');
+  assert.equal(await raw(), beforeTarget);
+  assert.match(
+    await ev(`document.querySelector('.editor-announcement').textContent`),
+    /not an eligible/,
+  );
+  await ev(
+    `document.querySelector('select[aria-label="Earlier note"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,isComposing:true}))`,
+  );
+  assert.equal(
+    await ev(
+      `!!document.querySelector('[aria-label="Choose accidental placement"]')`,
+    ),
+    true,
+  );
   await key('Escape');
   assert.equal(await raw(), beforeTarget);
+  assert.match(
+    await ev(`document.querySelector('.editor-announcement').textContent`),
+    /canceled/,
+  );
+  assert.equal(
+    await ev(
+      `document.querySelectorAll('[aria-label="Choose accidental placement"]').length`,
+    ),
+    0,
+  );
+  assert.equal(await ev(`document.activeElement.dataset.accidentalId`), id);
+
   await selectGlyph(id);
   await button('Place above earlier note');
   await pointer('[data-note-id="anchorF"]');
@@ -422,6 +461,10 @@ try {
     await raw(),
     placed,
     'same anchor must not write or create history',
+  );
+  assert.match(
+    await ev(`document.querySelector('.editor-announcement').textContent`),
+    /unchanged/,
   );
   await button('Undo last edit');
   assert.equal(await raw(), beforeTarget);
@@ -452,6 +495,18 @@ try {
       n.notes.some((note) => note.id === 'ownerB'),
     ),
   );
+  assert.equal(await ev(`document.activeElement.dataset.noteId`), 'ownerB');
+
+  await button('Undo last edit');
+  assert.equal(await raw(), placed);
+  await select('anchorF');
+  await ev(`document.querySelector(${JSON.stringify(glyph(id))}).focus()`);
+  assert.equal(
+    await ev(`document.activeElement.getAttribute('aria-pressed')`),
+    'false',
+  );
+  await key('Delete');
+  assert.equal(await ev(`document.activeElement.dataset.noteId`), 'ownerB');
   await button('Undo last edit');
   assert.equal(await raw(), placed);
   await navigate();
@@ -691,6 +746,136 @@ try {
     ),
     beforePrint,
   );
+  // Review regressions: actual SVG/print clipping and later lyric collisions.
+  for (const kind of ['flat', 'natural'])
+    for (const explicit of [false, true]) {
+      const high = fixture();
+      high.document.title = `High ${kind} ${explicit}`;
+      high.document.clef = { type: 'f', staffLine: 4 };
+      high.document.neumes = [
+        {
+          id: 'a',
+          kind: 'punctum',
+          notes: [{ id: 'anchor', staffPosition: 8 }],
+        },
+        {
+          id: 'b',
+          kind: 'punctum',
+          notes: [{ id: 'owner', staffPosition: 9 }],
+        },
+      ];
+      high.document.syllables = [];
+      high.document.accidentals = [
+        {
+          id: 'high',
+          kind,
+          ownerNoteId: 'owner',
+          ...(explicit
+            ? { placement: { kind: 'above-note', noteId: 'anchor' } }
+            : {}),
+        },
+      ];
+      await hydrate(high);
+      const box = await ev(
+        `(()=>{const s=document.querySelector('svg.score'),v=s.viewBox.baseVal,b=s.querySelector('.score__accidental-ink').getBBox();return {top:v.y,bottom:v.y+v.height,inkTop:b.y,inkBottom:b.y+b.height}})()`,
+      );
+      assert.ok(
+        box.top < 0 && box.inkTop >= box.top && box.inkBottom <= box.bottom,
+        JSON.stringify(box),
+      );
+      await snapshot(`high-${kind}-${explicit}`);
+      if (kind === 'natural' && explicit) {
+        const printed = await send('Page.printToPDF', {
+          printBackground: true,
+        });
+        await writeFile(
+          join(output, 'high-print.pdf'),
+          Buffer.from(printed.data, 'base64'),
+        );
+      }
+    }
+  for (const continuation of [false, true]) {
+    const low = fixture();
+    low.document.title = `Lyric collision ${continuation}`;
+    low.document.lyricLanguage = 'und';
+    low.document.neumes = [
+      ...(continuation
+        ? [
+            {
+              id: 'before',
+              kind: 'punctum',
+              notes: [{ id: 'before-note', staffPosition: 4 }],
+            },
+          ]
+        : []),
+      {
+        id: 'low',
+        kind: 'punctum',
+        notes: [{ id: 'low-note', staffPosition: -2 }],
+      },
+      {
+        id: 'text',
+        kind: 'punctum',
+        notes: [{ id: 'text-note', staffPosition: 4 }],
+      },
+    ];
+    low.document.syllables = [
+      ...(continuation
+        ? [
+            {
+              id: 'first-text',
+              text: 'A',
+              startsAtNeumeId: 'before',
+              boundaryBefore: 'word',
+            },
+          ]
+        : []),
+      {
+        id: 'last-text',
+        text: 'Benedictus',
+        startsAtNeumeId: 'text',
+        boundaryBefore: continuation ? 'continuation' : 'word',
+      },
+    ];
+    low.document.accidentals = [
+      { id: 'low-sign', kind: 'natural', ownerNoteId: 'low-note' },
+    ];
+    await hydrate(low);
+    const collisions = await ev(
+      `(()=>{const b=document.querySelector('.score__accidental-ink').getBBox();return [...document.querySelectorAll('.score__lyric,.score__hyphens text')].map(e=>{const r=e.getBBox();return b.x<r.x+r.width && b.x+b.width>r.x && b.y<r.y+r.height && b.y+b.height>r.y}).filter(Boolean).length})()`,
+    );
+    assert.equal(collisions, 0);
+    await snapshot(`lyric-collision-${continuation}`);
+  }
+  // A clef boundary between the written anchor and B must preserve exact placement.
+  const crossing = structuredClone(reference);
+  crossing.document.clefChanges = [
+    {
+      id: 'between',
+      clef: { type: 'c', staffLine: 4 },
+      beforeNeumeId: 'b',
+      beforeDivisionId: null,
+    },
+  ];
+  await hydrate(crossing);
+  const beforeCross = await score();
+  const beforeHeight = await ev(
+    `document.querySelector('.score__accidental-ink').getBBox().y`,
+  );
+  await ev(`document.querySelector('[data-clef-change-id="between"]').focus()`);
+  await key('Enter');
+  await ev(
+    `document.querySelector('input[name="clef-insertion-policy"][value="melody"]').click()`,
+  );
+  await button('Edit clef change');
+  await change('Draft clef staff line', '3');
+  await button('Apply clef change');
+  assert.deepEqual((await score()).accidentals, beforeCross.accidentals);
+  assert.equal(
+    await ev(`document.querySelector('.score__accidental-ink').getBBox().y`),
+    beforeHeight,
+  );
+  await snapshot('clef-between-anchor-owner');
   const legacy = await readFile(
     new URL('../note-modifiers/baseline-events-v1.chant.json', import.meta.url),
     'utf8',

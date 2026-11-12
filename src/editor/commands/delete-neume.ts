@@ -1,11 +1,12 @@
-import { reconcileAccidentals } from '../domain/accidentals';
+import { reconcileAccidentalsResult } from '../domain/accidentals';
 import { deriveScoreOrder, reanchorScoreOrder } from '../domain/divisions';
-import { deleteLyricSyllable } from './delete-lyric-syllable';
+import { deleteLyricSyllableCandidate } from './delete-lyric-syllable';
 import { findSyllableAtNeume } from '../domain/lyrics';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNeume } from '../domain/neume';
 
-function deleteNeumeCandidate(
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function deleteNeumeCandidate(
   document: ChantDocument,
   neumeId: string,
 ): ChantDocument {
@@ -19,7 +20,7 @@ function deleteNeumeCandidate(
 
   const anchored = findSyllableAtNeume(document, neumeId);
   const withoutLyric = anchored
-    ? deleteLyricSyllable(document, anchored.id)
+    ? deleteLyricSyllableCandidate(document, anchored.id)
     : document;
   return {
     ...withoutLyric,
@@ -30,10 +31,14 @@ function deleteNeumeCandidate(
   };
 }
 
+export function deleteNeumeResult(
+  ...args: Parameters<typeof deleteNeumeCandidate>
+) {
+  return reconcileAccidentalsResult(args[0], deleteNeumeCandidate(...args));
+}
+
 export function deleteNeume(
   ...args: Parameters<typeof deleteNeumeCandidate>
 ): ChantDocument {
-  return (
-    reconcileAccidentals(args[0], deleteNeumeCandidate(...args)) ?? args[0]
-  );
+  return deleteNeumeResult(...args).document;
 }
