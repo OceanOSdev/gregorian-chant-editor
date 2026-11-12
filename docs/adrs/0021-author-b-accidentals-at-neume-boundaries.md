@@ -9,8 +9,8 @@ acceptance remain pending Stage 8D review. No existing ADR is superseded.
 This extends [ADR 0015](0015-order-clef-changes-at-score-boundaries.md) with
 derived accidental ordering and a narrowly scoped destructive-clef confirmation,
 and [ADR 0016](0016-persist-versioned-semantic-chant-documents.md) with native v5.
-ADR 0007's shared geometry contract and ADR 0006's separation of notation from
-playback remain Accepted.
+ADR 0007's shared geometry contract remains Accepted; this decision is also
+consistent with the still-Proposed ADR 0006 separation of notation from playback.
 
 ## Context
 
