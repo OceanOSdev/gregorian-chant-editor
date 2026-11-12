@@ -140,5 +140,6 @@ records the owner-approved Stage 8D design (2026-11-11): Roman/Solesmes
 word/division resets, register-specific derived pitch interpretation,
 independent written signs owned by stable B notes, shared repeated-B
 neume placement, targeted destructive-clef confirmation and strict
-native v5. ADR 0015 is narrowly qualified; no existing ADR is superseded.
+native v5. The owner-approved placement amendment in PR #72 permits a
+stable earlier-note engraving anchor, independent of musical B ownership. ADR 0015 is narrowly qualified; no existing ADR is superseded.
 Implementation and visual acceptance remain pending.
