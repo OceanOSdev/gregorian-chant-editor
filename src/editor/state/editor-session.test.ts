@@ -21,6 +21,8 @@ const kinds = [
   'torculus',
   'climacus',
   'porrectus',
+  'bistropha',
+  'tristropha',
 ] as const;
 const contours = [
   [2],
@@ -30,6 +32,8 @@ const contours = [
   [2, 4, 3],
   [3, 2, 1],
   [3, 1, 2],
+  [2, 2],
+  [2, 2, 2],
 ];
 function document(): ChantDocument {
   return {

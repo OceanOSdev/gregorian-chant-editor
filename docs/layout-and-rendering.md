@@ -693,3 +693,15 @@ placement uses the same measured sign exclusions to select the rightmost fitting
 clear interval, which may precede a current-group sign. Accidental-bearing groups
 enter the existing measured vertical canvas expansion, including high plain puncta and
 explicit earlier anchors; this is separate from extreme-pitch limitations.
+
+## Repeated square heads (Stage 9A)
+
+Bistropha and Tristropha use the original 12-unit Punctum heads at 18-unit
+horizontal origins (6-unit clear gaps), without connectors. `repeated-notes.ts`
+derives the whole group's geometry; horizontal/vertical episemata and B signs
+use the existing measured passes. The lyric anchor is the group's horizontal
+center. Adjacent note hit columns meet without overlap, preserving separate
+constituent ownership. Complete neumes stay together during wrapping. Palette
+family icons and pointer ghosts consume the same geometry. Existing neume
+metrics and intra-syllable spacing policies are unchanged. See the
+[reference and verification record](verification/repeated-note-neumes/README.md).

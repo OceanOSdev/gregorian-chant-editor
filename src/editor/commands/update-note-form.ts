@@ -31,6 +31,7 @@ export function updateNoteForm(
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0])] };
       break;
+    case 'bistropha':
     case 'podatus':
     case 'clivis': {
       const [a, b] = neume.notes;

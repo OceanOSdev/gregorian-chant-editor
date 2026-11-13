@@ -143,3 +143,8 @@ neume placement, targeted destructive-clef confirmation and strict
 native v5. The owner-approved placement amendment in PR #72 permits a
 stable earlier-note engraving anchor, independent of musical B ownership. ADR 0015 is narrowly qualified; no existing ADR is superseded.
 Implementation is in PR #72; owner visual acceptance remains pending.
+
+[Accepted ADR 0022: Explicit repeated-note neumes](0022-explicit-repeated-note-neumes.md)
+records Stage 9A's fixed written-unison tuples, square-head profile, split-button
+interaction and native v6. Its owner-approved none-only mora scope extends
+ADR 0018 conservatively; historical expanded mora support remains deferred.

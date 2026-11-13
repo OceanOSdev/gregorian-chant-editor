@@ -255,6 +255,8 @@ export type EditorAction =
       formDeletionNoteId?: string;
       edit: (document: ChantDocument) => ChantDocument | AccidentalEditResult;
       focusNoteId?: string;
+      /** Set only by single-note pitch moves, which repeated-note groups reject. */
+      noteMoveId?: string;
       clearSelection?: boolean;
     }
   | {
@@ -426,7 +428,10 @@ function reduceSessionAction(
               : state.rememberedForm === 'virga' ||
                   state.rememberedForm === 'inclinatum'
                 ? state.rememberedForm
-                : state.rememberedKind,
+                : state.rememberedKind === 'bistropha' ||
+                    state.rememberedKind === 'tristropha'
+                  ? 'punctum-menu'
+                  : state.rememberedKind,
         },
       };
     case 'hover':
@@ -614,6 +619,15 @@ function reduceSessionAction(
       const result =
         'document' in edited ? edited : { document: edited, rejection: null };
       const history = applyDocumentEdit(state.history, () => result.document);
+      if (history === state.history && action.noteMoveId) {
+        const kind = findNote(state.history.present, action.noteMoveId)?.neume
+          .kind;
+        if (kind === 'bistropha' || kind === 'tristropha')
+          return announce(
+            state,
+            'Edit rejected: all notes of this neume must remain at the same pitch. Select the whole neume to move the group.',
+          );
+      }
       if (history === state.history)
         return action.formDeletionNoteId &&
           findNote(

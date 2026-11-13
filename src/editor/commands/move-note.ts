@@ -35,6 +35,7 @@ function moveNoteVerticallyCandidate(
         notes: [movedNote],
       };
       break;
+    case 'bistropha':
     case 'podatus':
     case 'clivis': {
       const [firstNote, secondNote] = locatedNote.neume.notes;
@@ -62,6 +63,7 @@ function moveNoteVerticallyCandidate(
       };
       break;
     }
+    case 'tristropha':
     case 'climacus':
     case 'porrectus':
     case 'torculus': {

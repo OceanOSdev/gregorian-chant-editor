@@ -72,6 +72,8 @@ cardinality and musical order:
 
 ```text
 Punctum:   [note]
+Bistropha: [same-pitch first, second]
+Tristropha:[same-pitch first, second, third]
 Podatus:   [lower, higher]
 Clivis:    [higher, lower]
 Scandicus: [lowest, middle, highest]
@@ -302,3 +304,23 @@ The owner determines the affected B register, while the effective clef at the
 written location determines sign height. Placement requires the first following
 matching B owner, with no intervening reset or conflicting same-register sign.
 This isolated interpretation policy follows [ADR 0021](adrs/0021-author-b-accidentals-at-neume-boundaries.md).
+
+## Repeated-note neumes (Stage 9A)
+
+`BistrophaNeume` (`bistropha`) has a fixed ordered pair of distinct stable-ID
+notes; `TristrophaNeume` (`tristropha`) has a fixed ordered triple. Every
+constituent has the same staff position. Each group has one neume ID and one
+ordinary lyric boundary. They are distinct from separate equal-pitch Puncta
+and a dotted Punctum. No implicit repeat merging occurs.
+
+Deleting any Tristropha constituent yields Bistropha; deleting either Bistropha
+constituent yields Punctum. Preserve the group ID, surviving note objects/order,
+marks, syllable and structural anchors; invalid surviving modifiers reject.
+Individual moves breaking equality reject; whole-neume movement transposes all
+constituents. Existing Torculus/Porrectus normalization remains unchanged.
+
+Both kinds support independent horizontal/vertical episemata, default square
+heads only, and **none-only mora**. This owner-approved initial authoring limit
+is not a historical prohibition; expanded mora needs future sourced review.
+[ADR 0022](adrs/0022-explicit-repeated-note-neumes.md) records that extension.
+ADR 0021's one-sign-per-B-register rule applies unchanged to the entire group.

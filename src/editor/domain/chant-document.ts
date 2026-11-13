@@ -106,7 +106,23 @@ export interface PorrectusNeume {
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
+/** Two same-pitch notes in semantic order. */
+export interface BistrophaNeume {
+  id: string;
+  kind: 'bistropha';
+  notes: [ChantNote, ChantNote];
+}
+
+/** Three same-pitch notes in semantic order. */
+export interface TristrophaNeume {
+  id: string;
+  kind: 'tristropha';
+  notes: [ChantNote, ChantNote, ChantNote];
+}
+
 export type Neume =
+  | BistrophaNeume
+  | TristrophaNeume
   | PunctumNeume
   | PodatusNeume
   | ClivisNeume

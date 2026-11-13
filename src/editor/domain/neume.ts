@@ -69,6 +69,14 @@ export function isValidNeume(neume: Neume): boolean {
   if (!hasValidNoteForms(neume)) return false;
   if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
+    case 'bistropha':
+    case 'tristropha':
+      return (
+        neume.notes.length === (neume.kind === 'bistropha' ? 2 : 3) &&
+        neume.notes.every(
+          (note) => note.staffPosition === neume.notes[0].staffPosition,
+        )
+      );
     case 'punctum':
       return neume.notes.length === 1 && Boolean(neume.notes[0]);
     case 'podatus':
@@ -159,6 +167,16 @@ export function normalizeNeumeAfterNoteDeletion(
 
   if (neume.kind === 'punctum') {
     return null;
+  }
+
+  if (neume.kind === 'bistropha' || neume.kind === 'tristropha') {
+    const survivors = neume.notes.filter((note) => note.id !== noteId);
+    const [a, b] = survivors;
+    if (!a) return neume;
+    const normalized: Neume = b
+      ? { id: neume.id, kind: 'bistropha', notes: [a, b] }
+      : { id: neume.id, kind: 'punctum', notes: [a] };
+    return isValidNeume(normalized) ? normalized : neume;
   }
 
   if (neume.kind === 'scandicus') {

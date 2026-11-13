@@ -1,3 +1,4 @@
+import { PunctumMenu } from './PunctumMenu';
 import {
   AccidentalContextToolbar,
   type AccidentalContextToolbarHandle,
@@ -375,6 +376,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     const request = session.focusRequest;
     if (request?.kind !== 'palette') return;
     const button = paletteButtons.current.get(request.tool);
+    setRovingTool(request.tool);
     if (button) focusAndReveal(button);
     dispatch({ type: 'focus-handled', request });
   }, [session.focusRequest, dispatch]);
@@ -650,92 +652,164 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           if (!next) return;
           event.preventDefault();
           const button = paletteButtons.current.get(next);
+          setRovingTool(next);
           if (button) focusAndReveal(button);
         }}
       >
-        {paletteTools.map((tool) => (
-          <button
-            key={tool}
-            type="button"
-            data-tool={tool}
-            disabled={Boolean(
-              session.lyricMove ||
-              session.pendingHistory ||
-              session.clefTransaction,
-            )}
-            ref={(button) => {
-              if (button) paletteButtons.current.set(tool, button);
-              else paletteButtons.current.delete(tool);
-            }}
-            tabIndex={rovingTool === tool ? 0 : -1}
-            aria-pressed={
-              tool === 'select'
-                ? !placing
-                : tool === 'c-clef' || tool === 'f-clef'
-                  ? activeTool.kind === 'place-clef' &&
-                    activeTool.clefType === tool[0]
-                  : tool === 'virga' || tool === 'inclinatum'
-                    ? toolNoteForm(activeTool) === tool
-                    : tool === 'quilisma'
-                      ? toolNoteForm(activeTool) === 'quilisma'
-                      : placementKind === tool && !toolNoteForm(activeTool)
-            }
-            onFocus={() => setRovingTool(tool)}
-            onClick={() => {
-              if (tool === 'select') dispatch({ type: 'select-tool' });
-              else if (tool === 'c-clef' || tool === 'f-clef')
+        {paletteTools.map((tool) =>
+          tool === 'punctum-menu' ? null : tool === 'punctum' ? (
+            <PunctumMenu
+              key={tool}
+              active={
+                placementKind === 'punctum' && !toolNoteForm(activeTool)
+                  ? 'punctum'
+                  : placementKind === 'bistropha' ||
+                      placementKind === 'tristropha'
+                    ? placementKind
+                    : null
+              }
+              remembered={
+                rememberedKind === 'bistropha' ||
+                rememberedKind === 'tristropha'
+                  ? rememberedKind
+                  : 'punctum'
+              }
+              onChoose={(kind) =>
                 dispatch({
                   type: 'arm',
                   tool: {
-                    kind: 'place-clef',
-                    clefType: tool === 'c-clef' ? 'c' : 'f',
+                    kind:
+                      kind === 'bistropha'
+                        ? 'place-bistropha'
+                        : kind === 'tristropha'
+                          ? 'place-tristropha'
+                          : 'place-punctum',
                   },
-                });
-              else if (
-                tool === 'virga' ||
-                tool === 'inclinatum' ||
-                tool === 'quilisma'
-              )
-                dispatch({
-                  type: 'arm',
-                  tool:
-                    tool === 'quilisma'
-                      ? {
-                          kind:
-                            session.quilismaFigure === 'podatus'
-                              ? 'place-podatus'
-                              : 'place-scandicus',
-                          form: 'quilisma',
-                        }
-                      : { kind: 'place-punctum', form: tool },
                   lyricCommitId: crypto.randomUUID(),
-                });
-              else {
-                const choice = neumeTools.find(
-                  (choice) => choice.kind === tool,
-                );
-                if (choice)
+                })
+              }
+              buttonRef={(button) => {
+                if (button) paletteButtons.current.set('punctum-menu', button);
+                else paletteButtons.current.delete('punctum-menu');
+              }}
+              primaryRef={(button) => {
+                if (button) paletteButtons.current.set('punctum', button);
+                else paletteButtons.current.delete('punctum');
+              }}
+              primaryProps={{
+                type: 'button',
+                tabIndex: rovingTool === 'punctum' ? 0 : -1,
+                'aria-pressed':
+                  placementKind === 'punctum' && !toolNoteForm(activeTool),
+                disabled: Boolean(
+                  session.lyricMove ||
+                  session.pendingHistory ||
+                  session.clefTransaction,
+                ),
+                onFocus: () => setRovingTool('punctum'),
+                onClick: () =>
                   dispatch({
                     type: 'arm',
-                    tool: choice.tool(),
+                    tool: placePunctumTool(),
+                    lyricCommitId: crypto.randomUUID(),
+                  }),
+              }}
+              buttonProps={{
+                type: 'button',
+                'data-tool': 'punctum-menu',
+                tabIndex: rovingTool === 'punctum-menu' ? 0 : -1,
+                onFocus: () => setRovingTool('punctum-menu'),
+                disabled: Boolean(
+                  session.lyricMove ||
+                  session.pendingHistory ||
+                  session.clefTransaction,
+                ),
+              }}
+            />
+          ) : (
+            <button
+              key={tool}
+              type="button"
+              data-tool={tool}
+              disabled={Boolean(
+                session.lyricMove ||
+                session.pendingHistory ||
+                session.clefTransaction,
+              )}
+              ref={(button) => {
+                if (button) paletteButtons.current.set(tool, button);
+                else paletteButtons.current.delete(tool);
+              }}
+              tabIndex={rovingTool === tool ? 0 : -1}
+              aria-pressed={
+                tool === 'select'
+                  ? !placing
+                  : tool === 'c-clef' || tool === 'f-clef'
+                    ? activeTool.kind === 'place-clef' &&
+                      activeTool.clefType === tool[0]
+                    : tool === 'virga' || tool === 'inclinatum'
+                      ? toolNoteForm(activeTool) === tool
+                      : tool === 'quilisma'
+                        ? toolNoteForm(activeTool) === 'quilisma'
+                        : placementKind === tool && !toolNoteForm(activeTool)
+              }
+              onFocus={() => setRovingTool(tool)}
+              onClick={() => {
+                if (tool === 'select') dispatch({ type: 'select-tool' });
+                else if (tool === 'c-clef' || tool === 'f-clef')
+                  dispatch({
+                    type: 'arm',
+                    tool: {
+                      kind: 'place-clef',
+                      clefType: tool === 'c-clef' ? 'c' : 'f',
+                    },
+                  });
+                else if (
+                  tool === 'virga' ||
+                  tool === 'inclinatum' ||
+                  tool === 'quilisma'
+                )
+                  dispatch({
+                    type: 'arm',
+                    tool:
+                      tool === 'quilisma'
+                        ? {
+                            kind:
+                              session.quilismaFigure === 'podatus'
+                                ? 'place-podatus'
+                                : 'place-scandicus',
+                            form: 'quilisma',
+                          }
+                        : { kind: 'place-punctum', form: tool },
                     lyricCommitId: crypto.randomUUID(),
                   });
-              }
-            }}
-          >
-            {tool === 'select'
-              ? 'Select'
-              : tool === 'c-clef'
-                ? 'C clef'
-                : tool === 'f-clef'
-                  ? 'F clef'
-                  : tool === 'virga' ||
-                      tool === 'inclinatum' ||
-                      tool === 'quilisma'
-                    ? noteFormLabels[tool]
-                    : neumeName(tool)}
-          </button>
-        ))}
+                else {
+                  const choice = neumeTools.find(
+                    (choice) => choice.kind === tool,
+                  );
+                  if (choice)
+                    dispatch({
+                      type: 'arm',
+                      tool: choice.tool(),
+                      lyricCommitId: crypto.randomUUID(),
+                    });
+                }
+              }}
+            >
+              {tool === 'select'
+                ? 'Select'
+                : tool === 'c-clef'
+                  ? 'C clef'
+                  : tool === 'f-clef'
+                    ? 'F clef'
+                    : tool === 'virga' ||
+                        tool === 'inclinatum' ||
+                        tool === 'quilisma'
+                      ? noteFormLabels[tool]
+                      : neumeName(tool)}
+            </button>
+          ),
+        )}
       </div>
       <label className="quilisma-figure">
         Quilisma figure{' '}
@@ -818,7 +892,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       ) : null}
       <p id="palette-instructions" className="editor-sr-only">
         Arrow keys browse tools; Enter or Space activates. I inserts the
-        remembered neume. T focuses its palette button.
+        remembered neume. T focuses its family control. Right Arrow from Punctum
+        reaches its variants menu; Enter opens it. Up/Down browses variants,
+        Enter selects, Escape closes, Tab leaves.
       </p>
       <fieldset
         disabled={Boolean(
@@ -1279,6 +1355,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 edit: (document) =>
                   moveNoteVerticallyResult(document, noteId, delta),
                 focusNoteId: noteId,
+                noteMoveId: noteId,
               })
             }
             onMoveNeume={(neumeId, delta, invokingNoteId) =>

@@ -841,3 +841,23 @@ Tab from a selected glyph then keeps native focus navigation. A properties focus
 request that cannot position the toolbar (for example, a glyph outside a
 pinch-zoomed visual viewport) is refused like the note toolbar's: Tab is not
 consumed and no deferred focus remains to move focus later.
+
+## Punctum family split control (Stage 9A)
+
+The primary Punctum button always arms ordinary Punctum. Its separate chevron
+opens Punctum/Bistropha/Tristropha options without inserting music. The active
+variant appears in the selected menu item and current-tool guidance, with an
+active-family chevron indicator and accessible variant name; ordinary Punctum is pressed only for that tool.
+Each valid staff click inserts the complete group at one snapped pitch and
+leaves the tool armed. Select/Escape exit placement while retaining exact recall.
+I and contextual Insert reuse that variant; T focuses its family chevron without
+reactivating ordinary Punctum.
+
+Both split actions participate in toolbar arrow navigation with one toolbar Tab
+entry. Right Arrow from Punctum reaches the chevron; Enter/Space opens it. Within
+the menu, Up/Down and Home/End browse, Enter/Space chooses, Escape dismisses and
+restores chevron focus without exiting placement. Tab leaves and closes;
+outside pointer dismissal changes no tool or document. Menu opening/dismissal
+never enters history or autosave. Choosing a tool retains existing lyric-draft
+commit rules. The contextual note editor explains unavailable mora authoring
+for repeated groups while retaining independent episema controls.

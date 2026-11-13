@@ -14,7 +14,7 @@ import v3 from '../../../docs/verification/note-shapes/editor-cases-v3.chant.jso
 
 describe('strict v4 vertical episema and legacy recovery', () => {
   it.each([v1, v2, v3])(
-    'hydrates exact legacy bytes without writes then commits v5 once',
+    'hydrates exact legacy bytes without writes then commits v6 once',
     (source) => {
       let bytes = source;
       let writes = 0;
@@ -39,7 +39,7 @@ describe('strict v4 vertical episema and legacy recovery', () => {
       );
       adapter.save(marked);
       expect(writes).toBe(1);
-      expect(JSON.parse(bytes).version).toBe(5);
+      expect(JSON.parse(bytes).version).toBe(6);
       expect(decodeDocument(bytes)).toEqual(marked);
       expect(JSON.parse(v3).version).toBe(3);
     },
@@ -84,7 +84,7 @@ describe('strict v4 vertical episema and legacy recovery', () => {
         clef: Record<string, unknown>;
       };
     }) => void)[] = [
-      (p) => (p.version = 6),
+      (p) => (p.version = 7),
       (p) => (p.document.neumes[0].notes[0].side = 'below'),
       (p) => (p.document.neumes[0].notes[0].verticalEpisema = { on: true }),
       (p) => (p.document.neumes[0].notes[0].form = 'quilisma'),

@@ -60,6 +60,7 @@ export function transposeNeume(neume: Neume, delta: number): Neume {
         notes: [moveNote(note, delta)],
       };
     }
+    case 'bistropha':
     case 'podatus':
     case 'clivis': {
       const [firstNote, secondNote] = neume.notes;
@@ -70,6 +71,7 @@ export function transposeNeume(neume: Neume, delta: number): Neume {
       };
     }
     case 'scandicus':
+    case 'tristropha':
     case 'climacus':
     case 'porrectus':
     case 'torculus': {
