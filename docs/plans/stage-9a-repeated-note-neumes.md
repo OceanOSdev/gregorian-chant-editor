@@ -23,6 +23,7 @@ identity), 0004 (explicit kinds and ordered tuples), 0007 (derived geometry),
 vs contour), 0020 (vertical episema), and 0021 (B accidentals).
 
 Historical starting references:
+
 - [Basic Gregorian Chant and Sight Reading (1960), printed pp. 69–71](https://media.churchmusicassociation.org/books/basicgregorianchant_1960.pdf#page=70):
   lessons 29–30 and Liber examples show distropha and tristropha with
   repeated square heads in the Vatican edition, and distinguish earlier
