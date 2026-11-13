@@ -103,11 +103,12 @@ One click places the entire group at the snapped first pitch, stays
 armed for repeat placement; no modal, drag or per-note entry.
 
 Suggested default contours relative to the first pitch p:
+
 - four notes: [p, p+2, p+1, p];
 - five notes: [p, p+3, p+2, p+1, p].
-These are predictable entry templates, not fixed musical intervals.
-Use existing pitch placement policies and allow subsequent valid
-individual movement. Preserve placement/ghost parity at all boundaries.
+  These are predictable entry templates, not fixed musical intervals.
+  Use existing pitch placement policies and allow subsequent valid
+  individual movement. Preserve placement/ghost parity at all boundaries.
 
 Extract/reuse the proven split-menu behavior narrowly if this reduces
 duplication. Preserve Punctum family semantics, styling and regression
