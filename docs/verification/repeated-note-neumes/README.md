@@ -1,9 +1,10 @@
 # Stage 9A: Bistropha and Tristropha implementation record
 
-Status: implemented on `feature/stage-9a-repeated-note-neumes` (PR #74) under
-the committed [plan](../../plans/stage-9a-repeated-note-neumes.md) and
-[ADR 0022](../../adrs/0022-explicit-repeated-note-neumes.md). Owner visual and
-foreground acceptance remain pending. The original mora reference gate report
+Status: **implementation-complete and owner-accepted (2026-11-13)** in PR #74,
+under the committed [plan](../../plans/stage-9a-repeated-note-neumes.md) and
+[ADR 0022](../../adrs/0022-explicit-repeated-note-neumes.md). See
+[owner acceptance](#owner-acceptance-2026-11-13) for its basis and the checks
+not performed. The original mora reference gate report
 (commit `c8bd51c`) is preserved unchanged in substance as
 [gate-investigation.md](gate-investigation.md).
 
@@ -144,16 +145,21 @@ intended behavior. The driver chooses an exposed control for the focus check.
 The pre-existing `lyric-anchors` and `lyric-move` driver failures are out of
 scope for this PR. Repair or retire those drivers in separate maintenance work.
 
-## Manual owner acceptance (not yet performed)
+## Owner acceptance (2026-11-13)
 
-- Foreground Chromium and Firefox: open the chevron by pointer and keyboard,
-  choose each variant, confirm the primary Punctum always returns to ordinary
-  Punctum and the active-variant indicator is clear.
-- Screen-reader announcement of the menu, active variant, constituent labels,
+The owner accepted the final review of PR #74 at `9032837`. Both split-button
+review findings are resolved. The owner accepted the automated Chromium/Firefox
+verification and the qualitative historical engraving comparison above in lieu
+of additional owner manual testing for this milestone.
+
+The following checks were **not performed**; no claim is made that they passed:
+
+- Foreground owner interaction in Chromium and Firefox: real-pointer chevron
+  and variant use, placement, I/T recall and Escape/Tab dismissal.
+- Actual screen-reader testing of the menu, active variant, constituent labels,
   disabled mora select and its explanation, and the unison-rejection message.
-- Visual acceptance of repeated-head spacing at typical zoom and 320px against
-  the printed references, including signs and adjacent neumes.
-- Real-pointer placement, I/T recall and Escape/Tab dismissal behavior.
+- A measured typographic comparison against the printed sources. The board
+  above is qualitative only.
 
 ## Remaining limitations
 

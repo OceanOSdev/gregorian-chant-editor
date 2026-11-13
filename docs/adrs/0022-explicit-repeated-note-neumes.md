@@ -6,8 +6,10 @@ Date: 2026-11-12
 
 Accepted design, including owner-approved conservative mora scope (2026-11-12).
 Extends ADRs 0004, 0007, 0016, 0018, 0019 and 0020; none is superseded.
-ADR 0021's accidental ownership and scope remain unchanged. Final visual and
-foreground acceptance is separate from design approval.
+ADR 0021's accidental ownership and scope remain unchanged. The implementation
+was owner-accepted on 2026-11-13 (PR #74). Acceptance rests on automated
+Chromium/Firefox verification and a qualitative reference comparison.
+Foreground owner interaction and screen-reader testing were not performed.
 
 ## Context
 

@@ -2,6 +2,10 @@
 
 Branch: `feature/stage-9a-repeated-note-neumes`
 Target: `master`
+Status: **Completed (owner-accepted 2026-11-13)** in
+[PR #74](https://github.com/OceanOSdev/gregorian-chant-editor/pull/74). Retained
+as the historical record of the agreed Stage 9A scope and design. See the
+[closeout](#owner-closeout-2026-11-13) below.
 
 ## Goal and scope
 
@@ -206,3 +210,17 @@ reject every new-kind nonempty pattern in commands/native decoding, and explain
 unavailable mora authoring contextually. Expanded mora requires a future sourced
 investigation and owner review. Proceed with the remaining milestone and update
 existing PR #74; do not merge. See ADR 0022 for the durable extension.
+
+## Owner closeout (2026-11-13)
+
+Stage 9A is implementation-complete and owner-accepted. The owner accepted
+the final review at `9032837`, which resolved both split-button review
+findings. The owner accepted the recorded automated Chromium/Firefox
+verification and the qualitative historical engraving comparison in lieu of
+additional owner manual testing for this milestone. Foreground owner
+interaction and actual screen-reader testing were **not performed**; no claim
+is made that they passed. The pre-existing `lyric-anchors` and `lyric-move`
+browser-driver failures remain separate follow-up maintenance. Documented
+limitations stand: none-only mora for both kinds, native v6 writes that older
+builds cannot read, and the listed exclusions. See the
+[implementation and verification record](../verification/repeated-note-neumes/README.md).

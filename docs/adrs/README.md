@@ -148,3 +148,5 @@ Implementation is in PR #72; owner visual acceptance remains pending.
 records Stage 9A's fixed written-unison tuples, square-head profile, split-button
 interaction and native v6. Its owner-approved none-only mora scope extends
 ADR 0018 conservatively; historical expanded mora support remains deferred.
+Implementation in PR #74 was owner-accepted on 2026-11-13, based on automated
+browser verification and a qualitative reference comparison.

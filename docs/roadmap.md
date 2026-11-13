@@ -218,8 +218,20 @@ amended ADR 0021. [Actual verification and acceptance limits](verification/b-acc
 separate automated/browser evidence from remaining owner visual review. Broader
 accidental vocabulary, regional rules and playback remain outside scope.
 
-Stage 9A adds explicit Bistropha/Tristropha and the Punctum split control under
-[ADR 0022](adrs/0022-explicit-repeated-note-neumes.md). Mora is initially none-only
-by owner approval; broader repeated-note mora patterns await a future sourced
-investigation. Historical stropha forms, bivirga/trivirga and Stage 9B remain
-outside this milestone. Final acceptance is recorded in the Stage 9A PR.
+## Repeated-note neumes (Stage 9A)
+
+**Completed (owner-accepted 2026-11-13)** in PR #74. Explicit Bistropha and
+Tristropha, with the Punctum family split control, follow the
+[plan](plans/stage-9a-repeated-note-neumes.md) and
+[Accepted ADR 0022](adrs/0022-explicit-repeated-note-neumes.md). New saves write
+native v6; exact v1–v5 readers reject the new kinds, and older builds cannot
+read v6 files. Acceptance rests on the recorded automated Chromium/Firefox
+verification and qualitative historical engraving comparison. Foreground owner
+interaction and screen-reader testing were not performed. See the
+[verification record](verification/repeated-note-neumes/README.md).
+Mora is none-only by owner approval. This limits authoring scope and makes no
+claim about historical practice. Broader repeated-note mora patterns await a
+future sourced investigation. Historical stropha forms, bivirga/trivirga and
+Stage 9B remain outside this milestone. Separate follow-up maintenance: repair
+or retire the `lyric-anchors` and `lyric-move` browser drivers, which were
+already failing before Stage 9A.
