@@ -70,3 +70,14 @@ with **none-only** mora. This is an initial authoring-scope restriction, not a
 claim of historical prohibition. Existing mora patterns are unchanged. Expanded
 support requires sourced conventional patterns and unambiguous engraving in a
 future investigation and owner review.
+
+## Stage 9B-1 Pes subpunctis (pending owner decision)
+
+The **Proposed** [ADR 0023](0023-bounded-tuple-union-for-pes-subpunctis.md)
+adds Pes subpunctis with **provisionally none-only** mora. Mora scope indexes
+are now derived from the actual tuple length (`final` = last note,
+`final-two` = last two); every existing pattern, including `final` = [2] and
+`final-two` = [1, 2] for three-note kinds, is unchanged. The investigation
+proposes {none, final note} for owner approval and leaves final-two unresolved;
+see the [mora gate](../verification/pes-subpunctis/README.md#mora-gate). This
+section will record the approved matrix.

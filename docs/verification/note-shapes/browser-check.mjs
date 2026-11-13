@@ -392,7 +392,7 @@ try {
     await select(id);
     const form = original.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
     const saved = await change('Form', form);
-    assert.equal(saved.version, 6);
+    assert.equal(saved.version, 7);
     const expected = structuredClone(original);
     expected.accidentals = [];
     expected.neumes[0].notes[0].form = form;
@@ -626,7 +626,7 @@ try {
   await ev('window.confirm=()=>true');
   const before = await raw();
   for (const invalid of [
-    { ...fixture, version: 7 },
+    { ...fixture, version: 8 },
     {
       ...fixture,
       document: {

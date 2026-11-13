@@ -80,6 +80,7 @@ Scandicus: [lowest, middle, highest]
 Torculus:  [first, higher second, lower third]
 Climacus:  [highest, middle, lowest]
 Porrectus: [first, lower second, higher third]
+Pes subpunctis: [lower, apex, descending…] (4 or 5 notes)
 ```
 
 Podatus must ascend strictly, Clivis must descend strictly, and every
@@ -95,6 +96,8 @@ Fixed-cardinality tuples make the expected number and order of notes visible
 to TypeScript. Explicit kinds let commands, normalization, layout,
 interaction, and accessibility use exhaustive behavior. One arbitrary note
 array would leave cardinality, ordering, and kind-specific operations implicit.
+Pes subpunctis is the one bounded exception: a union of exactly two fixed
+tuples ([ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md)).
 
 TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
@@ -324,3 +327,44 @@ heads only, and **none-only mora**. This owner-approved initial authoring limit
 is not a historical prohibition; expanded mora needs future sourced review.
 [ADR 0022](adrs/0022-explicit-repeated-note-neumes.md) records that extension.
 ADR 0021's one-sign-per-B-register rule applies unchanged to the entire group.
+
+## Pes subpunctis (Stage 9B-1)
+
+`PesSubpunctisNeume` (`pes-subpunctis`) is one semantic family whose `notes`
+are a bounded union of a four-note tuple (Pes subbipunctis) and a five-note
+tuple (Pes subtripunctis). The contour is p0 < p1 > p2 > p3 (> p4): a rising
+Podatus head followed by a strictly descending tail. The tail may end below,
+at, or above the first pitch. The displayed name derives from the tuple length
+(`neumeDisplayName`); no count or variant field duplicates it. Construct the
+tuple with `pesSubpunctisNotes`, which returns `null` instead of truncating or
+padding. Each constituent has its own stable ID; one group has one neume ID and
+one lyric-anchor boundary. Arbitrary-length neumes are not introduced, and the
+nine earlier kinds keep their fixed tuples.
+
+Entry-tool variants are distinct from the semantic kind: `pes-subbipunctis`
+and `pes-subtripunctis` are `GraphicalNeumeKind` entry variants mapped by
+`semanticNeumeKind`. The editor never stores tool state in the score and never
+derives the tool from the last placed group.
+
+Constituent deletion is decided from the surviving contour, not tuple length:
+
+- five to four: stays a Pes subpunctis when the survivors satisfy its contour;
+  otherwise (four strictly descending notes after deleting the first note, or
+  equal adjacent survivors after deleting the apex) the deletion is rejected.
+  Extended Climacus is later work;
+- four to three: becomes Torculus when the survivors rise then fall, Climacus
+  when they strictly descend, and is rejected otherwise (for example equal
+  adjacent survivors).
+
+Normalization keeps the neume ID, surviving note objects, order and marks,
+lyric and structural anchors; a surviving invalid modifier rejects. Existing
+Torculus/Porrectus equal-outer-note policies are unchanged. Individual moves
+must keep the contour valid; whole-neume moves transpose every note.
+
+Every constituent supports independent horizontal and vertical episemata
+(including the Kyrie XI ictus on the inner descending note). The derived
+diamond is not an authored inclinatum, and no authored Virga, Inclinatum or
+Quilisma context is added. Mora is **provisionally none-only** pending owner
+review of the sourced matrix in the
+[verification record](verification/pes-subpunctis/README.md#mora-gate).
+ADR 0021 B ownership applies unchanged, including contours that revisit B.

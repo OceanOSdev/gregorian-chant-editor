@@ -705,3 +705,25 @@ constituent ownership. Complete neumes stay together during wrapping. Palette
 family icons and pointer ghosts consume the same geometry. Existing neume
 metrics and intra-syllable spacing policies are unchanged. See the
 [reference and verification record](verification/repeated-note-neumes/README.md).
+
+## Pes subpunctis (Stage 9B-1)
+
+`neumes/pes-subpunctis.ts` draws the approved Podatus (unchanged) followed by
+detached descending diamonds. There is no apex virga stem, duplicated apex or
+connector to the diamonds. The diamond tail is shared with Climacus through
+`neumes/diamonds.ts`: the diamond outline, the apex-to-first-diamond spacing
+plateau (18/24/30 by interval 1/2/≥3) and diamond-to-diamond plateau
+(10.5/19.5/27) are the approved Climacus values, now measured from the Podatus
+column. Extracting the helper left Climacus output byte-identical (verified
+against a recorded baseline of 4,000 marked and unmarked cases). The printed
+and Gregorio references show the same tight first diamond and wider gaps on
+skips, so no separate pes-to-diamond rule was introduced.
+
+Pointer ownership: the Podatus head targets are clipped at the same vertical
+cut Climacus uses (halfway between the column's right edge and the first
+diamond's left point); each diamond region is clipped to that cut and to
+half-planes between consecutive diamonds, so all regions are pairwise
+disjoint. Vertical-episema obstacles include only the Podatus join. Rhythmic
+signs, accidentals, lyrics (anchored on the first Podatus note), ghosts,
+palette icons, advance and whole-neume wrapping consume the same geometry. See
+the [reference and verification record](verification/pes-subpunctis/README.md).
