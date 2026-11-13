@@ -196,3 +196,13 @@ options, open a draft PR, and stop the affected implementation.
 Do not merge. Preserve this plan during review, then follow the owner's
 closeout decision. Return PR URL, verification results and focused manual
 acceptance checklist.
+
+## Owner clarification (2026-11-12)
+
+The historical mora gate is resolved: approve none-only mora for Bistropha and
+Tristropha as an initial authoring-scope restriction, not a claim of historical
+prohibition. Preserve all existing mora policies, make kind dispatch exhaustive,
+reject every new-kind nonempty pattern in commands/native decoding, and explain
+unavailable mora authoring contextually. Expanded mora requires a future sourced
+investigation and owner review. Proceed with the remaining milestone and update
+existing PR #74; do not merge. See ADR 0022 for the durable extension.
