@@ -2,6 +2,7 @@ import { entryAppearance } from '../state/editor-tool';
 import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
 import { createNeumeEntryPitches } from '../neume-entry-pitches';
 import type { EditorSelection } from '../state/selection';
+import { insertNeume } from '../commands/insert-neume';
 import { insertClimacus } from '../commands/insert-climacus';
 import { insertClivis } from '../commands/insert-clivis';
 import { insertPodatus } from '../commands/insert-podatus';
@@ -46,6 +47,33 @@ export function insertEditorNeume(
   });
   const at = insertion.boundary;
   switch (insertion.kind) {
+    case 'bistropha':
+      return insertNeume(
+        document,
+        {
+          ...base,
+          kind: insertion.kind,
+          notes: [
+            note(0, insertion.staffPositions[0]),
+            note(1, insertion.staffPositions[1]),
+          ],
+        },
+        at,
+      );
+    case 'tristropha':
+      return insertNeume(
+        document,
+        {
+          ...base,
+          kind: insertion.kind,
+          notes: [
+            note(0, insertion.staffPositions[0]),
+            note(1, insertion.staffPositions[1]),
+            note(2, insertion.staffPositions[2]),
+          ],
+        },
+        at,
+      );
     case 'punctum':
       return insertPunctum(
         document,
@@ -142,6 +170,8 @@ export function insertEditorNeume(
 }
 
 const toolbarFallbackPitches = {
+  bistropha: 2,
+  tristropha: 2,
   punctum: 2,
   podatus: 2,
   clivis: 3,

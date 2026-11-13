@@ -31,7 +31,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
-- Stage 7A provides one browser-local active document and native JSON (current v5 writes, exact v1–v5 reads)
+- Stage 7A provides one browser-local active document and native JSON (current v6 writes, exact v1–v6 reads)
   interchange. See [persistence](persistence.md). Storage is best-effort; export
   files for backups. No document library or cloud synchronization is provided.
 - There is no GABC import/export or other interchange adapter.
@@ -217,3 +217,21 @@ implemented on the Stage 8D branch. The historical placement gate is resolved by
 amended ADR 0021. [Actual verification and acceptance limits](verification/b-accidentals/implementation.md)
 separate automated/browser evidence from remaining owner visual review. Broader
 accidental vocabulary, regional rules and playback remain outside scope.
+
+## Repeated-note neumes (Stage 9A)
+
+**Completed (owner-accepted 2026-11-13)** in PR #74. Explicit Bistropha and
+Tristropha, with the Punctum family split control, follow the
+[plan](plans/stage-9a-repeated-note-neumes.md) and
+[Accepted ADR 0022](adrs/0022-explicit-repeated-note-neumes.md). New saves write
+native v6; exact v1–v5 readers reject the new kinds, and older builds cannot
+read v6 files. Acceptance rests on the recorded automated Chromium/Firefox
+verification and qualitative historical engraving comparison. Foreground owner
+interaction and screen-reader testing were not performed. See the
+[verification record](verification/repeated-note-neumes/README.md).
+Mora is none-only by owner approval. This limits authoring scope and makes no
+claim about historical practice. Broader repeated-note mora patterns await a
+future sourced investigation. Historical stropha forms, bivirga/trivirga and
+Stage 9B remain outside this milestone. Separate follow-up maintenance: repair
+or retire the `lyric-anchors` and `lyric-move` browser drivers, which were
+already failing before Stage 9A.

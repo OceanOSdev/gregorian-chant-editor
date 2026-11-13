@@ -55,7 +55,7 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown, version: 1 | 2 | 3 | 4 | 5): ChantNote {
+function note(value: unknown, version: 1 | 2 | 3 | 4 | 5 | 6): ChantNote {
   const n = shape(
     value,
     ['id', 'staffPosition'],
@@ -89,8 +89,10 @@ function note(value: unknown, version: 1 | 2 | 3 | 4 | 5): ChantNote {
     ...(n.verticalEpisema === true ? { verticalEpisema: true } : {}),
   };
 }
-function neume(value: unknown, version: 1 | 2 | 3 | 4 | 5): Neume {
+function neume(value: unknown, version: 1 | 2 | 3 | 4 | 5 | 6): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
+  if (version < 6 && (n.kind === 'bistropha' || n.kind === 'tristropha'))
+    fail('Unsupported neume kind for this schema version.');
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
   const identity = id(n.id);
@@ -100,12 +102,14 @@ function neume(value: unknown, version: 1 | 2 | 3 | 4 | 5): Neume {
       if (notes.length !== 1 || !a) return fail('Punctum requires one note.');
       result = { id: identity, kind: n.kind, notes: [a] };
       break;
+    case 'bistropha':
     case 'podatus':
     case 'clivis':
       if (notes.length !== 2 || !a || !b)
         return fail('Two-note neume requires two notes.');
       result = { id: identity, kind: n.kind, notes: [a, b] };
       break;
+    case 'tristropha':
     case 'scandicus':
     case 'torculus':
     case 'climacus':
@@ -145,7 +149,7 @@ function syllable(value: unknown): LyricSyllable {
 }
 export function validateDocument(
   value: unknown,
-  version: 1 | 2 | 3 | 4 | 5 = 5,
+  version: 1 | 2 | 3 | 4 | 5 | 6 = 6,
 ): ChantDocument {
   const d = shape(value, [
     'title',
@@ -155,7 +159,7 @@ export function validateDocument(
     'syllables',
     'divisions',
     'clefChanges',
-    ...(version === 5 ? ['accidentals'] : []),
+    ...(version >= 5 ? ['accidentals'] : []),
   ]);
   if (
     d.lyricLanguage !== 'la' &&
@@ -166,7 +170,7 @@ export function validateDocument(
     fail('Unsupported lyric language.');
   const document: ChantDocument = {
     accidentals:
-      version === 5
+      version >= 5
         ? array(d.accidentals).map((value) => {
             const a = shape(
               value,
@@ -283,17 +287,18 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 2 &&
     envelope.version !== 3 &&
     envelope.version !== 4 &&
-    envelope.version !== 5
+    envelope.version !== 5 &&
+    envelope.version !== 6
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3, 4 and 5.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5 and 6.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 5, document: validateDocument(document) },
+    { format, version: 6, document: validateDocument(document) },
     null,
     2,
   );

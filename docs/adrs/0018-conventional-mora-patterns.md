@@ -62,3 +62,11 @@ not complete backward compatibility with every experimental v2 score.
 
 Manual sign positioning, extra rhythmic signs, alternate neume grouping tools,
 GABC interchange and performance interpretation remain outside Stage 8A.
+
+## Stage 9A owner-approved extension (2026-11-12)
+
+[ADR 0022](0022-explicit-repeated-note-neumes.md) adds Bistropha and Tristropha
+with **none-only** mora. This is an initial authoring-scope restriction, not a
+claim of historical prohibition. Existing mora patterns are unchanged. Expanded
+support requires sourced conventional patterns and unambiguous engraving in a
+future investigation and owner review.

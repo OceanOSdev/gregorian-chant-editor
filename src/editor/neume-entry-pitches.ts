@@ -1,6 +1,8 @@
 import { staffPosition, type StaffPosition } from './domain/chant-document';
 
 export type GraphicalNeumeKind =
+  | 'bistropha'
+  | 'tristropha'
   | 'punctum'
   | 'podatus'
   | 'clivis'
@@ -10,6 +12,14 @@ export type GraphicalNeumeKind =
   | 'porrectus';
 
 export type NeumeEntryPitches =
+  | {
+      kind: 'bistropha';
+      staffPositions: readonly [StaffPosition, StaffPosition];
+    }
+  | {
+      kind: 'tristropha';
+      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+    }
   | {
       kind: 'punctum';
       staffPositions: readonly [StaffPosition];
@@ -47,6 +57,17 @@ export function createNeumeEntryPitches(
   firstStaffPosition: StaffPosition,
 ): NeumeEntryPitches {
   switch (kind) {
+    case 'bistropha':
+      return { kind, staffPositions: [firstStaffPosition, firstStaffPosition] };
+    case 'tristropha':
+      return {
+        kind,
+        staffPositions: [
+          firstStaffPosition,
+          firstStaffPosition,
+          firstStaffPosition,
+        ],
+      };
     case 'punctum':
       return {
         kind,

@@ -867,3 +867,19 @@ driver, and clean/dirty lyric-entry glyph deletion plus native Tab retention to
 `acceptance-browser-check.mjs` in both transports. Its stale deferred
 toolbar-focus check uses Chromium `Emulation.setPageScaleFactor` and is skipped
 over Firefox/BiDi, which offers no equivalent pinch-zoom emulation.
+
+## Repeated-note neumes (Stage 9A)
+
+`domain/repeated-notes.test.ts` covers every new-kind mora subset, command/native
+rejection, tuple counts/contours/IDs/forms, constituent normalization, independent
+signs, history, canonical B ownership, clef pitch preservation, exact v1–v5 kind
+rejection/protected cache bytes, measured head/hit/sign geometry and graphical
+insertion on multiple systems. Shared entry-contour cases include both kinds.
+
+Run `node docs/verification/repeated-note-neumes/browser-check.mjs` against the
+production preview with disposable Chromium/CDP on 9230, or
+`CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session` for Firefox/BiDi. Standard
+`CHANT_PREVIEW_URL`/`CHANT_CHROMIUM_URL` overrides apply. Run existing accidental,
+contextual-note, sign/form, persistence, example, clef, division and lyric drivers
+sequentially per browser. See the [record](verification/repeated-note-neumes/README.md)
+for actual results, reference comparisons and separate foreground acceptance.

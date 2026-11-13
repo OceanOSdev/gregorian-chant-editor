@@ -1,0 +1,4 @@
+name:Stage 9A square-head comparison;
+%%
+(c3) Line(hss) Space(iss) Triple(hsss) Triple(isss) (z)
+Tick(hs'hs) Last(isis') Bars(hs_2hs_2) Both(is'_2is'_2is'_2) (::)

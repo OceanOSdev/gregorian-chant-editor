@@ -37,6 +37,8 @@ export function getNoteAccessibleLabel(
       : 'Select third note of torculus';
   }
 
+  if (kind === 'bistropha' || kind === 'tristropha')
+    return `Select ${['first', 'second', 'third'][noteIndex]} note of ${kind}`;
   if (kind === 'porrectus') {
     if (noteIndex === 0) {
       return 'Select first note of porrectus';

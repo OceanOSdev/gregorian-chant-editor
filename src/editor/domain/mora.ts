@@ -10,19 +10,30 @@ export interface MoraChoice {
 /** The supported notation profile, shared by controls, commands and decoding. */
 export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
   const none: MoraChoice = { value: 'none', label: 'None' };
-  if (kind === 'punctum') return [none, { value: 'sole', label: 'Sole note' }];
-  if (kind === 'podatus' || kind === 'clivis')
-    return [
-      none,
-      { value: 'first', label: 'First note' },
-      { value: 'second', label: 'Second note' },
-      { value: 'both', label: 'Both notes' },
-    ];
-  return [
-    none,
-    { value: 'final', label: 'Final note' },
-    { value: 'final-two', label: 'Final two notes' },
-  ];
+  switch (kind) {
+    case 'bistropha':
+    case 'tristropha':
+      return [none];
+    case 'punctum':
+      return [none, { value: 'sole', label: 'Sole note' }];
+    case 'podatus':
+    case 'clivis':
+      return [
+        none,
+        { value: 'first', label: 'First note' },
+        { value: 'second', label: 'Second note' },
+        { value: 'both', label: 'Both notes' },
+      ];
+    case 'scandicus':
+    case 'torculus':
+    case 'climacus':
+    case 'porrectus':
+      return [
+        none,
+        { value: 'final', label: 'Final note' },
+        { value: 'final-two', label: 'Final two notes' },
+      ];
+  }
 }
 export function moraIndexes(scope: MoraScope): readonly number[] {
   if (scope === 'none') return [];

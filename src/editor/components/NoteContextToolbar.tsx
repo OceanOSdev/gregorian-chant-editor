@@ -70,6 +70,9 @@ export function NoteContextToolbar({
   const refreshPosition = useRef<(() => NoteToolbarPosition | null) | null>(
     null,
   );
+  const moraUnavailable =
+    neume.kind === 'bistropha' || neume.kind === 'tristropha';
+  const moraHelpId = useId();
   const targetId = useId();
   const formHelpId = useId();
   const forms = allowedNoteForms(
@@ -305,8 +308,15 @@ export function NoteContextToolbar({
       <label>
         Mora scope
         <select
-          ref={!forms.length && !accidental ? firstControl : undefined}
+          ref={
+            !forms.length && !accidental && !moraUnavailable
+              ? firstControl
+              : undefined
+          }
           aria-label="Mora scope"
+          aria-disabled={moraUnavailable || undefined}
+          disabled={moraUnavailable}
+          aria-describedby={moraUnavailable ? moraHelpId : undefined}
           value={getMoraScope(neume) ?? 'none'}
           onChange={(event) => {
             const choice = moraChoices(neume.kind).find(
@@ -322,10 +332,21 @@ export function NoteContextToolbar({
           ))}
         </select>
       </label>
+      {moraUnavailable ? (
+        <p id={moraHelpId} className="note-context-toolbar__help">
+          Mora authoring is unavailable for {neume.kind}. This initial scope
+          supports no mora marks.
+        </p>
+      ) : null}
       <label>
         Horizontal episema
         <select
           aria-label="Horizontal episema"
+          ref={
+            !forms.length && !accidental && moraUnavailable
+              ? firstControl
+              : undefined
+          }
           value={note.episema ? 'on' : 'off'}
           onChange={(event) =>
             onEpisemaChange('episema', event.target.value === 'on')

@@ -1,8 +1,7 @@
-import type { GraphicalNeumeKind } from '../layout/layout-chant';
-
 export const paletteTools = [
   'select',
   'punctum',
+  'punctum-menu',
   'virga',
   'inclinatum',
   'quilisma',
@@ -15,14 +14,7 @@ export const paletteTools = [
   'c-clef',
   'f-clef',
 ] as const;
-export type PaletteTool =
-  | 'select'
-  | GraphicalNeumeKind
-  | 'c-clef'
-  | 'f-clef'
-  | 'virga'
-  | 'inclinatum'
-  | 'quilisma';
+export type PaletteTool = (typeof paletteTools)[number];
 
 /** Focus navigation only; activation remains native button Enter/Space/click. */
 export function nextPaletteTool(

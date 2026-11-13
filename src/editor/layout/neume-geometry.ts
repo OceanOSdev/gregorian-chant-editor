@@ -12,6 +12,7 @@ import type {
   StaffPosition,
 } from '../domain/chant-document';
 import type { NeumeGeometry } from './neumes/shared';
+import { buildRepeatedNotes } from './neumes/repeated-notes';
 import { buildPunctum } from './neumes/punctum';
 import { buildPodatusOrClivis } from './neumes/podatus-clivis';
 import { buildScandicusOrTorculus } from './neumes/scandicus-torculus';
@@ -83,6 +84,9 @@ function buildUnmodifiedGeometry(
   bottomStaffY: number,
 ): NeumeGeometry {
   switch (kind) {
+    case 'bistropha':
+    case 'tristropha':
+      return buildRepeatedNotes(positions, leftX, bottomStaffY);
     case 'punctum':
       return buildPunctum(positions, leftX, bottomStaffY);
     case 'podatus':

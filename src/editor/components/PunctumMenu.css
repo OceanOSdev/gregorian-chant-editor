@@ -1,0 +1,43 @@
+.punctum-menu {
+  position: relative;
+  display: inline-flex;
+  grid-column: span 2;
+  min-width: 0;
+}
+.punctum-menu .punctum-menu__primary {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+}
+.punctum-menu .punctum-menu__arrow {
+  flex-shrink: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.punctum-menu__arrow[data-active-variant] {
+  border-color: #355d42;
+}
+.punctum-menu__items {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  display: grid;
+  min-width: 190px;
+  padding: 0.35rem;
+  border: 1px solid #778576;
+  border-radius: 0.4rem;
+  background: #fffdf7;
+  box-shadow: 0 4px 12px #0003;
+}
+.punctum-menu__items button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+.punctum-menu__items [aria-checked='true'] {
+  background: #dce9d7;
+}

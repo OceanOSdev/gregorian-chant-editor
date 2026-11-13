@@ -1,6 +1,8 @@
 import type { GraphicalNeumeKind } from './neume-entry-pitches';
 
 export const entryPitchCases = {
+  bistropha: { kind: 'bistropha', offsets: [0, 0], fallback: 2 },
+  tristropha: { kind: 'tristropha', offsets: [0, 0, 0], fallback: 2 },
   punctum: { kind: 'punctum', offsets: [0], fallback: 2 },
   podatus: { kind: 'podatus', offsets: [0, 1], fallback: 2 },
   clivis: { kind: 'clivis', offsets: [0, -1], fallback: 3 },

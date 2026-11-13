@@ -5,13 +5,13 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1–5
+## Native versions 1–6
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 5`, and `document: ChantDocument`. The reader accepts exact v1–v5. The original seven document properties are
+`version: 6`, and `document: ChantDocument`. The reader accepts exact v1–v6. The original seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in all five versions. V2–v5 additionally accept
+arrays. Optional syllable alignment is supported in all six versions. V2–v6 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v5. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v6. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 8D: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1/v2/v3/v4 bytes untouched. The next
-successful committed save writes v5 into that same key, after comparing the
+retained for Stage 9A: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1/v2/v3/v4/v5 bytes untouched. The next
+successful committed save writes v6 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot be assumed to read a v5 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v6 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -242,3 +242,18 @@ successful commit/export writes v5 through the existing cache key and byte
 conflict guard. Unknown future versions, malformed data, write failures and
 cross-tab conflicts retain the established protected recovery behavior. The
 bundled owner Pater Noster remains its original v4 source, unchanged.
+
+## Native v6 repeated-note kinds (Stage 9A)
+
+New saves/exports write version **6**, adding `bistropha` and `tristropha` with
+exact two/three-note cardinality, equal written pitches and distinct global IDs.
+Both accept independent horizontal/vertical episemata and no authored alternate
+form or mora. Reject every nonempty mora subset, unknown field, invalid count,
+unequal pitch, duplicate identity, invalid sign/anchor and unsupported version.
+
+Exact v1–v5 readers retain their original kind and field whitelists; both new
+kinds reject even if encoded with otherwise valid older-version fields. Legacy
+hydration preserves original bytes and writes no automatic upgrade. All new
+commits write v6 using the unchanged cache key and existing source recovery,
+withdrawn draft-v2 protection, synchronous saves and cross-tab guards. There is
+no new migration that rewrites IDs, signs, lyric or clef/division data.

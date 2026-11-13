@@ -39,6 +39,7 @@ export function updateNoteModifiers(
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0])] };
       break;
+    case 'bistropha':
     case 'podatus':
     case 'clivis': {
       const [a, b] = neume.notes;
@@ -84,6 +85,7 @@ export function updateMoraScope(
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0], 0)] };
       break;
+    case 'bistropha':
     case 'podatus':
     case 'clivis':
       updated = {

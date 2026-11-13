@@ -83,48 +83,5 @@ export function resolveGraphicalNeumePlacement(
     top: resolved.top,
     bottom: resolved.bottom,
   };
-  switch (placement.kind) {
-    case 'punctum':
-      return {
-        kind: placement.kind,
-        staffPositions: placement.staffPositions,
-        insertionIndex,
-        boundary,
-        preview,
-      };
-    case 'podatus':
-      return {
-        kind: placement.kind,
-        staffPositions: placement.staffPositions,
-        insertionIndex,
-        boundary,
-        preview,
-      };
-    case 'clivis':
-      return {
-        kind: placement.kind,
-        staffPositions: placement.staffPositions,
-        insertionIndex,
-        boundary,
-        preview,
-      };
-    case 'scandicus':
-      return {
-        kind: placement.kind,
-        staffPositions: placement.staffPositions,
-        insertionIndex,
-        boundary,
-        preview,
-      };
-    case 'climacus':
-    case 'porrectus':
-    case 'torculus':
-      return {
-        kind: placement.kind,
-        staffPositions: placement.staffPositions,
-        insertionIndex,
-        boundary,
-        preview,
-      };
-  }
+  return { ...placement, insertionIndex, boundary, preview };
 }

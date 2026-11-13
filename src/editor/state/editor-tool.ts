@@ -10,6 +10,8 @@ export type EditorTool =
   | { kind: 'select' }
   | { kind: 'place-punctum'; form?: 'virga' | 'inclinatum' }
   | { kind: 'place-podatus'; form?: 'quilisma' }
+  | { kind: 'place-bistropha' }
+  | { kind: 'place-tristropha' }
   | { kind: 'place-clivis' }
   | { kind: 'place-scandicus'; form?: 'quilisma' }
   | { kind: 'place-torculus' }
@@ -52,6 +54,8 @@ export function isPlacementTool(tool: EditorTool): boolean {
   return (
     tool.kind === 'place-clef' ||
     tool.kind === 'place-division' ||
+    tool.kind === 'place-bistropha' ||
+    tool.kind === 'place-tristropha' ||
     tool.kind === 'place-punctum' ||
     tool.kind === 'place-podatus' ||
     tool.kind === 'place-clivis' ||
@@ -69,7 +73,7 @@ export function entryAppearance(kind: Neume['kind'], form?: NoteForm) {
       length:
         kind === 'punctum'
           ? 1
-          : kind === 'podatus' || kind === 'clivis'
+          : kind === 'podatus' || kind === 'clivis' || kind === 'bistropha'
             ? 2
             : 3,
     },

@@ -406,7 +406,7 @@ try {
       id = original.neumes[0].notes[0].id;
     await select(id);
     const saved = await change('Vertical episema', 'on');
-    assert.equal(saved.version, 5);
+    assert.equal(saved.version, 6);
     const expected = structuredClone(original);
     expected.accidentals = [];
     expected.neumes[0].notes[0].verticalEpisema = true;

@@ -24,7 +24,7 @@ and retain references to unrelated entities where practical.
 Current command families cover:
 
 - creating anchored syllables, editing text/boundaries, deleting and reassigning syllables;
-- inserting Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, and Porrectus;
+- inserting Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, Porrectus, Bistropha, and Tristropha;
 - moving one note vertically;
 - moving every note of a neume vertically as one unit;
 - deleting one note with normalization;
@@ -44,7 +44,7 @@ Rejected and no-op commands return the exact input document object. This
 identity convention is important: callers can distinguish “accepted new
 document” from “nothing changed” without a second result channel.
 
-All seven insertion kinds, including Punctum, validate their musical inputs
+All nine insertion kinds, including Punctum, validate their musical inputs
 without requiring syllables. No lyric group constrains insertion.
 
 `createLyricSyllable` inserts at a free anchor in semantic order and normalizes
@@ -356,3 +356,13 @@ revalidating after each restoration, before resolving remaining sign conflicts
 in that order. A conflicting sign that must itself return to default therefore
 does not needlessly invalidate another authored anchor. Collection order is not
 the repair priority. Strict import validation never invokes this editing repair.
+
+## Repeated-note commands (Stage 9A)
+
+Bistropha/Tristropha insertion uses the validated `insertNeume` command and
+shared graphical/toolbar resolver, preserving explicit mixed-event slots.
+Movement and normalization follow the [domain contract](domain-model.md#repeated-note-neumes-stage-9a).
+Unsupported mora scopes and nonempty per-note mora edits return the original
+document. Both episema kinds remain independent stable-note edits. Accepted
+placement, movement, deletion and normalization are one semantic history entry;
+rejected unequal pitch moves and modifier edits create none.
