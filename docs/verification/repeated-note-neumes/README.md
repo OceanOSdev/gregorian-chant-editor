@@ -102,6 +102,48 @@ they were run from port-substituted copies with no other edits.
 `storage-review.mjs` and the optional `CHANT_LEGACY_URL` v4-build check were
 not run.
 
+## Review revision: split-button lifecycle (2026-11-13)
+
+The owner's review of `433ae6d` reported two split-button findings. Both were
+reproduced before changing code, in headless Chromium 157 and Firefox 146 at
+1440px, with identical results in both browsers:
+
+1. With Tristropha armed and the menu reopened, clicking primary Punctum armed
+   Punctum and wrote nothing, but the menu stayed open. The open-menu effect,
+   which also depended on `active`/`remembered`, then moved focus onto the
+   "Punctum" menu item. A further consequence: the next chevron click closed the
+   stale menu instead of opening it.
+2. A score click used only to dismiss the menu edited nothing, but it left
+   focus on `<body>`. Afterwards `I` inserted nothing and `T` did nothing.
+
+The fix in `PunctumMenu.tsx`: an item receives focus only when the menu opens.
+Activating the primary button closes the menu, and focus stays on the primary
+button. A dismissal-only score click returns focus to the chevron. Clicks on
+other controls keep native focus.
+
+The Stage 9A driver now checks, at 1440px and 320px in both browsers:
+
+- After a primary click with the menu open, the menu is closed, Punctum is the
+  pressed tool, focus is on the primary button and storage bytes are unchanged.
+  The next chevron click opens the menu.
+- After a score dismissal, storage is unchanged, focus is on the chevron, and
+  `I` and `T` then work.
+- An exposed palette control clicked while the menu is open receives focus.
+
+The primary-click check failed against the pre-fix build. With the fix, the
+gate passed again (format, lint, 1,741 tests, build), and the Stage 9A driver
+passed in Chromium and Firefox. The other regression drivers were not rerun for
+this focused revision.
+
+At 320px the open menu covers wrapped neighbouring palette buttons, so a click
+there selects the menu item underneath. The menu is on top, so this is the
+intended behavior. The driver chooses an exposed control for the focus check.
+
+## Follow-up maintenance
+
+The pre-existing `lyric-anchors` and `lyric-move` driver failures are out of
+scope for this PR. Repair or retire those drivers in separate maintenance work.
+
 ## Manual owner acceptance (not yet performed)
 
 - Foreground Chromium and Firefox: open the chevron by pointer and keyboard,

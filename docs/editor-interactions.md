@@ -857,7 +857,12 @@ Both split actions participate in toolbar arrow navigation with one toolbar Tab
 entry. Right Arrow from Punctum reaches the chevron; Enter/Space opens it. Within
 the menu, Up/Down and Home/End browse, Enter/Space chooses, Escape dismisses and
 restores chevron focus without exiting placement. Tab leaves and closes;
-outside pointer dismissal changes no tool or document. Menu opening/dismissal
+outside pointer dismissal changes no tool or document. Activating primary
+Punctum while the menu is open arms Punctum, closes the menu and keeps focus on
+the primary button; item focus moves only when the menu opens. A score click
+that only dismisses the menu is consumed and returns focus to the chevron, so
+scoped shortcuts such as I and T keep working; clicks on other controls keep
+their native focus. Menu opening/dismissal
 never enters history or autosave. Choosing a tool retains existing lyric-draft
 commit rules. The contextual note editor explains unavailable mora authoring
 for repeated groups while retaining independent episema controls.

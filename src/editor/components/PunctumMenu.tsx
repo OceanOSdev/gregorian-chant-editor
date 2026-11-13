@@ -51,11 +51,13 @@ export function PunctumMenu({
   const arrow = useRef<HTMLButtonElement | null>(null);
   const items = useRef(new Map<number, HTMLButtonElement>());
   const menuId = useId();
+  // Chosen when the menu opens; later tool changes must not move focus.
+  const openingItem = useRef(0);
   const label = (kind: PunctumFamilyKind) =>
     kind[0].toUpperCase() + kind.slice(1);
   useEffect(() => {
     if (!open) return;
-    items.current.get(variants.indexOf(active ?? remembered))?.focus();
+    items.current.get(openingItem.current)?.focus();
     const preserveFocus = (event: PointerEvent) => {
       if (event.target instanceof Element && event.target.closest('.score'))
         event.preventDefault();
@@ -67,8 +69,11 @@ export function PunctumMenu({
       )
         return;
       if (event.target instanceof Element && event.target.closest('.score')) {
+        // A dismissal-only score click edits nothing; keep keyboard context.
         event.preventDefault();
         event.stopPropagation();
+        close();
+        return;
       }
       setOpen(false);
     };
@@ -78,13 +83,17 @@ export function PunctumMenu({
       document.removeEventListener('pointerdown', preserveFocus, true);
       document.removeEventListener('click', dismiss, true);
     };
-  }, [open, active, remembered]);
+  }, [open]);
   useEffect(() => {
     if (buttonProps.disabled) setOpen(false);
   }, [buttonProps.disabled]);
   function close() {
     setOpen(false);
     arrow.current?.focus();
+  }
+  function toggle() {
+    if (!open) openingItem.current = variants.indexOf(active ?? remembered);
+    setOpen(!open);
   }
   return (
     <span
@@ -99,6 +108,10 @@ export function PunctumMenu({
         data-tool="punctum"
         ref={primaryRef}
         className="punctum-menu__primary"
+        onClick={(event) => {
+          setOpen(false);
+          primaryProps.onClick?.(event);
+        }}
       >
         <PunctumIcon kind="punctum" />
         Punctum
@@ -126,10 +139,10 @@ export function PunctumMenu({
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             event.stopPropagation();
-            if (!event.repeat) setOpen(!open);
+            if (!event.repeat) toggle();
           }
         }}
-        onClick={() => setOpen(!open)}
+        onClick={toggle}
       >
         <span aria-hidden="true">▾</span>
       </button>

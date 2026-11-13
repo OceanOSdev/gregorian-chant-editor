@@ -253,6 +253,8 @@ async function pointer(selector) {
   await pause();
 }
 const arrow = 'button[data-tool="punctum-menu"]';
+const menuOpen = () => ev(`!!document.querySelector('[role="menu"]')`);
+const focusedTool = () => ev('document.activeElement?.dataset.tool ?? null');
 const primary = 'button[data-tool="punctum"]';
 const selectedTool = () =>
   ev(
@@ -374,6 +376,20 @@ try {
     await pointer('h1');
     assert.equal(await ev(`!!document.querySelector('[role="menu"]')`), false);
     assert.equal(await raw(), original);
+    // Primary Punctum while the menu is open: switch, close, keep primary focus.
+    await pointer(arrow);
+    assert.equal(await menuOpen(), true);
+    await pointer(primary);
+    assert.equal(await menuOpen(), false, 'primary activation closes menu');
+    assert.equal(await family(), 'punctum');
+    assert.deepEqual(await selectedTool(), ['punctum']);
+    assert.equal(await focusedTool(), 'punctum', 'focus stays on primary');
+    assert.equal(await raw(), original, 'tool switch alone writes nothing');
+    await pointer(arrow);
+    assert.equal(await menuOpen(), true, 'no stale open state remains');
+    await key('Escape');
+    await choose('tristropha');
+    // Dismissal-only score click: no edit, chevron focus, shortcuts still work.
     await pointer(arrow);
     await placeAt(2);
     assert.equal(
@@ -381,7 +397,39 @@ try {
       original,
       'outside score click only dismisses menu',
     );
+    assert.equal(await menuOpen(), false);
     assert.equal(await family(), 'tristropha');
+    assert.equal(
+      await focusedTool(),
+      'punctum-menu',
+      'score dismissal restores chevron focus',
+    );
+    await key('i', 'KeyI');
+    const recalled = await score();
+    assert.equal(recalled.neumes.length, 1, 'I works after dismissal');
+    assert.equal(recalled.neumes[0].kind, 'tristropha');
+    await key('t', 'KeyT');
+    assert.equal(
+      await focusedTool(),
+      'punctum-menu',
+      'T works after dismissal',
+    );
+    await ev(
+      `document.querySelector('button[aria-label="Undo last edit"]').click()`,
+    );
+    await pause();
+    assert.equal((await score()).neumes.length, 0);
+    // Clicking another exposed control while open keeps its native focus.
+    // At 320px the open menu covers wrapped neighbours, so pick one not under it.
+    await pointer(arrow);
+    const exposed = await ev(
+      `[...document.querySelectorAll('.neume-palette button[data-tool]')].find(b=>{if(b.closest('.punctum-menu'))return false;b.scrollIntoView({block:'center'});const r=b.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===b})?.dataset.tool`,
+    );
+    assert.ok(exposed, 'some palette control is exposed beside the menu');
+    await pointer(`button[data-tool="${exposed}"]`);
+    assert.equal(await menuOpen(), false);
+    assert.equal(await focusedTool(), exposed, 'outside control keeps focus');
+    assert.equal((await score()).neumes.length, 0);
     await pointer(primary);
     assert.equal(await family(), 'punctum');
     assert.deepEqual(await selectedTool(), ['punctum']);
