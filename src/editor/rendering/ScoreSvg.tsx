@@ -680,6 +680,7 @@ export function ScoreSvg({
               const selectedDescription = getSelectedNeumeDescription(
                 neume.kind,
                 isNeumeSelected,
+                neume.notes.length,
               );
               const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
               const selectionGap = 5;
@@ -779,7 +780,11 @@ export function ScoreSvg({
                       selection.kind === 'note' &&
                       selection.noteId === note.noteId;
                     const accessibleLabel =
-                      getNoteAccessibleLabel(neume.kind, noteIndex) +
+                      getNoteAccessibleLabel(
+                        neume.kind,
+                        noteIndex,
+                        neume.notes.length,
+                      ) +
                       getNoteModifierDescription(
                         note,
                         neume.notes.filter((n) => n.mora).length === 2,
@@ -897,7 +902,8 @@ export function ScoreSvg({
                             placementActive || lyricMove
                               ? 'none'
                               : neume.kind === 'climacus' ||
-                                  neume.kind === 'porrectus'
+                                  neume.kind === 'porrectus' ||
+                                  neume.kind === 'pes-subpunctis'
                                 ? 'fill'
                                 : undefined
                           }

@@ -1,8 +1,9 @@
-import type {
-  ChantDocument,
-  ChantNote,
-  Neume,
-  NoteForm,
+import {
+  pesSubpunctisNotes,
+  type ChantDocument,
+  type ChantNote,
+  type Neume,
+  type NoteForm,
 } from '../domain/chant-document';
 import { findNote, isValidNeume } from '../domain/neume';
 import { isNoteForm } from '../domain/note-forms';
@@ -28,6 +29,12 @@ export function updateNoteForm(
   const neume = located.neume;
   let updated: Neume;
   switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(neume.notes.map(replace));
+      if (!notes) return document;
+      updated = { ...neume, notes };
+      break;
+    }
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0])] };
       break;

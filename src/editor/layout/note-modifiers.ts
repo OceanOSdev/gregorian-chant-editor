@@ -115,7 +115,13 @@ export function addNoteModifiers(
     // the final note's dot position, as in Gregorio's shifted single sign.
     const below =
       kind === 'podatus' && index === 0 && position(1) - position(0) === 1;
-    const y = row(index, below || kind === 'torculus' || kind === 'climacus');
+    const y = row(
+      index,
+      below ||
+        kind === 'torculus' ||
+        kind === 'climacus' ||
+        kind === 'pes-subpunctis',
+    );
     const initialX = kind === 'porrectus' ? right + 3 : note.anchorX + 11;
     const columns = [
       initialX,
@@ -215,7 +221,7 @@ export function addNoteModifiers(
   };
 }
 
-/** Conservative head/shaft partitions of the seven existing contour recipes. */
+/** Conservative head/shaft partitions of the existing contour recipes. */
 function verticalObstacles(
   geometry: NeumeGeometry,
   kind: Neume['kind'],
@@ -234,6 +240,10 @@ function verticalObstacles(
       addShaft(first.x + first.width - 1.5, first.anchorY, bottom);
   } else if (kind === 'climacus') {
     addShaft(first.x + first.width - 1.5, first.anchorY, first.anchorY + 27);
+  } else if (kind === 'pes-subpunctis') {
+    // Only the Podatus is joined; the descending diamonds are detached.
+    const apex = geometry.notes[1];
+    addShaft(first.x + first.width - 1.5, apex.anchorY, first.anchorY);
   } else {
     if (kind === 'clivis' || kind === 'porrectus')
       addShaft(geometry.bounds.x, first.anchorY, bottom);

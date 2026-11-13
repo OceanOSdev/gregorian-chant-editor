@@ -1,4 +1,4 @@
-import { PunctumMenu } from './PunctumMenu';
+import { EntryIcon, NeumeFamilyMenu, PunctumIcon } from './NeumeFamilyMenu';
 import {
   AccidentalContextToolbar,
   type AccidentalContextToolbarHandle,
@@ -19,7 +19,13 @@ import {
 } from '../commands/update-accidental';
 import { noteFormLabels } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
-import { entryAppearance, toolNoteForm } from '../state/editor-tool';
+import {
+  entryAppearance,
+  podatusFamily,
+  punctumFamily,
+  toolNoteForm,
+  type EditorTool,
+} from '../state/editor-tool';
 import type { MoraScope } from '../domain/mora';
 import {
   updateMoraScope,
@@ -65,7 +71,7 @@ import { moveNoteVerticallyResult } from '../commands/move-note';
 import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
-import type { InsertionIds } from '../interaction/insert-editor-neume';
+import { allocateInsertionIds } from '../interaction/allocate-insertion-ids';
 import {
   getNotationShortcut,
   nextPaletteTool,
@@ -123,13 +129,6 @@ function getFocusedScoreNoteId() {
   return focused instanceof Element
     ? (focused.closest<SVGGElement>('[data-note-id]')?.dataset.noteId ?? null)
     : null;
-}
-
-function allocateInsertionIds(): InsertionIds {
-  return {
-    neumeId: crypto.randomUUID(),
-    noteIds: [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()],
-  };
 }
 
 export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
@@ -316,6 +315,47 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           draftTransaction.clef,
         )
       : null;
+  const paletteDisabled = Boolean(
+    session.lyricMove || session.pendingHistory || session.clefTransaction,
+  );
+  /** Shared roving-focus and arming wiring for a family split control. */
+  function familyMenuProps(
+    primaryTool: 'punctum' | 'podatus',
+    menuTool: 'punctum-menu' | 'podatus-menu',
+    tool: () => EditorTool,
+  ) {
+    return {
+      buttonRef: (button: HTMLButtonElement | null) => {
+        if (button) paletteButtons.current.set(menuTool, button);
+        else paletteButtons.current.delete(menuTool);
+      },
+      primaryRef: (button: HTMLButtonElement | null) => {
+        if (button) paletteButtons.current.set(primaryTool, button);
+        else paletteButtons.current.delete(primaryTool);
+      },
+      primaryProps: {
+        type: 'button' as const,
+        tabIndex: rovingTool === primaryTool ? 0 : -1,
+        'aria-pressed':
+          placementKind === primaryTool && !toolNoteForm(activeTool),
+        disabled: paletteDisabled,
+        onFocus: () => setRovingTool(primaryTool),
+        onClick: () =>
+          dispatch({
+            type: 'arm',
+            tool: tool(),
+            lyricCommitId: crypto.randomUUID(),
+          }),
+      },
+      buttonProps: {
+        type: 'button' as const,
+        'data-tool': menuTool,
+        tabIndex: rovingTool === menuTool ? 0 : -1,
+        onFocus: () => setRovingTool(menuTool),
+        disabled: paletteDisabled,
+      },
+    };
+  }
   const placementName = placementKind
     ? entryName(placementKind, toolNoteForm(activeTool))
     : '';
@@ -657,9 +697,15 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         }}
       >
         {paletteTools.map((tool) =>
-          tool === 'punctum-menu' ? null : tool === 'punctum' ? (
-            <PunctumMenu
+          tool === 'punctum-menu' || tool === 'podatus-menu' ? null : tool ===
+            'punctum' ? (
+            <NeumeFamilyMenu
               key={tool}
+              family="Punctum"
+              familyClassName="punctum-menu"
+              variants={punctumFamily}
+              label={neumeName}
+              icon={(kind) => <PunctumIcon kind={kind} />}
               active={
                 placementKind === 'punctum' && !toolNoteForm(activeTool)
                   ? 'punctum'
@@ -677,54 +723,42 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               onChoose={(kind) =>
                 dispatch({
                   type: 'arm',
-                  tool: {
-                    kind:
-                      kind === 'bistropha'
-                        ? 'place-bistropha'
-                        : kind === 'tristropha'
-                          ? 'place-tristropha'
-                          : 'place-punctum',
-                  },
+                  tool: { kind: `place-${kind}` },
                   lyricCommitId: crypto.randomUUID(),
                 })
               }
-              buttonRef={(button) => {
-                if (button) paletteButtons.current.set('punctum-menu', button);
-                else paletteButtons.current.delete('punctum-menu');
-              }}
-              primaryRef={(button) => {
-                if (button) paletteButtons.current.set('punctum', button);
-                else paletteButtons.current.delete('punctum');
-              }}
-              primaryProps={{
-                type: 'button',
-                tabIndex: rovingTool === 'punctum' ? 0 : -1,
-                'aria-pressed':
-                  placementKind === 'punctum' && !toolNoteForm(activeTool),
-                disabled: Boolean(
-                  session.lyricMove ||
-                  session.pendingHistory ||
-                  session.clefTransaction,
-                ),
-                onFocus: () => setRovingTool('punctum'),
-                onClick: () =>
-                  dispatch({
-                    type: 'arm',
-                    tool: placePunctumTool(),
-                    lyricCommitId: crypto.randomUUID(),
-                  }),
-              }}
-              buttonProps={{
-                type: 'button',
-                'data-tool': 'punctum-menu',
-                tabIndex: rovingTool === 'punctum-menu' ? 0 : -1,
-                onFocus: () => setRovingTool('punctum-menu'),
-                disabled: Boolean(
-                  session.lyricMove ||
-                  session.pendingHistory ||
-                  session.clefTransaction,
-                ),
-              }}
+              {...familyMenuProps('punctum', 'punctum-menu', placePunctumTool)}
+            />
+          ) : tool === 'podatus' ? (
+            <NeumeFamilyMenu
+              key={tool}
+              family="Podatus"
+              familyClassName="podatus-menu"
+              variants={podatusFamily}
+              label={neumeName}
+              icon={(kind) => <EntryIcon kind={kind} />}
+              active={
+                placementKind === 'podatus' && !toolNoteForm(activeTool)
+                  ? 'podatus'
+                  : placementKind === 'pes-subbipunctis' ||
+                      placementKind === 'pes-subtripunctis'
+                    ? placementKind
+                    : null
+              }
+              remembered={
+                rememberedKind === 'pes-subbipunctis' ||
+                rememberedKind === 'pes-subtripunctis'
+                  ? rememberedKind
+                  : 'podatus'
+              }
+              onChoose={(kind) =>
+                dispatch({
+                  type: 'arm',
+                  tool: { kind: `place-${kind}` },
+                  lyricCommitId: crypto.randomUUID(),
+                })
+              }
+              {...familyMenuProps('podatus', 'podatus-menu', placePodatusTool)}
             />
           ) : (
             <button
@@ -893,8 +927,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       <p id="palette-instructions" className="editor-sr-only">
         Arrow keys browse tools; Enter or Space activates. I inserts the
         remembered neume. T focuses its family control. Right Arrow from Punctum
-        reaches its variants menu; Enter opens it. Up/Down browses variants,
-        Enter selects, Escape closes, Tab leaves.
+        or Podatus reaches its variants menu; Enter opens it. Up/Down browses
+        variants, Enter selects, Escape closes, Tab leaves.
       </p>
       <fieldset
         disabled={Boolean(
@@ -1117,14 +1151,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         <p>
           <kbd>L</kbd> Lyrics · <kbd>I</kbd> insert · <kbd>T</kbd> tools ·{' '}
           <kbd>Esc</kbd> Select. In the palette, arrows browse and Enter/Space
-          activates. In Select, Enter/Space selects a focused note, ↑/↓ changes
-          pitch, and Shift+Enter/Space selects its neume. I/T apply only in
-          notation controls. On the initial clef, Enter/Space selects and ↑/↓
-          moves one staff line while preserving melody. On an authored clef, ↑/↓
-          moves its draft one staff line per press, starting the draft on the
-          first press and keeping focus in the score. Tab/Shift+Tab reaches the
-          shared pitch mode and Apply/Cancel; Apply commits once, Escape
-          cancels. Left/Right never move an existing clef.
+          activates; the Punctum and Podatus menus (▾) choose a variant, and I/T
+          then recall that exact variant. In Select, Enter/Space selects a
+          focused note, ↑/↓ changes pitch, and Shift+Enter/Space selects its
+          neume. I/T apply only in notation controls. On the initial clef,
+          Enter/Space selects and ↑/↓ moves one staff line while preserving
+          melody. On an authored clef, ↑/↓ moves its draft one staff line per
+          press, starting the draft on the first press and keeping focus in the
+          score. Tab/Shift+Tab reaches the shared pitch mode and Apply/Cancel;
+          Apply commits once, Escape cancels. Left/Right never move an existing
+          clef.
         </p>
       </details>
       <DocumentControls

@@ -14,6 +14,10 @@ export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
     case 'bistropha':
     case 'tristropha':
       return [none];
+    // Provisional Stage 9B-1 gate: none-only until the owner approves a
+    // sourced matrix (see docs/verification/pes-subpunctis/README.md).
+    case 'pes-subpunctis':
+      return [none];
     case 'punctum':
       return [none, { value: 'sole', label: 'Sole note' }];
     case 'podatus':
@@ -35,12 +39,19 @@ export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
       ];
   }
 }
-export function moraIndexes(scope: MoraScope): readonly number[] {
+/**
+ * Affected note indexes for a scope on a tuple of `length` notes. Final scopes
+ * are derived from the actual length, so three-note kinds keep [2] and [1, 2].
+ */
+export function moraIndexes(
+  scope: MoraScope,
+  length: number,
+): readonly number[] {
   if (scope === 'none') return [];
   if (scope === 'sole' || scope === 'first') return [0];
   if (scope === 'second') return [1];
   if (scope === 'both') return [0, 1];
-  return scope === 'final' ? [2] : [1, 2];
+  return scope === 'final' ? [length - 1] : [length - 2, length - 1];
 }
 /** Resolve only the supported affected-note sets; counts are never coerced. */
 export function resolveMoraScope(
@@ -51,7 +62,7 @@ export function resolveMoraScope(
   const marked = values.flatMap((value, index) => (value === 1 ? [index] : []));
   return (
     moraChoices(kind).find((choice) => {
-      const indexes = moraIndexes(choice.value);
+      const indexes = moraIndexes(choice.value, values.length);
       return (
         indexes.length === marked.length &&
         indexes.every((value, index) => value === marked[index])

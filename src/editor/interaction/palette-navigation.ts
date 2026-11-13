@@ -6,6 +6,7 @@ export const paletteTools = [
   'inclinatum',
   'quilisma',
   'podatus',
+  'podatus-menu',
   'clivis',
   'scandicus',
   'torculus',

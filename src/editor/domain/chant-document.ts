@@ -120,7 +120,35 @@ export interface TristrophaNeume {
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
+/**
+ * A bounded union of the two supported Pes subpunctis cardinalities. Its
+ * length is the only count; no variant field duplicates it.
+ */
+export type PesSubpunctisNotes =
+  | [ChantNote, ChantNote, ChantNote, ChantNote]
+  | [ChantNote, ChantNote, ChantNote, ChantNote, ChantNote];
+
+/**
+ * A rising Podatus followed by two (subbipunctis) or three (subtripunctis)
+ * strictly descending notes: p0 < p1 > p2 > p3 (> p4).
+ */
+export interface PesSubpunctisNeume {
+  id: string;
+  kind: 'pes-subpunctis';
+  notes: PesSubpunctisNotes;
+}
+
+/** Builds the bounded tuple without truncating or padding a note list. */
+export function pesSubpunctisNotes(
+  notes: readonly ChantNote[],
+): PesSubpunctisNotes | null {
+  const [a, b, c, d, e, ...rest] = notes;
+  if (!a || !b || !c || !d || rest.length) return null;
+  return e ? [a, b, c, d, e] : [a, b, c, d];
+}
+
 export type Neume =
+  | PesSubpunctisNeume
   | BistrophaNeume
   | TristrophaNeume
   | PunctumNeume

@@ -13,6 +13,10 @@ export function getGraphicalNeumeKind(
     case 'place-division':
     case 'select':
       return null;
+    case 'place-pes-subbipunctis':
+      return 'pes-subbipunctis';
+    case 'place-pes-subtripunctis':
+      return 'pes-subtripunctis';
     case 'place-bistropha':
       return 'bistropha';
     case 'place-tristropha':

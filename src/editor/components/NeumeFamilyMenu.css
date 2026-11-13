@@ -1,25 +1,25 @@
-.punctum-menu {
+.neume-family-menu {
   position: relative;
   display: inline-flex;
   grid-column: span 2;
   min-width: 0;
 }
-.punctum-menu .punctum-menu__primary {
+.neume-family-menu .neume-family-menu__primary {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   flex: 1;
   display: inline-flex;
   align-items: center;
 }
-.punctum-menu .punctum-menu__arrow {
+.neume-family-menu .neume-family-menu__arrow {
   flex-shrink: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-.punctum-menu__arrow[data-active-variant] {
+.neume-family-menu__arrow[data-active-variant] {
   border-color: #355d42;
 }
-.punctum-menu__items {
+.neume-family-menu__items {
   position: absolute;
   z-index: 10;
   top: 100%;
@@ -32,12 +32,16 @@
   background: #fffdf7;
   box-shadow: 0 4px 12px #0003;
 }
-.punctum-menu__items button {
+.neume-family-menu__items button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   text-align: left;
 }
-.punctum-menu__items [aria-checked='true'] {
+.neume-family-menu__items [aria-checked='true'] {
   background: #dce9d7;
+}
+.neume-family-menu__items[data-align='end'] {
+  left: auto;
+  right: 0;
 }

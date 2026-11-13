@@ -1,11 +1,12 @@
 import { hasValidAccidentals } from '../domain/accidentals';
 import { isNoteForm } from '../domain/note-forms';
-import type {
-  ChantDocument,
-  ChantAccidental,
-  ChantNote,
-  Neume,
-  LyricSyllable,
+import {
+  pesSubpunctisNotes,
+  type ChantDocument,
+  type ChantAccidental,
+  type ChantNote,
+  type Neume,
+  type LyricSyllable,
 } from '../domain/chant-document';
 import { staffPosition } from '../domain/chant-document';
 import { isValidClef } from '../domain/clef';
@@ -20,6 +21,8 @@ import { isValidNeume } from '../domain/neume';
 
 export const maximumDocumentBytes = 1024 * 1024;
 const format = 'gregorian-chant-editor';
+type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export const currentSchemaVersion = 7;
 function fail(message: string): never {
   throw new Error(message);
 }
@@ -55,7 +58,7 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown, version: 1 | 2 | 3 | 4 | 5 | 6): ChantNote {
+function note(value: unknown, version: SchemaVersion): ChantNote {
   const n = shape(
     value,
     ['id', 'staffPosition'],
@@ -89,15 +92,24 @@ function note(value: unknown, version: 1 | 2 | 3 | 4 | 5 | 6): ChantNote {
     ...(n.verticalEpisema === true ? { verticalEpisema: true } : {}),
   };
 }
-function neume(value: unknown, version: 1 | 2 | 3 | 4 | 5 | 6): Neume {
+function neume(value: unknown, version: SchemaVersion): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
   if (version < 6 && (n.kind === 'bistropha' || n.kind === 'tristropha'))
+    fail('Unsupported neume kind for this schema version.');
+  if (version < 7 && n.kind === 'pes-subpunctis')
     fail('Unsupported neume kind for this schema version.');
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
   const identity = id(n.id);
   let result: Neume;
   switch (n.kind) {
+    case 'pes-subpunctis': {
+      // Exactly four or five notes; never truncate or pad.
+      const tuple = pesSubpunctisNotes(notes);
+      if (!tuple) return fail('Pes subpunctis requires four or five notes.');
+      result = { id: identity, kind: n.kind, notes: tuple };
+      break;
+    }
     case 'punctum':
       if (notes.length !== 1 || !a) return fail('Punctum requires one note.');
       result = { id: identity, kind: n.kind, notes: [a] };
@@ -149,7 +161,7 @@ function syllable(value: unknown): LyricSyllable {
 }
 export function validateDocument(
   value: unknown,
-  version: 1 | 2 | 3 | 4 | 5 | 6 = 6,
+  version: SchemaVersion = currentSchemaVersion,
 ): ChantDocument {
   const d = shape(value, [
     'title',
@@ -288,17 +300,22 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 3 &&
     envelope.version !== 4 &&
     envelope.version !== 5 &&
-    envelope.version !== 6
+    envelope.version !== 6 &&
+    envelope.version !== 7
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5 and 6.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6 and 7.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 6, document: validateDocument(document) },
+    {
+      format,
+      version: currentSchemaVersion,
+      document: validateDocument(document),
+    },
     null,
     2,
   );

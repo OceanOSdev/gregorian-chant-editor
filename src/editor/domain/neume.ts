@@ -1,12 +1,13 @@
 import { hasValidNoteForms } from './note-forms';
 import { getMoraScope } from './mora';
-import type {
-  ChantDocument,
-  ChantNote,
-  ClivisNeume,
-  Neume,
-  PodatusNeume,
-  PunctumNeume,
+import {
+  pesSubpunctisNotes,
+  type ChantDocument,
+  type ChantNote,
+  type ClivisNeume,
+  type Neume,
+  type PodatusNeume,
+  type PunctumNeume,
 } from './chant-document';
 
 export interface LocatedNote {
@@ -69,6 +70,22 @@ export function isValidNeume(neume: Neume): boolean {
   if (!hasValidNoteForms(neume)) return false;
   if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const [first, apex, ...tail] = neume.notes;
+      if (
+        (neume.notes.length !== 4 && neume.notes.length !== 5) ||
+        !first ||
+        !apex ||
+        first.staffPosition >= apex.staffPosition
+      )
+        return false;
+      // The tail may end below, at or above the first note.
+      return tail.every(
+        (note, index) =>
+          note.staffPosition <
+          (index === 0 ? apex : tail[index - 1]).staffPosition,
+      );
+    }
     case 'bistropha':
     case 'tristropha':
       return (
@@ -169,6 +186,13 @@ export function normalizeNeumeAfterNoteDeletion(
     return null;
   }
 
+  if (neume.kind === 'pes-subpunctis') {
+    return normalizePesSubpunctisSurvivors(
+      neume,
+      neume.notes.filter((note) => note.id !== noteId),
+    );
+  }
+
   if (neume.kind === 'bistropha' || neume.kind === 'tristropha') {
     const survivors = neume.notes.filter((note) => note.id !== noteId);
     const [a, b] = survivors;
@@ -249,4 +273,35 @@ export function normalizeNeumeAfterNoteDeletion(
   };
 
   return hasValidNoteForms(punctum) ? punctum : neume;
+}
+
+/**
+ * Five-note survivors stay a Pes subpunctis only when they still satisfy its
+ * contour. Four-note survivors become the existing three-note kind whose rule
+ * the actual contour satisfies. Anything else (for example four descending
+ * notes, or equal adjacent pitches) is rejected by returning the input.
+ */
+function normalizePesSubpunctisSurvivors(
+  neume: Neume,
+  survivors: readonly ChantNote[],
+): Neume {
+  const [a, b, c] = survivors;
+  const candidates: Neume[] = [];
+  const tuple = pesSubpunctisNotes(survivors);
+  if (tuple)
+    candidates.push({ id: neume.id, kind: 'pes-subpunctis', notes: tuple });
+  else if (a && b && c && survivors.length === 3)
+    // Survivors of p0 < p1 > p2 > p3 can only rise-fall or strictly descend.
+    for (const kind of ['torculus', 'climacus'] as const)
+      candidates.push({ id: neume.id, kind, notes: [a, b, c] });
+  return candidates.find(isValidNeume) ?? neume;
+}
+
+/** Lowercase descriptive name; Pes subpunctis is named by its actual count. */
+export function neumeDisplayName(
+  kind: Neume['kind'],
+  noteCount: number,
+): string {
+  if (kind !== 'pes-subpunctis') return kind;
+  return noteCount === 5 ? 'pes subtripunctis' : 'pes subbipunctis';
 }

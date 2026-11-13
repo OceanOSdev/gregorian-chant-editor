@@ -52,7 +52,7 @@ describe('measured rhythmic signs', () => {
             for (const episema of [false, true]) {
               const signatures = new Set<string>();
               for (const choice of moraChoices(kind)) {
-                const indexes = moraIndexes(choice.value);
+                const indexes = moraIndexes(choice.value, positions.length);
                 const modifiers = positions.map((_, i): NoteModifiers => ({
                   ...(indexes.includes(i) ? { mora: 1 } : {}),
                   ...(episema ? { episema: true } : {}),

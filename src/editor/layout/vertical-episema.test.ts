@@ -50,7 +50,9 @@ describe('bounded vertical episema placement', () => {
                     (form, i): NoteAppearance => ({
                       ...form,
                       ...(horizontal ? { episema: true } : {}),
-                      ...(moraIndexes(scope.value).includes(i)
+                      ...(moraIndexes(scope.value, appearance.length).includes(
+                        i,
+                      )
                         ? { mora: 1 }
                         : {}),
                     }),

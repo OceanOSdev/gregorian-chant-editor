@@ -290,7 +290,7 @@ export function createEditorSession(document: ChantDocument): EditorSession {
 }
 
 export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
-  return kind[0].toUpperCase() + kind.slice(1);
+  return (kind[0].toUpperCase() + kind.slice(1)).replace('-', ' ');
 }
 
 /** One visual entry name for controls and live-region messages. */
@@ -431,7 +431,10 @@ function reduceSessionAction(
                 : state.rememberedKind === 'bistropha' ||
                     state.rememberedKind === 'tristropha'
                   ? 'punctum-menu'
-                  : state.rememberedKind,
+                  : state.rememberedKind === 'pes-subbipunctis' ||
+                      state.rememberedKind === 'pes-subtripunctis'
+                    ? 'podatus-menu'
+                    : state.rememberedKind,
         },
       };
     case 'hover':
@@ -627,7 +630,26 @@ function reduceSessionAction(
             state,
             'Edit rejected: all notes of this neume must remain at the same pitch. Select the whole neume to move the group.',
           );
+        if (
+          kind === 'pes-subpunctis' &&
+          result.rejection !== 'ownership-conflict'
+        )
+          return announce(
+            state,
+            'Edit rejected: a pes subpunctis must rise to its second note and then strictly descend. Select the whole neume to move the group.',
+          );
       }
+      if (
+        history === state.history &&
+        action.formDeletionNoteId &&
+        result.rejection !== 'ownership-conflict' &&
+        findNote(state.history.present, action.formDeletionNoteId)?.neume
+          .kind === 'pes-subpunctis'
+      )
+        return announce(
+          state,
+          'Edit rejected: deleting this note would leave a contour that no supported neume represents, such as four descending notes or two equal adjacent pitches. Delete the whole neume instead.',
+        );
       if (history === state.history)
         return action.formDeletionNoteId &&
           findNote(

@@ -14,6 +14,7 @@ import {
   noteFormLabels,
 } from '../domain/note-forms';
 import { getMoraScope, moraChoices, type MoraScope } from '../domain/mora';
+import { neumeDisplayName } from '../domain/neume';
 import {
   positionNoteToolbar,
   type NoteToolbarPosition,
@@ -70,8 +71,8 @@ export function NoteContextToolbar({
   const refreshPosition = useRef<(() => NoteToolbarPosition | null) | null>(
     null,
   );
-  const moraUnavailable =
-    neume.kind === 'bistropha' || neume.kind === 'tristropha';
+  const moraUnavailable = moraChoices(neume.kind).length === 1;
+  const neumeName = neumeDisplayName(neume.kind, neume.notes.length);
   const moraHelpId = useId();
   const targetId = useId();
   const formHelpId = useId();
@@ -244,8 +245,7 @@ export function NoteContextToolbar({
       }}
     >
       <p id={targetId} className="note-context-toolbar__target">
-        Note {neume.notes.findIndex((n) => n.id === note.id) + 1} of{' '}
-        {neume.kind}
+        Note {neume.notes.findIndex((n) => n.id === note.id) + 1} of {neumeName}
       </p>
       {formError ? (
         <p role="alert" className="note-form-error note-context-toolbar__error">
@@ -334,7 +334,7 @@ export function NoteContextToolbar({
       </label>
       {moraUnavailable ? (
         <p id={moraHelpId} className="note-context-toolbar__help">
-          Mora authoring is unavailable for {neume.kind}. This initial scope
+          Mora authoring is unavailable for {neumeName}. This initial scope
           supports no mora marks.
         </p>
       ) : null}

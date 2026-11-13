@@ -12,6 +12,7 @@ import { insertScandicus } from '../commands/insert-scandicus';
 import { insertTorculus } from '../commands/insert-torculus';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
 import {
+  pesSubpunctisNotes,
   staffPosition,
   type ScoreInsertionBoundary,
   type ChantDocument,
@@ -20,9 +21,13 @@ import {
 import type { GraphicalNeumeKind } from '../layout/layout-chant';
 import type { ResolvedGraphicalNeumePlacement } from './resolve-graphical-neume-placement';
 
+/**
+ * IDs allocated once at the interaction boundary. Three IDs cover every
+ * three-note entry; the longest entry variant needs five. Extra IDs are unused.
+ */
 export interface InsertionIds {
   neumeId: string;
-  noteIds: readonly [string, string, string];
+  noteIds: readonly [string, string, string, ...string[]];
 }
 
 type Insertion = {
@@ -47,6 +52,22 @@ export function insertEditorNeume(
   });
   const at = insertion.boundary;
   switch (insertion.kind) {
+    case 'pes-subbipunctis':
+    case 'pes-subtripunctis': {
+      // Never generate or reuse IDs here; too few supplied IDs is a no-op.
+      if (ids.noteIds.length < insertion.staffPositions.length) return document;
+      const appearance = entryAppearance(insertion.kind, form);
+      const notes = pesSubpunctisNotes(
+        insertion.staffPositions.map((position, index) => ({
+          ...appearance[index],
+          id: ids.noteIds[index] ?? '',
+          staffPosition: position,
+        })),
+      );
+      return notes
+        ? insertNeume(document, { ...base, kind: 'pes-subpunctis', notes }, at)
+        : document;
+    }
     case 'bistropha':
       return insertNeume(
         document,
@@ -170,6 +191,8 @@ export function insertEditorNeume(
 }
 
 const toolbarFallbackPitches = {
+  'pes-subbipunctis': 2,
+  'pes-subtripunctis': 2,
   bistropha: 2,
   tristropha: 2,
   punctum: 2,
