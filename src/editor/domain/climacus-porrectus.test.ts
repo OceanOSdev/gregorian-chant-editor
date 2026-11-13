@@ -104,6 +104,7 @@ describe('Climacus and Porrectus domain', () => {
         kind === 'climacus' ? [4, 2, 0] : [4, 0, 2],
       );
       const document: ChantDocument = {
+        accidentals: [],
         clefChanges: [],
         divisions: [],
         lyricLanguage: 'la',

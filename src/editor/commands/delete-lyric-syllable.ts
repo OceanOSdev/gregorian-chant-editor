@@ -1,6 +1,8 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import type { ChantDocument } from '../domain/chant-document';
 
-export function deleteLyricSyllable(
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function deleteLyricSyllableCandidate(
   document: ChantDocument,
   syllableId: string,
 ): ChantDocument {
@@ -17,4 +19,13 @@ export function deleteLyricSyllable(
     syllables[index] = { ...successor, boundaryBefore: 'word' };
   }
   return { ...document, syllables };
+}
+
+export function deleteLyricSyllable(
+  ...args: Parameters<typeof deleteLyricSyllableCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], deleteLyricSyllableCandidate(...args)) ??
+    args[0]
+  );
 }

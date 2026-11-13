@@ -1,6 +1,8 @@
+import { hasValidAccidentals } from '../domain/accidentals';
 import { isNoteForm } from '../domain/note-forms';
 import type {
   ChantDocument,
+  ChantAccidental,
   ChantNote,
   Neume,
   LyricSyllable,
@@ -53,11 +55,11 @@ function clef(value: unknown) {
     ? value
     : fail('Clefs require C/F and staff line 1–4.');
 }
-function note(value: unknown, version: 1 | 2 | 3 | 4): ChantNote {
+function note(value: unknown, version: 1 | 2 | 3 | 4 | 5): ChantNote {
   const n = shape(
     value,
     ['id', 'staffPosition'],
-    version === 4
+    version >= 4
       ? ['mora', 'episema', 'form', 'verticalEpisema']
       : version === 3
         ? ['mora', 'episema', 'form']
@@ -87,7 +89,7 @@ function note(value: unknown, version: 1 | 2 | 3 | 4): ChantNote {
     ...(n.verticalEpisema === true ? { verticalEpisema: true } : {}),
   };
 }
-function neume(value: unknown, version: 1 | 2 | 3 | 4): Neume {
+function neume(value: unknown, version: 1 | 2 | 3 | 4 | 5): Neume {
   const n = shape(value, ['id', 'kind', 'notes']);
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
@@ -143,7 +145,7 @@ function syllable(value: unknown): LyricSyllable {
 }
 export function validateDocument(
   value: unknown,
-  version: 1 | 2 | 3 | 4 = 4,
+  version: 1 | 2 | 3 | 4 | 5 = 5,
 ): ChantDocument {
   const d = shape(value, [
     'title',
@@ -153,6 +155,7 @@ export function validateDocument(
     'syllables',
     'divisions',
     'clefChanges',
+    ...(version === 5 ? ['accidentals'] : []),
   ]);
   if (
     d.lyricLanguage !== 'la' &&
@@ -162,6 +165,30 @@ export function validateDocument(
   )
     fail('Unsupported lyric language.');
   const document: ChantDocument = {
+    accidentals:
+      version === 5
+        ? array(d.accidentals).map((value) => {
+            const a = shape(
+              value,
+              ['id', 'kind', 'ownerNoteId'],
+              ['placement'],
+            );
+            if (a.kind !== 'flat' && a.kind !== 'natural')
+              fail('Unknown accidental kind.');
+            const sign: ChantAccidental = {
+              id: id(a.id),
+              kind: a.kind,
+              ownerNoteId: id(a.ownerNoteId),
+            };
+            if (Object.hasOwn(a, 'placement')) {
+              const p = shape(a.placement, ['kind', 'noteId']);
+              if (p.kind !== 'above-note')
+                fail('Unknown accidental placement.');
+              sign.placement = { kind: 'above-note', noteId: id(p.noteId) };
+            }
+            return sign;
+          })
+        : [],
     title: string(d.title),
     lyricLanguage: d.lyricLanguage,
     clef: clef(d.clef),
@@ -186,6 +213,8 @@ export function validateDocument(
     fail('Invalid lyric text, anchor order, boundary or alignment.');
   if (!hasValidDivisions(document))
     fail('Duplicate IDs or invalid division/clef slot anchors.');
+  if (!hasValidAccidentals(document))
+    fail('Invalid accidental identity, B ownership or placement span.');
   return document;
 }
 export class IncompatibleDraftDocumentError extends Error {
@@ -253,17 +282,18 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 1 &&
     envelope.version !== 2 &&
     envelope.version !== 3 &&
-    envelope.version !== 4
+    envelope.version !== 4 &&
+    envelope.version !== 5
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3 and 4.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4 and 5.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
 }
 export function encodeDocument(document: ChantDocument): string {
   const text = JSON.stringify(
-    { format, version: 4, document: validateDocument(document) },
+    { format, version: 5, document: validateDocument(document) },
     null,
     2,
   );
@@ -282,6 +312,7 @@ export function documentFilename(title: string): string {
 }
 export function blankDocument(): ChantDocument {
   return {
+    accidentals: [],
     title: 'Untitled chant',
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },

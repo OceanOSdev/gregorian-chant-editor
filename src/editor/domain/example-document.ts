@@ -1,6 +1,7 @@
 import { staffPosition, type ChantDocument } from './chant-document';
 
 export const exampleDocument: ChantDocument = {
+  accidentals: [],
   clefChanges: [],
   divisions: [],
   lyricLanguage: 'la',

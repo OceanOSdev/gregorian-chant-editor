@@ -32,6 +32,7 @@ const measure: MeasureLyricText = (text) => {
 };
 function fixture(texts: string[], count = texts.length): ChantDocument {
   return {
+    accidentals: [],
     title: 'Spacing',
     clefChanges: [],
     divisions: [],

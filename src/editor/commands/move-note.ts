@@ -1,3 +1,4 @@
+import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
   staffPosition,
   type ChantDocument,
@@ -7,7 +8,7 @@ import { findNote, isValidNeume } from '../domain/neume';
 
 export type StaffPositionDelta = -1 | 1;
 
-export function moveNoteVertically(
+function moveNoteVerticallyCandidate(
   document: ChantDocument,
   noteId: string,
   delta: StaffPositionDelta,
@@ -22,6 +23,7 @@ export function moveNoteVertically(
     ...locatedNote.note,
     staffPosition: staffPosition(locatedNote.note.staffPosition + delta),
   };
+  if (!Number.isSafeInteger(movedNote.staffPosition)) return document;
   let movedNeume: Neume;
 
   // Rebuild the owning kind's fixed tuple before validation so movement never
@@ -88,4 +90,19 @@ export function moveNoteVertically(
       index === locatedNote.neumeIndex ? movedNeume : neume,
     ),
   };
+}
+
+export function moveNoteVerticallyResult(
+  ...args: Parameters<typeof moveNoteVerticallyCandidate>
+) {
+  return reconcileAccidentalsResult(
+    args[0],
+    moveNoteVerticallyCandidate(...args),
+  );
+}
+
+export function moveNoteVertically(
+  ...args: Parameters<typeof moveNoteVerticallyCandidate>
+): ChantDocument {
+  return moveNoteVerticallyResult(...args).document;
 }

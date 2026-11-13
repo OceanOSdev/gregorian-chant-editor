@@ -1,3 +1,9 @@
+import {
+  writtenAccidentals,
+  type PitchContext,
+  type WrittenAccidental,
+} from '../domain/accidentals';
+import type { AccidentalGeometry, AccidentalSpec } from './accidental-geometry';
 import type { NoteAppearance } from '../domain/chant-document';
 import { buildClefGeometry, type ClefGeometry } from './clef-geometry';
 import {
@@ -47,6 +53,7 @@ import {
   interNeumeInkGap,
   type NeumeGeometry,
   type NoteGeometry,
+  type LayoutBounds,
 } from './neume-geometry';
 export {
   staffStartX,
@@ -87,7 +94,23 @@ export interface NoteLayout extends NoteGeometry, NoteAppearance {
   noteId: string;
 }
 
-export interface NeumeLayout extends Omit<NeumeGeometry, 'notes'> {
+export interface AccidentalNoteContext {
+  noteId: string;
+  noteIndex: number;
+  neumeId: string;
+  neumeIndex: number;
+  neumeKind: Neume['kind'];
+}
+export interface AccidentalLayout extends AccidentalGeometry {
+  accidentalId: string;
+  owner: AccidentalNoteContext;
+  placement: AccidentalNoteContext | null;
+}
+export interface NeumeLayout extends Omit<
+  NeumeGeometry,
+  'notes' | 'accidentals'
+> {
+  accidentals?: readonly AccidentalLayout[];
   neumeId: string;
   /** Horizontal ownership interval for contextual pointer padding and decorations. */
   hitClip?: { left: number; right: number };
@@ -185,6 +208,7 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 }
 
 interface GeometryInput {
+  accidentals?: readonly AccidentalSpec[];
   modifiers?: readonly NoteAppearance[];
   kind: Neume['kind'];
   staffPositions: readonly StaffPosition[];
@@ -223,6 +247,40 @@ export const compactNeumeInkGap = 2;
 export const lyricJoinThreshold = lyricFontSize / 10;
 export const lyricJoinClearance = lyricFontSize / 20;
 const hyphenClearance = lyricFontSize / 10;
+
+/** The same measured low-sign exclusions drive reservation and final placement. */
+function lyricBandAccidentals(
+  groups: readonly Pick<NeumeGeometry, 'accidentals'>[],
+  baseline: number,
+): LayoutBounds[] {
+  return groups.flatMap((g) =>
+    (g.accidentals ?? [])
+      .map((a) => a.ink.bounds)
+      .filter(
+        (b) =>
+          b.y < baseline + lyricFontSize / 4 + 3 &&
+          b.y + b.height > baseline - lyricFontSize - 3,
+      ),
+  );
+}
+
+/** Prefer the rightmost clear interval. Reservation guarantees a fitting gap. */
+function continuationHyphenLeft(
+  start: number,
+  end: number,
+  obstacles: readonly LayoutBounds[],
+  width: number,
+): number {
+  for (const b of obstacles
+    .filter((b) => b.x < end && b.x + b.width > start)
+    .sort((a, b) => b.x - a.x)) {
+    const right = Math.max(start, b.x + b.width);
+    if (end - right >= width + 2 * hyphenClearance)
+      return right + (end - right - width) / 2;
+    end = Math.min(end, b.x);
+  }
+  return start + (end - start - width) / 2;
+}
 
 /** One walker owns music minima, lyric clearance, wrapping and oversized progress. */
 function placeNeumeSequence(
@@ -410,6 +468,17 @@ function placeNeumeSequence(
   for (const [inputIndex, input] of inputs.entries()) {
     const lyric = lyrics.get(inputIndex);
     const extents = lyric ? lyricTextExtents(lyric.alignment) : null;
+    const accidentalLyricBox = extents
+      ? {
+          ...extents,
+          top:
+            firstSystemLyricBaselineY - firstSystemBottomStaffY - lyricFontSize,
+          bottom:
+            firstSystemLyricBaselineY -
+            firstSystemBottomStaffY +
+            lyricFontSize / 4,
+        }
+      : undefined;
     const build = () => {
       const previous = geometries.at(-1);
       const compact =
@@ -419,7 +488,7 @@ function placeNeumeSequence(
           ?.some((item) => item.type === 'division') &&
         lyric?.boundaryBefore === 'continuation' &&
         lyrics.has(inputIndex - 1);
-      const initial = buildNeumeGeometry(
+      let initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         hasItems()
@@ -434,7 +503,45 @@ function placeNeumeSequence(
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
         firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
         input.modifiers,
+        input.accidentals,
+        accidentalLyricBox,
       );
+      if (previousLyricRight !== null && initial.accidentals?.length) {
+        const textRight = previousLyricRight;
+        const textTop =
+          firstSystemLyricBaselineY +
+          systems.length * systemVerticalAdvance -
+          lyricFontSize;
+        const textBottom = textTop + lyricFontSize * 1.25;
+        const previousExtents = activeLyric
+          ? lyricTextExtents(activeLyric.alignment)
+          : null;
+        const previousLeft = previousExtents
+          ? textRight - (previousExtents.right - previousExtents.left)
+          : -Infinity;
+        const shift = Math.max(
+          0,
+          ...initial.accidentals.map((a) => {
+            const b = a.ink.bounds;
+            return b.y < textBottom + 3 &&
+              b.y + b.height > textTop - 3 &&
+              b.x < textRight + 4 &&
+              b.x + b.width > previousLeft - 3
+              ? textRight + 4 - b.x
+              : 0;
+          }),
+        );
+        if (shift)
+          initial = buildNeumeGeometry(
+            input.kind,
+            input.staffPositions,
+            initial.bounds.x + shift,
+            firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+            input.modifiers,
+            input.accidentals,
+            accidentalLyricBox,
+          );
+      }
       if (!extents || !lyric) return initial;
       const left = initial.lyricAnchorX + extents.left;
       // Word clearance is a deterministic quarter-em minimum (5 score units).
@@ -445,8 +552,15 @@ function placeNeumeSequence(
             (lyric.boundaryBefore === 'word'
               ? lyricFontSize / 4
               : lyricJoinClearance);
-      const minimum = Math.max(
+      const baseline =
+        firstSystemLyricBaselineY + systems.length * systemVerticalAdvance;
+      const previousSigns = lyricBandAccidentals(geometries, baseline);
+      const currentSigns = lyricBandAccidentals([initial], baseline);
+      // Genuine music, lyric and sign clearance decides whether a continuation
+      // must separate; hyphen space is reserved only after that decision.
+      const clearance = Math.max(
         lyricMinimum,
+        ...previousSigns.map((b) => b.x + b.width + 4),
         lastBoundaryEventRight === null
           ? -Infinity
           : lastBoundaryEventRight + divisionGap,
@@ -456,14 +570,40 @@ function placeNeumeSequence(
       const separated =
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
-        Math.max(left, minimum) - previousLyricRight > lyricJoinThreshold;
+        Math.max(left, clearance) - previousLyricRight > lyricJoinThreshold;
+      // A hyphen starts after the previous lyric, so only signs ending beyond
+      // that edge can intersect its interval.
+      const hyphenStart = previousLyricRight;
+      const minimum =
+        separated && hyphenStart !== null
+          ? Math.max(
+              clearance,
+              ...previousSigns
+                .filter((b) => b.x + b.width > hyphenStart)
+                .map(
+                  (b) => b.x + b.width + 4 + hyphenWidth + 2 * hyphenClearance,
+                ),
+            )
+          : clearance;
+      // Current signs translate with their lyric: reserve before their leading
+      // ink, rather than attempting to enlarge the fixed sign-to-lyric gap.
       const shift = Math.max(
         0,
         (separated && previousLyricRight !== null
-          ? Math.max(previousLyricRight, lastBoundaryEventRight ?? -Infinity) +
+          ? Math.max(
+              previousLyricRight,
+              lastBoundaryEventRight ?? -Infinity,
+              ...previousSigns.map((b) => b.x + b.width),
+            ) +
             hyphenWidth +
             2 * hyphenClearance
-          : minimum) - left,
+          : minimum) -
+          (separated
+            ? Math.min(
+                left,
+                ...currentSigns.filter((b) => b.x < left).map((b) => b.x),
+              )
+            : left),
         minimum - left,
       );
       const shifted = () =>
@@ -473,6 +613,8 @@ function placeNeumeSequence(
           initial.bounds.x + shift,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
           input.modifiers,
+          input.accidentals,
+          accidentalLyricBox,
         );
       // If an empty system cannot contain this anchored unit, retain its normal
       // musical anchor. Canvas expansion exposes both overhangs without scaling.
@@ -561,6 +703,8 @@ function placeNeumeSequence(
           geometry.bounds.x - missing,
           firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
           input.modifiers,
+          input.accidentals,
+          accidentalLyricBox,
         );
     }
     geometries.push(geometry);
@@ -640,7 +784,7 @@ export function getNeumeBoundaryCenterX(
 
 function layoutCommittedNeume(
   neume: Neume,
-  geometry: NeumeGeometry,
+  geometry: Omit<NeumeGeometry, 'accidentals'>,
 ): NeumeLayout {
   return {
     ...geometry,
@@ -720,8 +864,31 @@ export function layoutChant(
         item,
       ]);
   }
+  const signs = writtenAccidentals(document) ?? [];
+  const signsByNeume = new Map<string, WrittenAccidental[]>();
+  for (const sign of signs) {
+    const id = sign.location.neume.id;
+    const group = signsByNeume.get(id) ?? [];
+    group.push(sign);
+    signsByNeume.set(id, group);
+  }
+  const signsForNeume = (id: string) => signsByNeume.get(id) ?? [];
+  const signContext = (c: PitchContext): AccidentalNoteContext => ({
+    noteId: c.note.id,
+    noteIndex: c.noteIndex,
+    neumeId: c.neume.id,
+    neumeIndex: c.neumeIndex,
+    neumeKind: c.neume.kind,
+  });
   const wrappedSystems = placeNeumeSequence(
-    document.neumes.map(geometryInput),
+    document.neumes.map((neume) => ({
+      ...geometryInput(neume),
+      accidentals: signsForNeume(neume.id).map((s) => ({
+        kind: s.entity.kind,
+        staffPosition: s.owner.degree - s.location.offset,
+        noteIndex: s.entity.placement ? s.location.noteIndex : null,
+      })),
+    })),
     staffEndX,
     requirements,
     hyphenWidth,
@@ -768,12 +935,26 @@ export function layoutChant(
           clefX,
           staffLineY(leadingClef.staffLine, bottomStaffY),
         ),
-        neumes: geometries.map((geometry, offset) =>
-          layoutCommittedNeume(
-            document.neumes[startNeumeIndex + offset],
-            geometry,
-          ),
-        ),
+        neumes: geometries.map((geometry, offset) => {
+          const neume = document.neumes[startNeumeIndex + offset];
+          const groupSigns = signsForNeume(neume.id);
+          const { accidentals: glyphs, ...body } = geometry;
+          return {
+            ...layoutCommittedNeume(neume, body),
+            ...(glyphs?.length
+              ? {
+                  accidentals: glyphs.map((glyph, i) => ({
+                    ...glyph,
+                    accidentalId: groupSigns[i].entity.id,
+                    owner: signContext(groupSigns[i].owner),
+                    placement: groupSigns[i].entity.placement
+                      ? signContext(groupSigns[i].location)
+                      : null,
+                  })),
+                }
+              : {}),
+          };
+        }),
         divisions,
         leadingClefChangeId,
         clefChanges,
@@ -874,7 +1055,12 @@ export function layoutChant(
                 )
                 .map((d) => d.bounds.x + d.bounds.width),
             );
-            return start + (after.lyric.left - start - hyphenWidth) / 2;
+            return continuationHyphenLeft(
+              start,
+              after.lyric.left,
+              lyricBandAccidentals(before.system.neumes, before.lyric.y),
+              hyphenWidth,
+            );
           })();
       before.system.hyphens.push({
         x: left - hyphenExtents.left,
@@ -983,11 +1169,13 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
-    for (const marked of system.neumes.filter((n) =>
-      n.notes.some(
-        (note) =>
-          note.mora || note.episema || note.verticalEpisema || note.form,
-      ),
+    for (const marked of system.neumes.filter(
+      (n) =>
+        n.accidentals?.length ||
+        n.notes.some(
+          (note) =>
+            note.mora || note.episema || note.verticalEpisema || note.form,
+        ),
     )) {
       canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
       canvasBottom = Math.max(

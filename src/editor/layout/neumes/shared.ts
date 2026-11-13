@@ -1,3 +1,4 @@
+import type { AccidentalGeometry } from '../accidental-geometry';
 import type { Neume, StaffPosition } from '../../domain/chant-document';
 
 export interface LayoutBounds {
@@ -30,8 +31,12 @@ export interface NoteGeometry extends LayoutBounds {
 
 /** Discardable, ID-free geometry. Musical anchors are independent of ink bounds. */
 export interface NeumeGeometry {
+  accidentals?: readonly AccidentalGeometry[];
   notes: readonly NoteGeometry[];
+  /** Complete measured ink, including independently rendered signs. */
   ink: readonly InkShape[];
+  /** When present, the independently rendered neume body (no accidentals). */
+  bodyInk?: readonly InkShape[];
   bounds: LayoutBounds;
   lyricAnchorX: number;
   /** Distance from this glyph's left ink edge to the following glyph's left edge. */

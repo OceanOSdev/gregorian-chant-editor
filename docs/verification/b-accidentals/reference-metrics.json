@@ -1,0 +1,97 @@
+[
+  {
+    "name": "laetatus-torculus",
+    "glyphs": [
+      {
+        "id": "flat",
+        "ink": {
+          "x": 144,
+          "y": 46,
+          "width": 12,
+          "height": 28
+        },
+        "hit": {
+          "x": 139,
+          "y": 42,
+          "width": 21,
+          "height": 36
+        }
+      }
+    ]
+  },
+  {
+    "name": "ecce-porrectus",
+    "glyphs": [
+      {
+        "id": "flat",
+        "ink": {
+          "x": 144,
+          "y": 46,
+          "width": 12,
+          "height": 28
+        },
+        "hit": {
+          "x": 139,
+          "y": 42,
+          "width": 21,
+          "height": 36
+        }
+      }
+    ]
+  },
+  {
+    "name": "benedicta-mater",
+    "glyphs": [
+      {
+        "id": "flat",
+        "ink": {
+          "x": 201,
+          "y": 46,
+          "width": 12,
+          "height": 28
+        },
+        "hit": {
+          "x": 196,
+          "y": 42,
+          "width": 19,
+          "height": 36
+        }
+      }
+    ]
+  },
+  {
+    "name": "beata-natural",
+    "glyphs": [
+      {
+        "id": "flat",
+        "ink": {
+          "x": 144,
+          "y": 46,
+          "width": 12,
+          "height": 28
+        },
+        "hit": {
+          "x": 139,
+          "y": 42,
+          "width": 21,
+          "height": 36
+        }
+      },
+      {
+        "id": "natural",
+        "ink": {
+          "x": 206.009765625,
+          "y": 44,
+          "width": 8,
+          "height": 39
+        },
+        "hit": {
+          "x": 201.009765625,
+          "y": 40,
+          "width": 15,
+          "height": 47
+        }
+      }
+    ]
+  }
+]

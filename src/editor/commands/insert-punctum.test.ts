@@ -22,6 +22,7 @@ function createPunctum(id: string, noteId = `${id}-note`): PunctumNeume {
 
 function createDocument(): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

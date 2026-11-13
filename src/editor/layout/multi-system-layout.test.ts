@@ -74,6 +74,7 @@ function documentWith(
     : [],
 ): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

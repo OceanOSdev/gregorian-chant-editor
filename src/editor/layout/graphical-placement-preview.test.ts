@@ -11,6 +11,7 @@ import {
 
 function documentWith(count = 0): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

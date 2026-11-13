@@ -19,6 +19,7 @@ export function isDivisionKind(value: unknown): value is DivisionKind {
 
 export function semanticIds(document: ChantDocument): string[] {
   return [
+    ...document.accidentals.map((a) => a.id),
     ...document.neumes.flatMap((n) => [
       n.id,
       ...n.notes.map((note) => note.id),

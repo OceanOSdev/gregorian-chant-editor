@@ -13,6 +13,11 @@ import {
 import { isValidClef, clefOffset } from '../domain/clef';
 import { isValidNeume } from '../domain/neume';
 import { transposeNeume } from './move-neume';
+import {
+  hasValidAccidentals,
+  reconcileAccidentals,
+  resolveEffectivePitches,
+} from '../domain/accidentals';
 
 export function effectiveOffsets(
   document: ChantDocument,
@@ -53,37 +58,82 @@ export function hasValidClefCandidate(document: ChantDocument): boolean {
 }
 
 /** Validate the entire candidate before creating any translated notes. */
-export function preserveClefMelody(
+export function preserveClefMelodyResult(
   before: ChantDocument,
   candidate: ChantDocument,
-): ChantDocument | null {
+): {
+  document: ChantDocument | null;
+  reason: 'invalid-candidate' | 'overflow' | 'accidental-preservation' | null;
+} {
   const old = effectiveOffsets(before),
     next = effectiveOffsets(candidate);
-  if (!old || !next) return null;
+  if (!old || !next) return { document: null, reason: 'invalid-candidate' };
+  if (candidate.neumes.some((n) => !isValidNeume(n)))
+    return { document: null, reason: 'invalid-candidate' };
   const deltas = candidate.neumes.map((n) =>
     old.has(n.id) ? (old.get(n.id) ?? 0) - (next.get(n.id) ?? 0) : 0,
   );
   if (
-    !candidate.neumes.every(
-      (n, i) =>
-        isValidNeume(n) &&
-        n.notes.every(
-          (note) =>
-            Number.isSafeInteger(note.staffPosition) &&
-            Number.isSafeInteger(note.staffPosition + deltas[i]),
-        ),
+    !candidate.neumes.every((n, i) =>
+      n.notes.every(
+        (note) =>
+          Number.isSafeInteger(note.staffPosition) &&
+          Number.isSafeInteger(note.staffPosition + deltas[i]),
+      ),
     )
   )
-    return null;
-  return {
+    return { document: null, reason: 'overflow' };
+  const translated = {
     ...candidate,
     neumes: candidate.neumes.map((n, i) =>
       deltas[i] ? transposeNeume(n, deltas[i]) : n,
     ),
   };
+  const result = reconcileAccidentals(before, translated);
+  if (
+    !result ||
+    result.accidentals.length !== before.accidentals.length ||
+    before.accidentals.some(
+      (a) =>
+        !result.accidentals.some(
+          (b) =>
+            b.id === a.id &&
+            b.kind === a.kind &&
+            b.ownerNoteId === a.ownerNoteId,
+        ),
+    ) ||
+    !hasValidAccidentals(result)
+  )
+    return { document: null, reason: 'accidental-preservation' };
+  if (before.accidentals.length) {
+    const oldPitches = resolveEffectivePitches(before),
+      nextPitches = resolveEffectivePitches(result);
+    if (
+      !oldPitches ||
+      !nextPitches ||
+      [...oldPitches].some(([id, pitch]) => {
+        const nextPitch = nextPitches.get(id);
+        return (
+          nextPitch &&
+          (nextPitch.degree !== pitch.degree ||
+            nextPitch.alteration !== pitch.alteration)
+        );
+      })
+    )
+      return { document: null, reason: 'accidental-preservation' };
+  }
+  return { document: result, reason: null };
 }
 
-export function insertClefChange(
+export function preserveClefMelody(
+  before: ChantDocument,
+  candidate: ChantDocument,
+): ChantDocument | null {
+  return preserveClefMelodyResult(before, candidate).document;
+}
+
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function insertClefChangeCandidate(
   document: ChantDocument,
   change: ClefChange,
   boundary: ScoreInsertionBoundary,
@@ -100,14 +150,16 @@ export function insertClefChange(
     document.neumes.some((n) =>
       n.notes.some((note) => note.id === change.id),
     ) ||
-    document.syllables.some((s) => s.id === change.id)
+    document.syllables.some((s) => s.id === change.id) ||
+    document.accidentals.some((a) => a.id === change.id)
   )
     return document;
   order.splice(resolved.scoreIndex, 0, { type: 'clef', entity: change });
   return { ...document, ...reanchorScoreOrder(order) };
 }
 
-export function updateClefChange(
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function updateClefChangeCandidate(
   document: ChantDocument,
   id: string,
   clef: Clef,
@@ -130,7 +182,8 @@ export function updateClefChange(
   };
 }
 
-export function deleteClefChange(
+/** Intermediate candidate: finalize the complete command before adoption. */
+export function deleteClefChangeCandidate(
   document: ChantDocument,
   id: string,
 ): ChantDocument {
@@ -143,4 +196,28 @@ export function deleteClefChange(
     ...document,
     clefChanges: document.clefChanges.filter((c) => c.id !== id),
   };
+}
+
+export function insertClefChange(
+  ...args: Parameters<typeof insertClefChangeCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], insertClefChangeCandidate(...args)) ?? args[0]
+  );
+}
+
+export function updateClefChange(
+  ...args: Parameters<typeof updateClefChangeCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], updateClefChangeCandidate(...args)) ?? args[0]
+  );
+}
+
+export function deleteClefChange(
+  ...args: Parameters<typeof deleteClefChangeCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], deleteClefChangeCandidate(...args)) ?? args[0]
+  );
 }

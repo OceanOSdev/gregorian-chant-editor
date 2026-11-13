@@ -85,6 +85,7 @@ export const compositionCorpus: CompositionCase[] = wordCorpus.flatMap(
             ]
           : entry.words;
       const document: ChantDocument = {
+        accidentals: [],
         title: `${entry.name} / ${arrangement}`,
         clefChanges: [],
         divisions: [],

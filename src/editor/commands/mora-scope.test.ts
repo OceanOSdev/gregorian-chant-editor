@@ -15,6 +15,7 @@ import {
   reduceEditorSession,
 } from '../state/editor-session';
 
+const { accidentals: _accidentals, ...legacyExample } = exampleDocument;
 const kinds = [
   ['punctum', [2]],
   ['podatus', [2, 4]],
@@ -33,7 +34,7 @@ describe('conventional mora scope', () => {
           format: 'gregorian-chant-editor',
           version: 2,
           document: {
-            ...exampleDocument,
+            ...legacyExample,
             syllables: [],
             neumes: [
               {
@@ -68,7 +69,8 @@ describe('conventional mora scope', () => {
               JSON.stringify({
                 format: 'gregorian-chant-editor',
                 version: 2,
-                document: candidate,
+                document: (({ accidentals: _accidentals, ...legacy }) =>
+                  legacy)(candidate),
               }),
             ),
           ).toThrow(IncompatibleDraftDocumentError);

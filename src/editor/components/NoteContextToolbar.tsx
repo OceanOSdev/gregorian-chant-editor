@@ -28,6 +28,11 @@ export interface NoteContextToolbarHandle {
 }
 
 interface NoteContextToolbarProps {
+  accidental?: {
+    kind: 'flat' | 'natural' | undefined;
+    pitch: string;
+    onChange: (kind: 'flat' | 'natural' | undefined) => void;
+  };
   ref: Ref<NoteContextToolbarHandle>;
   note: ChantNote;
   neume: Neume;
@@ -45,6 +50,7 @@ interface NoteContextToolbarProps {
 }
 
 export function NoteContextToolbar({
+  accidental,
   ref,
   note,
   neume,
@@ -265,6 +271,32 @@ export function NoteContextToolbar({
           ))}
         </select>
       </label>
+      {accidental ? (
+        <>
+          <label>
+            Written accidental
+            <select
+              ref={!forms.length ? firstControl : undefined}
+              aria-label="Written accidental"
+              value={accidental.kind ?? 'none'}
+              onChange={(e) =>
+                accidental.onChange(
+                  e.target.value === 'flat'
+                    ? 'flat'
+                    : e.target.value === 'natural'
+                      ? 'natural'
+                      : undefined,
+                )
+              }
+            >
+              <option value="none">None</option>
+              <option value="flat">Flat</option>
+              <option value="natural">Natural</option>
+            </select>
+          </label>
+          <p>{accidental.pitch}</p>
+        </>
+      ) : null}
       {!forms.length ? (
         <p id={formHelpId} className="note-context-toolbar__help">
           No alternate form for this note.
@@ -273,7 +305,7 @@ export function NoteContextToolbar({
       <label>
         Mora scope
         <select
-          ref={!forms.length ? firstControl : undefined}
+          ref={!forms.length && !accidental ? firstControl : undefined}
           aria-label="Mora scope"
           value={getMoraScope(neume) ?? 'none'}
           onChange={(event) => {

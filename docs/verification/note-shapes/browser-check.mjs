@@ -277,8 +277,9 @@ const baselineV2 = await readFile(
 );
 const blank = {
   format: 'gregorian-chant-editor',
-  version: 3,
+  version: 5,
   document: {
+    accidentals: [],
     title: 'Stage 8B',
     lyricLanguage: 'la',
     clef: { type: 'c', staffLine: 3 },
@@ -386,13 +387,14 @@ try {
   for (const source of [baselineV1, baselineV2]) {
     await hydrate(source);
     assert.equal(await raw(), source);
-    const original = JSON.parse(source).document;
+    const original = { ...JSON.parse(source).document, accidentals: [] };
     const id = original.neumes[0].notes[0].id;
     await select(id);
     const form = original.neumes[0].kind === 'punctum' ? 'virga' : 'quilisma';
     const saved = await change('Form', form);
-    assert.equal(saved.version, 4);
+    assert.equal(saved.version, 5);
     const expected = structuredClone(original);
+    expected.accidentals = [];
     expected.neumes[0].notes[0].form = form;
     assert.deepEqual(saved.document, expected);
     await navigate();
@@ -624,7 +626,7 @@ try {
   await ev('window.confirm=()=>true');
   const before = await raw();
   for (const invalid of [
-    { ...fixture, version: 5 },
+    { ...fixture, version: 6 },
     {
       ...fixture,
       document: {

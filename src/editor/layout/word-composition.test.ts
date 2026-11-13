@@ -13,6 +13,7 @@ const measure: MeasureLyricText = (text) => ({
 });
 function fixture(anchors = [0, 3, 4, 5, 6], count = 8): ChantDocument {
   return {
+    accidentals: [],
     title: 'Alleluia',
     clefChanges: [],
     divisions: [],

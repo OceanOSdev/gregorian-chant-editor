@@ -6,6 +6,7 @@ import { resolveGraphicalNeumePlacement } from './resolve-graphical-neume-placem
 import { resolveEditorToolbarInsertion } from './insert-editor-neume';
 
 const empty: ChantDocument = {
+  accidentals: [],
   title: 'Entry',
   clef: { type: 'c', staffLine: 3 },
   lyricLanguage: 'la',

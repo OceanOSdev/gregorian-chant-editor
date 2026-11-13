@@ -13,6 +13,7 @@ function specimen(
 ): CompositionCase {
   const words = [['au', 'di', 'ti', accented ? 'ó' : 'o', 'ne']];
   const document: ChantDocument = {
+    accidentals: [],
     title: `Auditione — ${id}`,
     clefChanges: [],
     divisions: [],

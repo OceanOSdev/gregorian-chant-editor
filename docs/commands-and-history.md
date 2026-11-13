@@ -302,3 +302,57 @@ note changes. Repeated values and invalid/stale intents return the exact input;
 one accepted `engraving-edit` records one snapshot. All other modifiers and
 forms remain independent, including through movement and surviving-note
 normalization. Existing pending-workflow guards still govern the transaction.
+
+## Accidental mutation and clef transactions (Stage 8D)
+
+Accidental authoring, kind changes, deletion and placement are immutable commands.
+None removes only the neume/register's authored sign; inherited alteration can
+remain. Deleting an owner removes its sign before canonicalization. Deleting an
+inheriting note does not. Surviving repeated B ownership is canonicalized;
+conflating distinct signs rejects the edit. Invalidating only an earlier anchor
+restores default placement while retaining sign ID, kind and owner. Finalized public
+semantic commands apply this repair policy once;
+strict import rejects invalid placement instead of repairing it.
+
+Keep pitches compares every surviving note's diatonic degree and alteration,
+and retains authored sign IDs, kinds and owners. Clef candidates are repaired
+and validated after translation. Keep note positions commits normally if no
+written sign is lost, including placement-only restoration. Otherwise a targeted
+counted confirmation is required; Cancel leaves document, history and cache
+unchanged. Confirmation creates one atomic undoable snapshot, including clef
+and sign changes. Existing clef deletion choices share that transaction.
+
+### Finalized commands and intermediate candidates
+
+Finalized public document commands accept a valid document and return a valid
+document, or the exact input on rejection/no-op. Commands that can change pitches,
+ownership, scope or placement finalize through `reconcileAccidentals` (or its
+narrow typed result). Invariant-neutral title, appearance and alignment changes
+do not need accidental repair. Kind-specific insertions delegate to the finalized
+`insertNeume`; nested deletion composes explicitly named `*Candidate` builders
+and finalizes once, after the complete operation. Candidate builders are not
+suitable for history adoption or direct persistence.
+
+History applies a finalized edit once and records its returned snapshot; it does
+not perform domain repair. This preserves direct command callers' validity
+contract without repeating repair in history. Move/delete `*Result` variants
+retain the document-returning APIs and expose only accidental reconciliation
+reasons to the session; a no-op or contour rejection cannot be diagnosed from the
+number of signs. New commands must either preserve these invariants by
+construction or finalize their complete candidate before returning it.
+
+Clef `*Candidate` builders intentionally precede interpretation. Keep pitches
+translates and finalizes through `preserveClefMelodyResult`, which distinguishes
+invalid candidates, unsafe note arithmetic and accidental-preservation failure.
+Keep note positions preflights repair; transactions retain that finalized
+candidate and loss count for confirmation. Renderers read the count rather than
+running repair. Neither history nor confirmation repairs an already finalized
+result again.
+
+Placement repair first processes original owner loss and canonical ownership.
+It then restores intrinsically invalid spans (missing anchor, invalid ordering,
+reset, intervening matching B or unsafe height) in musical owner order,
+revalidating after each restoration, before resolving remaining sign conflicts
+in that order. A conflicting sign that must itself return to default therefore
+does not needlessly invalidate another authored anchor. Collection order is not
+the repair priority. Strict import validation never invokes this editing repair.

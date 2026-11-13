@@ -11,6 +11,7 @@ export const punctum = (id: string, position = 2): Neume => ({
   notes: [{ id: `note-${id}`, staffPosition: staffPosition(position) }],
 });
 export const fixture = (): ChantDocument => ({
+  accidentals: [],
   title: 'Clef passages',
   clef: { type: 'c', staffLine: 3 },
   clefChanges: [],

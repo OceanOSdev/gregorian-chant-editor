@@ -347,7 +347,8 @@ function fixture(signed = true, dense = false) {
       beforeDivisionId: null,
     },
   ];
-  return { format: 'gregorian-chant-editor', version: 4, document };
+  document.accidentals = [];
+  return { format: 'gregorian-chant-editor', version: 5, document };
 }
 async function paintedChecks() {
   const measurements = await ev(`(()=>{
@@ -405,8 +406,9 @@ try {
       id = original.neumes[0].notes[0].id;
     await select(id);
     const saved = await change('Vertical episema', 'on');
-    assert.equal(saved.version, 4);
+    assert.equal(saved.version, 5);
     const expected = structuredClone(original);
+    expected.accidentals = [];
     expected.neumes[0].notes[0].verticalEpisema = true;
     assert.deepEqual(saved.document, expected);
     await navigate();
@@ -434,10 +436,11 @@ try {
   const ownerDoc = JSON.parse(v3).document;
   const ster = ownerDoc.neumes
     .flatMap((n) => n.notes)
-    .find((n) => n.episema).id;
+    .find((n) => !n.verticalEpisema).id;
   await select(ster);
   await change('Vertical episema', 'on');
   const expectedOwner = structuredClone(ownerDoc);
+  expectedOwner.accidentals = [];
   expectedOwner.neumes
     .flatMap((n) => n.notes)
     .find((n) => n.id === ster).verticalEpisema = true;
@@ -452,6 +455,7 @@ try {
       const before = await score();
       const saved = await change('Vertical episema', 'on');
       const expected = structuredClone(before);
+      expected.accidentals = [];
       expected.neumes
         .flatMap((n) => n.notes)
         .find((n) => n.id === note.id).verticalEpisema = true;

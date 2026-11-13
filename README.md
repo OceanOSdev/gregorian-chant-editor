@@ -195,3 +195,8 @@ Eligible pull requests run the same verification sequence in CI; Markdown-only
 changes skip it. See the
 [testing guide](docs/testing.md) for authoritative setup, verification, CI,
 test-seam, and manual-browser guidance.
+
+Authored B-flats/naturals now support contextual note and glyph editing, optional
+earlier-note placement, register-specific interpretation and native v5 saves
+with exact v1–v4 readers. See the [Stage 8D evidence](docs/verification/b-accidentals/implementation.md)
+for reference comparisons, verification and remaining acceptance checks.

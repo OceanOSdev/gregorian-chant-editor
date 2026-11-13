@@ -13,7 +13,18 @@ export function resolveToolbarNeumeInsertion(
   fallback: StaffPosition,
 ): ToolbarNeumeInsertion {
   const note =
-    selection.kind === 'note' ? findNote(document, selection.noteId) : null;
+    selection.kind === 'note'
+      ? findNote(document, selection.noteId)
+      : selection.kind === 'accidental'
+        ? (() => {
+            const a = document.accidentals.find(
+              (a) => a.id === selection.accidentalId,
+            );
+            return a
+              ? findNote(document, a.placement?.noteId ?? a.ownerNoteId)
+              : null;
+          })()
+        : null;
   const syllable =
     selection.kind === 'syllable'
       ? document.syllables.find((s) => s.id === selection.syllableId)

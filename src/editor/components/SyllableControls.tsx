@@ -36,6 +36,8 @@ interface SyllableControlsProps {
   selectedNeumeId: string | null;
   focusRequest: EditorFocusRequest | null;
   pendingHistory: boolean;
+  /** Block unrelated interactions without showing a history-resolution dialog. */
+  interactionBlocked: boolean;
   onAction: (action: LyricAction) => void;
   onHistoryChoice: (choice: 'save' | 'discard' | 'cancel') => void;
   onFocusHandled: (request: EditorFocusRequest) => void;
@@ -53,6 +55,7 @@ export function SyllableControls({
   selectedNeumeId,
   focusRequest,
   pendingHistory,
+  interactionBlocked,
   onAction,
   onHistoryChoice,
   onFocusHandled,
@@ -167,7 +170,11 @@ export function SyllableControls({
     const ordinal = (id: string) =>
       document.neumes.findIndex((n) => n.id === id) + 1;
     return (
-      <section className="syllable-controls" aria-label="Move syllable">
+      <section
+        className="syllable-controls"
+        aria-label="Move syllable"
+        inert={interactionBlocked}
+      >
         <p id="lyric-move-help">
           Moving <strong>{moving?.text}</strong> from neume{' '}
           {ordinal(moving?.startsAtNeumeId ?? '')}. Highlighted neumes are legal
@@ -207,6 +214,7 @@ export function SyllableControls({
     <section
       className="syllable-controls"
       aria-label="Lyric syllables"
+      inert={interactionBlocked}
       ref={controls}
       onKeyDown={(event) => {
         if (pendingHistory && event.key === 'Escape') {

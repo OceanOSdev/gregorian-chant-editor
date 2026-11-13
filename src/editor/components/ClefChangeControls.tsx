@@ -63,6 +63,8 @@ export function ClefChangeControls({
   if (!transaction && (!target || isPlacementTool(session.activeTool)))
     return null;
   const confirming = !!candidate;
+  const lossCount =
+    transaction?.accidentalLossCount ?? transaction?.noteheadLossCount ?? 0;
   return (
     <div
       ref={panel}
@@ -71,7 +73,9 @@ export function ClefChangeControls({
       aria-modal={confirming ? true : undefined}
       aria-label={
         confirming
-          ? 'Choose pitch preservation'
+          ? transaction?.accidentalLossCount
+            ? 'Confirm accidental removal'
+            : 'Choose pitch preservation'
           : transaction
             ? 'Edit selected clef'
             : 'Selected clef'
@@ -101,24 +105,35 @@ export function ClefChangeControls({
               ? 'This clef changes the pitch interpretation of existing notes.'
               : 'Remove this clef and choose how to interpret the following notes.'}
           </p>
+          {lossCount > 0 ? (
+            <p>
+              This clef operation with Keep note positions will remove{' '}
+              {lossCount} written accidental{lossCount === 1 ? '' : 's'} because
+              their owners will no longer be B. Cancel preserves the score.
+            </p>
+          ) : null}
           {transaction.policyError ? (
             <p role="status">{transaction.policyError}</p>
           ) : null}
-          <button
-            type="button"
-            onClick={() =>
-              dispatch({ type: 'confirm-clef-change', preserve: 'melody' })
-            }
-          >
-            Preserve melody
-          </button>{' '}
+          {!transaction.accidentalLossCount ? (
+            <button
+              type="button"
+              onClick={() =>
+                dispatch({ type: 'confirm-clef-change', preserve: 'melody' })
+              }
+            >
+              Preserve melody
+            </button>
+          ) : null}{' '}
           <button
             type="button"
             onClick={() =>
               dispatch({ type: 'confirm-clef-change', preserve: 'noteheads' })
             }
           >
-            Preserve noteheads
+            {transaction.accidentalLossCount
+              ? 'Remove written accidentals and apply'
+              : 'Preserve noteheads'}
           </button>{' '}
           <button
             type="button"

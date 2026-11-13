@@ -804,3 +804,40 @@ do not escape the panel. Ctrl/Cmd+Z and Redo use existing semantic history.
 Placement and pending history/lyric-move/clef workflows retain their guards.
 Only browser presentation state is added; semantics, history and native v4 are
 unchanged. ADR 0020 is Accepted (owner-approved 2026-11-10). See [current owner-feedback verification](verification/vertical-episemata/consolidation-and-weight.md).
+
+## Contextual B accidentals (Stage 8D)
+
+B-note properties add Written accidental: None, Flat, Natural, alongside an
+effective pitch/provenance description. Non-B notes omit this field. Repeated B
+constituents edit the same canonical sign. None can still display inherited flat.
+Glyphs are independent Select-mode controls: Enter/Space selects, Delete/Backspace
+removes only the sign, and Tab opens contextual properties. Kind, Delete, Close,
+Place above earlier note and Restore default are available there.
+
+Placement targeting highlights only eligible earlier notes and provides a native
+keyboard list plus Use highlighted note and Cancel. Pointer or Enter commits one
+history edit; arrows navigate eligible notes; Escape cancels without edits.
+Selecting the current anchor is a no-op. Competing document actions are guarded
+while targeting. Feedback describes selection, invalid targets and automatic
+placement restoration, with focus returned to the glyph or surviving owner.
+Clef warnings describe the number of flat/natural signs that would be removed;
+Cancel preserves the committed score, history and cache; it discards the pending clef draft.
+
+Accidental placement feedback uses only the session announcement and focus request.
+Starting another placement and Delete are disabled during targeting; invalid
+targets preserve the exact document and history. Focused glyph deletion returns
+focus to its owning B even when Tab did not select the glyph. The contextual
+accidental toolbar exposes a typed focus handle independent of accessible labels.
+
+During accidental targeting, lyric controls are inert. Their history-resolution
+prompt is driven only by a genuine pending history request, so targeting cannot
+show a lyric-draft prompt or steal the requested score focus.
+
+Glyphs stay focusable during a clean or dirty lyric entry. As with note and
+division edits, Delete/Backspace then removes only the sign in one history entry,
+keeps the lyric draft intact, shows no history prompt and returns focus to the
+owning B. The accidental properties toolbar is not offered during lyric entry;
+Tab from a selected glyph then keeps native focus navigation. A properties focus
+request that cannot position the toolbar (for example, a glyph outside a
+pinch-zoomed visual viewport) is refused like the note toolbar's: Tab is not
+consumed and no deferred focus remains to move focus later.

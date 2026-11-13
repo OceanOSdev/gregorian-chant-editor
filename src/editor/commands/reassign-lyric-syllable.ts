@@ -1,7 +1,8 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import type { ChantDocument } from '../domain/chant-document';
 import { hasValidLyricAnchors } from '../domain/lyrics';
 
-export function reassignLyricSyllable(
+function reassignLyricSyllableCandidate(
   document: ChantDocument,
   syllableId: string,
   neumeId: string,
@@ -17,7 +18,7 @@ export function reassignLyricSyllable(
   return hasValidLyricAnchors(candidate) ? candidate : document;
 }
 
-export function updateLyricBoundary(
+function updateLyricBoundaryCandidate(
   document: ChantDocument,
   syllableId: string,
   boundaryBefore: 'word' | 'continuation',
@@ -31,4 +32,22 @@ export function updateLyricBoundary(
     ),
   };
   return hasValidLyricAnchors(candidate) ? candidate : document;
+}
+
+export function reassignLyricSyllable(
+  ...args: Parameters<typeof reassignLyricSyllableCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], reassignLyricSyllableCandidate(...args)) ??
+    args[0]
+  );
+}
+
+export function updateLyricBoundary(
+  ...args: Parameters<typeof updateLyricBoundaryCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], updateLyricBoundaryCandidate(...args)) ??
+    args[0]
+  );
 }

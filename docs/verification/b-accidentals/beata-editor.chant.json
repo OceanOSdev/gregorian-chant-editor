@@ -1,0 +1,120 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 5,
+  "document": {
+    "title": "Beata gens — supported omnis excerpt",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "clefChanges": [],
+    "divisions": [],
+    "accidentals": [
+      {
+        "id": "historical-flat",
+        "kind": "flat",
+        "ownerNoteId": "ownerB",
+        "placement": {
+          "kind": "above-note",
+          "noteId": "anchorF"
+        }
+      }
+    ],
+    "syllables": [
+      {
+        "id": "o",
+        "text": "o",
+        "startsAtNeumeId": "descending",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "mnis",
+        "text": "mnis",
+        "startsAtNeumeId": "mnis-group",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "descending",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "c",
+            "staffPosition": 6
+          },
+          {
+            "id": "a1",
+            "staffPosition": 4,
+            "verticalEpisema": true
+          },
+          {
+            "id": "g1",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "f",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "anchorF",
+            "staffPosition": 2,
+            "form": "inclinatum",
+            "verticalEpisema": true
+          }
+        ]
+      },
+      {
+        "id": "ga",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "g",
+            "staffPosition": 3,
+            "form": "quilisma"
+          },
+          {
+            "id": "a",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "b",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "ownerB",
+            "staffPosition": 5,
+            "episema": true
+          },
+          {
+            "id": "a2",
+            "staffPosition": 4
+          },
+          {
+            "id": "g2",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "mnis-group",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "mnis-a",
+            "staffPosition": 4
+          },
+          {
+            "id": "mnis-g",
+            "staffPosition": 3
+          }
+        ]
+      }
+    ]
+  }
+}

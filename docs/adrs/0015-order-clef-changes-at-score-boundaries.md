@@ -16,6 +16,16 @@ but Apply uses the chosen mode immediately without a second preservation
 dialog. Deleting a clef retains its separate conditional choice; initial
 clefs retain ADR 0014's automatic melody preservation. These are
 interaction changes, not changes to pitch semantics or score order.
+
+**Stage 8D qualification (owner-approved 2026-11-11):**
+[Accepted ADR 0021](0021-author-b-accidentals-at-neume-boundaries.md)
+extends the initial diatonic preservation contract to effective chromatic
+pitch and permits a targeted confirmation only when a Keep note positions
+operation would remove authored B accidentals. Ordinary insertion and
+Apply still use the preselected mode without a second preservation prompt.
+Existing clef deletion retains its conditional pitch choice and integrates
+any accidental-loss warning. The structural boundary and clef-order rules
+below remain Accepted.
 It narrowly qualifies the boundary operations of Accepted
 ADR 0012 and the affected range of initial-clef edits in Accepted ADR 0014;
 neither record is superseded. Acceptance authorizes a separate Stage 6B

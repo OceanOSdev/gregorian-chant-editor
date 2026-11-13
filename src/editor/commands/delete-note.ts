@@ -1,8 +1,9 @@
-import { deleteNeume } from './delete-neume';
+import { reconcileAccidentalsResult } from '../domain/accidentals';
+import { deleteNeumeCandidate } from './delete-neume';
 import type { ChantDocument } from '../domain/chant-document';
 import { findNote, normalizeNeumeAfterNoteDeletion } from '../domain/neume';
 
-export function deleteNote(
+function deleteNoteCandidate(
   document: ChantDocument,
   noteId: string,
 ): ChantDocument {
@@ -21,7 +22,8 @@ export function deleteNote(
     return document;
   }
 
-  if (!normalizedNeume) return deleteNeume(document, locatedNote.neume.id);
+  if (!normalizedNeume)
+    return deleteNeumeCandidate(document, locatedNote.neume.id);
 
   return {
     ...document,
@@ -29,4 +31,16 @@ export function deleteNote(
       index === locatedNote.neumeIndex ? normalizedNeume : neume,
     ),
   };
+}
+
+export function deleteNoteResult(
+  ...args: Parameters<typeof deleteNoteCandidate>
+) {
+  return reconcileAccidentalsResult(args[0], deleteNoteCandidate(...args));
+}
+
+export function deleteNote(
+  ...args: Parameters<typeof deleteNoteCandidate>
+): ChantDocument {
+  return deleteNoteResult(...args).document;
 }

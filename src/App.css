@@ -411,6 +411,30 @@ kbd {
   stroke-dasharray: 3 2;
 }
 
+.score__accidental-ink {
+  fill: currentColor;
+}
+
+.score__accidental:focus {
+  outline: none;
+}
+
+.score__accidental:focus .score__accidental-target {
+  stroke: #a855f7;
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+
+@media print {
+  .score__accidental-target,
+  .score__accidental:focus .score__accidental-target {
+    stroke: none;
+  }
+  .score__accidental-placement-target {
+    display: none;
+  }
+}
+
 .score__clef-ink {
   fill: currentColor;
 }

@@ -1,3 +1,4 @@
+import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
   staffPosition,
   type ChantDocument,
@@ -13,7 +14,7 @@ function moveNote(note: ChantNote, delta: number): ChantNote {
   };
 }
 
-export function moveNeumeVertically(
+function moveNeumeVerticallyCandidate(
   document: ChantDocument,
   neumeId: string,
   delta: number,
@@ -33,6 +34,8 @@ export function moveNeumeVertically(
   }
 
   const movedNeume = transposeNeume(locatedNeume.neume, delta);
+  if (movedNeume.notes.some((n) => !Number.isSafeInteger(n.staffPosition)))
+    return document;
 
   if (!isValidNeume(movedNeume)) {
     return document;
@@ -82,4 +85,19 @@ export function transposeNeume(neume: Neume, delta: number): Neume {
       };
     }
   }
+}
+
+export function moveNeumeVerticallyResult(
+  ...args: Parameters<typeof moveNeumeVerticallyCandidate>
+) {
+  return reconcileAccidentalsResult(
+    args[0],
+    moveNeumeVerticallyCandidate(...args),
+  );
+}
+
+export function moveNeumeVertically(
+  ...args: Parameters<typeof moveNeumeVerticallyCandidate>
+): ChantDocument {
+  return moveNeumeVerticallyResult(...args).document;
 }

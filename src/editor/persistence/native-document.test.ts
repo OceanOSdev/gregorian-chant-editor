@@ -11,7 +11,21 @@ import {
 } from './native-document';
 
 const envelope = (document: unknown) =>
-  JSON.stringify({ format: 'gregorian-chant-editor', version: 1, document });
+  JSON.stringify({
+    format: 'gregorian-chant-editor',
+    version: 1,
+    document: withoutAccidentals(document),
+  });
+function withoutAccidentals(document: unknown) {
+  if (
+    typeof document !== 'object' ||
+    document === null ||
+    !('accidentals' in document)
+  )
+    return document;
+  const { accidentals: _accidentals, ...legacy } = document;
+  return legacy;
+}
 function specimen(): ChantDocument {
   return {
     ...structuredClone(exampleDocument),

@@ -1,3 +1,4 @@
+import { reconcileAccidentals } from '../domain/accidentals';
 import type {
   ChantDocument,
   Neume,
@@ -12,7 +13,7 @@ import {
 } from '../domain/divisions';
 import { isValidNeume } from '../domain/neume';
 
-export function insertNeume(
+function insertNeumeCandidate(
   document: ChantDocument,
   neume: Neume,
   boundary: number | ScoreInsertionBoundary,
@@ -60,4 +61,12 @@ export function insertNeume(
       ...document.neumes.slice(resolved.neumeIndex),
     ],
   };
+}
+
+export function insertNeume(
+  ...args: Parameters<typeof insertNeumeCandidate>
+): ChantDocument {
+  return (
+    reconcileAccidentals(args[0], insertNeumeCandidate(...args)) ?? args[0]
+  );
 }

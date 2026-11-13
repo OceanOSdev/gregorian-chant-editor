@@ -156,7 +156,7 @@ it('shared signed preview, complete advances, whole-neume wrapping and stable id
   const document = decodeDocument(
     JSON.stringify({
       format: 'gregorian-chant-editor',
-      version: 4,
+      version: 5,
       document: {
         ...blankDocument(),
         neumes: Array.from({ length: 30 }, (_, i) => ({

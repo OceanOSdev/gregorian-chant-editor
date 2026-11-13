@@ -583,3 +583,18 @@ Vertical-tick screen rasterization is narrowly qualified in
 the 1.5 × 7 vector recipe and all bounds remain unchanged, with at most half a
 physical pixel of horizontal screen phase alignment. Print retains exact vector
 ink. See the [normal-size browser and print comparisons](verification/vertical-episemata/rasterization.md).
+
+## B accidental metrics (Stage 8D)
+
+Flat ink occupies 12 × 28 units, from nominal pitch y − 18 to y + 10;
+natural ink occupies 8 × 39, from y − 20 to y + 19. Each default prefix reserves
+20 units. Explicit placement starts at note anchor x − 5 and clears overlapping
+ink outward: left for the first constituent, right for later constituents.
+Lyric exclusions and any left overhang are resolved in the shared measured pass.
+Hit padding (5 horizontal, 4 vertical) is reduced at adjacent ink midpoints.
+
+These original procedural contours were compared with Greciliae 6.0.0 at a
+12-unit staff step (approximately 12.34 × 28.11 and 8.23 × 38.67 respectively).
+They are project contours, not a font facsimile. Staff lines remain visible,
+as in Gregorio's default `hidealtlines=false` policy. See the retained
+[printed/compiled/editor comparison](verification/b-accidentals/implementation.md).

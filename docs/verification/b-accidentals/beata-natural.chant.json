@@ -1,0 +1,194 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 5,
+  "document": {
+    "accidentals": [
+      {
+        "id": "flat",
+        "kind": "flat",
+        "ownerNoteId": "prior-b-0"
+      },
+      {
+        "id": "natural",
+        "kind": "natural",
+        "ownerNoteId": "cba-1",
+        "placement": {
+          "kind": "above-note",
+          "noteId": "aca-0"
+        }
+      }
+    ],
+    "clefChanges": [],
+    "divisions": [],
+    "lyricLanguage": "la",
+    "title": "beata-natural",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "syllables": [
+      {
+        "id": "do",
+        "text": "Dó",
+        "startsAtNeumeId": "prior-b",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "mi",
+        "text": "mi",
+        "startsAtNeumeId": "mi-a",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "ni",
+        "text": "ni",
+        "startsAtNeumeId": "aca",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "neumes": [
+      {
+        "id": "prior-b",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "prior-b-0",
+            "staffPosition": 5
+          }
+        ]
+      },
+      {
+        "id": "mi-a",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "mi-a-0",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "aca",
+        "kind": "torculus",
+        "notes": [
+          {
+            "id": "aca-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "aca-1",
+            "staffPosition": 6
+          },
+          {
+            "id": "aca-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "g",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "g-0",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "ac",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "ac-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "ac-1",
+            "staffPosition": 6
+          }
+        ]
+      },
+      {
+        "id": "ca",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "ca-0",
+            "staffPosition": 6
+          },
+          {
+            "id": "ca-1",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "c1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c1-0",
+            "staffPosition": 6
+          }
+        ]
+      },
+      {
+        "id": "c2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "c2-0",
+            "staffPosition": 6
+          }
+        ]
+      },
+      {
+        "id": "cba",
+        "kind": "climacus",
+        "notes": [
+          {
+            "id": "cba-0",
+            "staffPosition": 6
+          },
+          {
+            "id": "cba-1",
+            "staffPosition": 5
+          },
+          {
+            "id": "cba-2",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "cg",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "cg-0",
+            "staffPosition": 6
+          },
+          {
+            "id": "cg-1",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "gf",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "gf-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "gf-1",
+            "staffPosition": 2
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -19,8 +19,9 @@ export function createDocumentHistory(
 }
 
 /**
- * Applies the edit once. Returning the exact present document signals rejection
- * or a no-op and preserves the exact history without creating an entry.
+ * Records a finalized semantic command once. Candidate builders must be finalized
+ * before adoption; history does not perform semantic repair. Returning the exact
+ * present document signals rejection or a no-op and preserves history identity.
  */
 export function applyDocumentEdit(
   history: DocumentHistory,

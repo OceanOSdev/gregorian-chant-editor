@@ -137,7 +137,15 @@ export interface ScoreInsertionBoundary {
   beforeDivisionId: string | null;
 }
 
+export interface ChantAccidental {
+  id: string;
+  kind: 'flat' | 'natural';
+  ownerNoteId: string;
+  placement?: { kind: 'above-note'; noteId: string };
+}
+
 export interface ChantDocument {
+  accidentals: ChantAccidental[];
   clefChanges: ClefChange[];
   divisions: ChantDivision[];
   lyricLanguage: LyricLanguage;

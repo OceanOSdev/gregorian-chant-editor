@@ -61,6 +61,7 @@ function three(
 }
 function documentWith(neumes: readonly Neume[]): ChantDocument {
   return {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

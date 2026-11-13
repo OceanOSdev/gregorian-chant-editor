@@ -155,6 +155,7 @@ describe('neume validation', () => {
 
 describe('neume lookup', () => {
   const document: ChantDocument = {
+    accidentals: [],
     clefChanges: [],
     divisions: [],
     lyricLanguage: 'la',

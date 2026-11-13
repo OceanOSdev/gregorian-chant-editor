@@ -39,6 +39,7 @@ const boundary = (
 ) => ({ beforeNeumeId, beforeDivisionId });
 function fixture(): ChantDocument {
   return {
+    accidentals: [],
     title: '',
     clef: { type: 'c', staffLine: 4 },
     lyricLanguage: 'la',

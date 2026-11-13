@@ -353,13 +353,14 @@ try {
       id,
     );
     await key('Tab');
-    const original = structuredClone(before);
+    const original = { ...structuredClone(before), accidentals: [] };
     const getNote = (d) =>
       d.neumes.flatMap((n) => n.notes).find((n) => n.id === id);
     const expected = structuredClone(original);
+    expected.accidentals = [];
     getNote(expected).mora = 1;
     let saved = await change('Mora scope', 'sole');
-    assert.equal(saved.version, 4);
+    assert.equal(saved.version, 5);
     assert.deepEqual(saved.document, expected);
     getNote(expected).episema = true;
     saved = await change('Horizontal episema', 'on');
@@ -662,7 +663,7 @@ try {
   );
   assert.ok(marked.notes.every((n) => n.mora === 1));
   await key('z', 'KeyZ', ['Control']);
-  assert.deepEqual(await score(), beforeCompound);
+  assert.deepEqual(await score(), { ...beforeCompound, accidentals: [] });
   await key('z', 'KeyZ', ['Control', 'Shift']);
   assert.deepEqual(await score(), saved.document);
   await screenshot('compound-320');
@@ -678,9 +679,10 @@ try {
   ];
   const corpus = {
     format: 'gregorian-chant-editor',
-    version: 4,
+    version: 5,
     document: {
       ...JSON.parse(ownerSource).document,
+      accidentals: [],
       neumes: shapes.map(([kind, pitches], i) => ({
         id: 'n' + i,
         kind,
@@ -734,8 +736,12 @@ try {
       await key('Tab');
       assert.equal(
         await ev('document.activeElement.getAttribute("aria-label")'),
-        'Mora scope',
-        'disabled Form is skipped',
+        (await ev(
+          `!!document.querySelector('${panelSelector} select[aria-label="Written accidental"]')`,
+        ))
+          ? 'Written accidental'
+          : 'Mora scope',
+        'disabled Form is skipped; B properties precede mora',
       );
       await key('Tab', 'Tab', ['Shift']);
       if (i === 2) await screenshot('form-disabled-320');

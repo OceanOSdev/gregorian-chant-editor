@@ -443,6 +443,7 @@ try {
   ]) {
     const extreme = structuredClone(fixture);
     extreme.version = version;
+    if (version >= 5) extreme.document.accidentals = [];
     extreme.document.neumes[0].notes[0] = {
       id: 'note',
       staffPosition: Number.MAX_SAFE_INTEGER,
