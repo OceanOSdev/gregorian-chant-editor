@@ -46,9 +46,9 @@ always writes v8. There is no reinterpretation of unknown versions. Native JSON 
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 9B-2: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1–v7 bytes untouched. The next
-successful committed save writes v8 into that same key, after comparing the
+retained through Stage 9B-3: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1–v8 bytes untouched. The next
+successful committed save writes v9 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
 retain their exact recovery policy. Older builds cannot be assumed to read a v8 score, but
@@ -299,3 +299,20 @@ subpunctis, is unchanged. Hydration does not rewrite. The cache key, legacy
 draft-v2 recovery, original-source protection and cross-tab guard are
 unchanged. Older builds cannot read v8 files, including v8 files that contain
 only older kinds.
+
+## Native v9 compound directional neumes (Stage 9B-3)
+
+Version 9 adds `torculus-resupinus`, `porrectus-flexus`, `scandicus-flexus`
+and `climacus-resupinus`
+([ADR 0025](adrs/0025-compound-directional-four-note-neumes.md)).
+
+- **Exact v1–v8 readers** reject these kinds with "Unsupported neume kind for
+  this schema version". Every other v1–v8 rule is unchanged.
+- **v9** builds the exact four-note tuple with `fourNotes`, never truncating
+  or padding. It then validates the adjacent contour, the absence of authored
+  forms and the `{none, final}` mora matrix.
+
+No count, variant or grouping field exists. Hydration does not rewrite. The
+cache key, legacy draft-v2 recovery, original-source protection and
+cross-tab guard are unchanged. Older builds cannot read v9 files, including
+v9 files that contain only older kinds.

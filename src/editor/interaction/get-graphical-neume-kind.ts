@@ -43,5 +43,13 @@ export function getGraphicalNeumeKind(
       return 'porrectus';
     case 'place-torculus':
       return 'torculus';
+    case 'place-torculus-resupinus':
+      return 'torculus-resupinus';
+    case 'place-porrectus-flexus':
+      return 'porrectus-flexus';
+    case 'place-scandicus-flexus':
+      return 'scandicus-flexus';
+    case 'place-climacus-resupinus':
+      return 'climacus-resupinus';
   }
 }

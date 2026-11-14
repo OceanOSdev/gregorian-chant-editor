@@ -24,9 +24,49 @@ export type GraphicalNeumeKind =
   | 'scandicus'
   | 'torculus'
   | 'climacus'
-  | 'porrectus';
+  | 'porrectus'
+  | 'torculus-resupinus'
+  | 'porrectus-flexus'
+  | 'scandicus-flexus'
+  | 'climacus-resupinus';
 
 export type NeumeEntryPitches =
+  | {
+      kind: 'torculus-resupinus';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'porrectus-flexus';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'scandicus-flexus';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'climacus-resupinus';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
   | {
       kind: 'scandicus-4';
       staffPositions: readonly [
@@ -159,6 +199,27 @@ export function createNeumeEntryPitches(
 ): NeumeEntryPitches {
   const at = (offset: number) => staffPosition(firstStaffPosition + offset);
   switch (kind) {
+    // Plan defaults (ADR 0025): one click places all four notes.
+    case 'torculus-resupinus':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(2), at(1), at(3)],
+      };
+    case 'porrectus-flexus':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(-2), at(1), at(-1)],
+      };
+    case 'scandicus-flexus':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(1), at(3), at(2)],
+      };
+    case 'climacus-resupinus':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(-1), at(-3), at(-2)],
+      };
     case 'pes-subbipunctis':
       return {
         kind,

@@ -19,6 +19,7 @@ import { buildScandicusOrTorculus } from './neumes/scandicus-torculus';
 import { buildClimacus } from './neumes/climacus';
 import { buildExtendedScandicus } from './neumes/scandicus-extended';
 import { buildPorrectus } from './neumes/porrectus';
+import { buildCompoundDirectional } from './neumes/compound-directional';
 import { buildPesSubpunctis } from './neumes/pes-subpunctis';
 
 export {
@@ -74,7 +75,11 @@ export function buildNeumeGeometry(
     );
   };
   const result = buildAt(leftX);
-  return accidentals.length && result.bounds.x < leftX
+  // `leftX` is the group's left ink edge for every layout consumer (spacing,
+  // compaction and reflow rebuild at `bounds.x + shift`). Prefix accidentals,
+  // and the compound-only left vertical-episema fallback (ADR 0025), can
+  // extend ink left of it; translate the group so they never overhang.
+  return result.bounds.x < leftX
     ? buildAt(leftX + leftX - result.bounds.x)
     : result;
 }
@@ -86,6 +91,11 @@ function buildUnmodifiedGeometry(
   bottomStaffY: number,
 ): NeumeGeometry {
   switch (kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus':
+      return buildCompoundDirectional(kind, positions, leftX, bottomStaffY);
     case 'pes-subpunctis':
       return buildPesSubpunctis(positions, leftX, bottomStaffY);
     case 'bistropha':

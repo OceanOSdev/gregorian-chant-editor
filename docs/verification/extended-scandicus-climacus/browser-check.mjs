@@ -519,7 +519,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 8);
+      assert.equal(JSON.parse(await raw()).version, 9);
       assert.equal(await activeVariant(family), variant);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -544,9 +544,10 @@ try {
       assert.equal(await focusedTool(), `${family}-menu`);
       await key('Enter');
       await key('End');
+      // Stage 9B-3 appends the named compound figure to each menu.
       assert.equal(
         await ev('document.activeElement.textContent.trim()'),
-        `${Title(family)} (5 notes)`,
+        family === 'scandicus' ? 'Scandicus flexus' : 'Climacus resupinus',
       );
       await key('Home');
       await key('ArrowDown');
@@ -582,7 +583,7 @@ try {
     await pointer(primary('scandicus'));
     assert.deepEqual(await selectedTool(), ['scandicus']);
     assert.equal(await activeVariant('scandicus'), 'scandicus');
-    // Native v8 refresh, export and import; a v7 file with a four-note
+    // Current native refresh, export and import; a v7 file with a four-note
     // Scandicus is rejected and leaves the score.
     const bytes = await raw();
     await navigate();
@@ -596,7 +597,7 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 8);
+    assert.equal(JSON.parse(exported).version, 9);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
     const before7 = await raw();
@@ -823,9 +824,9 @@ try {
       [0, 0, 0, 1],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 8);
+    assert.equal(JSON.parse(markedBytes).version, 9);
     await navigate();
-    assert.equal(await raw(), markedBytes, 'reload keeps marked v8 bytes');
+    assert.equal(await raw(), markedBytes, 'reload keeps marked current bytes');
     assert.deepEqual(await score(), scandicusMarked);
     await snapshot('interaction-' + width);
     // ADR 0023 amendment: Pes subtripunctis deletion that leaves four
@@ -878,7 +879,7 @@ try {
       /fourth note of four-note climacus/,
     );
     const normalizedBytes = await raw();
-    assert.equal(JSON.parse(normalizedBytes).version, 8);
+    assert.equal(JSON.parse(normalizedBytes).version, 9);
     await navigate();
     assert.equal(await raw(), normalizedBytes, 'normalized group reloads');
     await undo();

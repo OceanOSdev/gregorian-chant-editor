@@ -361,7 +361,7 @@ describe('earlier-note placement and mutation', () => {
   });
   it('supports default and anchored strict v5 round trips', () => {
     for (const d of [flat(), anchored()]) {
-      expect(JSON.parse(encodeDocument(d)).version).toBe(8);
+      expect(JSON.parse(encodeDocument(d)).version).toBe(9);
       expect(decodeDocument(encodeDocument(d))).toEqual(d);
     }
   });

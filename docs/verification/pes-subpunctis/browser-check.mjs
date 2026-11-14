@@ -491,7 +491,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 8);
+      assert.equal(JSON.parse(await raw()).version, 9);
       assert.equal(await family(), kind);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -531,7 +531,7 @@ try {
     const keyed = (await score()).neumes.filter((n) => !keyboardIds.has(n.id));
     assert.equal(keyed.length, 1);
     assert.equal(keyed[0].notes.length, 4);
-    // Current native (v8) refresh, export and import.
+    // Current native refresh, export and import.
     const bytes = await raw();
     await navigate();
     assert.equal(await raw(), bytes);
@@ -544,7 +544,7 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 8);
+    assert.equal(JSON.parse(exported).version, 9);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
     // Intentional legacy check: a v6 file containing the kind (introduced in
@@ -726,13 +726,9 @@ try {
       ],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 8);
+    assert.equal(JSON.parse(markedBytes).version, 9);
     await navigate();
-    assert.equal(
-      await raw(),
-      markedBytes,
-      'reload keeps marked current (v8) bytes',
-    );
+    assert.equal(await raw(), markedBytes, 'reload keeps marked current bytes');
     assert.deepEqual(await score(), kyrieMarked);
     await snapshot('interaction-' + width);
     // Five-note insertion through the clef-boundary Insert controls, which

@@ -166,7 +166,67 @@ export function monotonicNotes(
   return e ? [a, b, c, d, e] : [a, b, c, d];
 }
 
+/** One fixed four-note tuple (ADR 0025). */
+export type FourNotes = [ChantNote, ChantNote, ChantNote, ChantNote];
+
+/** Rise, strict fall, strict rise: p0 < p1 > p2 < p3 (ADR 0025). */
+export interface TorculusResupinusNeume {
+  id: string;
+  kind: 'torculus-resupinus';
+  notes: FourNotes;
+}
+
+/** Fall, strict rise, strict fall: p0 > p1 < p2 > p3 (ADR 0025). */
+export interface PorrectusFlexusNeume {
+  id: string;
+  kind: 'porrectus-flexus';
+  notes: FourNotes;
+}
+
+/** Rise, strict rise, strict fall: p0 < p1 < p2 > p3 (ADR 0025). */
+export interface ScandicusFlexusNeume {
+  id: string;
+  kind: 'scandicus-flexus';
+  notes: FourNotes;
+}
+
+/** Fall, strict fall, strict rise: p0 > p1 > p2 < p3 (ADR 0025). */
+export interface ClimacusResupinusNeume {
+  id: string;
+  kind: 'climacus-resupinus';
+  notes: FourNotes;
+}
+
+export type CompoundDirectionalNeume =
+  | TorculusResupinusNeume
+  | PorrectusFlexusNeume
+  | ScandicusFlexusNeume
+  | ClimacusResupinusNeume;
+
+export type CompoundDirectionalKind = CompoundDirectionalNeume['kind'];
+
+/** Adjacent directions (+1 up, -1 down) of each compound kind, in order. */
+export const compoundDirectionalContours = {
+  'torculus-resupinus': [1, -1, 1],
+  'porrectus-flexus': [-1, 1, -1],
+  'scandicus-flexus': [1, 1, -1],
+  'climacus-resupinus': [-1, -1, 1],
+} as const satisfies Record<CompoundDirectionalKind, readonly (1 | -1)[]>;
+
+export function isCompoundDirectionalKind(
+  kind: string,
+): kind is CompoundDirectionalKind {
+  return Object.hasOwn(compoundDirectionalContours, kind);
+}
+
+/** Builds the exact four-note tuple without truncating or padding. */
+export function fourNotes(notes: readonly ChantNote[]): FourNotes | null {
+  const [a, b, c, d, ...rest] = notes;
+  return a && b && c && d && !rest.length ? [a, b, c, d] : null;
+}
+
 export type Neume =
+  | CompoundDirectionalNeume
   | PesSubpunctisNeume
   | BistrophaNeume
   | TristrophaNeume

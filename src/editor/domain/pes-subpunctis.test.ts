@@ -253,7 +253,7 @@ describe('pes subpunctis semantic family', () => {
     }
   });
 
-  it('keeps a final-note mora on its stable note through movement, deletion, history and current (v8) persistence', () => {
+  it('keeps a final-note mora on its stable note through movement, deletion, history and current (v9) persistence', () => {
     const marked = (pitches: number[]) =>
       updateMoraScope(fixture(pitches), 'g', 'final');
     // Movement never moves the mark.
@@ -308,7 +308,7 @@ describe('pes subpunctis semantic family', () => {
     expect(deleteNote(equal, 'n1')).toBe(equal);
     // Persistence and exact v1–v6 rejection keep the mark untouched.
     const text = encodeDocument(five);
-    expect(JSON.parse(text).version).toBe(8);
+    expect(JSON.parse(text).version).toBe(9);
     expect(decodeDocument(text)).toEqual(five);
     for (const version of [2, 3, 4, 5, 6]) {
       const payload = JSON.parse(text);
@@ -561,7 +561,7 @@ describe('pes subpunctis native persistence (kind introduced in v7)', () => {
     for (const pitches of [[2, 4, 3, 2], kyrie.christe]) {
       const doc = fixture(pitches);
       const text = encodeDocument(doc);
-      expect(JSON.parse(text).version).toBe(8);
+      expect(JSON.parse(text).version).toBe(9);
       expect(decodeDocument(text)).toEqual(doc);
       for (const version of [1, 2, 3, 4, 5, 6]) {
         const payload = JSON.parse(text);
@@ -609,7 +609,7 @@ describe('pes subpunctis native persistence (kind introduced in v7)', () => {
       (p) => (p.document.neumes[0].count = 5),
       (p) => (p.document.neumes[0].variant = 'subtripunctis'),
       (p) => (p.document.neumes[0].kind = 'pes-subtripunctis'),
-      (p) => (p.version = 9),
+      (p) => (p.version = 10),
     ];
     for (const change of mutations) {
       const value = structuredClone(good);

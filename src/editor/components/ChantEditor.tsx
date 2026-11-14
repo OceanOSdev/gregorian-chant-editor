@@ -22,6 +22,8 @@ import { updateNoteForm } from '../commands/update-note-form';
 import {
   entryAppearance,
   climacusFamily,
+  porrectusFamily,
+  torculusFamily,
   podatusFamily,
   punctumFamily,
   scandicusFamily,
@@ -125,7 +127,9 @@ const neumeFamilies = {
   punctum: { variants: punctumFamily, tool: placePunctumTool },
   podatus: { variants: podatusFamily, tool: placePodatusTool },
   scandicus: { variants: scandicusFamily, tool: placeScandicusTool },
+  torculus: { variants: torculusFamily, tool: placeTorculusTool },
   climacus: { variants: climacusFamily, tool: placeClimacusTool },
+  porrectus: { variants: porrectusFamily, tool: placePorrectusTool },
 } as const;
 type FamilyPrimary = keyof typeof neumeFamilies;
 
@@ -720,10 +724,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           tool === 'punctum-menu' ||
           tool === 'podatus-menu' ||
           tool === 'scandicus-menu' ||
-          tool === 'climacus-menu' ? null : tool === 'punctum' ||
+          tool === 'torculus-menu' ||
+          tool === 'climacus-menu' ||
+          tool === 'porrectus-menu' ? null : tool === 'punctum' ||
             tool === 'podatus' ||
             tool === 'scandicus' ||
-            tool === 'climacus' ? (
+            tool === 'torculus' ||
+            tool === 'climacus' ||
+            tool === 'porrectus' ? (
             <NeumeFamilyMenu<GraphicalNeumeKind>
               key={tool}
               family={neumeName(tool)}

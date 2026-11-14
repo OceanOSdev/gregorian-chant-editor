@@ -28,6 +28,26 @@ export const entryPitchCases = {
   torculus: { kind: 'torculus', offsets: [0, 2, 1], fallback: 2 },
   climacus: { kind: 'climacus', offsets: [0, -1, -2], fallback: 3 },
   porrectus: { kind: 'porrectus', offsets: [0, -2, -1], fallback: 3 },
+  'torculus-resupinus': {
+    kind: 'torculus-resupinus',
+    offsets: [0, 2, 1, 3],
+    fallback: 2,
+  },
+  'porrectus-flexus': {
+    kind: 'porrectus-flexus',
+    offsets: [0, -2, 1, -1],
+    fallback: 3,
+  },
+  'scandicus-flexus': {
+    kind: 'scandicus-flexus',
+    offsets: [0, 1, 3, 2],
+    fallback: 2,
+  },
+  'climacus-resupinus': {
+    kind: 'climacus-resupinus',
+    offsets: [0, -1, -3, -2],
+    fallback: 4,
+  },
 } as const satisfies {
   [K in GraphicalNeumeKind]: {
     kind: K;

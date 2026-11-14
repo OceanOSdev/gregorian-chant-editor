@@ -174,3 +174,18 @@ ADRs 0004 and 0023 remain Accepted. The implementation in PR #76 was
 owner-accepted on 2026-11-13 at `e859f3b`, based on headless automated
 browser verification and qualitative historical comparisons. Foreground,
 screen-reader and measured typographic verification were not performed.
+
+[Accepted ADR 0025: Add four fixed compound directional four-note neumes](0025-compound-directional-four-note-neumes.md)
+records Stage 9B-3 (owner-approved 2026-11-14): Torculus resupinus, Porrectus
+flexus, Scandicus flexus and Climacus resupinus as single fixed-tuple kinds
+under ADR 0004, which needs no new qualification. Approved decisions:
+
+- sourced Roman/Solesmes engraving profiles;
+- `{none, final}` mora, by analogy and Gregorio;
+- contour-based deletion normalization;
+- six split toolbar families;
+- native v9.
+
+ADRs 0004 and 0021–0024 remain Accepted and unamended. Implementation
+acceptance is pending owner review of PR #80; see the
+[reference record](../verification/compound-directional-neumes/README.md).

@@ -1,8 +1,12 @@
 import { hasValidNoteForms } from './note-forms';
 import { getMoraScope } from './mora';
 import {
+  compoundDirectionalContours,
+  fourNotes,
+  isCompoundDirectionalKind,
   monotonicNotes,
   pesSubpunctisNotes,
+  type CompoundDirectionalKind,
   type ChantDocument,
   type ChantNote,
   type ClivisNeume,
@@ -71,6 +75,11 @@ export function isValidNeume(neume: Neume): boolean {
   if (!hasValidNoteForms(neume)) return false;
   if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus':
+      return hasCompoundContour(neume.kind, neume.notes);
     case 'pes-subpunctis': {
       const [first, apex, ...tail] = neume.notes;
       if (
@@ -163,6 +172,59 @@ export function isValidNeume(neume: Neume): boolean {
 }
 
 /**
+ * Exactly four notes whose adjacent steps strictly follow the kind's contour
+ * (ADR 0025). Nonadjacent pitches are unconstrained, as for Torculus and
+ * Porrectus. Every slot is indexed so holes in malformed arrays fail.
+ */
+function hasCompoundContour(
+  kind: CompoundDirectionalKind,
+  notes: readonly (ChantNote | undefined)[],
+): boolean {
+  if (notes.length !== 4) return false;
+  const contour = compoundDirectionalContours[kind];
+  for (let index = 0; index < notes.length; index++) {
+    const note = notes[index];
+    if (!note) return false;
+    const previous = notes[index - 1];
+    const direction = contour[index - 1];
+    if (
+      previous &&
+      direction !== undefined &&
+      Math.sign(note.staffPosition - previous.staffPosition) !== direction
+    )
+      return false;
+  }
+  return true;
+}
+
+/**
+ * Three survivors of a compound four-note neume become the three-note kind
+ * named by their adjacent contour (ADR 0025): ++ Scandicus, -- Climacus,
+ * +- Torculus, -+ Porrectus. An adjacent unison, or a surviving mark the
+ * result does not allow, rejects by returning the input.
+ */
+function normalizeCompoundSurvivors(
+  neume: Neume,
+  survivors: readonly ChantNote[],
+): Neume {
+  const [a, b, c] = survivors;
+  if (!a || !b || !c || survivors.length !== 3) return neume;
+  const first = Math.sign(b.staffPosition - a.staffPosition);
+  const second = Math.sign(c.staffPosition - b.staffPosition);
+  if (first === 0 || second === 0) return neume;
+  const kind =
+    first > 0
+      ? second > 0
+        ? 'scandicus'
+        : 'torculus'
+      : second < 0
+        ? 'climacus'
+        : 'porrectus';
+  const result: Neume = { id: neume.id, kind, notes: [a, b, c] };
+  return isValidNeume(result) ? result : neume;
+}
+
+/**
  * Preserves the owning neume ID and every surviving note ID while reducing
  * three-note kinds to a supported two-note contour, two-note kinds to Punctum,
  * or Punctum to no neume. Unsupported equal-pitch survivors reject deletion.
@@ -179,6 +241,13 @@ export function normalizeNeumeAfterNoteDeletion(
 
   if (neume.kind === 'punctum') {
     return null;
+  }
+
+  if (isCompoundDirectionalKind(neume.kind)) {
+    return normalizeCompoundSurvivors(
+      neume,
+      neume.notes.filter((note) => note.id !== noteId),
+    );
   }
 
   if (neume.kind === 'pes-subpunctis') {
@@ -320,6 +389,7 @@ export function neumeDisplayName(
   kind: Neume['kind'],
   noteCount: number,
 ): string {
+  if (isCompoundDirectionalKind(kind)) return kind.replace('-', ' ');
   if (kind === 'pes-subpunctis')
     return noteCount === 5 ? 'pes subtripunctis' : 'pes subbipunctis';
   if ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
@@ -337,6 +407,13 @@ export function mapNeumeNotes(
   map: (note: ChantNote, index: number) => ChantNote,
 ): Neume | null {
   switch (neume.kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus': {
+      const notes = fourNotes(neume.notes.map(map));
+      return notes ? { id: neume.id, kind: neume.kind, notes } : null;
+    }
     case 'pes-subpunctis': {
       const notes = pesSubpunctisNotes(neume.notes.map(map));
       return notes ? { ...neume, notes } : null;

@@ -625,7 +625,7 @@ describe('native v8 persistence', () => {
       for (const pitches of representative[kind]) {
         const doc = fixture(kind, pitches);
         const text = encodeDocument(doc);
-        expect(JSON.parse(text).version).toBe(8);
+        expect(JSON.parse(text).version).toBe(9);
         expect(decodeDocument(text)).toEqual(doc);
         for (const version of [1, 2, 3, 4, 5, 6, 7]) {
           const payload = JSON.parse(text);
@@ -684,7 +684,7 @@ describe('native v8 persistence', () => {
         },
         (p) => (p.document.neumes[0].count = 5),
         (p) => (p.document.neumes[0].kind = `${kind}-5`),
-        (p) => (p.version = 9),
+        (p) => (p.version = 10),
       ];
       for (const change of mutations) {
         const value = structuredClone(good);
@@ -706,12 +706,19 @@ describe('native v8 persistence', () => {
 
 describe('extended entry', () => {
   it('exposes the ordinary member first and exact four/five-note variants', () => {
+    // Stage 9B-3 appends the named compound figures (ADR 0025).
     expect(scandicusFamily).toEqual([
       'scandicus',
       'scandicus-4',
       'scandicus-5',
+      'scandicus-flexus',
     ]);
-    expect(climacusFamily).toEqual(['climacus', 'climacus-4', 'climacus-5']);
+    expect(climacusFamily).toEqual([
+      'climacus',
+      'climacus-4',
+      'climacus-5',
+      'climacus-resupinus',
+    ]);
     for (const kind of kinds) {
       expect(entryNoteCount(kind)).toBe(3);
       expect(entryNoteCount(`${kind}-4`)).toBe(4);

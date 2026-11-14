@@ -360,7 +360,7 @@ try {
     expected.accidentals = [];
     getNote(expected).mora = 1;
     let saved = await change('Mora scope', 'sole');
-    assert.equal(saved.version, 8);
+    assert.equal(saved.version, 9);
     assert.deepEqual(saved.document, expected);
     getNote(expected).episema = true;
     saved = await change('Horizontal episema', 'on');

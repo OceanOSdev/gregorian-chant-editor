@@ -81,6 +81,10 @@ Torculus:  [first, higher second, lower third]
 Climacus:  [highest, …, lowest] (3, 4 or 5 notes, strictly descending)
 Porrectus: [first, lower second, higher third]
 Pes subpunctis: [lower, apex, descending…] (4 or 5 notes)
+Torculus resupinus: [p0 < p1 > p2 < p3]
+Porrectus flexus:   [p0 > p1 < p2 > p3]
+Scandicus flexus:   [p0 < p1 < p2 > p3]
+Climacus resupinus: [p0 > p1 > p2 < p3]
 ```
 
 Podatus must ascend strictly, Clivis must descend strictly, and every
@@ -100,6 +104,8 @@ Pes subpunctis is a bounded exception: a union of exactly two fixed tuples
 ([ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md)). Scandicus
 and Climacus are bounded unions of three-, four- and five-note tuples
 ([ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+The four compound directional kinds each have one fixed four-note tuple
+([ADR 0025](adrs/0025-compound-directional-four-note-neumes.md)).
 
 TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
@@ -111,7 +117,8 @@ Each stable-ID note optionally owns `mora: 1` and `episema: true`; omission
 means off. Mora is presence, not a count or duration. Punctum allows none/sole;
 Podatus and Clivis none/first/second/both; Torculus, Porrectus and three-note
 Scandicus and Climacus none/final/final two. Choices depend on the actual tuple
-length; four- and five-note Scandicus/Climacus allow none/final note. The shared pure pattern validator governs
+length; four- and five-note Scandicus/Climacus and the four compound
+directional kinds allow none/final note. The shared pure pattern validator governs
 commands and native decoding. A final pair marks two distinct note IDs and
 derives an auctum duplex; no second persisted sign object exists. Episema stays
 independent. Movement and normalization retain marks on surviving note IDs.
@@ -417,3 +424,36 @@ strict contour stay strict, so only a surviving mark that the shorter group
 does not allow can reject the deletion. Marks are never dropped or
 transferred. Three to two uses the existing Podatus/Clivis rule. ADR 0021 B
 ownership applies unchanged to every constituent.
+
+## Compound directional neumes (Stage 9B-3)
+
+`torculus-resupinus`, `porrectus-flexus`, `scandicus-flexus` and
+`climacus-resupinus` are explicit kinds with one fixed tuple of exactly four
+notes (`FourNotes`, built by `fourNotes`)
+([ADR 0025](adrs/0025-compound-directional-four-note-neumes.md)). Each adjacent
+pair strictly follows the kind's contour (`compoundDirectionalContours`):
+
+- Torculus resupinus: up, down, up;
+- Porrectus flexus: down, up, down;
+- Scandicus flexus: up, up, down;
+- Climacus resupinus: down, down, up.
+
+Nonadjacent pitches are unconstrained; unisons and crossings occur in print.
+No count, variant, grouping or fusion field is stored. Display names are the
+traditional names ("torculus resupinus"). Entry variants of the same names
+map one-to-one to the kinds.
+
+The new kinds have no authored forms. Their mora is none or final note only,
+approved by analogy and Gregorio rather than direct marked print. Horizontal
+and vertical episemata are independent on every note. Individual moves must
+keep the adjacent contour or are rejected atomically; whole-neume moves
+transpose every note with stable IDs and marks.
+
+Deleting one constituent normalizes to the three-note kind named by the
+surviving adjacent contour: `++` Scandicus, `--` Climacus, `+-` Torculus,
+`-+` Porrectus. Any adjacent unison rejects; no mixed, repeated or split
+kind is invented. The neume ID, surviving note objects and order, marks,
+lyric and structural anchors and ADR 0021 B ownership are preserved. A final
+mora is removed only with its own note. Every three-note kind allows a final
+mora and these kinds have no forms, so a surviving mark never forces a
+rejection. The deletion rules of all older kinds are unchanged.

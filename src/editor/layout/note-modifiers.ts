@@ -1,4 +1,8 @@
-import type { Neume, NoteModifiers } from '../domain/chant-document';
+import {
+  isCompoundDirectionalKind,
+  type Neume,
+  type NoteModifiers,
+} from '../domain/chant-document';
 import {
   getInkBounds,
   interNeumeInkGap,
@@ -7,6 +11,7 @@ import {
   type NeumeGeometry,
 } from './neumes/shared';
 import { extendedScandicusElements } from './neumes/scandicus-extended';
+import { clivisStemLength } from './neumes/podatus-clivis';
 
 function overlaps(a: LayoutBounds, b: LayoutBounds, clearance = 2): boolean {
   return (
@@ -123,7 +128,10 @@ export function addNoteModifiers(
         kind === 'climacus' ||
         kind === 'pes-subpunctis',
     );
-    const initialX = kind === 'porrectus' ? right + 3 : note.anchorX + 11;
+    const initialX =
+      kind === 'porrectus' || kind === 'torculus-resupinus'
+        ? right + 3
+        : note.anchorX + 11;
     const columns = [
       initialX,
       right + 3,
@@ -151,8 +159,8 @@ export function addNoteModifiers(
   // established geometry. Compound occupied boxes include empty apertures;
   // use the same head regions and the recipes' narrow shafts for this pass.
   const obstacles = verticalObstacles(geometry, kind);
-  const verticalClear = (bounds: LayoutBounds) =>
-    bounds.x >= geometry.bounds.x &&
+  const verticalClear = (bounds: LayoutBounds, leftOfInk = false) =>
+    (leftOfInk || bounds.x >= geometry.bounds.x) &&
     ![...obstacles, ...signs.map((sign) => sign.bounds)].some((part) =>
       overlaps(bounds, part),
     ) &&
@@ -179,20 +187,23 @@ export function addNoteModifiers(
     }
     // Never move an upper tick past a lower constituent in the same column
     // (or vice versa): clear ink alone would visually assign it to that note.
-    const bounds = candidates.find(
-      (candidate) =>
-        verticalClear(candidate) &&
-        geometry.notes.every((other, otherIndex) => {
-          if (
-            otherIndex === index ||
-            Math.abs(other.anchorX - note.anchorX) > 7
-          )
-            return true;
-          return other.anchorY > note.anchorY
-            ? candidate.y + candidate.height <= other.head.bounds.y - 2
-            : candidate.y >= other.head.bounds.y + other.head.bounds.height + 2;
-        }),
-    );
+    const placeable = (candidate: LayoutBounds, leftOfInk: boolean) =>
+      verticalClear(candidate, leftOfInk) &&
+      geometry.notes.every((other, otherIndex) => {
+        if (otherIndex === index || Math.abs(other.anchorX - note.anchorX) > 7)
+          return true;
+        return other.anchorY > note.anchorY
+          ? candidate.y + candidate.height <= other.head.bounds.y - 2
+          : candidate.y >= other.head.bounds.y + other.head.bounds.height + 2;
+      });
+    // Compound four-note figures (ADR 0025) can crowd a column; only when
+    // no ordinary candidate fits may a tick sit left of the neume's ink.
+    // Every placement that the ordinary rule finds is unchanged.
+    const bounds =
+      candidates.find((candidate) => placeable(candidate, false)) ??
+      (isCompoundDirectionalKind(kind)
+        ? candidates.find((candidate) => placeable(candidate, true))
+        : undefined);
     if (!bounds)
       throw new Error('No local vertical episema placement for this geometry');
     const sign: InkShape = {
@@ -239,7 +250,8 @@ function verticalObstacles(
     // An authored virga alone adds a descending right queue.
     if (bottom > first.head.bounds.y + first.head.bounds.height)
       addShaft(first.x + first.width - 1.5, first.anchorY, bottom);
-  } else if (kind === 'climacus') {
+  } else if (kind === 'climacus' || kind === 'climacus-resupinus') {
+    // Climacus resupinus adds only a detached Punctum: no further shaft.
     addShaft(first.x + first.width - 1.5, first.anchorY, first.anchorY + 27);
   } else if (kind === 'scandicus' && geometry.notes.length > 3) {
     // Only each staircase Podatus is joined (right stem); elements are not
@@ -249,20 +261,44 @@ function verticalObstacles(
       if (lower && upper)
         addShaft(lower.x + lower.width - 1.5, upper.anchorY, lower.anchorY);
     }
+  } else if (kind === 'scandicus-flexus') {
+    // Pes + Clivis (ADR 0025): the Podatus right join, then the Clivis left
+    // stem and its right join to the final note.
+    const [lower, upper, top, last] = geometry.notes;
+    if (lower && upper && top && last) {
+      addShaft(lower.x + lower.width - 1.5, upper.anchorY, lower.anchorY);
+      const distance = Math.round((last.anchorY - top.anchorY) / 12);
+      addShaft(top.x, top.anchorY, top.anchorY + clivisStemLength(distance));
+      addShaft(last.x, top.anchorY, last.anchorY);
+    }
   } else if (kind === 'pes-subpunctis') {
     // Only the Podatus is joined; the descending diamonds are detached.
     const apex = geometry.notes[1];
     addShaft(first.x + first.width - 1.5, apex.anchorY, first.anchorY);
   } else {
-    if (kind === 'clivis' || kind === 'porrectus')
+    // Torculus resupinus: the Porrectus stem joins the leading Punctum.
+    const stroke = kind === 'torculus-resupinus' ? 1 : 0;
+    if (
+      kind === 'clivis' ||
+      kind === 'porrectus' ||
+      kind === 'porrectus-flexus'
+    )
       addShaft(geometry.bounds.x, first.anchorY, bottom);
+    if (stroke)
+      addShaft(
+        geometry.notes[1].head.bounds.x,
+        geometry.notes[1].anchorY,
+        first.anchorY,
+      );
     for (let index = 1; index < geometry.notes.length; index++) {
       const previous = geometry.notes[index - 1];
       const current = geometry.notes[index];
       const ascending = current.anchorY < previous.anchorY;
       // Porrectus's first connection is the ribbon, already covered by its
       // two constituent regions. Its final ascent uses the usual right join.
-      if (kind === 'porrectus' && index === 1) continue;
+      if ((kind === 'porrectus' || kind === 'porrectus-flexus') && index === 1)
+        continue;
+      if (stroke && index <= 2) continue;
       const x = ascending ? previous.x + previous.width - 1.5 : current.x;
       addShaft(
         x,

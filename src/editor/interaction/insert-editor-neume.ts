@@ -12,6 +12,7 @@ import { insertScandicus } from '../commands/insert-scandicus';
 import { insertTorculus } from '../commands/insert-torculus';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
 import {
+  fourNotes,
   monotonicNotes,
   pesSubpunctisNotes,
   staffPosition,
@@ -90,6 +91,24 @@ export function insertEditorNeume(
         insertion.kind === 'scandicus-5'
         ? insertScandicus(document, { ...base, kind: 'scandicus', notes }, at)
         : insertClimacus(document, { ...base, kind: 'climacus', notes }, at);
+    }
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus': {
+      // Same bounded allocation contract: too few supplied IDs is a no-op.
+      if (ids.noteIds.length < insertion.staffPositions.length) return document;
+      const appearance = entryAppearance(insertion.kind, form);
+      const notes = fourNotes(
+        insertion.staffPositions.map((position, index) => ({
+          ...appearance[index],
+          id: ids.noteIds[index] ?? '',
+          staffPosition: position,
+        })),
+      );
+      return notes
+        ? insertNeume(document, { ...base, kind: insertion.kind, notes }, at)
+        : document;
     }
     case 'bistropha':
       return insertNeume(
@@ -229,6 +248,10 @@ const toolbarFallbackPitches = {
   torculus: 2,
   climacus: 3,
   porrectus: 3,
+  'torculus-resupinus': 2,
+  'porrectus-flexus': 3,
+  'scandicus-flexus': 2,
+  'climacus-resupinus': 4,
 } satisfies Record<GraphicalNeumeKind, number>;
 
 /** Resolve toolbar pitches and contours from a musical selection. */

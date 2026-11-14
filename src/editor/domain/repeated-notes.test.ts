@@ -310,10 +310,10 @@ describe.each(kinds)('%s fixed written-unison group', (kind) => {
       effective(signed).map((n) => [n.degree, n.alteration]),
     );
   });
-  it('round trips the current version (v8) and rejects the kinds under every exact legacy reader, guarding original cache bytes', () => {
+  it('round trips the current version (v9) and rejects the kinds under every exact legacy reader, guarding original cache bytes', () => {
     const doc = fixture(kind),
       text = encodeDocument(doc);
-    expect(JSON.parse(text).version).toBe(8);
+    expect(JSON.parse(text).version).toBe(9);
     expect(decodeDocument(text)).toEqual(doc);
     for (const version of [1, 2, 3, 4, 5]) {
       const payload = JSON.parse(text);

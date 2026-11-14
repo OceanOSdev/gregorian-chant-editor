@@ -9,7 +9,11 @@ import {
   type Neume,
   type LyricSyllable,
 } from '../domain/chant-document';
-import { staffPosition } from '../domain/chant-document';
+import {
+  fourNotes,
+  isCompoundDirectionalKind,
+  staffPosition,
+} from '../domain/chant-document';
 import { isValidClef } from '../domain/clef';
 import {
   hasValidDivisions,
@@ -22,8 +26,8 @@ import { isValidNeume } from '../domain/neume';
 
 export const maximumDocumentBytes = 1024 * 1024;
 const format = 'gregorian-chant-editor';
-type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export const currentSchemaVersion = 8;
+type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export const currentSchemaVersion = 9;
 function fail(message: string): never {
   throw new Error(message);
 }
@@ -99,11 +103,28 @@ function neume(value: unknown, version: SchemaVersion): Neume {
     fail('Unsupported neume kind for this schema version.');
   if (version < 7 && n.kind === 'pes-subpunctis')
     fail('Unsupported neume kind for this schema version.');
+  // v9 adds the four compound directional kinds (ADR 0025).
+  if (
+    version < 9 &&
+    typeof n.kind === 'string' &&
+    isCompoundDirectionalKind(n.kind)
+  )
+    fail('Unsupported neume kind for this schema version.');
   const notes = array(n.notes).map((n) => note(n, version));
   const [a, b, c] = notes;
   const identity = id(n.id);
   let result: Neume;
   switch (n.kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus': {
+      // Exactly four notes; never truncate or pad.
+      const tuple = fourNotes(notes);
+      if (!tuple) return fail('Compound neume requires four notes.');
+      result = { id: identity, kind: n.kind, notes: tuple };
+      break;
+    }
     case 'pes-subpunctis': {
       // Exactly four or five notes; never truncate or pad.
       const tuple = pesSubpunctisNotes(notes);
@@ -315,10 +336,11 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 5 &&
     envelope.version !== 6 &&
     envelope.version !== 7 &&
-    envelope.version !== 8
+    envelope.version !== 8 &&
+    envelope.version !== 9
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6, 7 and 8.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6, 7, 8 and 9.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);
