@@ -1,0 +1,4 @@
+name:9B-3 compound directional cases;
+%%
+(c4) TR() a(fgfg) b(fhgh) c(fhgi) d(fjgh) e(fgeh) f(ehgj) (::) (z) PF() g(hfge) h(jijg) i(hghg) j(hfhf) k(hgig) l(ifhd) (::)
+SF() m(fghf) n(eghg) o(ghjh) p(fghe) q(fgjf) r(fg!hf) s(fg/hf) t(fg!hg) (::) (z) CR() u(hGFg) v(jIGh) w(hGEh) x(hFEi) y(iHGh) z(hGFh) (::)

@@ -4,7 +4,7 @@ Branch: `feature/stage-9b3-compound-directional-neumes`
 Target: `master`
 Base: `5c24857` (Maintenance C merged, PR #79).
 
-Status: proposed design and research handoff; owner gates below are pending.
+Status: research delivered (see the [reference record](../verification/compound-directional-neumes/README.md) and Proposed [ADR 0025](../adrs/0025-compound-directional-four-note-neumes.md)); owner Gates A–C pending, no implementation.
 Read AGENTS.md, the owning guides, accepted ADRs and
 [Stage 9B-2](stage-9b2-extended-scandicus-climacus.md).
 Use the [verification tiers](../ai-workflow.md#verification-tiers-and-efficiency)
@@ -16,12 +16,12 @@ and runner. The accepted owner baseline is
 Add four named conventional four-note figures in the existing Roman/Solesmes
 square-notation profile. Proposed fixed tuples and strict adjacent directions:
 
-| Kind | Adjacent contour | Default relative to first pitch p |
-| --- | --- | --- |
-| torculus-resupinus | up, down, up | [p,p+2,p+1,p+3] |
-| porrectus-flexus | down, up, down | [p,p-2,p+1,p-1] |
-| scandicus-flexus | up, up, down | [p,p+1,p+3,p+2] |
-| climacus-resupinus | down, down, up | [p,p-1,p-3,p-2] |
+| Kind               | Adjacent contour | Default relative to first pitch p |
+| ------------------ | ---------------- | --------------------------------- |
+| torculus-resupinus | up, down, up     | [p,p+2,p+1,p+3]                   |
+| porrectus-flexus   | down, up, down   | [p,p-2,p+1,p-1]                   |
+| scandicus-flexus   | up, up, down     | [p,p+1,p+3,p+2]                   |
+| climacus-resupinus | down, down, up   | [p,p-1,p-3,p-2]                   |
 
 All adjacent pitches must differ in the stated direction; nonadjacent
 pitches may coincide, or cross the previous extremum. Do not constrain the
@@ -162,12 +162,12 @@ Any adjacent unison => reject, not an invented mixed/repeated kind or
 split. Outer-note equality is allowed for Torculus/Porrectus under current
 rules. This gives the following possible results (indices in musical order):
 
-| Kind | Delete 0 | Delete 1 | Delete 2 | Delete 3 |
-| --- | --- | --- | --- | --- |
-| torculus-resupinus | porrectus | scandicus / porrectus / reject | scandicus / torculus / reject | torculus |
-| porrectus-flexus | torculus | climacus / torculus / reject | climacus / porrectus / reject | porrectus |
-| scandicus-flexus | torculus | torculus | scandicus / torculus / reject | scandicus |
-| climacus-resupinus | porrectus | porrectus | climacus / porrectus / reject | climacus |
+| Kind               | Delete 0  | Delete 1                       | Delete 2                      | Delete 3  |
+| ------------------ | --------- | ------------------------------ | ----------------------------- | --------- |
+| torculus-resupinus | porrectus | scandicus / porrectus / reject | scandicus / torculus / reject | torculus  |
+| porrectus-flexus   | torculus  | climacus / torculus / reject   | climacus / porrectus / reject | porrectus |
+| scandicus-flexus   | torculus  | torculus                       | scandicus / torculus / reject | scandicus |
+| climacus-resupinus | porrectus | porrectus                      | climacus / porrectus / reject | climacus  |
 
 The proposal is scoped to these four new kinds; preserve existing deletion
 rules for all older kinds. Retain neume ID, lyric anchor, structural
