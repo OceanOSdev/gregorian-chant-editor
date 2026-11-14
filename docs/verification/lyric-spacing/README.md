@@ -135,6 +135,15 @@ No application behavior, layout policy or accepted ADR changed.
 Final completion: Chromium spacing passed (18.6 s), Firefox cue passed (7.0 s).
 Desktop, 320px and 150% CSS zoom assertions remain. See the
 [shared run and gate evidence](../runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
-for versions, revision/dirty provenance, baseline logs and pending owner matrix.
+for versions, revision/dirty provenance and baseline logs.
 Headless pointer/rendering results do not verify foreground focus or spoken
 assistive technology.
+
+## Maintenance C owner closeout (2026-11-13)
+
+Maintenance C is completed and owner-accepted in PR #79 at clean `eea0095`.
+The [owner comprehensive verification](../runner/README.md#maintenance-c-owner-acceptance-2026-11-13)
+records all 34 supported jobs passing, including this record's supported browser
+pairs, with six expected unsupported pairs and passing hosted CI. Firefox
+mid-score-clefs 150% CSS-zoom intermittency remains unresolved; a passing run
+does not establish a fix. Existing headless and manual acceptance limits remain.

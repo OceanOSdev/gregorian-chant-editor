@@ -439,3 +439,12 @@ Generalized event/placement frameworks, broad walker extraction, reducer rewrite
 and fixture overhauls remain optional maintainability work and are deliberately
 deferred as requested. Foreground keyboard/zoom, screen reader, IME and final
 engraving acceptance remain owner checks, not claims of automated coverage.
+
+## Maintenance C owner closeout (2026-11-13)
+
+Maintenance C is completed and owner-accepted in PR #79 at clean `eea0095`.
+The [owner comprehensive verification](../runner/README.md#maintenance-c-owner-acceptance-2026-11-13)
+records all 34 supported jobs passing, including this record's supported browser
+pairs, with six expected unsupported pairs and passing hosted CI. Firefox
+mid-score-clefs 150% CSS-zoom intermittency remains unresolved; a passing run
+does not establish a fix. Existing headless and manual acceptance limits remain.

@@ -184,8 +184,60 @@ Focused iterations exposed native Close timing/visibility and the later
 oversized-placement Undo interception. Those failed diagnostics remain in their
 local run directories; final completion used no diagnostic modes or retries.
 
-The owner full matrix remains **pending**, including the separately recorded
-Firefox mid-score-clefs 150% zoom intermittent issue. These targeted passes
-do not establish a clean comprehensive baseline. No foreground browser,
-spoken screen-reader or new human engraving acceptance is claimed. No
-historical screenshots were regenerated.
+The targeted run preceded the owner comprehensive verification below. No
+foreground browser, spoken screen-reader or new human engraving acceptance is
+claimed. No historical screenshots were regenerated.
+
+## Maintenance C owner acceptance (2026-11-13)
+
+Completed and owner-accepted in [PR #79](https://github.com/OceanOSdev/gregorian-chant-editor/pull/79)
+at final reviewed revision `eea0095eabd598df08e7156a31a3350271134497`.
+The owner's `summary.json` was inspected for revision, dirty state, browser
+versions and every job result before recording this evidence. The tree was clean
+(`dirty: false`, no dirty files). Linux x64, Node 24.12.0,
+Chromium 157.0.8103.38 snap and Mozilla Firefox 146.0.
+
+Command: `npm run verify:browser -- --preset full --browser both -j 4`.
+Summary: `.verification-runs/run-2026-11-14T05-21-07-299Z-bIe9CY/summary.json`
+(local ignored evidence; UTC date is November 14, owner acceptance date is
+November 13).
+
+All 34 supported jobs passed, zero failed; six expected unsupported pairs.
+All four previously failing jobs passed, and `mid-score-clefs` passed in both
+browsers. Wall time 261.3 s, observed concurrency 4; production bundle build
+passed in 0.3 s. Every job exited 0; all owned processes stopped, profiles and
+caches removed, with no cleanup errors. The full per-driver results follow;
+unsupported pairs are reported, not executed.
+
+| Driver                      | Chromium    | Firefox     |
+| --------------------------- | ----------- | ----------- |
+| continuous-lyrics           | passed      | unsupported |
+| lyric-move                  | passed      | unsupported |
+| vowel-alignment             | passed      | unsupported |
+| lyric-spacing               | passed      | unsupported |
+| lyric-spacing-selection-cue | unsupported | passed      |
+| word-composition            | passed      | passed      |
+| clefs                       | passed      | unsupported |
+| mid-score-clefs             | passed      | passed      |
+| divisions                   | passed      | passed      |
+| extended-scandicus-climacus | passed      | passed      |
+| pes-subpunctis              | passed      | passed      |
+| repeated-note-neumes        | passed      | passed      |
+| note-modifiers              | passed      | passed      |
+| note-shapes                 | passed      | passed      |
+| b-accidentals               | passed      | passed      |
+| b-accidentals-acceptance    | passed      | passed      |
+| local-persistence           | passed      | passed      |
+| bundled-example             | passed      | passed      |
+| vertical-episemata          | passed      | passed      |
+| vertical-episemata-context  | passed      | passed      |
+
+Hosted CI passed, as reported by the owner:
+[run 43560915338](https://github.com/OceanOSdev/gregorian-chant-editor/actions/runs/43560915338).
+This documentation-only closeout does not rerun the matrix, unit tests or
+benchmarks. Stage 9B-3 is next; the completed plan remains historical.
+
+The intermittent Firefox mid-score-clefs 150% CSS-zoom issue remains unresolved;
+this passing run is not evidence of a fix. Headless results do not establish
+foreground focus, actual browser/OS zoom, native popup/IME behavior, spoken
+screen-reader output or final engraving acceptance.

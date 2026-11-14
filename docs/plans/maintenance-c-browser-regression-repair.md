@@ -3,8 +3,9 @@
 Branch: `maintenance/browser-regression-repair`
 Target: `master`
 
-Status: implemented, awaiting review and owner comprehensive matrix. Retained
-through review. See [completion evidence](../verification/runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc).
+Status: completed and owner-accepted 2026-11-13 in PR #79 at `eea0095`.
+Retained as a historical record of the agreed plan. See
+[owner comprehensive verification](../verification/runner/README.md#maintenance-c-owner-acceptance-2026-11-13).
 Maintenance B (PR #78) merged at `1327c2c`.
 This is the last planned maintenance milestone before Stage 9B-3.
 Use the new runner and the verification tiers in

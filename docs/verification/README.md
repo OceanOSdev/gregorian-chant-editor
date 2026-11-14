@@ -2,6 +2,12 @@
 
 ## Current standalone browser drivers (Maintenance A, 2026-11-13)
 
+The latest full-matrix evidence is the
+[owner run at clean `eea0095`](runner/README.md#maintenance-c-owner-acceptance-2026-11-13),
+accepted 2026-11-13: every supported pair below passed. Earlier revision-specific
+results in the inventory are historical; Firefox mid-score-clefs intermittency
+remains unresolved.
+
 A human-readable inventory, not a runner manifest. The executable list is the
 [runner manifest](runner/manifest.mjs); run drivers with
 `npm run verify:browser` ([runner guide](runner/README.md)), which also holds
@@ -87,7 +93,10 @@ found pre-existing failures in `word-composition` (both browsers),
 runner guide. Maintenance C repairs those older scenarios by natively closing
 the later note-properties panel; all four targeted jobs now pass.
 [Completion evidence](runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
-records the final run and standard gate. Owner comprehensive matrix is pending;
+records the targeted run and standard gate. Maintenance C is complete and
+owner-accepted 2026-11-13 at `eea0095`: the
+[owner comprehensive verification](runner/README.md#maintenance-c-owner-acceptance-2026-11-13)
+records 34 passes, zero failures and six expected unsupported pairs;
 Firefox mid-score-clefs zoom intermittency remains open.
 
 ## Earlier records and the post-PR-38 audit
