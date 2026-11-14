@@ -138,3 +138,54 @@ Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
   `-j 4` 28.9 s (2.4x). In the `-j 4` run two dev drivers ran concurrently
   with the storage-clearing `local-persistence` driver on distinct origins,
   DevTools endpoints and profiles; all six passed.
+
+## Maintenance C targeted completion (2026-11-14 UTC)
+
+Driver-only repair `002fb04`; runner and application unchanged. The final
+run started at parent `a6cdac3` with exactly the three repaired drivers dirty;
+those bytes were committed as `002fb04` during execution. Subsequent changes
+are documentation only. Linux x64, Node 24.12.0 (the existing local version,
+versus requested 24.18.0), Chromium 157.0.8103.38 (snap), Firefox 146.0.
+
+Command: `npm run verify:browser -- --driver word-composition,lyric-spacing,lyric-spacing-selection-cue --browser both -j 2`.
+
+Run directory:
+`.verification-runs/run-2026-11-14T05-16-32-396Z-rn6MQ9/`
+(`summary.json`, driver logs and temporary screenshots; ignored, not committed).
+
+| Job                                  | Result      | Total  |
+| ------------------------------------ | ----------- | ------ |
+| word-composition Chromium            | passed      | 32.5 s |
+| word-composition Firefox             | passed      | 38.1 s |
+| lyric-spacing Chromium               | passed      | 18.6 s |
+| lyric-spacing-selection-cue Firefox  | passed      | 7.0 s  |
+| lyric-spacing Firefox                | unsupported | —      |
+| lyric-spacing-selection-cue Chromium | unsupported | —      |
+
+51.4 s wall clock, no build required; cleanup succeeded, all owned processes
+stopped and profiles/caches removed. Standard gate on the same substantive
+bytes passed once: format:check, lint, 87 test files / 1,894 tests, build and
+git diff --check. Documentation closeout runs formatting/link checks only.
+
+Clean baseline at `a6cdac3`:
+`.verification-runs/run-2026-11-14T05-12-47-035Z-E3qTMc/`
+reproduced four failures / two unsupported, with successful cleanup.
+Word composition failed `podatus note0-1 at 1440` in each browser;
+Chromium spacing threw at `getComputedStyle(r)`; Firefox cue failed
+`selected === 'true'` at 150% CSS zoom. The earlier sandbox invocation
+(`run-2026-11-14T05-12-35-104Z-1n5hRB`) had four setup failures,
+not browser test results; rerunning outside the sandbox enabled local
+servers and installed browsers.
+
+Root causes and repairs:
+[word composition](../word-composition/README.md#maintenance-c-repair-2026-11-14-utc)
+and [lyric spacing/cue](../lyric-spacing/README.md#maintenance-c-repair-2026-11-14-utc).
+Focused iterations exposed native Close timing/visibility and the later
+oversized-placement Undo interception. Those failed diagnostics remain in their
+local run directories; final completion used no diagnostic modes or retries.
+
+The owner full matrix remains **pending**, including the separately recorded
+Firefox mid-score-clefs 150% zoom intermittent issue. These targeted passes
+do not establish a clean comprehensive baseline. No foreground browser,
+spoken screen-reader or new human engraving acceptance is claimed. No
+historical screenshots were regenerated.

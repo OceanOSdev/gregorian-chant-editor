@@ -104,3 +104,37 @@ and pointer selection, not foreground Firefox keyboard focus or final Stage 4D
 acceptance. The earlier blanket Firefox-unverified statement describes the
 initial spacing implementation; this targeted later Firefox rendering check is
 now verified. Spoken screen-reader behavior remains unverified.
+
+## Maintenance C repair (2026-11-14 UTC)
+
+On clean `a6cdac3`, Chromium reproduced the `getComputedStyle(r)` TypeError:
+`r` was null because the 150% CSS zoom lyric click had not selected the
+syllable. Firefox independently passed the desktop and 320px cue assertions,
+then reported `selected: 'false'` with no highlight at 150% CSS zoom.
+The DOM still has the background as the first child of the lyric group,
+behind text, with no stroke/outline and pointer-events none; selected SVG
+clearance and positions were valid in the preceding cases.
+
+Both drivers left note properties open after the note-selection/cue-removal
+check. The panel followed later scroll/viewport changes into the next target;
+Firefox native hit diagnostics identified its Mora scope label over the
+zoomed lyric. This is the later nearby-properties UI (`e03aa12`), not a
+change to the lyric cue hierarchy or spacing contract. The drivers now
+natively close properties immediately after verifying cue removal and
+position stability, while the note/panel are onscreen and before resetting
+scroll or changing zoom. They assert dismissal. Scrolling the fixed panel
+itself is inappropriate: offscreen-note panels are intentionally hidden.
+
+Once Chromium reached the rest of its suite, the same panel also intercepted
+Undo after Escape returned from placement to the inserted note in the
+oversized fixture. Native dismissal there restores the existing exact
+insertion/undo/redo assertions. All original text/history, wrapping, font,
+overflow, later-system placement, focus/reveal and visual cue assertions remain.
+No application behavior, layout policy or accepted ADR changed.
+
+Final completion: Chromium spacing passed (18.6 s), Firefox cue passed (7.0 s).
+Desktop, 320px and 150% CSS zoom assertions remain. See the
+[shared run and gate evidence](../runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
+for versions, revision/dirty provenance, baseline logs and pending owner matrix.
+Headless pointer/rendering results do not verify foreground focus or spoken
+assistive technology.

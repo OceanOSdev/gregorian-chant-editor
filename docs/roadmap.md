@@ -295,14 +295,16 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
    efficiency (complete, owner-accepted 2026-11-13, PR #78):** the isolated parallel
    [browser verification runner](verification/runner/README.md). Its first
    full run found pre-existing driver failures (`word-composition`,
-   `lyric-spacing`, `lyric-spacing-selection-cue`) that need an owner decision
-   on repair versus application regression.
-2. **Maintenance C — triage of the pre-existing browser driver failures
-   (next, before Stage 9B-3):** determine for `word-composition` (Chromium
-   and Firefox), `lyric-spacing` (Chromium) and `lyric-spacing-selection-cue`
-   (Firefox) whether each is a stale driver or an application regression, and
-   repair accordingly. The Firefox `mid-score-clefs` intermittent failure
-   remains a known open item.
+   `lyric-spacing`, `lyric-spacing-selection-cue`) repaired by Maintenance C below.
+2. **Maintenance C — browser regression repair (implemented, awaiting review
+   and owner full matrix, 2026-11-14 UTC):** all four affected jobs pass after
+   driver-only native dismissal of the later note-properties panel. The
+   [completion record](verification/runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
+   records root causes, final targeted evidence and passing standard gate.
+   Interaction/engraving contracts remain unchanged. Retain the
+   [plan](plans/maintenance-c-browser-regression-repair.md) through review.
+   A clean comprehensive baseline and resuming Stage 9B-3 remain pending the
+   owner's full matrix; Firefox `mid-score-clefs` zoom intermittency stays open.
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more

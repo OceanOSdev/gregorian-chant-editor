@@ -3,7 +3,9 @@
 Branch: `maintenance/browser-regression-repair`
 Target: `master`
 
-Status: active handoff. Maintenance B (PR #78) merged at `1327c2c`.
+Status: implemented, awaiting review and owner comprehensive matrix. Retained
+through review. See [completion evidence](../verification/runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc).
+Maintenance B (PR #78) merged at `1327c2c`.
 This is the last planned maintenance milestone before Stage 9B-3.
 Use the new runner and the verification tiers in
 [ai-workflow.md](../ai-workflow.md) to keep this task economical.

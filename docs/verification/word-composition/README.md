@@ -102,3 +102,24 @@ Owner visual approval of the compact music, residual short gaps, outgoing style
 and Proposed ADR 0011 remains required. Stage 4D, foreground assistive-technology
 acceptance, more notation vocabularies and publication-quality engraving remain
 deferred. No merge was performed.
+
+## Maintenance C repair (2026-11-14 UTC)
+
+Both browsers reproduced `podatus note0-1 at 1440` on clean `a6cdac3`.
+Native hit-owner diagnostics showed the lower note's HTML
+`.note-context-toolbar` above the upper note's SVG hit rectangle at the
+unchanged layout-derived point. The rectangle was present underneath; neither
+the CTM conversion nor compact clipping was defective. The nearby properties
+panel was introduced in `e03aa12`, after this driver. Its
+[accepted interaction contract](../../editor-interactions.md#consolidated-nearby-note-properties-stage-8c-owner-feedback)
+protects the selected note's bounds, not every other score control.
+
+The driver now clicks the panel's native Close button before the next
+constituent and Shift-selection. It asserts dismissal, retaining the original
+hit points, all seven pair kinds at 1440px/320px, whole-neume selection,
+clipped cues, continuation and clearance checks. No application geometry,
+events, assertions or accepted ADRs changed; no new ADR is warranted.
+
+Final completion: this driver passed in Chromium (32.5 s) and Firefox
+(38.1 s). See the [shared run and gate evidence](../runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
+for versions, revision/dirty provenance, baseline logs and pending owner matrix.
