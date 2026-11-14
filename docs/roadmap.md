@@ -289,20 +289,25 @@ historical drivers. Both affected drivers passed in headless Chromium only;
 Firefox, foreground focus and spoken screen-reader checks were not performed.
 The Firefox `mid-score-clefs` intermittent failure remains unresolved.
 
-## Next planned maintenance (before Stage 9B-3)
+## Completed maintenance before Stage 9B-3
 
 1. **Maintenance B — browser verification automation and development
    efficiency (complete, owner-accepted 2026-11-13, PR #78):** the isolated parallel
    [browser verification runner](verification/runner/README.md). Its first
    full run found pre-existing driver failures (`word-composition`,
-   `lyric-spacing`, `lyric-spacing-selection-cue`) that need an owner decision
-   on repair versus application regression.
-2. **Maintenance C — triage of the pre-existing browser driver failures
-   (next, before Stage 9B-3):** determine for `word-composition` (Chromium
-   and Firefox), `lyric-spacing` (Chromium) and `lyric-spacing-selection-cue`
-   (Firefox) whether each is a stale driver or an application regression, and
-   repair accordingly. The Firefox `mid-score-clefs` intermittent failure
-   remains a known open item.
+   `lyric-spacing`, `lyric-spacing-selection-cue`) repaired by Maintenance C below.
+2. **Maintenance C — browser regression repair (complete, owner-accepted
+   2026-11-13, PR #79 at `eea0095`):** driver-only native dismissal of the later
+   note-properties panel restored all four failing jobs without changing
+   interaction/engraving contracts. The
+   [owner comprehensive verification](verification/runner/README.md#maintenance-c-owner-acceptance-2026-11-13)
+   records 34 passes, zero failures and six expected unsupported pairs, plus
+   passing hosted CI. The [completed plan](plans/maintenance-c-browser-regression-repair.md)
+   is retained as a historical record. Firefox `mid-score-clefs` zoom
+   intermittency remains unresolved despite passing this run; headless
+   verification limitations remain.
+
+**Next: Stage 9B-3.**
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more

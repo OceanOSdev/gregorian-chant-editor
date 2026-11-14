@@ -2,6 +2,12 @@
 
 ## Current standalone browser drivers (Maintenance A, 2026-11-13)
 
+The latest full-matrix evidence is the
+[owner run at clean `eea0095`](runner/README.md#maintenance-c-owner-acceptance-2026-11-13),
+accepted 2026-11-13: every supported pair below passed. Earlier revision-specific
+results in the inventory are historical; Firefox mid-score-clefs intermittency
+remains unresolved.
+
 A human-readable inventory, not a runner manifest. The executable list is the
 [runner manifest](runner/manifest.mjs); run drivers with
 `npm run verify:browser` ([runner guide](runner/README.md)), which also holds
@@ -34,9 +40,9 @@ a non-default DevTools endpoint).
 | [`continuous-lyrics/browser-check.mjs`](continuous-lyrics/README.md)                     | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); DevTools fixed at 9230                            | **Re-run 2026-11-13 (Maintenance A): Chromium pass**, including the ported Stage 1 anchored-deletion scenario. Firefox focus automation limitation documented.                                                                                 |
 | [`lyric-move/browser-check.mjs`](lyric-move/README.md)                                   | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); DevTools fixed at 9230                            | **Re-run 2026-11-13 (Maintenance A): Chromium pass** after the stale status-selector repair. Failed at line 189 in Stage 9A–9B-2 records.                                                                                                      |
 | [`vowel-alignment/browser-check.mjs`](vowel-alignment/README.md)                         | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230                                              | Chromium pass in the [Stage 6B record](mid-score-clefs/README.md). Not re-run since.                                                                                                                                                           |
-| [`lyric-spacing/browser-check.mjs`](lyric-spacing/README.md)                             | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230. `CHANT_BASELINE=1` is not a test            | Chromium pass in the Stage 6B record. Not re-run since.                                                                                                                                                                                        |
-| [`lyric-spacing/selection-cue-firefox.mjs`](lyric-spacing/README.md)                     | BiDi only | Dev fixture, `CHANT_EDITOR_URL` (5173); `CHANT_FIREFOX_URL` (default 9233)                | Firefox pass in the [Stage 4D record](stage-4d/README.md).                                                                                                                                                                                     |
-| [`word-composition/browser-check.mjs`](word-composition/README.md)                       | CDP, BiDi | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230 or `CHANT_FIREFOX_URL`; `CHANT_CORPUS` modes | Chromium and Firefox pass in the Stage 6B record (corpus not re-run there; `CHANT_CORPUS=diagnostic` and `CHANT_BASELINE=1` are not tests).                                                                                                    |
+| [`lyric-spacing/browser-check.mjs`](lyric-spacing/README.md)                             | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230. `CHANT_BASELINE=1` is not a test            | Chromium passes Maintenance C; see its linked repair record.                                                                                                                                                                                   |
+| [`lyric-spacing/selection-cue-firefox.mjs`](lyric-spacing/README.md)                     | BiDi only | Dev fixture, `CHANT_EDITOR_URL` (5173); `CHANT_FIREFOX_URL` (default 9233)                | Firefox passes Maintenance C; Stage 4D results remain historical.                                                                                                                                                                              |
+| [`word-composition/browser-check.mjs`](word-composition/README.md)                       | CDP, BiDi | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230 or `CHANT_FIREFOX_URL`; `CHANT_CORPUS` modes | Chromium and Firefox pass Maintenance C (corpus not re-run; `CHANT_CORPUS=diagnostic` and `CHANT_BASELINE=1` are not tests).                                                                                                                   |
 | [`clefs/browser-check.mjs`](clefs/README.md)                                             | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230                                              | Chromium pass at `34e7bb7` ([Stage 9B-2 record](extended-scandicus-climacus/README.md)).                                                                                                                                                       |
 | [`mid-score-clefs/browser-check.mjs`](mid-score-clefs/README.md)                         | CDP, BiDi | Dev fixture, 5173 fixed (no URL override); 9230 or `CHANT_FIREFOX_URL`                    | Chromium pass at `34e7bb7`. **Firefox: one intermittent, unresolved failure** (line 1032, 150% zoom pointer insertion), then two passes; see the [investigation](extended-scandicus-climacus/README.md#firefox-mid-score-clefs-investigation). |
 | [`divisions/browser-check.mjs`](divisions/README.md)                                     | CDP, BiDi | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230 or `CHANT_FIREFOX_URL`                       | Chromium and Firefox pass at `34e7bb7`.                                                                                                                                                                                                        |
@@ -84,7 +90,14 @@ ports were partly hard-coded per driver; Maintenance B made them configurable
 and added the isolated parallel [runner](runner/README.md). Its full-matrix run
 found pre-existing failures in `word-composition` (both browsers),
 `lyric-spacing` (Chromium) and `lyric-spacing-selection-cue` (Firefox); see the
-runner guide.
+runner guide. Maintenance C repairs those older scenarios by natively closing
+the later note-properties panel; all four targeted jobs now pass.
+[Completion evidence](runner/README.md#maintenance-c-targeted-completion-2026-11-14-utc)
+records the targeted run and standard gate. Maintenance C is complete and
+owner-accepted 2026-11-13 at `eea0095`: the
+[owner comprehensive verification](runner/README.md#maintenance-c-owner-acceptance-2026-11-13)
+records 34 passes, zero failures and six expected unsupported pairs;
+Firefox mid-score-clefs zoom intermittency remains open.
 
 ## Earlier records and the post-PR-38 audit
 

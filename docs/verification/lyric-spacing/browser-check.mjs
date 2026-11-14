@@ -88,6 +88,24 @@ const focus = async (selector) => {
   await ev(`document.querySelector(${JSON.stringify(selector)}).focus()`);
   await pause();
 };
+const closeNoteProperties = async () => {
+  // Dismiss while the selected note is onscreen, before resetting scroll/zoom.
+  const close = await ev(
+    `(()=>{const e=document.querySelector('[aria-label="Close note properties"]');const r=e.getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()`,
+  );
+  for (const type of ['mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...close,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+  assert.equal(
+    await ev(`document.querySelector('.note-context-toolbar')===null`),
+    true,
+  );
+};
 const click = async (selector) => {
   const point = await ev(
     `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'center'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
@@ -237,6 +255,7 @@ for (const [width, zoom] of [
     0,
   );
   assert.deepEqual(await geometry(), unselected);
+  await closeNoteProperties();
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 10, y: 10 });
   await ev('window.scrollTo(0,0)');
   await shot(`unselected-cue-${width}-${zoom}`);
@@ -372,6 +391,8 @@ const place = async (doc, point) => {
       `(()=>{const n=document.activeElement.getBoundingClientRect(),v=document.querySelector('.score-viewport').getBoundingClientRect();return n.left>=v.left-1&&n.right<=v.right+1})()`,
     ),
   );
+  // Escape returns to the inserted note and opens its properties.
+  await closeNoteProperties();
   await click('[aria-label="Undo last edit"]');
   assert.deepEqual(
     await ev(

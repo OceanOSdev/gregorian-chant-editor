@@ -312,7 +312,30 @@ try {
           const points = await ev(
             `(()=>{const l=compositionLayout(${JSON.stringify(doc)});return l.systems[0].neumes.flatMap(n=>n.notes.map(note=>({id:note.noteId,x:Math.max(n.hitClip?.left??-Infinity,Math.min(n.hitClip?.right??Infinity,note.hitBounds.x+note.hitBounds.width/2)),y:note.hitBounds.y+note.hitBounds.height/2})))})()`,
           );
+          // The later note-properties panel may cover another constituent.
+          // Close it natively; keep the same geometry-derived hit point.
+          const closeNoteProperties = async () => {
+            const close = await ev(
+              `(()=>{const e=document.querySelector('[aria-label="Close note properties"]');if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+            );
+            if (!close) return;
+            for (const type of ['mousePressed', 'mouseReleased'])
+              await send('Input.dispatchMouseEvent', {
+                type,
+                ...close,
+                button: 'left',
+                clickCount: 1,
+              });
+            await pause();
+            assert.equal(
+              await ev(
+                `document.querySelector('.note-context-toolbar')===null`,
+              ),
+              true,
+            );
+          };
           for (const point of points) {
+            await closeNoteProperties();
             const client = await ev(
               `(()=>{const svg=document.querySelector('.score');const p=new DOMPoint(${point.x},${point.y}).matrixTransform(svg.getScreenCTM());window.scrollBy(0,p.y-innerHeight/2);const q=new DOMPoint(${point.x},${point.y}).matrixTransform(svg.getScreenCTM());return {x:q.x,y:q.y}})()`,
             );
@@ -333,6 +356,7 @@ try {
             );
           }
           // Shift-select the following whole neume using native pointer input.
+          await closeNoteProperties();
           const target = points.at(-1);
           const client = await ev(
             `(()=>{const svg=document.querySelector('.score');const p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());window.scrollBy(0,p.y-innerHeight/2);const q=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());return {x:q.x,y:q.y}})()`,
