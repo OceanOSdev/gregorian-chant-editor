@@ -106,10 +106,19 @@ actual zoom/IME or spoken screen-reader behaviour.
 
 ## Results (Maintenance B, 2026-11-14)
 
-Revisions differ: the full matrix and benchmark below ran before the cleanup
-reporting corrections (runner code of `412d2f5` and `6b0b7a9` respectively)
-and were not repeated; the final smoke run is recorded in PR #78 at the final
-revision. Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
+Owner-accepted 2026-11-13 in PR #78 at final reviewed revision `1fb9a8f`.
+Evidence comes from three revisions and was not repeated for later changes:
+the full matrix at runner code `412d2f5`; the standard gate and benchmark at
+`6b0b7a9`; the cleanup-reporting corrections, 28 passing runner tests and the
+final smoke run at `1fb9a8f`.
+
+- Final smoke, `--browser both`, clean tree at `1fb9a8f`: 5 supported jobs
+  passed (`vowel-alignment` Chromium; `divisions` and `local-persistence` in
+  both), `vowel-alignment` Firefox reported unsupported; one 0.3 s build;
+  57.4 s wall clock; cleanup `ok` with every profile and cache removed and no
+  runner process left.
+
+Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
 
 - Full matrix, both browsers, `-j 2`, at runner code identical to `412d2f5`:
   34 runnable pairs, 30 passed, 4 failed, 6 unsupported; one 0.3 s build;

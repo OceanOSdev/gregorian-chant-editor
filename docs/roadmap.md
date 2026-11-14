@@ -292,7 +292,7 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
 ## Next planned maintenance (before Stage 9B-3)
 
 1. **Maintenance B — browser verification automation and development
-   efficiency (in review, PR #78):** the isolated parallel
+   efficiency (complete, owner-accepted 2026-11-13, PR #78):** the isolated parallel
    [browser verification runner](verification/runner/README.md). Its first
    full run found pre-existing driver failures (`word-composition`,
    `lyric-spacing`, `lyric-spacing-selection-cue`) that need an owner decision

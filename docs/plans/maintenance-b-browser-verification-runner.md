@@ -3,8 +3,9 @@
 Branch: `maintenance/browser-verification-runner`
 Target: `master`
 
-Status: implemented in PR #78 and awaiting owner acceptance; retained for
-historical closeout. Maintenance C (pre-existing driver failure triage) is the
+Status: **completed and owner-accepted 2026-11-13** in PR #78 (final reviewed
+revision `1fb9a8f`); retained as a historical record. Results live in the
+[runner guide](../verification/runner/README.md). Maintenance C (pre-existing driver failure triage) is the
 next follow-up before Stage 9B-3. Original planning context: Maintenance A (PR #77) merged at `da14890`; its
 [driver inventory](../verification/README.md) is the input to this task.
 The next notation milestone remains separate.
