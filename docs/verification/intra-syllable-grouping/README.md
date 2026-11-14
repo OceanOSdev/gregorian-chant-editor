@@ -1,8 +1,9 @@
 # Stage 9C: intra-syllable spacing decision record
 
-2026-11-14. **Research complete; owner Gates A–D pending.** No feature is
-implemented. Read with the [handoff plan](../../plans/stage-9c-intra-syllable-grouping.md)
-and [Proposed ADR 0026](../../adrs/0026-derived-intra-syllable-spacing.md).
+2026-11-14. **Research complete; owner Gates A–D accepted after review at
+`d1665bb`.** This record retains the research findings; current checkpoint
+implementation and verification are recorded in [9C-1](checkpoint-9c-1.md). Read with the [handoff plan](../../plans/stage-9c-intra-syllable-grouping.md)
+and [Accepted ADR 0026](../../adrs/0026-derived-intra-syllable-spacing.md).
 
 ## Architecture findings
 
@@ -293,4 +294,6 @@ Markdown file-link existence check (60 links across four changed documents).
 External source pages/images were retrieved during research; no general web
 link crawler was run. No application,
 test, runner, CI, dependency or schema change; no browser matrix or benchmark.
-Owner approval of A–D and ADR 0026 remains required before implementation.
+The owner subsequently accepted Gates A–D and ADR 0026 and authorized 9C-1
+only. The recommendations and research-only checks above describe the original
+deliverable; they do not claim integrated visual acceptance.

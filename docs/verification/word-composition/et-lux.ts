@@ -123,12 +123,16 @@ function specimen(
     document,
   };
 }
-// Ten prefix cells, with the first widened to a Clivis, put the two et notes
+// Ten prefix cells, with two widened to Clives, put the two et notes
 // on opposite systems after tightening the initial gap. The prefix is synthetic.
 const splitSpan = specimen('et-lux-split-span', 2, 10);
 splitSpan.document.neumes[0] = makeNeume(
   'et-lux-split-span-prefix-0',
-  clivis(5, 4),
+  clivis(5, 3),
+);
+splitSpan.document.neumes[1] = makeNeume(
+  'et-lux-split-span-prefix-1',
+  clivis(5, 3),
 );
 export const etLuxCorpus = [
   specimen('et-lux-prefix', 2),

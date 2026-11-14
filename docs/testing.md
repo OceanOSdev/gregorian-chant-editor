@@ -1030,3 +1030,17 @@ Scandicus vertical-episema cases; see the
 The left vertical-episema fallback has score-level regressions for spacing,
 compaction, lyric reflow, first-system placement and accidental clearance. The browser driver is `compound-directional-neumes`
 (production preview, both browsers).
+
+## Intra-syllable spacing (Stage 9C-1)
+
+`layout/intra-syllable-spacing.test.ts` checks independent anchor-interval and
+boundary-eligibility oracles, 6-unit complete-ink clearance, form/modifier and
+left-edge bounds, written-location accidental barriers, fallback, long melismas,
+all 14 existing kinds and supported Kyrie fragments. Existing et/lux, word corpus,
+lyric-spacing/alignment, division, accidental, clef and anchor-history tests
+remain focused regressions. See the [actual 9C-1 record](verification/intra-syllable-grouping/checkpoint-9c-1.md).
+
+Owner authorization separates checkpoints: 9C-1 runs focused unit, formatting,
+type and lint checks only. Integrated browser ownership/visual verification and
+the final repository gate belong to separately approved 9C-2; do not treat
+9C-1's unit evidence as graphical acceptance or a completed browser matrix.

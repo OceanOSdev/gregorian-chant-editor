@@ -35,13 +35,20 @@ edge and y = 0 at its nominal pitch. Positive y points downward. Layout converts
 these to score-absolute paths. Δ is the positive difference in semantic staff
 positions, not a semitone count.
 
-| Property                            | Project value                                   |
-| ----------------------------------- | ----------------------------------------------- |
-| Ordinary head cell                  | 12 × 12 units, centered on its nominal pitch    |
-| Engraved stem/join thickness        | 1.5 units (`s/8`)                               |
-| Gap between complete painted neumes | 33 units                                        |
-| Selection outline padding           | 5 units; excluded from painted bounds           |
-| Default note hit padding            | 6 units; partitioned for adjacent/stacked heads |
+| Property                                     | Project value                                   |
+| -------------------------------------------- | ----------------------------------------------- |
+| Ordinary head cell                           | 12 × 12 units, centered on its nominal pitch    |
+| Engraved stem/join thickness                 | 1.5 units (`s/8`)                               |
+| Ordinary gap between complete painted neumes | 33 units                                        |
+| Selection outline padding                    | 5 units; excluded from painted bounds           |
+| Default note hit padding                     | 6 units; partitioned for adjacent/stacked heads |
+
+Contextual inter-neume placement is owned by
+[layout and rendering](layout-and-rendering.md#stage-9c-intra-syllable-spacing):
+Accepted ADR 0026 permits a 6-unit complete-ink minimum for eligible independent
+neumes within one syllable, alongside ADR 0011's distinct-syllable rule. Builder
+advances below retain their ordinary 33-unit gap; contextual placement changes
+only the following neume's origin, including modifier overhangs.
 
 ## Punctum
 

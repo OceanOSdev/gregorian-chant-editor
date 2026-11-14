@@ -3,15 +3,41 @@
 Branch: `design/stage-9c-intra-syllable-grouping`
 Target: `master`
 Base: `eb3dd67` (PR #81 merged after Stage 9B-3).
-Status: bounded design/research complete (2026-11-14); owner Gates A–D and
-Proposed ADR 0026 pending. No implementation is authorized by this plan.
+Status: owner Gates A–D and ADR 0026 accepted (2026-11-14), following review
+of draft PR #82 at `d1665bb`. Checkpoint 9C-1 implementation complete for review; stop
+for review before 9C-2. Keep this branch and PR #82 draft; do not merge.
 
-Deliverable: [reference and decision record](../verification/intra-syllable-grouping/README.md),
-including actual print crops and matched reference inputs/renderings, and
-[Proposed ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md).
-Recommendation: retain anchor-derived membership/native v9, close independent
-engraving with conservative barriers, and existing editing operations. Stop
-for owner review; implementation checkpoints require a separate approval.
+The [reference record](../verification/intra-syllable-grouping/README.md)
+retains the research evidence; [Accepted ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md)
+owns the approved design. No semantic fields, group IDs, commands, schema
+version, migration or persisted geometry. Retain ADR 0008 membership/native v9.
+
+Checkpoint evidence: [9C-1 implementation and focused checks](../verification/intra-syllable-grouping/checkpoint-9c-1.md).
+
+## Approved implementation checkpoints
+
+1. **9C-1 — authorized now:** contextual spacing classification and pure layout
+   integration using existing derived membership; 6-unit complete-ink gaps only
+   for eligible non-null same-syllable neighbors. Preserve existing distinct-
+   syllable/word spacing, fallback, anchors, contours, independent interaction
+   ownership and whole-neume wrapping. Block divisions, explicit clefs and
+   boundaries touching written accidental ink at its actual location; carried
+   alteration alone is not a barrier. Add independent membership/eligibility
+   oracles, modifier/left-edge bounds, word/lyricless/fallback, long-span and
+   melisma-to-next-syllable regressions. Reuse et/lux and supported Kyrie
+   fragments. Run focused relevant unit tests, formatting, type and lint checks,
+   then commit/push and stop for review.
+2. **9C-2 — not authorized yet:** integrated browser verification and final
+   repository gate, visual/reference acceptance and any justified ownership
+   repairs. No comprehensive matrix, full compatibility comparisons or benchmark
+   in 9C-1. No grouping UI, connectors/fusion, selection hierarchy, silent lyric
+   transfer or changes to editing/history/persistence contracts.
+
+## Original bounded research brief (historical)
+
+The following brief records the completed research handoff. Its design-only
+exclusions and Proposed-decision language describe that phase; the owner-approved
+checkpoint scope above now controls implementation.
 
 ## Goal and current baseline
 

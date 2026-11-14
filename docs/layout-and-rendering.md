@@ -114,7 +114,9 @@ Complete painted `bounds` support measurement, insertion midpoints, and
 whole-neume outlines. They exclude interaction padding and selection styling.
 Musical lyric anchors are explicit and never recomputed from the union of all
 ink. `advanceX` is the distance from one glyph's left ink edge to the following
-left ink edge: complete painted width plus the existing 33-unit edge gap.
+left ink edge: complete painted width plus the ordinary 33-unit edge gap.
+The contextual placement rules below may reduce the gap between independent
+neumes; they never change the builder's internal contours.
 Each system's first nominal pitch anchor starts at x = 150; measured left
 bearings can increase it. All seven kinds use a six-unit first bearing with
 the same minimum ink-gap rule.
@@ -160,7 +162,7 @@ only the incoming anchored neume's position as required by the previous lyric's
 right occupied edge (the union of text advance and painted glyph bounds).
 Same-word syllables may abut; distinct words receive a
 5-unit (quarter-em at the matching 20-unit font) deterministic minimum gap.
-Unanchored melismatic neumes keep their musical advances. Each candidate tests
+Stage 9C qualifies unanchored melismatic advances as described below. Each candidate tests
 both musical ink and lyric right bounds; a new system resets lyric clearance
 and accommodates the first lyric's left bearing at the staff start. A candidate
 fits on equality. Internal neume geometry and lyric-to-musical alignment never change.
@@ -201,8 +203,9 @@ starting consecutive syllables of the same semantic word may use a **2-unit ink
 gap**. Actual occupied lyric edges then increase the incoming position as needed.
 There is a 0.05-em (1-unit) same-word clearance for responsive SVG hinting, in
 addition to the measurer's guarded ink bounds. Different-word boundaries retain
-the ordinary music minimum and quarter-em lyric gap. Unanchored melismas,
-lyricless music, neume contours, pitches and musical/vowel anchors are unchanged.
+the ordinary music minimum and quarter-em lyric gap. This distinct-syllable
+rule does not govern intra-syllable spacing (Stage 9C below). Lyricless music,
+neume contours, pitches and musical/vowel anchors are unchanged.
 
 Compact neighbors receive derived horizontal `hitClip` ownership intervals split
 at their ink-gap midpoint. SVG clips padded note targets, lyric-move
@@ -258,6 +261,38 @@ never enter lyric text, accessible labels, document identity or history.
 Missing/invalid/partial syllable or punctuation measurements disable composition,
 reservations and marks together, retaining music-only placement until remeasurement.
 Committed rendering and interaction still consume the same measured layout.
+
+### Stage 9C intra-syllable spacing
+
+[Accepted ADR 0026](adrs/0026-derived-intra-syllable-spacing.md) adds a separate
+**6-unit minimum between complete measured ink bounds** for adjacent independent
+neumes in the same non-null syllable span, as derived by ADR 0008's
+`findSyllableForNeume`. The layout input carries only that derived ID; no second
+ownership authority or persistent field exists. Both-null lyricless membership
+is ineligible. Complete text/hyphen measurement readiness is required; missing,
+partial or invalid snapshots retain ordinary music-only placement.
+
+A division or explicit clef between the pair blocks this new compaction. So does
+written accidental ink on either neighbor: geometry is grouped by the sign's
+actual written location, including an earlier-note placement, rather than its
+later B owner. Carried effective alteration without written ink is not a barrier.
+Existing same-word distinct-syllable eligibility is unchanged. In particular,
+a melisma's last unanchored neume followed by the next syllable retains the
+ordinary musical minimum, not the consecutive-anchor exception.
+
+Spacing uses full modifier/accidental bounds and ADR 0025 left-edge normalization.
+Internal neume contours, lyric/vowel/manual anchors and semantic identities stay
+unchanged. The existing measured text clearances, outgoing reservations, exact
+fit, oversized progress, custodes and whole-neume wrapping still apply. A long
+syllable may span systems with one lyric and no internal hyphen; a genuine later
+continuing syllable retains the existing source-system mark. New systems use
+normal leading-clef spacing. Tight neighbors reuse the same midpoint hit clips
+and shared committed-layout slots/previews described above. No connector or
+fusion is added.
+
+Checkpoint 9C-1 implements the pure classification/layout seam; browser ownership
+and visual acceptance remain for separately approved checkpoint 9C-2. The 6-unit
+metric is an engineering starting point, not a universal historical constant.
 
 ## Committed layout and previews
 

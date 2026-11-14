@@ -32,6 +32,19 @@ export function inspectCorpusCase(
   };
   const close = (a: number, b: number) => Math.abs(a - b) < 1e-7;
   const { document } = sample;
+  // Independent half-open interval oracle; membership is never persisted.
+  const owners = new Map<string, string>();
+  document.syllables.forEach((syllable, i) => {
+    const start = document.neumes.findIndex(
+      (n) => n.id === syllable.startsAtNeumeId,
+    );
+    const next = document.syllables[i + 1];
+    const end = next
+      ? document.neumes.findIndex((n) => n.id === next.startsAtNeumeId)
+      : document.neumes.length;
+    for (const n of document.neumes.slice(start, end))
+      owners.set(n.id, syllable.id);
+  });
   check(hasValidLyricAnchors(document), 'invalid lyric anchors');
   const expected = sample.words.flatMap((word) =>
     word.map((text, i) => ({
@@ -112,10 +125,20 @@ export function inspectCorpusCase(
             (s) => s.startsAtNeumeId === previous.neumeId,
           ),
           b = document.syllables.find((s) => s.startsAtNeumeId === n.neumeId);
-        if (!a || !b || b.boundaryBefore === 'word')
+        const sameSyllable =
+          owners.has(n.neumeId) &&
+          owners.get(n.neumeId) === owners.get(previous.neumeId);
+        const blocked =
+          document.divisions.some((d) => d.beforeNeumeId === n.neumeId) ||
+          document.clefChanges.some((c) => c.beforeNeumeId === n.neumeId) ||
+          !!previous.accidentals?.length ||
+          !!n.accidentals?.length;
+        if (sameSyllable && !blocked)
+          check(gap >= 6 - 1e-7, 'insufficient intra-syllable ink clearance');
+        else if (!a || !b || b.boundaryBefore === 'word')
           check(
             gap >= interNeumeInkGap - 1e-7,
-            'compressed melisma or word boundary',
+            'compressed ineligible or word boundary',
           );
         const right = Math.max(
           ...previous.notes.map((note) =>

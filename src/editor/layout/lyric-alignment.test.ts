@@ -117,10 +117,10 @@ describe('language-specific lyric segments', () => {
       ).segment,
     ).toEqual({ start: 1, end: 2 });
   });
-  it('leaves multi-system music, anchors and wrapping unchanged', () => {
+  it('leaves measured multi-system music, anchors and wrapping unchanged across languages', () => {
     const document = {
       ...exampleDocument,
-      neumes: Array.from({ length: 25 }, (_, i): PunctumNeume => ({
+      neumes: Array.from({ length: 60 }, (_, i): PunctumNeume => ({
         ...exampleDocument.neumes[0],
         kind: 'punctum',
         id: `n${i}`,
@@ -134,7 +134,7 @@ describe('language-specific lyric segments', () => {
       syllables: [syllable('qui')],
     };
     document.syllables[0].startsAtNeumeId = 'n0';
-    const baseline = layoutChant(document);
+    const baseline = layoutChant(document, measure);
     for (const language of ['la', 'en', 'el', 'und'] as LyricLanguage[]) {
       const layout = layoutChant(
         { ...document, lyricLanguage: language },
