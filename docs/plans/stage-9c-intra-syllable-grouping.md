@@ -3,8 +3,11 @@
 Branch: `design/stage-9c-intra-syllable-grouping`
 Target: `master`
 Base: `eb3dd67` (PR #81 merged after Stage 9B-3).
-Status: owner Gates A–D and ADR 0026 accepted (2026-11-14), following review
-of draft PR #82 at `d1665bb`. Checkpoint 9C-1 reviewed at `88051f6`; checkpoint 9C-2 authorized and in progress. Keep this branch and PR #82 draft; do not merge.
+Status: implementation and automated verification complete for owner review at
+`761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e` (rebased on master `e2a1f5b`).
+Checkpoint 9C-2 browser evidence passed on the pre-rebase working tree; the
+post-rebase browser rerun was blocked during Vite startup. Owner visual and
+implementation acceptance remain. Keep PR #82 draft; do not merge.
 
 The [reference record](../verification/intra-syllable-grouping/README.md)
 retains the research evidence; [Accepted ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md)

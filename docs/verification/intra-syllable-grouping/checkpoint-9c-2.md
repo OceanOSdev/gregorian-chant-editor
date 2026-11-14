@@ -1,7 +1,9 @@
 # Checkpoint 9C-2: integrated spacing verification
 
 2026-11-14. Owner authorized 9C-2 after reviewing `88051f6` in draft PR #82.
-Final owner visual/implementation acceptance and merge remain separate.
+Implementation closeout revision: `761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e`,
+rebased on master `e2a1f5b`. Owner visual/implementation acceptance and merge
+remain separate.
 
 ## Review repairs
 
@@ -49,6 +51,46 @@ activation and fixture mounting use DOM APIs, as in the existing driver.
 
 ## Results and visual review
 
-Verification is in progress. Actual final runs and retained visual specimens
-will be recorded here before checkpoint closeout. No performance benchmark,
-full compatibility comparison or comprehensive driver matrix is included.
+### Integrated browser evidence
+
+The runner artifacts under `.verification-runs/` record the focused
+`word-composition` driver against revision `88051f60d1f30c23d1115c73aceae39a7e0e0896`
+with the 9C-2 implementation present in the dirty worktree (2026-11-14):
+
+- Chromium 157 passed the integrated driver, including the described specimens,
+  all fourteen kinds' native ownership, clipping, dense focus reflow,
+  slots/ghost/insertion and v9 history at 1440px and 320px.
+- Firefox 146 initially failed `focus survives provisional reparent`. The
+  immediately following fresh Firefox run passed the same driver after the
+  focus repair described above. Both artifacts are retained in
+  `.verification-runs/run-2026-11-14T19-17-22-155Z-57ePbx/` and
+  `.verification-runs/run-2026-11-14T19-25-32-140Z-428vtU/` respectively.
+
+The same targeted Chromium/Firefox driver was attempted on clean rebased
+revision `761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e` twice. Both attempts ended
+`setup_failed` before launching the driver: runner-owned Vite exited with code 1
+before its ready line. See
+`.verification-runs/run-2026-11-14T22-33-09-815Z-hjsw4n/` and
+`.verification-runs/run-2026-11-14T22-33-39-703Z-TXaJ3X/`. Therefore the prior
+browser passes are evidence for the same implementation in its pre-rebase dirty
+working tree, not a successful browser run on the rebased revision.
+
+### Rebased repository gate
+
+On clean revision `761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e`, passed:
+
+- `npm run format:check`
+- `npm run lint`
+- `npm test` — 90 files, 2,022 tests
+- `npm run build` — TypeScript project checks and Vite production build
+- `git diff --check`
+
+Focused Stage 9C layout tests also passed on this revision: 112 tests across
+`intra-syllable-spacing.test.ts` and `authored-forms.test.ts`.
+
+Retained `matched-reference.png` and the Kyrie/Requiem crops are the committed
+reference specimens; they are not new screenshots of the editor. Automated
+browser geometry and focus assertions are not owner visual acceptance. The owner
+still needs to review the 6-unit spacing against those references and visually
+accept the dense and narrow layouts. No performance benchmark, full
+compatibility comparison or comprehensive browser matrix was run or is implied.
