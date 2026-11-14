@@ -5,7 +5,9 @@ import { join } from 'node:path';
 
 // Standalone CDP driver; mounts the existing real StrictMode editor fixture.
 const output = await mkdtemp(join(tmpdir(), 'chant-clefs-'));
-const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
+const pages = await (
+  await fetch(process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json')
+).json();
 const ws = new WebSocket(
   pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
 );

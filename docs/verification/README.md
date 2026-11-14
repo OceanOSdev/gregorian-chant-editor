@@ -2,7 +2,13 @@
 
 ## Current standalone browser drivers (Maintenance A, 2026-11-13)
 
-A human-readable inventory, not a runner manifest. Each owning README holds
+A human-readable inventory, not a runner manifest. The executable list is the
+[runner manifest](runner/manifest.mjs); run drivers with
+`npm run verify:browser` ([runner guide](runner/README.md)), which also holds
+the Maintenance B results. The table below keeps its dated Maintenance A
+"latest known" results; Maintenance B normalized the endpoints it lists:
+every routine Chromium driver now honours `CHANT_CHROMIUM_URL` (default 9230)
+and `mid-score-clefs` honours `CHANT_EDITOR_URL` (default 5173). Each owning README holds
 setup, scenario coverage and dated results; it overrides this summary. Only
 `lyric-move` and `continuous-lyrics` were re-run for Maintenance A (headless
 Chromium against `npm run dev` on 5173, DevTools on 9230, at 1440px and 320px).
@@ -74,8 +80,11 @@ Known limitations: browser drivers are not spoken screen-reader checks or
 foreground OS-focus checks; headless Firefox reported no document focus in the
 [Stage 2 environment](continuous-lyrics/README.md#focus-versus-selection), so
 foreground Firefox review remains manual where records say so. Endpoints and
-ports are partly hard-coded per driver; isolating parallel lanes is deferred
-to Maintenance B.
+ports were partly hard-coded per driver; Maintenance B made them configurable
+and added the isolated parallel [runner](runner/README.md). Its full-matrix run
+found pre-existing failures in `word-composition` (both browsers),
+`lyric-spacing` (Chromium) and `lyric-spacing-selection-cue` (Firefox); see the
+runner guide.
 
 ## Earlier records and the post-PR-38 audit
 

@@ -292,9 +292,17 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
 ## Next planned maintenance (before Stage 9B-3)
 
 1. **Maintenance B — browser verification automation and development
-   efficiency (next):** for example, a runner that isolates parallel
-   browser/preview lanes (separate profiles, ports and origins), with per-run
-   logs and timeouts. The Maintenance A inventory is its input.
+   efficiency (complete, owner-accepted 2026-11-13, PR #78):** the isolated parallel
+   [browser verification runner](verification/runner/README.md). Its first
+   full run found pre-existing driver failures (`word-composition`,
+   `lyric-spacing`, `lyric-spacing-selection-cue`) that need an owner decision
+   on repair versus application regression.
+2. **Maintenance C — triage of the pre-existing browser driver failures
+   (next, before Stage 9B-3):** determine for `word-composition` (Chromium
+   and Firefox), `lyric-spacing` (Chromium) and `lyric-spacing-selection-cue`
+   (Firefox) whether each is a stale driver or an application regression, and
+   repair accordingly. The Firefox `mid-score-clefs` intermittent failure
+   remains a known open item.
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more

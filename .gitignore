@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 run_this_to_resume_codex.sh
+
+# Browser verification runner output (docs/verification/runner)
+.verification-runs/
