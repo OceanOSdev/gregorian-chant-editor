@@ -531,7 +531,7 @@ try {
     const keyed = (await score()).neumes.filter((n) => !keyboardIds.has(n.id));
     assert.equal(keyed.length, 1);
     assert.equal(keyed[0].notes.length, 4);
-    // Native v7 refresh, export and import.
+    // Current native (v8) refresh, export and import.
     const bytes = await raw();
     await navigate();
     assert.equal(await raw(), bytes);
@@ -547,7 +547,8 @@ try {
     assert.equal(JSON.parse(exported).version, 8);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
-    // A v6 file containing the new kind is rejected and leaves the score.
+    // Intentional legacy check: a v6 file containing the kind (introduced in
+    // v7) is rejected and leaves the score.
     const before6 = await raw();
     await importText(JSON.stringify({ ...JSON.parse(exported), version: 6 }));
     assert.equal(await raw(), before6);
@@ -633,7 +634,9 @@ try {
     );
     await undo();
     assert.deepEqual(await score(), marked);
-    // Deletion normalizes to Climacus; four descending survivors are rejected.
+    // Four-note deletion normalizes to Climacus (Stage 9B-1); five-note
+    // deletion leaving four strictly descending notes normalizes to a
+    // four-note Climacus (ADR 0023 amendment); equal survivors are rejected.
     await ev(`document.querySelector('[data-note-id="p-0"]').focus()`);
     await key('Enter');
     await key('Delete');
@@ -725,7 +728,11 @@ try {
     const markedBytes = await raw();
     assert.equal(JSON.parse(markedBytes).version, 8);
     await navigate();
-    assert.equal(await raw(), markedBytes, 'reload keeps marked v7 bytes');
+    assert.equal(
+      await raw(),
+      markedBytes,
+      'reload keeps marked current (v8) bytes',
+    );
     assert.deepEqual(await score(), kyrieMarked);
     await snapshot('interaction-' + width);
     // Five-note insertion through the clef-boundary Insert controls, which
@@ -865,7 +872,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, v7 reload/export/import and v6 rejection, hit ownership, Mora scope offering exactly None/Final note, final-note mora kept through earlier-note deletion and removed with the marked note (undo/redo), marked five-note reload, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization/rejection/undo/redo, five-note clef-boundary Insert before/after, marked specimens/wrapping at 1440px and 320px',
+        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, current v8 reload/export/import and legacy v6 rejection, hit ownership, Mora scope offering exactly None/Final note, final-note mora kept through earlier-note deletion and removed with the marked note (undo/redo), marked five-note reload, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization (including five-note to four-note Climacus) with equal-survivor rejection/undo/redo, five-note clef-boundary Insert before/after, marked specimens/wrapping at 1440px and 320px',
     }),
   );
 } finally {

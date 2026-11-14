@@ -41,16 +41,17 @@ pending.
 
 All crops are actual scans or actual Gregorio output; no notation is redrawn.
 
-| Source                                                                                          | File                                  | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mocquereau, _A Study of Gregorian Musical Rhythm_, printed p. 152 (PDF p. 154), Fig. 34, 600dpi | `mocquereau-p152-fig34.png`           | Note b: "The scandicus and the climacus can be made up of four, five, or even more notes." **Scandicus, 4 notes** (line 2, space, line 3, line 4 = +1 +1 +2): Pes (stacked, joined) then a Pes one column right whose upper note is a skip above, carrying the right stem; elements touch only at a corner. **Scandicus, 5 notes** (+1 +1 +1 +2): Pes, then a single Punctum, then Pes, as a staircase. **Climacus, 4 and 5 notes**: virga then three/four detached descending diamonds; wider gaps on skips. |
-| Same, Fig. 32 (three-note Scandicus forms)                                                      | `mocquereau-p152-fig32-scandicus.png` | Three-note alternatives (Punctum + Pes; Pes + virga-like upper; Punctum + Pes with skip). The existing approved three-note recipes are unchanged by this stage.                                                                                                                                                                                                                                                                                                                                               |
-| Sister Demetria, _Basic Gregorian Chant_ (1960), p. 40                                          | `demetria-p40-climacus.png`           | "The Climacus is a neume of three (or more) descending notes"; printed four-note Climacus "La-sol-fa-mi" (virga + three diamonds), no mora. Ex. 38 on the same page ends with a four-note Climacus carrying an ictus under an inner diamond and no mora; the dotted punctum after it is a separate neume.                                                                                                                                                                                                     |
-| _Liber Usualis_ (1961), p. xxj, "Compound neums" table                                          | (not cropped)                         | Lists Pes subbipunctis, Torculus resupinus, Scandicus flexus, Porrectus flexus, Salicus flexus, Climacus resupinus. No four/five-note Scandicus or Climacus specimen in the table.                                                                                                                                                                                                                                                                                                                            |
-| Gregorio 6.0.0 / Greciliae, `partition.gabc`                                                    | `gregorio-partition.png`              | Gregorio's own grouping of plain ascending GABC: `fgh` is Punctum + Pes (matches the editor's three-note form); `fghj` is Punctum + Pes + Punctum; `efghj` is Punctum + Pes + Pes. **This differs from Mocquereau's printed staircase** and is parser behavior, not evidence of a printed convention (the plan's warning).                                                                                                                                                                                    |
-| Gregorio, `staircase-and-mora.gabc`                                                             | `gregorio-staircase-and-mora.png`     | a/d: Mocquereau's staircase forced with `!` joins (`fg!hj`, `ef!g!hj`). b/e: final mora; c/f: final-two. g–l: Climacus `iHGF`, `kJIHG` unmarked, final mora, final-two. m/n: episemata.                                                                                                                                                                                                                                                                                                                       |
-| Gregorio, `marked.gabc`                                                                         | `gregorio-marked.png`                 | Marked counterparts of the editor's marked specimens: `fg!hj.` (4-note Scandicus, final mora), `ef!g'!hj.` (5-note, final mora, vertical episema on note 3), `jIHG.` (4-note Climacus, final mora), `kJ_IHG.` (5-note, final mora, horizontal episema on note 2).                                                                                                                                                                                                                                             |
-| Editor, Chromium 1440px (`browser-check.mjs` `engraving-1440.png`)                              | `editor-engraving.png`                | Three-note ordinary and quilismatic Scandicus, both Fig. 34 contours, stepwise/skip/mixed four- and five-note Scandicus, Demetria's four-note Climacus, skip/mixed Climacus, signs on every family, a B-flat on a later constituent, lyrics and wrapping.                                                                                                                                                                                                                                                     |
+| Source                                                                                               | File                                  | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mocquereau, _A Study of Gregorian Musical Rhythm_, printed p. 152 (PDF p. 154), Fig. 34, 600dpi      | `mocquereau-p152-fig34.png`           | Note b: "The scandicus and the climacus can be made up of four, five, or even more notes." **Scandicus, 4 notes** (line 2, space, line 3, line 4 = +1 +1 +2): Pes (stacked, joined) then a Pes one column right whose upper note is a skip above, carrying the right stem; elements touch only at a corner. **Scandicus, 5 notes** (+1 +1 +1 +2): Pes, then a single Punctum, then Pes, as a staircase. **Climacus, 4 and 5 notes**: virga then three/four detached descending diamonds; wider gaps on skips.                                                                                                                          |
+| Same, Fig. 32 (three-note Scandicus forms)                                                           | `mocquereau-p152-fig32-scandicus.png` | Three-note alternatives (Punctum + Pes; Pes + virga-like upper; Punctum + Pes with skip). The existing approved three-note recipes are unchanged by this stage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Sister Demetria, _Basic Gregorian Chant_ (1960), p. 40                                               | `demetria-p40-climacus.png`           | "The Climacus is a neume of three (or more) descending notes"; printed four-note Climacus "La-sol-fa-mi" (virga + three diamonds), no mora. Ex. 38 on the same page ends with a four-note Climacus carrying an ictus under an inner diamond and no mora; the dotted punctum after it is a separate neume.                                                                                                                                                                                                                                                                                                                              |
+| _Liber Usualis_ (1961), p. xxj, "Compound neums" table                                               | (not cropped)                         | Lists Pes subbipunctis, Torculus resupinus, Scandicus flexus, Porrectus flexus, Salicus flexus, Climacus resupinus. No four/five-note Scandicus or Climacus specimen in the table.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Gregorio 6.0.0 / Greciliae, `partition.gabc`                                                         | `gregorio-partition.png`              | Gregorio's own grouping of plain ascending GABC: `fgh` is Punctum + Pes (matches the editor's three-note form); `fghj` is Punctum + Pes + Punctum; `efghj` is Punctum + Pes + Pes. **This differs from Mocquereau's printed staircase** and is parser behavior, not evidence of a printed convention (the plan's warning).                                                                                                                                                                                                                                                                                                             |
+| Gregorio, `staircase-and-mora.gabc`                                                                  | `gregorio-staircase-and-mora.png`     | a/d: Mocquereau's staircase forced with `!` joins (`fg!hj`, `ef!g!hj`). b/e: final mora; c/f: final-two. g–l: Climacus `iHGF`, `kJIHG` unmarked, final mora, final-two. m/n: episemata.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Gregorio, `marked.gabc`                                                                              | `gregorio-marked.png`                 | Marked counterparts of the editor's marked specimens: `fg!hj.` (4-note Scandicus, final mora), `ef!g'!hj.` (5-note, final mora, vertical episema on note 3), `jIHG.` (4-note Climacus, final mora), `kJ_IHG.` (5-note, final mora, horizontal episema on note 2).                                                                                                                                                                                                                                                                                                                                                                      |
+| Editor, Chromium 1440px, final revision (`browser-check.mjs` `engraving-1440.png`, marked specimens) | `editor-marked.png`                   | The same four marked groups at identical pitches (C clef line 4): `s4-mora`, `s5-mora` (vertical episema on note 3), `c4-mora`, `c5-mora` (horizontal episema on note 2), each with a final mora. **Qualitative** match with `gregorio-marked.png`: one dot per group, right of the final Scandicus head (in the space above a line note) and trailing the last Climacus diamond. Editor Climacus dots sit in the final note's row or the space below, as for three-note Climacus and Pes subpunctis, while Gregorio places them slightly lower and right. Episema glyph shapes and offsets differ. No measured comparison is claimed. |
+| Editor, Chromium 1440px (`browser-check.mjs` `engraving-1440.png`)                                   | `editor-engraving.png`                | Three-note ordinary and quilismatic Scandicus, both Fig. 34 contours, stepwise/skip/mixed four- and five-note Scandicus, Demetria's four-note Climacus, skip/mixed Climacus, signs on every family, a B-flat on a later constituent, lyrics and wrapping.                                                                                                                                                                                                                                                                                                                                                                              |
 
 Reproduce the Gregorio images by compiling both `.gabc` files with `gregorio`,
 then running `lualatex` twice on a wrapper like
@@ -168,22 +169,69 @@ only for length > 3.
 
 ## Actual verification
 
-### After the owner decisions
+### Final revision (after the owner decisions)
 
-Run on the final changes:
+Repository gate on the final revision: `npm run format:check`,
+`npm run lint`, `npm test` (87 files, 1,894 tests) and `npm run build`
+passed. Pure and exhaustive geometry tests include 20,992 marked geometries
+(every episema mask × final mora on/off for 17 contours).
 
-- `npm run format:check`, `npm run lint`, `npm test` (87 files, 1,894 tests)
-  and `npm run build` passed.
-- The pure tests and the exhaustive geometry tests (20,992 marked geometries)
-  pass.
-- `three-note-baseline.mjs` reported byte-identical three-note geometry.
+`three-note-baseline.mjs` now stores an explicit `ok`/`throw` marker beside
+each case hash and rejects unmarked lines. The rerun reported:
 
-**Browser drivers were not re-run on the final changes.** The Stage 9B-2
-driver was extended (approved mora, marked deletion/movement, Pes-to-Climacus
-normalization) and the Stage 9B-1 driver was updated for the amended
-deletion. Neither updated driver has been run yet; to save time, the owner
-asked to stop before the browser runs. The browser results below are from
-`34e7bb7`.
+- 119,808 cases in both trees;
+- **0 exceptions** in the `a2111bf` baseline and **0** in the current tree;
+- **identical** output (file SHA-256
+  `63340a051c82687e8c0a327bf56955641de727bfd0cb12a842301260116841dc`; this
+  differs from the earlier `991e50b6…` only because the dump lines now carry
+  the marker).
+
+Browsers: headless Chromium 157 (CDP, 9260) and Firefox 146 (BiDi, 9261),
+fresh disposable profiles, production `vite preview` of the final build on
+127.0.0.1:4177. One lane per browser ran in parallel; within each lane the
+drivers ran sequentially with per-run logs and a 10-minute hard kill. Every
+log ends in its driver's success report, with no assertion errors:
+
+| Driver (preview, 1440px and 320px)          | Chromium | Firefox |
+| ------------------------------------------- | -------- | ------- |
+| `extended-scandicus-climacus/browser-check` | pass     | pass    |
+| `pes-subpunctis/browser-check`              | pass     | pass    |
+| `note-modifiers/browser-check`              | pass     | pass    |
+| `local-persistence/browser-check`           | pass     | pass    |
+| `b-accidentals/browser-check`               | pass     | pass    |
+| `b-accidentals/acceptance-browser-check`    | pass     | pass    |
+| `repeated-note-neumes/browser-check`        | pass     | pass    |
+| `note-shapes/browser-check`                 | pass     | pass    |
+| `bundled-example/browser-check`             | pass     | pass    |
+| `vertical-episemata/browser-check`          | pass     | pass    |
+| `vertical-episemata/context-browser-check`  | pass     | pass    |
+
+On the final revision the Stage 9B-2 driver additionally verifies:
+
+- **Mora controls:** Mora scope offers exactly None and Final note (enabled)
+  on longer groups.
+- **Marked edits on a five-note Climacus:** a Final note scope edit; the mark
+  is kept on `c5-4` when `c5-1` is deleted (5→4), and removed rather than
+  transferred when `c5-4` is deleted. Both include undo/redo. Movement keeps
+  the mark on its note.
+- **Four-note Scandicus:** a Final note mora persists across reload (v8).
+- **Pes-to-Climacus normalization:**
+  - marked first-note deletion: final mora, episemata, B ownership and the
+    lyric anchor are preserved, the count-aware label is correct, and v8
+    reload works, with undo/redo;
+  - unmarked apex deletion;
+  - equal-pitch apex deletion is rejected with the "two equal adjacent
+    pitches" announcement.
+
+The Stage 9B-1 driver now checks that deleting the first note of
+`[6,7,6,4,3]` gives a four-note Climacus keeping IDs and the ictus marks
+(with undo), and that apex deletion leaving `[6,6,4,3]` is rejected. Its
+legacy v6 rejection check is intentionally kept. Comment and description
+wording was updated after these runs; driver logic was not changed.
+
+The dev-server `clefs`, `mid-score-clefs` and `divisions` drivers were not
+re-run on the final revision. Their results are from `34e7bb7` (below), and
+the code changed since then does not touch clef or division paths.
 
 ### Firefox mid-score-clefs investigation
 
@@ -194,8 +242,9 @@ at line 1032. The results: **7 runs, all passed** (branch 4, master 3). The
 investigation was stopped early at the owner's request, before the planned 16
 runs.
 
-The failure was not reproduced on either tree, so its cause is
-**undetermined**. Observations:
+The failure was not reproduced on either tree, so it remains **intermittent
+and unresolved**: not proven pre-existing and not fixed. It did not recur
+during final verification (that driver was not part of the final run). Observations:
 
 - The Firefox path rounds pointer coordinates to whole CSS pixels
   (`Math.round`), while Chromium does not. At 150% zoom that can move a click

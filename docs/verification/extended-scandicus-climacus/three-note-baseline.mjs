@@ -43,13 +43,17 @@ it('dumps three-note scandicus/climacus geometry', () => {
                     ...(h & (1 << i) ? { episema: true } : {}),
                     ...(v & (1 << i) ? { verticalEpisema: true } : {}),
                   }));
+                  // Keep an explicit outcome marker beside the hash so
+                  // exceptions remain countable after hashing.
                   let out: string;
+                  let outcome = 'ok';
                   try {
                     out = JSON.stringify(buildNeumeGeometry(kind, pitches, 50, 140, mods));
                   } catch (e) {
-                    out = 'throw:' + String(e);
+                    outcome = 'throw';
+                    out = String(e);
                   }
-                  lines.push(\`\${kind} \${pitches} \${JSON.stringify(mods)} \${createHash('sha256').update(out).digest('hex')}\`);
+                  lines.push(\`\${kind} \${pitches} \${JSON.stringify(mods)} \${outcome} \${createHash('sha256').update(out).digest('hex')}\`);
                 }
         }
   writeFileSync(process.env.BASELINE_OUT ?? '/dev/null', lines.join('\\n'));
@@ -81,15 +85,25 @@ try {
   const before = await dumpTree(baseline, join(scratch, 'before.txt'));
   const after = await dumpTree(root, join(scratch, 'after.txt'));
   const hash = (text) => createHash('sha256').update(text).digest('hex');
-  const cases = before.split('\n').length;
-  const throws = before.split('\n').filter((l) => l.includes('throw:')).length;
+  const outcomes = (text) => {
+    const lines = text.split('\n');
+    const ok = lines.filter((l) => / ok [0-9a-f]{64}$/.test(l)).length;
+    const thrown = lines.filter((l) => / throw [0-9a-f]{64}$/.test(l)).length;
+    // Every line must carry exactly one recognized marker.
+    if (ok + thrown !== lines.length) throw Error('Unmarked dump line');
+    return { cases: lines.length, ok, exceptions: thrown };
+  };
+  const baselineOutcome = outcomes(before);
+  const currentOutcome = outcomes(after);
   const result = {
     ref,
-    cases,
-    throwsInBaseline: throws,
+    cases: baselineOutcome.cases,
+    baselineExceptions: baselineOutcome.exceptions,
+    currentExceptions: currentOutcome.exceptions,
     baselineSha256: hash(before),
     currentSha256: hash(after),
     identical: before === after,
+    currentCases: currentOutcome.cases,
   };
   console.log(JSON.stringify(result));
   if (!result.identical) process.exitCode = 1;
