@@ -179,8 +179,20 @@ describe('selectJobs', () => {
         browser,
       );
       assert.ok(pairs(selection).includes(`local-persistence:${browser}`));
-      assert.deepEqual(selection.unsupported, []);
     }
+    const both = selectJobs(parseCliArgs(['--browser', 'both']));
+    assert.deepEqual(pairs(both), [
+      'vowel-alignment:chromium',
+      'divisions:chromium',
+      'divisions:firefox',
+      'local-persistence:chromium',
+      'local-persistence:firefox',
+    ]);
+    // The CDP-only lyric driver is reported, not invented for Firefox.
+    assert.deepEqual(
+      both.unsupported.map(({ driver, browser }) => `${driver.id}:${browser}`),
+      ['vowel-alignment:firefox'],
+    );
   });
 });
 

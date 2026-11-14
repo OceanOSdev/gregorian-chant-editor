@@ -52,7 +52,7 @@ const iso = (ms) => new Date(ms).toISOString();
  * Remove a directory the runner created, refusing anything outside the run
  * directory so cleanup can never reach a user profile or unrelated files.
  */
-async function removeOwned(runDir, dir) {
+export async function removeOwned(runDir, dir) {
   const rel = relative(runDir, resolve(dir));
   if (!rel || rel.startsWith('..') || resolve(runDir, rel) !== resolve(dir)) {
     throw Error(`Refusing to remove ${dir}: outside run directory ${runDir}`);
@@ -214,7 +214,7 @@ async function runJob(job, context) {
       } else {
         result.status = outcome.info.code === 0 ? 'passed' : 'failed';
         if (result.status === 'failed') {
-          result.error = lastLines(driver.output, 12);
+          result.error = failureExcerpt(driver.output);
         }
       }
     } else if (outcome.kind === 'timeout') {
@@ -263,8 +263,18 @@ async function runJob(job, context) {
   return result;
 }
 
-const lastLines = (text, count) =>
-  text.trimEnd().split('\n').slice(-count).join('\n');
+/**
+ * A short failure excerpt: the first error line and its first stack frame
+ * (the driver's failing line), falling back to the tail of the output. The
+ * complete output is always kept in the job's log files.
+ */
+export function failureExcerpt(text) {
+  const lines = text.trimEnd().split('\n');
+  const index = lines.findIndex((line) => /^\w*(Error|Exception)\b/.test(line));
+  if (index === -1) return lines.slice(-6).join('\n');
+  const frame = lines.slice(index + 1).find((line) => /^\s+at /.test(line));
+  return [lines[index], frame?.trim()].filter(Boolean).join('\n');
+}
 
 /**
  * Run selected jobs. Returns the machine-readable summary (without writing

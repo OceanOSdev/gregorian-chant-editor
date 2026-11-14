@@ -149,12 +149,13 @@ export const DRIVERS = [
 ];
 
 // Presets name driver IDs; each is paired with every requested browser it
-// supports. The smoke preset covers dev-fixture lyrics editing and real
-// production preview editing/persistence (storage-clearing), and both
-// drivers implement both transports so each requested browser gets the same
-// counterparts.
+// supports. The smoke preset is small and fast: dev-fixture lyric editing
+// (vowel-alignment, Chromium/CDP only; no current passing Firefox lyric
+// driver exists, so Firefox gets the dev-fixture divisions driver as its dev
+// counterpart) and real production preview editing/persistence with storage
+// clearing (local-persistence) in each requested browser.
 export const PRESETS = {
-  smoke: ['word-composition', 'local-persistence'],
+  smoke: ['vowel-alignment', 'divisions', 'local-persistence'],
   full: DRIVERS.map((driver) => driver.id),
 };
 

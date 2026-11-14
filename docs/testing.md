@@ -241,6 +241,17 @@ Browser diagnostics belong in system temporary directories; committed specimens
 and historical evidence must not be refreshed as a side effect of test runs.
 These scripts remain separate from Vitest and CI.
 
+## Browser verification runner
+
+`npm run verify:browser` runs the routine standalone drivers against isolated,
+runner-owned Vite servers and headless browsers (default: Chromium smoke at
+concurrency 2; `--preset full --browser both` for a final regression run).
+`npm run test:verify-runner` runs its Node tests without a browser. Commands,
+selection, isolation, outputs and results are in the
+[runner guide](verification/runner/README.md). The runner is local only; the
+standard gate above is unchanged. Individual drivers remain runnable
+standalone with their documented default endpoints.
+
 ## Initial square-notation engraving verification
 
 `neume-geometry.test.ts` covers the approved adjacent contacts, interval/stem

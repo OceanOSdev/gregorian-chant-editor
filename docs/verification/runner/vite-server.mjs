@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { build, createServer, preview } from 'vite';
 
-export const READY_PREFIX = 'CHANT_RUNNER_SERVER_READY ';
+const READY_PREFIX = 'CHANT_RUNNER_SERVER_READY ';
 
 // Ports Firefox (and Chromium) refuse to load over HTTP. Ephemeral ports never
 // fall in this list on Linux, but check rather than assume.
@@ -27,7 +27,7 @@ const BROWSER_BLOCKED_PORTS = new Set([
   6679, 6697, 10080,
 ]);
 
-export const isBrowserSafePort = (port) =>
+const isBrowserSafePort = (port) =>
   port >= 1024 && !BROWSER_BLOCKED_PORTS.has(port);
 
 const HOST = '127.0.0.1';
