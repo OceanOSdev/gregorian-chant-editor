@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
   fourNotes,
+  type Neume,
   staffPosition,
   type ChantDocument,
   type CompoundDirectionalKind,
   type NoteAppearance,
 } from '../domain/chant-document';
 import { blankDocument } from '../persistence/native-document';
-import { buildNeumeGeometry, type NeumeGeometry } from './neume-geometry';
-import { layoutChant } from './layout-chant';
+import {
+  buildNeumeGeometry,
+  interNeumeInkGap,
+  type NeumeGeometry,
+} from './neume-geometry';
+import { compactNeumeInkGap, layoutChant } from './layout-chant';
+import type { MeasureLyricText } from './lyric-text-metrics';
+import { normalizeNeumeAfterNoteDeletion } from '../domain/neume';
 import { buildPunctum } from './neumes/punctum';
 import { buildPorrectus } from './neumes/porrectus';
 import { buildPodatusOrClivis } from './neumes/podatus-clivis';
@@ -324,5 +331,174 @@ describe.each(kinds)('%s in score layout', (kind) => {
         expect(n.anchorY + dy).toBeCloseTo(committed.notes[i].anchorY, 9);
       });
     }
+  });
+});
+
+describe('left vertical-episema fallback in score layout (owner review of PR #80)', () => {
+  // [0,1,2,1] with every horizontal episema and a vertical one on the Pes's
+  // upper note: no ordinary candidate fits, so the tick sits left of the ink.
+  const pitches = [0, 1, 2, 1];
+  const fallback: NoteAppearance[] = [
+    { episema: true },
+    { episema: true, verticalEpisema: true },
+    { episema: true },
+    { episema: true },
+  ];
+  const plain: NoteAppearance[] = pitches.map(() => ({ episema: true }));
+  const tick = (g: NeumeGeometry) =>
+    g.ink.filter((s) => s.kind === 'rect' && s.bounds.width === 1.5);
+  const measure =
+    (unit: number): MeasureLyricText =>
+    (text) => ({
+      width: text.length * unit,
+      boundaries: Array.from({ length: text.length + 1 }, (_, i) => i * unit),
+    });
+  const score = (
+    marks: readonly NoteAppearance[],
+    previousText: string,
+    boundaryBefore: 'word' | 'continuation',
+  ): ChantDocument => {
+    const notes = fourNotes(
+      pitches.map((p, i) => ({
+        id: `sf${i}`,
+        staffPosition: staffPosition(p),
+        ...marks[i],
+      })),
+    );
+    if (!notes) throw Error('tuple');
+    return {
+      ...blankDocument(),
+      neumes: [
+        {
+          id: 'p',
+          kind: 'punctum',
+          notes: [{ id: 'p0', staffPosition: staffPosition(3) }],
+        },
+        { id: 'sf', kind: 'scandicus-flexus', notes },
+      ],
+      syllables: [
+        {
+          id: 's1',
+          text: previousText,
+          boundaryBefore: 'word',
+          startsAtNeumeId: 'p',
+        },
+        { id: 's2', text: 'b', boundaryBefore, startsAtNeumeId: 'sf' },
+      ],
+    };
+  };
+  const pair = (doc: ChantDocument, unit: number) => {
+    const [previous, current] = layoutChant(doc, measure(unit)).systems[0]
+      .neumes;
+    return { previous, current };
+  };
+
+  it('keeps every sign right of the requested origin, as for prefix accidentals', () => {
+    const g = build('scandicus-flexus', pitches, fallback, 100);
+    // The fallback tick is genuinely left of the note heads...
+    expect(tick(g)[0].bounds.x).toBeLessThan(g.notes[0].head.bounds.x);
+    // ...but the group's left ink edge is the origin.
+    expect(g.bounds.x).toBe(100);
+    expect(tick(g)[0].bounds.x).toBe(100);
+    // With a prefix accidental as well, neither overhangs or collides.
+    const signed = buildNeumeGeometry(
+      'scandicus-flexus',
+      positions(pitches),
+      100,
+      140,
+      fallback,
+      [{ kind: 'flat', staffPosition: 1, noteIndex: null }],
+    );
+    expect(signed.bounds.x).toBe(100);
+    const flat = signed.accidentals?.[0]?.ink.bounds;
+    if (!flat) throw Error('accidental');
+    for (const t of tick(signed))
+      expect(
+        t.bounds.x >= flat.x + flat.width ||
+          t.bounds.y + t.bounds.height <= flat.y,
+      ).toBe(true);
+  });
+
+  it('keeps the compact same-word ink gap to the previous neume', () => {
+    const { previous, current } = pair(score(fallback, 'a', 'continuation'), 2);
+    const gap = current.bounds.x - (previous.bounds.x + previous.bounds.width);
+    expect(gap).toBe(compactNeumeInkGap);
+    expect(
+      Math.min(...tick(current).map((t) => t.bounds.x)),
+    ).toBeGreaterThanOrEqual(
+      previous.bounds.x + previous.bounds.width + compactNeumeInkGap,
+    );
+  });
+
+  it('keeps the ordinary inter-neume ink gap', () => {
+    const { previous, current } = pair(score(fallback, 'a', 'word'), 2);
+    expect(current.bounds.x - (previous.bounds.x + previous.bounds.width)).toBe(
+      interNeumeInkGap,
+    );
+  });
+
+  it('applies lyric reflow shifts exactly as for the same figure without the tick', () => {
+    for (const [text, boundary, unit] of [
+      ['A', 'continuation', 10],
+      ['Glooooooooria', 'continuation', 10],
+      ['Glooooooooria', 'word', 10],
+    ] as const) {
+      const marked = pair(score(fallback, text, boundary), unit).current;
+      const unmarked = pair(score(plain, text, boundary), unit).current;
+      // Lyric-driven placement is decided by the anchor; the overhang must
+      // not move the music or its lyric left of the computed shift.
+      expect(marked.lyricAnchorX).toBe(unmarked.lyricAnchorX);
+      expect(marked.notes.map((n) => n.anchorX)).toEqual(
+        unmarked.notes.map((n) => n.anchorX),
+      );
+    }
+  });
+
+  it('keeps first-system placement at the ordinary group origin', () => {
+    const first = (marks: readonly NoteAppearance[]) =>
+      layoutChant({
+        ...score(marks, 'a', 'word'),
+        neumes: score(marks, 'a', 'word').neumes.slice(1),
+        syllables: [],
+      }).systems[0].neumes[0];
+    expect(first(fallback).bounds.x).toBe(first(plain).bounds.x);
+  });
+});
+
+describe('compound deletion never reaches the pre-existing sign exceptions', () => {
+  // The 72 pre-existing exceptions (identical on master) are all five-note
+  // Scandicus staircases; compound deletion yields only three-note kinds.
+  it.each(kinds)('%s survivors render with every surviving mark', (kind) => {
+    let normalized = 0;
+    for (const pitches of contours(kind, 3))
+      for (let v = 0; v < 16; v++) {
+        const neume = {
+          id: 'g',
+          kind,
+          notes: pitches.map((p, i) => ({
+            id: `n${i}`,
+            staffPosition: staffPosition(p),
+            episema: true,
+            ...(v & (1 << i) ? { verticalEpisema: true } : {}),
+            ...(i === 3 ? { mora: 1 } : {}),
+          })),
+        } as Neume;
+        for (let index = 0; index < 4; index++) {
+          const result = normalizeNeumeAfterNoteDeletion(neume, `n${index}`);
+          if (!result || result === neume) continue;
+          normalized++;
+          expect(result.notes).toHaveLength(3);
+          expect(() =>
+            buildNeumeGeometry(
+              result.kind,
+              result.notes.map((n) => n.staffPosition),
+              50,
+              140,
+              result.notes,
+            ),
+          ).not.toThrow();
+        }
+      }
+    expect(normalized).toBeGreaterThan(0);
   });
 });
