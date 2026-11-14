@@ -4,9 +4,11 @@ Branch: `feature/stage-9b3-compound-directional-neumes`
 Target: `master`
 Base: `5c24857` (Maintenance C merged, PR #79).
 
-Status: owner Gates A–C approved 2026-11-14 (after review of draft PR #80
-at `9bb4564`). Implemented on this branch with focused verification;
-implementation acceptance is pending owner review. See the
+Status: completed and owner-accepted 2026-11-14. Final implementation review
+of PR #80 at `0c69225` was accepted, including the left-overhang correction
+at `05e655d`. The owner comprehensive browser matrix passed at `0c69225`
+(clean tree): 36 passed, zero failed, six expected unsupported pairs.
+This completed plan is retained. See the
 [reference record](../verification/compound-directional-neumes/README.md#owner-decisions-2026-11-14)
 and Accepted [ADR 0025](../adrs/0025-compound-directional-four-note-neumes.md).
 Read AGENTS.md, the owning guides, accepted ADRs and

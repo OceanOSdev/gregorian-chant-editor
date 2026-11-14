@@ -297,7 +297,7 @@ All 72 exceptions in the existing-geometry comparison, identical on master
   note 1 (the first Pes's upper note);
 - 4 mark variants per contour: that vertical alone or on every note, each
   with and without a final mora;
-- in every case note 3 (the following Punctum) is one step above note 1, for
+- in every case note 2 (zero-based index, the following Punctum) is one step above note 1, for
   example `[-2,-1,0,2,3]` or `[1,3,4,6,9]`.
 
 The cause is the same column crowding as the new fallback. There is
@@ -395,7 +395,7 @@ The new driver covers, at 1440px and 320px:
 - v9 reload, export and import, and v8 rejection;
 - wrapping.
 
-**Not run (left to the owner's comprehensive matrix):** the lyric drivers
+**Not run at `d15d2ef` (subsequently passed in the owner matrix below):** the lyric drivers
 (`continuous-lyrics`, `lyric-move`, `vowel-alignment`, `lyric-spacing`,
 `lyric-spacing-selection-cue`), `word-composition` and `divisions`. These
 dev-fixture drivers address palette buttons by `data-tool` and do not
@@ -410,3 +410,39 @@ intermittency remains unresolved, although it passed here.
 - no performance benchmark;
 - neume ledger lines remain absent;
 - the mora policy rests on analogy and Gregorio, not marked print.
+
+### Owner acceptance and comprehensive matrix — 2026-11-14
+
+**Completed and owner-accepted:** final implementation review of PR #80 at
+`0c69225`, including the left-overhang correction at `05e655d`. The completed
+[plan](../../plans/stage-9b3-compound-directional-neumes.md) is retained.
+
+The owner ran `npm run verify:browser -- --preset full --browser both -j 4`.
+The inspected summary records:
+
+- exact revision `0c692251742222b5906a54dbfd3132a8e7cb2449`, clean tree
+  (`dirty: false`, no dirty files);
+- Node v24.12.0, Linux x64; headless Chromium 157.0.8103.38 snap and
+  Mozilla Firefox 146.0;
+- **36 passed, zero failed, six expected unsupported pairs**; no timeouts,
+  setup failures, interruptions or unrun supported jobs;
+- new `compound-directional-neumes` jobs passed in Chromium (48.9 s) and
+  Firefox (55.2 s); all existing jobs passed, including `mid-score-clefs`
+  in both browsers;
+- wall time 289.905 s at concurrency 4; production bundle build passed
+  (327 ms); all job processes stopped, with no cleanup errors;
+- local, git-ignored summary:
+  `.verification-runs/run-2026-11-14T06-44-25-236Z-Af2m7N/summary.json`.
+
+This is post-correction comprehensive evidence, distinct from the repository
+gate at `05e655d` (1,985 passing unit tests), the targeted 12/12 browser run
+at `dabb446`, and the earlier 27-job run at `d15d2ef`. No verification was
+rerun for this documentation closeout.
+
+The browser driver does not exercise the marked fallback state; its layout
+coverage is the pure regressions described above. The 72 sampled pre-existing
+five-note Scandicus exceptions remain a lower bound and a narrowly scoped
+follow-up repair requiring its own placement decision. Passing this matrix
+does not resolve the intermittent Firefox `mid-score-clefs` issue or expand
+historical mora evidence, qualitative comparison or headless verification
+limits. Stage 9C is the next major feature.

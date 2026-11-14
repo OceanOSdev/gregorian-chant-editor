@@ -309,8 +309,8 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
 
 ## Compound directional neumes (Stage 9B-3)
 
-**Implemented; owner Gates A–C approved 2026-11-14** (PR #80); implementation
-acceptance is pending owner review. Torculus resupinus, Porrectus flexus,
+**Completed and owner-accepted 2026-11-14** (PR #80 at `0c69225`,
+including the left-overhang correction at `05e655d`). Torculus resupinus, Porrectus flexus,
 Scandicus flexus and Climacus resupinus are fixed four-note kinds with:
 
 - sourced Roman/Solesmes engraving profiles;
@@ -330,11 +330,21 @@ Retained limits:
 - longer flexus/resupinus extensions are out of scope;
 - older builds cannot read v9 files.
 
-**Next:** the owner chooses the next Stage 9B milestone.
+The owner comprehensive matrix at `0c692251742222b5906a54dbfd3132a8e7cb2449`
+(clean tree) passed: **36 passed, zero failed, six expected unsupported pairs**,
+headless Chromium 157.0.8103.38 snap and Firefox 146.0, concurrency 4,
+289.905 s; bundle build 327 ms and clean process shutdown. See the
+[verification record](verification/compound-directional-neumes/README.md#owner-acceptance-and-comprehensive-matrix--2026-11-14)
+for the local summary, revision-specific evidence and retained limits.
+The marked fallback state lacks browser coverage; the intermittent Firefox
+mid-score-clefs issue, historical mora evidence and headless verification
+limitations remain.
+
+**Next major feature: Stage 9C.**
 
 Separate follow-up work (not scheduled): a vertical-episema placement
-decision for crowded five-note Scandicus staircases, which already throw on
-master; see the
+repair for crowded five-note Scandicus staircases, which already throw on
+master (72 sampled exceptions, a lower bound); see the
 [record](verification/compound-directional-neumes/README.md#pre-existing-sign-exceptions-owner-review-item-2).
 Neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more
