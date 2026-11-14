@@ -114,6 +114,8 @@ async function runJob(job, context) {
     signal,
     baseEnv,
     onEvent,
+    removeDir,
+    stopOptions,
   } = context;
   const jobDir = join(runDir, 'jobs', job.key);
   const profileDir = join(jobDir, 'profile');
@@ -238,16 +240,15 @@ async function runJob(job, context) {
   } finally {
     // Stop everything this job may have started, including resources whose
     // startup was still pending when another one failed.
-    await jobRegistry.stopAll();
-    try {
-      if (!keepProfiles) await removeOwned(runDir, profileDir);
-      await removeOwned(runDir, cacheDir);
-    } catch (error) {
-      result.error = [result.error, `Cleanup: ${error.message}`]
-        .filter(Boolean)
-        .join('\n');
-    }
-    result.profileRemoved = !keepProfiles;
+    result.cleanup = await cleanUpJob({
+      jobRegistry,
+      runDir,
+      profileDir,
+      cacheDir,
+      keepProfiles,
+      removeDir,
+      stopOptions,
+    });
     try {
       result.driverOutputDirs = (await readdir(tmpDir)).map((name) =>
         join(tmpDir, name),
@@ -261,6 +262,56 @@ async function runJob(job, context) {
     onEvent?.({ type: 'job-end', job: result });
   }
   return result;
+}
+
+/**
+ * Stop a job's processes, then remove its disposable profile and dependency
+ * cache. Each step is attempted and recorded independently, separately from
+ * the driver outcome. Directories are left in place (and reported) while any
+ * of the job's processes may still be using them.
+ */
+async function cleanUpJob({
+  jobRegistry,
+  runDir,
+  profileDir,
+  cacheDir,
+  keepProfiles,
+  removeDir,
+  stopOptions,
+}) {
+  const errors = [];
+  let survivors = [];
+  try {
+    survivors = (await jobRegistry.stopAll(stopOptions)).filter(
+      (stop) => !stop.terminated,
+    );
+    errors.push(...survivors.map((stop) => stop.detail));
+  } catch (error) {
+    survivors = [{ detail: error.message }];
+    errors.push(`Stopping processes: ${error.message}`);
+  }
+  const remove = async (dir, label) => {
+    if (survivors.length > 0) {
+      errors.push(`${label} left at ${dir}: job processes may still use it`);
+      return 'skipped';
+    }
+    try {
+      await removeDir(runDir, dir);
+      return 'removed';
+    } catch (error) {
+      errors.push(`${label} removal failed: ${error.message}`);
+      return 'failed';
+    }
+  };
+  const profile = keepProfiles ? 'kept' : await remove(profileDir, 'Profile');
+  const cache = await remove(cacheDir, 'Vite cache');
+  return {
+    ok: errors.length === 0,
+    processesStopped: survivors.length === 0,
+    profile,
+    cache,
+    errors,
+  };
 }
 
 /**
@@ -294,6 +345,9 @@ export async function runVerification({
   baseEnv = process.env,
   onEvent,
   registry = new ProcessRegistry(),
+  // Test seams for cleanup failure paths.
+  removeDir = removeOwned,
+  stopOptions,
 }) {
   const runStart = Date.now();
   const jobs = selection.runnable.map(({ driver, browser }, index) => {
@@ -394,6 +448,8 @@ export async function runVerification({
     signal,
     baseEnv,
     onEvent,
+    removeDir,
+    stopOptions,
   };
   const worker = async () => {
     while (next < jobs.length) {
@@ -419,8 +475,11 @@ export async function runVerification({
   await Promise.all(
     Array.from({ length: Math.min(concurrency, jobs.length) }, worker),
   );
-  // Defensive: nothing started for this run may outlive it.
-  await registry.stopAll();
+  // Defensive: nothing started for this run may outlive it. Anything still
+  // unconfirmed here is reported as a run-level cleanup failure.
+  const runCleanupErrors = (await registry.stopAll(stopOptions))
+    .filter((stop) => !stop.terminated)
+    .map((stop) => stop.detail);
 
   for (const result of results) {
     const info = browserInfo[result.browser];
@@ -452,6 +511,14 @@ export async function runVerification({
     browsers: browserInfo,
     build: preview,
     counts,
+    cleanup: {
+      ok:
+        runCleanupErrors.length === 0 &&
+        results.every((result) => result.cleanup?.ok !== false),
+      jobFailures: results.filter((result) => result.cleanup?.ok === false)
+        .length,
+      runErrors: runCleanupErrors,
+    },
     jobs: results,
     unsupported,
   };
@@ -459,6 +526,7 @@ export async function runVerification({
 
 export function exitCodeFor(summary) {
   if (summary.interrupted) return 130;
-  const bad = summary.jobs.some((job) => job.status !== 'passed');
+  const bad =
+    summary.jobs.some((job) => job.status !== 'passed') || !summary.cleanup.ok;
   return bad ? 1 : 0;
 }

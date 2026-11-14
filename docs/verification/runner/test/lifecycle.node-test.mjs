@@ -159,6 +159,8 @@ const run = (runDir, drivers, launchers, options = {}) =>
     launchers,
     signal: options.signal,
     baseEnv: options.baseEnv ?? process.env,
+    removeDir: options.removeDir,
+    stopOptions: options.stopOptions,
   });
 
 const records = (runDir) =>
@@ -247,6 +249,10 @@ describe('runVerification with stub processes', () => {
     }
     for (const job of summary.jobs) {
       assert.equal(existsSync(job.profileDir), false, 'profile removed');
+      assert.deepEqual(
+        [job.cleanup.ok, job.cleanup.profile, job.cleanup.cache],
+        [true, 'removed', 'removed'],
+      );
       assert.equal(existsSync(job.driverTmpDir), true, 'driver output kept');
     }
   });
@@ -341,6 +347,73 @@ describe('runVerification with stub processes', () => {
       findBrowserExecutable('chromium', join(emptyPath, 'nope')),
       /missing or not executable/,
     );
+  });
+});
+
+describe('cleanup failure paths', () => {
+  it('records a failed profile removal separately, still removes the cache, and exits nonzero', async () => {
+    const runDir = await newRunDir();
+    const { launchers } = stubLaunchers(runDir);
+    const attempted = [];
+    const summary = await run(runDir, [driver('a', 'pass')], launchers, {
+      removeDir: async (owner, dir) => {
+        attempted.push(dir);
+        if (dir.endsWith('profile')) throw Error('EBUSY: profile locked');
+        await removeOwned(owner, dir);
+      },
+    });
+    const [job] = summary.jobs;
+    assert.equal(job.status, 'passed', 'driver outcome is kept separate');
+    assert.equal(job.cleanup.ok, false);
+    assert.equal(job.cleanup.profile, 'failed');
+    assert.equal(
+      job.cleanup.cache,
+      'removed',
+      'independent cleanup still attempted',
+    );
+    assert.equal(attempted.length, 2);
+    assert.match(job.cleanup.errors.join('\n'), /EBUSY: profile locked/);
+    assert.equal(summary.cleanup.ok, false);
+    assert.equal(summary.cleanup.jobFailures, 1);
+    assert.equal(exitCodeFor(summary), 1);
+  });
+
+  it('reports a surviving process group and keeps its profile in place', async () => {
+    const runDir = await newRunDir();
+    const base = stubLaunchers(runDir);
+    let survivor;
+    const { launchers } = stubLaunchers(runDir, {
+      startBrowser: async (registry, options) => {
+        const browser = await base.launchers.startBrowser(registry, options);
+        // Simulate a group that never confirms termination.
+        browser.process.groupAlive = () => true;
+        survivor = browser.process;
+        return browser;
+      },
+    });
+    const removed = [];
+    const summary = await run(runDir, [driver('a', 'pass')], launchers, {
+      stopOptions: { graceMs: 100, killMs: 100 },
+      removeDir: async (owner, dir) => {
+        removed.push(dir);
+        await removeOwned(owner, dir);
+      },
+    });
+    const [job] = summary.jobs;
+    assert.equal(job.status, 'passed');
+    assert.equal(job.cleanup.processesStopped, false);
+    assert.equal(job.cleanup.profile, 'skipped');
+    assert.equal(job.cleanup.cache, 'skipped');
+    assert.deepEqual(removed, [], 'nothing removed while a process may use it');
+    assert.equal(existsSync(job.profileDir), true);
+    assert.match(job.cleanup.errors.join('\n'), /survived SIGTERM and SIGKILL/);
+    assert.equal(
+      survivor.stopped,
+      false,
+      'unconfirmed stop is not marked stopped',
+    );
+    assert.match(summary.cleanup.runErrors.join('\n'), /survived/);
+    assert.equal(exitCodeFor(summary), 1);
   });
 });
 

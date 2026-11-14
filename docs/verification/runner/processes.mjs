@@ -59,8 +59,9 @@ export class ProcessRegistry {
     return [...this.#processes].filter((managed) => !managed.stopped);
   }
 
-  async stopAll(options) {
-    await Promise.all(this.active.map((managed) => managed.stop(options)));
+  /** Stop every active process; resolves with each stop outcome. */
+  stopAll(options) {
+    return Promise.all(this.active.map((managed) => managed.stop(options)));
   }
 }
 
@@ -69,6 +70,8 @@ export class ProcessRegistry {
  */
 export class ManagedProcess {
   stopped = false;
+  // Test seam: whether this process group still has members.
+  groupAlive = groupAlive;
   exitInfo = null;
   #output = '';
   #listeners = new Set();
@@ -165,26 +168,53 @@ export class ManagedProcess {
 
   /**
    * Stop the whole process group: SIGTERM, bounded wait, then SIGKILL.
-   * Idempotent; never signals a group once it has been confirmed gone.
+   * Resolves with `{ name, pid, terminated, detail }`. `stopped` becomes true
+   * only once the group is confirmed gone and the leader has exited; an
+   * unconfirmed stop stays active so a later stopAll() retries it, and is
+   * reported rather than assumed. Never signals a group confirmed gone.
    */
   async stop({ graceMs = 5000, killMs = 5000 } = {}) {
-    if (this.stopped) return;
+    const outcome = (terminated, detail = null) => ({
+      name: this.name,
+      pid: this.pid,
+      terminated,
+      detail,
+    });
+    if (this.stopped) return outcome(true);
     const pgid = this.pid;
-    if (pgid !== undefined && groupAlive(pgid)) {
+    if (pgid === undefined) {
+      // spawn() failed: nothing was started.
+      this.stopped = true;
+      await this.closeLogs();
+      return outcome(true);
+    }
+    if (this.groupAlive(pgid)) {
       signalGroup(pgid, 'SIGTERM');
       const deadline = Date.now() + graceMs;
-      while (groupAlive(pgid) && Date.now() < deadline) await delay(50);
-      if (groupAlive(pgid)) {
+      while (this.groupAlive(pgid) && Date.now() < deadline) await delay(50);
+      if (this.groupAlive(pgid)) {
         signalGroup(pgid, 'SIGKILL');
         const killDeadline = Date.now() + killMs;
-        while (groupAlive(pgid) && Date.now() < killDeadline) await delay(50);
+        while (this.groupAlive(pgid) && Date.now() < killDeadline)
+          await delay(50);
       }
     }
-    if (pgid !== undefined && !this.hasExited) {
-      await Promise.race([this.exited, delay(killMs)]);
+    if (!this.hasExited) await Promise.race([this.exited, delay(killMs)]);
+    if (this.groupAlive(pgid)) {
+      return outcome(
+        false,
+        `${this.name} (process group ${pgid}) survived SIGTERM and SIGKILL`,
+      );
+    }
+    if (!this.hasExited) {
+      return outcome(
+        false,
+        `${this.name} (pid ${pgid}) exit was not confirmed`,
+      );
     }
     this.stopped = true;
     await this.closeLogs();
+    return outcome(true);
   }
 
   async closeLogs() {

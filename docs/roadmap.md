@@ -297,6 +297,12 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
    full run found pre-existing driver failures (`word-composition`,
    `lyric-spacing`, `lyric-spacing-selection-cue`) that need an owner decision
    on repair versus application regression.
+2. **Maintenance C — triage of the pre-existing browser driver failures
+   (next, before Stage 9B-3):** determine for `word-composition` (Chromium
+   and Firefox), `lyric-spacing` (Chromium) and `lyric-spacing-selection-cue`
+   (Firefox) whether each is a stale driver or an application regression, and
+   repair accordingly. The Firefox `mid-score-clefs` intermittent failure
+   remains a known open item.
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more

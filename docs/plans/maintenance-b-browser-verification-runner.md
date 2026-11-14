@@ -3,7 +3,9 @@
 Branch: `maintenance/browser-verification-runner`
 Target: `master`
 
-Status: planned. Maintenance A (PR #77) merged at `da14890`; its
+Status: implemented in PR #78 and awaiting owner acceptance; retained for
+historical closeout. Maintenance C (pre-existing driver failure triage) is the
+next follow-up before Stage 9B-3. Original planning context: Maintenance A (PR #77) merged at `da14890`; its
 [driver inventory](../verification/README.md) is the input to this task.
 The next notation milestone remains separate.
 

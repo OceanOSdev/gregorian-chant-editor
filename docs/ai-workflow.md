@@ -114,6 +114,34 @@ chooses its closeout below. The PR description and return summary should explain
 
 Return the PR URL so the owner and ChatGPT can review the same artifact.
 
+### Verification tiers and efficiency
+
+Match verification effort to the change; the [testing guide](testing.md)
+owns the commands.
+
+1. **Focused implementation checks** while iterating: the narrowest relevant
+   unit tests and targeted browser drivers
+   (`npm run verify:browser -- --driver <id>`).
+2. **Substantive completion:** the standard gate (`format:check`, `lint`,
+   `test`, `build`, `git diff --check`) plus the browser drivers affected by
+   the change, in each affected browser.
+3. **Comprehensive regression** only when warranted (broad interaction,
+   layout, persistence or infrastructure changes, or owner request):
+   `npm run verify:browser -- --preset full --browser both`.
+4. **Documentation-only closeout:** formatting and link checks; do not repeat
+   browser runs.
+
+Use the [browser verification runner](verification/runner/README.md) instead
+of manually starting servers, browsers and profiles. Report concise results
+(outcomes, timings, run directory) and inspect logs only for failures. Do not
+repeat an expensive run whose evidence still applies; state which revision it
+covered. When an agent session ends mid-task, leave a compact committed
+handoff (branch, plan status, what was verified, what remains) rather than
+relying on chat context. Deterministic checks the owner can run locally (for
+example the full browser matrix) may be left to the owner when appropriate,
+and said so explicitly. Keep review effort proportional to risk: small fixes
+need focused checks and a short review, not a full regression.
+
 ## Review and acceptance
 
 ChatGPT reads the actual GitHub PR diff and available verification evidence,

@@ -65,7 +65,10 @@ both` for a final regression run.
   completion, failure, timeout or interrupt (Ctrl-C once: graceful; twice:
   forced) the runner stops only its own groups (SIGTERM, bounded wait, SIGKILL)
   and deletes only profile and cache directories inside its run directory.
-  Concurrent runner invocations share no ports, profiles, build output or run
+  A stop counts only once the whole group is confirmed gone; a surviving or
+  unconfirmed group is reported, and that job's profile and cache are then left
+  in place rather than removed under a possibly running browser or server.
+  Profile and cache removal are attempted independently. Concurrent runner invocations share no ports, profiles, build output or run
   directories.
 
 ## Browsers
@@ -86,8 +89,12 @@ Each invocation creates a unique `.verification-runs/run-<time>-<id>/`
 driver's screenshots. `summary.json` records the revision and dirty files,
 selection, browser executables and versions, origins and endpoints, timings and
 per-job status: `passed`, `failed`, `timed_out`, `setup_failed`,
-`interrupted`, `not_run` or `unsupported`. Exit status: 0 when all runnable
-jobs passed, 1 otherwise, 2 for usage errors, 130 when interrupted.
+`interrupted`, `not_run` or `unsupported`. Cleanup is recorded separately from
+that driver outcome: per job `cleanup` (`processesStopped`, `profile` and
+`cache` as `removed`, `kept`, `skipped` or `failed`, and `errors`) and a
+run-level `cleanup` (`ok`, `jobFailures`, `runErrors`). Exit status: 0 only
+when every runnable job passed and cleanup succeeded; 1 otherwise; 2 for usage
+errors; 130 when interrupted.
 
 ## Platforms and limits
 
@@ -99,7 +106,10 @@ actual zoom/IME or spoken screen-reader behaviour.
 
 ## Results (Maintenance B, 2026-11-14)
 
-Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
+Revisions differ: the full matrix and benchmark below ran before the cleanup
+reporting corrections (runner code of `412d2f5` and `6b0b7a9` respectively)
+and were not repeated; the final smoke run is recorded in PR #78 at the final
+revision. Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
 
 - Full matrix, both browsers, `-j 2`, at runner code identical to `412d2f5`:
   34 runnable pairs, 30 passed, 4 failed, 6 unsupported; one 0.3 s build;

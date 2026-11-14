@@ -55,6 +55,10 @@ function formatSummary(summary, runDir) {
         lines.push(`      ${line}`);
       if (row.logs) lines.push(`      logs: ${show(row.jobDir)}/`);
     }
+    if (row.cleanup && !row.cleanup.ok) {
+      for (const error of row.cleanup.errors)
+        lines.push(`      CLEANUP FAILED: ${error}`);
+    }
     if (
       row.knownIssue &&
       row.browser === 'firefox' &&
@@ -70,6 +74,11 @@ function formatSummary(summary, runDir) {
   lines.push(
     '',
     `Build: ${summary.build.status}${summary.build.durationMs !== null ? ` (${seconds(summary.build.durationMs)})` : ''}`,
+    `Cleanup: ${
+      summary.cleanup.ok
+        ? 'all job processes stopped; no cleanup errors'
+        : `FAILED (${summary.cleanup.jobFailures} job(s)${summary.cleanup.runErrors.length ? `; ${summary.cleanup.runErrors.join('; ')}` : ''})`
+    }`,
     `Totals: ${counts}; wall clock ${seconds(summary.durationMs)} at concurrency ${summary.concurrency}`,
     `Run directory: ${runDir}`,
     `Summary: ${join(runDir, 'summary.json')}`,

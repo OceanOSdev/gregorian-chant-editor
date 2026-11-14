@@ -321,7 +321,8 @@ export async function runViteBuild(
     await build.stop();
     throw new SetupError(`vite build exceeded ${timeoutMs} ms`);
   }
-  await build.stop();
+  const stopped = await build.stop();
+  if (!stopped.terminated) throw new SetupError(stopped.detail);
   if (result.code !== 0)
     throw new SetupError(build.describeExit().replace('early ', ''));
 }
