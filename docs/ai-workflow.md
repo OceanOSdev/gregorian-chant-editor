@@ -79,8 +79,14 @@ architectural conflicts or significant ambiguity. Do not merge.
 Codex first inspects the working tree and preserves unrelated changes before
 switching. If switching would overwrite local work, it must preserve that work
 safely or ask the owner how to proceed. Confirm the branch and intended base,
-read `AGENTS.md` and the committed plan, and inspect relevant subsystem guides,
-ADRs, and actual code before making changes.
+read `AGENTS.md` and the committed plan, then use the documentation map and
+headings to identify affected guides and accepted ADRs. Read relevant sections
+first, expanding to full documents when needed to understand a contract, conflict,
+or dependency. Inspect implementation and tests when behavior matters; do not
+infer actual behavior from documentation alone. Avoid rereading unchanged files.
+Keep command output bounded, retain long logs outside the conversation, and
+inspect relevant failure excerpts. Use reasonable waits or completion notices
+instead of frequent polling.
 
 For well-scoped work, implement directly. If substantial architectural ambiguity,
 conflicting requirements, or a materially different approach emerges, stop the
@@ -104,9 +110,13 @@ reasons. Distinguish implementation, automated verification, manual testing,
 and deferred work. Do not infer passing checks from a plan or code inspection.
 Markdown-only changes skip hosted CI; skipped CI is not passed CI.
 
-Commit implementation on the same handoff branch and open a PR against the
-agreed base. Keep the committed plan available during review until the owner
-chooses its closeout below. The PR description and return summary should explain:
+Commit implementation on the same handoff branch and push those commits to the
+remote before opening or updating the PR against the agreed base. Before
+reporting delivery complete, verify that the remote branch head and PR head match
+the intended implementation commit, and that the PR lists the intended changed
+files. Report the implementation commit SHA. Keep the committed plan available
+during review until the owner chooses its closeout below. The PR description and
+return summary should explain:
 
 - what changed and why;
 - checks actually run and their results, including manual validation;
@@ -135,9 +145,15 @@ Use the [browser verification runner](verification/runner/README.md) instead
 of manually starting servers, browsers and profiles. Report concise results
 (outcomes, timings, run directory) and inspect logs only for failures. Do not
 repeat an expensive run whose evidence still applies; state which revision it
-covered. When an agent session ends mid-task, leave a compact committed
-handoff (branch, plan status, what was verified, what remains) rather than
-relying on chat context. Deterministic checks the owner can run locally (for
+covered. Use Git commits as checkpoints for major approved stages such as research/design,
+implementation, and integrated acceptance. At a checkpoint, record the revision,
+completed scope, actual verification, caveats, and remaining work in the plan,
+PR, or concise committed evidence. A fresh session starts from the current
+branch, committed plan, relevant accepted ADRs, checkpoint commit, and PR evidence;
+it need not replay the full conversation. Do not add a separate session log. For
+substantial unexpected defects, consider a focused handoff; do not reset sessions
+for short related tasks or defer a blocking correctness issue. Future handoffs
+should name relevant sections and decisions rather than broad ADR ranges. Deterministic checks the owner can run locally (for
 example the full browser matrix) may be left to the owner when appropriate,
 and said so explicitly. Keep review effort proportional to risk: small fixes
 need focused checks and a short review, not a full regression.
