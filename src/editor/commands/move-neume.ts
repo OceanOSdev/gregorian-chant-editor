@@ -1,5 +1,6 @@
 import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
+  pesSubpunctisNotes,
   staffPosition,
   type ChantDocument,
   type ChantNote,
@@ -52,6 +53,13 @@ function moveNeumeVerticallyCandidate(
 /** Translate every note while retaining kind-correlated tuples and identities. */
 export function transposeNeume(neume: Neume, delta: number): Neume {
   switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(
+        neume.notes.map((note) => moveNote(note, delta)),
+      );
+      // A typed tuple always rebuilds; malformed input stays unchanged.
+      return notes ? { ...neume, notes } : neume;
+    }
     case 'punctum': {
       const [note] = neume.notes;
 

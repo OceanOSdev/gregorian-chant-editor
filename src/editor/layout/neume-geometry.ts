@@ -18,6 +18,7 @@ import { buildPodatusOrClivis } from './neumes/podatus-clivis';
 import { buildScandicusOrTorculus } from './neumes/scandicus-torculus';
 import { buildClimacus } from './neumes/climacus';
 import { buildPorrectus } from './neumes/porrectus';
+import { buildPesSubpunctis } from './neumes/pes-subpunctis';
 
 export {
   engravingStaffStep,
@@ -84,6 +85,8 @@ function buildUnmodifiedGeometry(
   bottomStaffY: number,
 ): NeumeGeometry {
   switch (kind) {
+    case 'pes-subpunctis':
+      return buildPesSubpunctis(positions, leftX, bottomStaffY);
     case 'bistropha':
     case 'tristropha':
       return buildRepeatedNotes(positions, leftX, bottomStaffY);

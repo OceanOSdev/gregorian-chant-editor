@@ -70,3 +70,18 @@ with **none-only** mora. This is an initial authoring-scope restriction, not a
 claim of historical prohibition. Existing mora patterns are unchanged. Expanded
 support requires sourced conventional patterns and unambiguous engraving in a
 future investigation and owner review.
+
+## Stage 9B-1 Pes subpunctis extension (owner-approved 2026-11-13)
+
+[ADR 0023](0023-bounded-tuple-union-for-pes-subpunctis.md) adds Pes
+subbipunctis and Pes subtripunctis with exactly **none** or **final note**.
+The final note is the last note of the actual four- or five-note tuple, and
+the mark belongs to that stable note ID. Final-two and all other nonempty
+subsets are deferred pending sufficient historical evidence and unambiguous
+engraving. The four-note form has a direct printed example (Mocquereau
+Fig. 37 no. 21); the five-note form follows the same convention, supported by
+Gregorio and the shared descending-tail construction.
+
+Mora scope indexes are now derived from the actual tuple length (`final` =
+last note, `final-two` = last two). Every existing pattern, including
+`final` = [2] and `final-two` = [1, 2] for three-note kinds, is unchanged.

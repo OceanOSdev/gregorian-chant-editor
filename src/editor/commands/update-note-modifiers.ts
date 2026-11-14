@@ -1,4 +1,9 @@
-import type { ChantDocument, ChantNote, Neume } from '../domain/chant-document';
+import {
+  pesSubpunctisNotes,
+  type ChantDocument,
+  type ChantNote,
+  type Neume,
+} from '../domain/chant-document';
 import {
   getMoraScope,
   moraChoices,
@@ -36,6 +41,12 @@ export function updateNoteModifiers(
   const neume = located.neume;
   let updated: Neume;
   switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(neume.notes.map(replace));
+      if (!notes) return document;
+      updated = { ...neume, notes };
+      break;
+    }
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0])] };
       break;
@@ -71,7 +82,7 @@ export function updateMoraScope(
     getMoraScope(neume) === scope
   )
     return document;
-  const indexes = moraIndexes(scope);
+  const indexes = moraIndexes(scope, neume.notes.length);
   const replace = (note: ChantNote, index: number): ChantNote => {
     const marked = indexes.includes(index);
     if (!!note.mora === marked) return note;
@@ -82,6 +93,12 @@ export function updateMoraScope(
   };
   let updated: Neume;
   switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(neume.notes.map(replace));
+      if (!notes) return document;
+      updated = { ...neume, notes };
+      break;
+    }
     case 'punctum':
       updated = { ...neume, notes: [replace(neume.notes[0], 0)] };
       break;

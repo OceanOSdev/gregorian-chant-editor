@@ -883,3 +883,30 @@ production preview with disposable Chromium/CDP on 9230, or
 contextual-note, sign/form, persistence, example, clef, division and lyric drivers
 sequentially per browser. See the [record](verification/repeated-note-neumes/README.md)
 for actual results, reference comparisons and separate foreground acceptance.
+
+## Pes subpunctis (Stage 9B-1)
+
+`domain/pes-subpunctis.test.ts` checks every four- and five-note contour over a
+pitch range against an independent oracle, cardinality and naming, the
+owner-approved none/final mora matrix (every subset against an independent
+rule) with length-aware indexes, marked movement/deletion/history/v7
+persistence (deleting the marked note never transfers its mora), independent
+episemata (including the Kyrie ictus), every single-note and whole-group move,
+deletion outcomes for every index of every valid contour in range, B
+ownership/clef preservation, exact v1–v6 rejection with protected cache bytes,
+malformed v7 payloads, insertion at every mixed-event boundary with exact IDs,
+insufficient/duplicate IDs, session I/T recall and rejection announcements.
+`layout/pes-subpunctis-geometry.test.ts` checks reuse of Podatus and Climacus
+geometry, no extra ink, disjoint pointer regions sampled on a grid, ghost/commit
+parity, lyric anchors and wrapping. It exhaustively renders every
+horizontal/vertical episema combination with and without a final mora for
+eight representative contours (adjacent and wide intervals, line/space,
+both Kyrie XI fragments), checking sign counts, per-note ownership and bounds.
+
+Run `node docs/verification/pes-subpunctis/browser-check.mjs` against the
+production preview with the usual `CHANT_PREVIEW_URL`, `CHANT_CHROMIUM_URL` or
+`CHANT_FIREFOX_URL` overrides. Firefox refuses some ports (for example 4190),
+so choose an unrestricted preview port. Re-run the Stage 9A driver and the
+accidental, persistence, modifier, note-shape and vertical-episema drivers in
+both browsers. See the [record](verification/pes-subpunctis/README.md) for the
+actual results.

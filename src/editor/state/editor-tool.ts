@@ -1,15 +1,17 @@
-import type {
-  DivisionKind,
-  Clef,
-  NoteForm,
-  Neume,
-} from '../domain/chant-document';
+import type { DivisionKind, Clef, NoteForm } from '../domain/chant-document';
+import {
+  createNeumeEntryPitches,
+  type GraphicalNeumeKind,
+} from '../neume-entry-pitches';
+import { staffPosition } from '../domain/chant-document';
 export type EditorTool =
   | { kind: 'place-clef'; clefType: Clef['type'] }
   | { kind: 'place-division'; divisionKind: DivisionKind }
   | { kind: 'select' }
   | { kind: 'place-punctum'; form?: 'virga' | 'inclinatum' }
   | { kind: 'place-podatus'; form?: 'quilisma' }
+  | { kind: 'place-pes-subbipunctis' }
+  | { kind: 'place-pes-subtripunctis' }
   | { kind: 'place-bistropha' }
   | { kind: 'place-tristropha' }
   | { kind: 'place-clivis' }
@@ -17,6 +19,16 @@ export type EditorTool =
   | { kind: 'place-torculus' }
   | { kind: 'place-climacus' }
   | { kind: 'place-porrectus' };
+
+/** Split-control families: the ordinary member first, then exact variants. */
+export const punctumFamily = ['punctum', 'bistropha', 'tristropha'] as const;
+export type PunctumFamilyKind = (typeof punctumFamily)[number];
+export const podatusFamily = [
+  'podatus',
+  'pes-subbipunctis',
+  'pes-subtripunctis',
+] as const;
+export type PodatusFamilyKind = (typeof podatusFamily)[number];
 
 export function selectTool(): EditorTool {
   return { kind: 'select' };
@@ -54,6 +66,8 @@ export function isPlacementTool(tool: EditorTool): boolean {
   return (
     tool.kind === 'place-clef' ||
     tool.kind === 'place-division' ||
+    tool.kind === 'place-pes-subbipunctis' ||
+    tool.kind === 'place-pes-subtripunctis' ||
     tool.kind === 'place-bistropha' ||
     tool.kind === 'place-tristropha' ||
     tool.kind === 'place-punctum' ||
@@ -66,19 +80,15 @@ export function isPlacementTool(tool: EditorTool): boolean {
   );
 }
 
+/** The exact number of notes an entry variant creates. */
+export function entryNoteCount(kind: GraphicalNeumeKind): number {
+  return createNeumeEntryPitches(kind, staffPosition(0)).staffPositions.length;
+}
+
 /** Appearance for the existing melodic placement contour, shared by ghosts/commit. */
-export function entryAppearance(kind: Neume['kind'], form?: NoteForm) {
-  return Array.from(
-    {
-      length:
-        kind === 'punctum'
-          ? 1
-          : kind === 'podatus' || kind === 'clivis' || kind === 'bistropha'
-            ? 2
-            : 3,
-    },
-    (_, index) =>
-      form && index === (kind === 'scandicus' ? 1 : 0) ? { form } : {},
+export function entryAppearance(kind: GraphicalNeumeKind, form?: NoteForm) {
+  return Array.from({ length: entryNoteCount(kind) }, (_, index) =>
+    form && index === (kind === 'scandicus' ? 1 : 0) ? { form } : {},
   );
 }
 export function toolNoteForm(tool: EditorTool): NoteForm | undefined {

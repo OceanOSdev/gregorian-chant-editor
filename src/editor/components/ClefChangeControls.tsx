@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type Dispatch } from 'react';
+import { allocateInsertionIds } from '../interaction/allocate-insertion-ids';
 import { isPlacementTool } from '../state/editor-tool';
 import type { Clef } from '../domain/chant-document';
 import { deriveScoreOrder, scoreBoundaryAt } from '../domain/divisions';
@@ -49,14 +50,7 @@ export function ClefChangeControls({
         order,
         order.findIndex((i) => i.entity.id === target.id) + Number(after),
       ),
-      ids: {
-        neumeId: crypto.randomUUID(),
-        noteIds: [
-          crypto.randomUUID(),
-          crypto.randomUUID(),
-          crypto.randomUUID(),
-        ],
-      },
+      ids: allocateInsertionIds(),
       lyricCommitId: crypto.randomUUID(),
     });
   };

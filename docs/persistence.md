@@ -5,13 +5,13 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1–6
+## Native versions 1–7
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 6`, and `document: ChantDocument`. The reader accepts exact v1–v6. The original seven document properties are
+`version: 7`, and `document: ChantDocument`. The reader accepts exact v1–v7. The original seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in all six versions. V2–v6 additionally accept
+arrays. Optional syllable alignment is supported in all seven versions. V2–v7 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v6. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v7. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 9A: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1/v2/v3/v4/v5 bytes untouched. The next
-successful committed save writes v6 into that same key, after comparing the
+retained for Stage 9B-1: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1/v2/v3/v4/v5/v6 bytes untouched. The next
+successful committed save writes v7 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot be assumed to read a v6 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v7 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -257,3 +257,22 @@ hydration preserves original bytes and writes no automatic upgrade. All new
 commits write v6 using the unchanged cache key and existing source recovery,
 withdrawn draft-v2 protection, synchronous saves and cross-tab guards. There is
 no new migration that rewrites IDs, signs, lyric or clef/division data.
+
+## Native v7 Pes subpunctis (Stage 9B-1)
+
+New saves/exports write version **7**, adding the `pes-subpunctis` kind. Its
+`notes` array has exactly four (Pes subbipunctis) or five (Pes subtripunctis)
+notes with distinct global IDs and the contour p0 < p1 > p2 > p3 (> p4). There
+is no count or variant field: the array length is the only cardinality, and
+any extra neume field (for example `count` or `variant`) is rejected. Notes
+accept independent horizontal/vertical episemata and a mora on the final note
+only (the owner-approved none/final matrix); authored forms and every other
+nonempty mora subset are rejected.
+Other lengths are rejected, never truncated or padded.
+
+Exact v1–v6 readers retain their original kind and field whitelists and reject
+the new kind even when its notes use otherwise valid older-version fields.
+Legacy hydration preserves original bytes and writes no automatic upgrade. The
+cache key, withdrawn draft-v2 recovery, original-source download, size limit
+and cross-tab conflict guard are unchanged. Older builds cannot read v7 files,
+including v7 files that contain only older kinds.

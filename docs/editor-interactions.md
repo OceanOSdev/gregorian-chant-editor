@@ -866,3 +866,36 @@ their native focus. Menu opening/dismissal
 never enters history or autosave. Choosing a tool retains existing lyric-draft
 commit rules. The contextual note editor explains unavailable mora authoring
 for repeated groups while retaining independent episema controls.
+
+## Podatus family split control (Stage 9B-1)
+
+The Podatus palette slot uses the same split control as Punctum
+(`components/NeumeFamilyMenu.tsx`, shared by both families, so the reviewed
+Stage 9A lifecycle above applies unchanged). The primary Podatus button always
+arms ordinary Podatus. The chevron menu offers Podatus, Pes subbipunctis and
+Pes subtripunctis, each with an icon drawn from the shared measured geometry
+of its default entry contour. Choosing an item arms that exact variant without
+inserting music. One staff click inserts the complete group at the snapped
+first pitch and leaves the tool armed. Default contours relative to the first
+pitch p are [p, p+2, p+1, p] and [p, p+3, p+2, p+1, p]; they are entry
+templates, and individual notes can then be moved within the valid contour.
+
+I and contextual Insert (including Insert before/after a selected division or
+clef) insert the exact remembered count. T focuses the Podatus chevron for a
+remembered Pes subpunctis variant without arming ordinary Podatus. The
+palette keeps one roving Tab entry; Right Arrow from Podatus reaches its
+chevron.
+
+Only one family menu is open at a time: opening the other family's chevron, or
+any outside click, closes the first through the shared dismissal path, and
+none of these switches edits the document. At narrow widths an open menu that
+would overflow the viewport aligns to its control's right edge. As in Stage
+9A, an open menu covers wrapped toolbar buttons beneath it, so a click there
+reaches the menu item, not the covered button.
+
+Rejected single-note moves and rejected constituent deletions in a Pes
+subpunctis announce why (the contour must rise then strictly descend; the
+survivors would form no supported neume). The contextual note editor names the
+group by its cardinality and offers exactly two mora scopes, None and Final
+note (the last note of the actual group); horizontal and vertical episemata
+remain per-note controls.

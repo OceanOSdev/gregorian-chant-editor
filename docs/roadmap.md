@@ -31,7 +31,7 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   lyrics require local horizontal scrolling. ADR 0010 remains Accepted.
 - Systems wrap automatically from measured geometry, but there are no manual
   system breaks, pagination controls, or alternate wrapping policies.
-- Stage 7A provides one browser-local active document and native JSON (current v6 writes, exact v1–v6 reads)
+- Stage 7A provides one browser-local active document and native JSON (current v7 writes, exact v1–v7 reads)
   interchange. See [persistence](persistence.md). Storage is best-effort; export
   files for backups. No document library or cloud synchronization is provided.
 - There is no GABC import/export or other interchange adapter.
@@ -235,3 +235,29 @@ future sourced investigation. Historical stropha forms, bivirga/trivirga and
 Stage 9B remain outside this milestone. Separate follow-up maintenance: repair
 or retire the `lyric-anchors` and `lyric-move` browser drivers, which were
 already failing before Stage 9A.
+
+## Pes subpunctis (Stage 9B-1)
+
+**Completed (owner-accepted 2026-11-13)** in PR #75. Pes subbipunctis and Pes
+subtripunctis form one bounded semantic family with a Podatus split control,
+following the [plan](plans/stage-9b1-pes-subpunctis.md) and
+[Accepted ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md).
+Acceptance rests on the recorded automated Chromium/Firefox verification and
+qualitative historical comparisons. Foreground browser interaction, actual
+screen-reader testing and a measured typographic comparison were not
+performed. See the [verification record](verification/pes-subpunctis/README.md).
+
+Retained limits: mora is none or final note only; final-two and earlier-note
+patterns are deferred pending sufficient historical evidence and unambiguous
+engraving. New saves write native v7; exact v1–v6 readers reject the new kind,
+and older builds cannot read v7 files, including files without it. Separate
+follow-up maintenance still applies: repair or retire the `lyric-anchors` and
+`lyric-move` browser drivers, which were already failing before Stage 9A.
+
+## Later Stage 9B milestones (pending)
+
+Not started. Extended Scandicus/Climacus, other subpunctis families (for
+example Porrectus or Scandicus subpunctis), torculus resupinus, porrectus
+flexus, scandicus flexus, climacus resupinus, intra-syllable fusion and
+spacing, liquescence, and the complete Kyrie XI each need their own plan and
+owner review.

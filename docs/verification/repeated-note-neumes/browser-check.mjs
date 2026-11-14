@@ -286,7 +286,7 @@ async function placeAt(pitch = 2, systemIndex = 0) {
     console.log({
       point,
       diagnostic: await ev(
-        `({at:document.elementFromPoint(${point.x},${point.y})?.outerHTML.slice(0,600),tool:document.querySelector('.punctum-menu__arrow')?.outerHTML,svg:document.querySelector('svg.score')?.getBoundingClientRect().toJSON(),scrollY})`,
+        `({at:document.elementFromPoint(${point.x},${point.y})?.outerHTML.slice(0,600),tool:document.querySelector('button[data-tool="punctum-menu"]')?.outerHTML,svg:document.querySelector('svg.score')?.getBoundingClientRect().toJSON(),scrollY})`,
       ),
     });
   }
@@ -449,7 +449,7 @@ try {
         ),
       );
       assert.equal(await family(), kind);
-      assert.equal(JSON.parse(await raw()).version, 6);
+      assert.equal(JSON.parse(await raw()).version, 7);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
       await key('t', 'KeyT');

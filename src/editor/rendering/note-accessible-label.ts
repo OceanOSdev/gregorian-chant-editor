@@ -1,10 +1,17 @@
 import { noteFormLabels } from '../domain/note-forms';
 import type { NoteAppearance, Neume } from '../domain/chant-document';
+import { neumeDisplayName } from '../domain/neume';
+
+const ordinals = ['first', 'second', 'third', 'fourth', 'fifth'] as const;
 
 export function getNoteAccessibleLabel(
   kind: Neume['kind'],
   noteIndex: number,
+  noteCount = 0,
 ): string {
+  if (kind === 'pes-subpunctis')
+    return `Select ${ordinals[noteIndex]} note of ${neumeDisplayName(kind, noteCount)}`;
+
   if (kind === 'podatus') {
     return noteIndex === 0
       ? 'Select lower note of podatus'
@@ -68,12 +75,13 @@ export const wholeNeumeSelectionInstruction =
 export function getSelectedNeumeDescription(
   kind: Neume['kind'],
   isSelected: boolean,
+  noteCount = 0,
 ): string | null {
   if (!isSelected) {
     return null;
   }
 
-  return `Whole ${kind} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
+  return `Whole ${neumeDisplayName(kind, noteCount)} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
 }
 
 export function getNoteModifierDescription(

@@ -57,7 +57,10 @@ describe('conventional mora scope', () => {
         });
         const valid = moraChoices(kind).some(
           (c) =>
-            moraIndexes(c.value).reduce((m, i) => m | (1 << i), 0) === mask,
+            moraIndexes(c.value, pitches.length).reduce(
+              (m, i) => m | (1 << i),
+              0,
+            ) === mask,
         );
         expect(isValidNeume(candidate.neumes[0])).toBe(valid);
         if (valid)

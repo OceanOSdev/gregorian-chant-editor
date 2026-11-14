@@ -1,5 +1,6 @@
 import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
+  pesSubpunctisNotes,
   staffPosition,
   type ChantDocument,
   type Neume,
@@ -29,6 +30,16 @@ function moveNoteVerticallyCandidate(
   // Rebuild the owning kind's fixed tuple before validation so movement never
   // weakens its cardinality or semantic note order.
   switch (locatedNote.neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(
+        locatedNote.neume.notes.map((note, index) =>
+          index === locatedNote.noteIndex ? movedNote : note,
+        ),
+      );
+      if (!notes) return document;
+      movedNeume = { ...locatedNote.neume, notes };
+      break;
+    }
     case 'punctum':
       movedNeume = {
         ...locatedNote.neume,

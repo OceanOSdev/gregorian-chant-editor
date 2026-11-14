@@ -24,7 +24,7 @@ and retain references to unrelated entities where practical.
 Current command families cover:
 
 - creating anchored syllables, editing text/boundaries, deleting and reassigning syllables;
-- inserting Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, Porrectus, Bistropha, and Tristropha;
+- inserting Punctum, Podatus, Clivis, Scandicus, Torculus, Climacus, Porrectus, Bistropha, Tristropha, Pes subbipunctis, and Pes subtripunctis;
 - moving one note vertically;
 - moving every note of a neume vertically as one unit;
 - deleting one note with normalization;
@@ -44,7 +44,7 @@ Rejected and no-op commands return the exact input document object. This
 identity convention is important: callers can distinguish “accepted new
 document” from “nothing changed” without a second result channel.
 
-All nine insertion kinds, including Punctum, validate their musical inputs
+All eleven insertion variants, including Punctum, validate their musical inputs
 without requiring syllables. No lyric group constrains insertion.
 
 `createLyricSyllable` inserts at a free anchor in semantic order and normalizes
@@ -366,3 +366,26 @@ Unsupported mora scopes and nonempty per-note mora edits return the original
 document. Both episema kinds remain independent stable-note edits. Accepted
 placement, movement, deletion and normalization are one semantic history entry;
 rejected unequal pitch moves and modifier edits create none.
+
+## Pes subpunctis commands (Stage 9B-1)
+
+The two entry variants map to the one `pes-subpunctis` semantic kind through
+the validated `insertNeume` command and the shared graphical/toolbar resolvers.
+Note IDs are allocated once at the interaction boundary
+(`interaction/allocate-insertion-ids.ts`, five distinct IDs for the longest
+variant); `insertEditorNeume` never generates IDs and returns the original
+document when fewer IDs than notes are supplied.
+
+Commands rebuild the bounded tuple with `pesSubpunctisNotes` instead of
+widening or truncating it. Individual moves are accepted only when the
+resulting contour remains valid; whole-neume moves transpose every note.
+Constituent deletion follows the
+[domain normalization contract](domain-model.md#pes-subpunctis-stage-9b-1);
+rejected moves and deletions return the original document, create no history
+or autosave entry, and announce the reason. The contextual
+Final note scope edit marks only the last note of the actual tuple in one
+history entry; a per-note mora edit is accepted only on that note. Final-two
+and every other nonempty subset return the original document. Deletion and
+movement keep a mark on its stable note and never transfer it. Mora
+scope indexes are derived from the actual tuple length (`moraIndexes(scope,
+length)`); all prior kinds keep `final` = [2] and `final-two` = [1, 2].

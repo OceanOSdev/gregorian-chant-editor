@@ -48,6 +48,7 @@ export const interNeumeInkGap = 33;
 
 export function firstHeadHalfWidth(kind: Neume['kind']): number {
   switch (kind) {
+    case 'pes-subpunctis':
     case 'bistropha':
     case 'tristropha':
     case 'punctum':

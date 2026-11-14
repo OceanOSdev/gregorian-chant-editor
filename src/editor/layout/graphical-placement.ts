@@ -5,6 +5,7 @@ import {
 } from '../domain/chant-document';
 import {
   createNeumeEntryPitches,
+  semanticNeumeKind,
   type GraphicalNeumeKind,
   type GraphicalStaffPositions,
   type NeumeEntryPitches,
@@ -47,9 +48,9 @@ export function canGraphicalNeumeFitNormalSystem(
   staffPositions: GraphicalStaffPositions,
 ) {
   const geometry = buildNeumeGeometry(
-    kind,
+    semanticNeumeKind(kind),
     staffPositions,
-    firstNeumeCenterX - firstHeadHalfWidth(kind),
+    firstNeumeCenterX - firstHeadHalfWidth(semanticNeumeKind(kind)),
     firstSystemBottomStaffY,
   );
   return (
@@ -107,8 +108,9 @@ export function layoutGraphicalPlacementPreview(
       ? firstNeumeCenterX
       : previousRight + interNeumeInkGap / 2;
   const bottomStaffY = Math.max(...source.staffLines.map((line) => line.y));
+  const kind = semanticNeumeKind(placement.kind);
   const measured = buildNeumeGeometry(
-    placement.kind,
+    kind,
     placement.staffPositions,
     0,
     bottomStaffY,
@@ -119,12 +121,12 @@ export function layoutGraphicalPlacementPreview(
     source.staffLines[0].x1 + 3,
     Math.min(
       source.staffLines[0].x2 - measured.bounds.width - 3,
-      point.x - firstHeadHalfWidth(placement.kind),
+      point.x - firstHeadHalfWidth(kind),
     ),
   );
   return {
     ...buildNeumeGeometry(
-      placement.kind,
+      kind,
       placement.staffPositions,
       left,
       bottomStaffY,
