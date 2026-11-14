@@ -134,7 +134,9 @@ const active = () =>
   );
 const input = () => ev("document.querySelector('#lyric-input')?.value ?? null");
 const moving = () => ev("!!document.querySelector('#lyric-move-help')");
-const status = () => ev("document.querySelector('[role=status]').textContent");
+// Document controls own earlier status regions; read the editor's announcement.
+const status = () =>
+  ev("document.querySelector('.editor-announcement').textContent");
 const music = () =>
   ev(
     "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>[n.dataset.neumeId,n.querySelector('.score__ink').outerHTML,Array.from(n.querySelectorAll('[data-note-id]')).map(n=>n.dataset.noteId)])",
