@@ -382,3 +382,50 @@ Follow-up work, separate from this stage:
   longer groups, no intra-syllable fusion, GABC interchange or playback.
 - Native v8: older builds cannot read v8 files, including files without longer
   groups.
+
+## Crowded five-note Scandicus repair
+
+2026-11-14, handoff branch `fix/five-note-scandicus-episema-placement`,
+base `15ca4ca`, verification at `474fdd5` plus dirty implementation/tests.
+The two supplied contours `[-2,-1,0,2,3]` and `[1,3,4,6,9]` reproduced
+`No local vertical episema placement` before the repair. The existing
+ADR 0025 left-side fallback now also applies to five-note Scandicus, only
+after ordinary candidates fail. Candidate order, collision/column ownership,
+modifier semantics, native v9 and shared left-edge normalization are unchanged.
+
+The focused [comparison script](five-note-baseline.mjs) recovers the same 18
+failing contours using steps 1–3 and starts −2, 0, 1, 3, 6. It then compares
+all 32 horizontal × 32 vertical masks and both mora scopes on those contours
+plus `[2,3,4,5,6]`, `[1,2,3,4,6]`, `[-2,0,1,4,5]`, `[4,5,7,8,10]`.
+Of **45,056 cases**, the base threw **4,608** times; the repaired tree threw
+**zero** times. All **40,448** previously successful serialized geometries
+were identical. This extends the historical 72-exception subset without
+repeating the legacy all-kind comparison or the multimillion-case probe.
+It is not exhaustive outside these bounds.
+
+Focused geometry tests exercise both supplied contours with every mark mask,
+including single/all vertical marks and final mora on/off, sign counts,
+per-note ownership, collision bounds, translated silhouettes and advance.
+The existing left-overhang layout suite now covers five-note Scandicus too:
+normal/compact actual ink gaps, lyric shifts, prefix accidental clearance,
+first-system origin and wrapped-system boundary placement.
+
+Verification (Node 24.12.0):
+
+- Initial focused tests: 76 passed; final wrapped-boundary suite: 33 passed.
+- Standard gate: formatting, lint, 89 test files / 1,994 tests, production
+  build and diff whitespace checks passed. Two boundary tests were added
+  afterwards and checked with the focused suite and TypeScript/build again.
+- `npm run verify:browser -- --driver extended-scandicus-climacus --browser both -j 2`:
+  Chromium 157.0.8103.38 passed in 61.6s, Firefox 146.0 passed in 69.9s,
+  total 70.6s. Run: `.verification-runs/run-2026-11-14T06-58-11-370Z-7GMBgT`.
+  Both transports retain prior coverage and add actual modifier-control
+  authoring of the formerly throwing tick, exact stable notes/marks,
+  visible tick, undo/redo and native v9 reload at 1440px and 320px.
+  Screenshots `crowded-five-note-{1440,320}.png` are in each job's driver
+  output directory. The initial sandboxed run failed during server setup;
+  the successful run used local-server permissions.
+
+No comprehensive matrix, performance benchmark or unrelated driver was run.
+Stage 9C remains next; absent neume ledger lines, extreme-pitch vertical
+layout limits and the unrelated Firefox mid-score-clefs intermittency remain.

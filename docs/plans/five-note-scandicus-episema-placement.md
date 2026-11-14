@@ -4,7 +4,8 @@ Branch: `fix/five-note-scandicus-episema-placement`
 Target: `master`
 Base: `15ca4ca` (Stage 9B-3, PR #80, merged).
 
-Status: active focused bug-fix handoff, before Stage 9C. Read AGENTS.md,
+Status: implemented; verification and PR evidence recorded in the extended
+Scandicus verification record. Retained for owner review before Stage 9C. Read AGENTS.md,
 the [AI workflow](../ai-workflow.md), relevant layout and testing guides,
 and ADRs 0020, 0024 and 0025.
 

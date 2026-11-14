@@ -317,6 +317,11 @@ five-note Scandicus should receive the same left-of-ink fallback, now safe
 under the left-edge invariant, or another rule. This changes existing
 derived output for those states, so it needs its own owner decision.
 
+**Follow-up resolution:** the separately authorized five-note Scandicus repair
+now reuses that fallback after ordinary search fails. The historical counts
+above are unchanged; see the [focused comparison and browser evidence](../extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair)
+for the tested bounds and outcome.
+
 **Existing geometry:**
 [`existing-geometry-baseline.mjs`](existing-geometry-baseline.mjs) compares
 every pre-existing kind with master `5c24857`:

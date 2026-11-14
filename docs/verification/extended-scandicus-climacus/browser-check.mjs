@@ -829,6 +829,46 @@ try {
     assert.equal(await raw(), markedBytes, 'reload keeps marked current bytes');
     assert.deepEqual(await score(), scandicusMarked);
     await snapshot('interaction-' + width);
+    // Formerly throwing crowded first Pes: author the tick through the UI.
+    await hydrate({
+      ...base,
+      document: {
+        ...base.document,
+        neumes: [
+          scandicus(
+            'crowded',
+            [-2, -1, 0, 2, 3],
+            Object.fromEntries(
+              [0, 1, 2, 3, 4].map((i) => [
+                i,
+                { episema: true, ...(i === 4 ? { mora: 1 } : {}) },
+              ]),
+            ),
+          ),
+        ],
+      },
+    });
+    await select('crowded-1');
+    const beforeTick = await score();
+    await change('Vertical episema', 'on');
+    const crowded = await score();
+    assert.deepEqual(
+      crowded.neumes[0].notes,
+      beforeTick.neumes[0].notes.map((n, i) =>
+        i === 1 ? { ...n, verticalEpisema: true } : n,
+      ),
+    );
+    const visibleTick = await ev(
+      `(()=>{const t=document.querySelector('[data-neume-id="crowded"] .score__vertical-episema');return t ? t.getBBox().height : null})()`,
+    );
+    assert.equal(visibleTick, 7, 'formerly failing tick is rendered');
+    await undo();
+    assert.deepEqual(await score(), beforeTick);
+    await redo();
+    assert.deepEqual(await score(), crowded);
+    await navigate();
+    assert.deepEqual(await score(), crowded, 'crowded native v9 reload');
+    await snapshot('crowded-five-note-' + width);
     // ADR 0023 amendment: Pes subtripunctis deletion that leaves four
     // strictly descending notes normalizes to a four-note Climacus.
     const pes = (id, pitches, marks = {}) =>

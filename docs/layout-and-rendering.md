@@ -797,21 +797,24 @@ The other rules are shared with earlier stages:
 - **Vertical-episema obstacles:** follow each kind's actual joins.
 - **Crowded compound columns** (an owner-reviewed derived-placement
   extension, not a Gate A–C decision): if no ordinary candidate fits, and
-  only for these four kinds, a vertical tick may sit left of the note heads.
-  Every placement the ordinary rule finds is unchanged, and no existing kind
-  is affected.
+  only for these four kinds or five-note Scandicus, a vertical tick may sit
+  left of the note heads. Every placement the ordinary rule finds is
+  unchanged.
 - **Left-edge invariant:** the `leftX` passed to `buildNeumeGeometry` is the
   group's left ink edge for every layout consumer. Compaction, spacing and
   reflow rebuild at `bounds.x + shift`. Whenever signs extend left of the
   origin (prefix accidentals, or this fallback), the builder translates the
   group once by the overhang. Previously this applied only when accidentals
-  were present; no existing kind ever overhangs without them, so their output
-  is unchanged.
+  were present; the same normalization now handles crowded five-note Scandicus.
 - **Shared consumers:** lyrics (first note), signs, accidentals, ghosts,
   palette icons, advance and whole-group wrapping.
 
-All previous kinds remain byte-identical to the Maintenance C master
+At Stage 9B-3 completion, all previous kinds remained byte-identical to the Maintenance C master
 (`5c24857`). This was verified over 194,830 cases with the committed
 [`existing-geometry-baseline.mjs`](verification/compound-directional-neumes/existing-geometry-baseline.mjs).
 Neume ledger lines remain absent for every kind. See the
 [reference record](verification/compound-directional-neumes/README.md).
+
+The subsequent [five-note Scandicus repair](verification/extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair)
+resolves previously throwing cases while preserving successful geometry in
+the focused comparison.
