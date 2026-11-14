@@ -795,10 +795,18 @@ The other rules are shared with earlier stages:
 - **Final mora:** uses the single-sign rules. The Torculus resupinus dot
   starts right of the ink, as for Porrectus.
 - **Vertical-episema obstacles:** follow each kind's actual joins.
-- **Crowded compound columns:** if no ordinary candidate fits, and only for
-  these four kinds, a vertical tick may sit left of the neume's ink. Every
-  placement the ordinary rule finds is unchanged, and no existing kind is
-  affected.
+- **Crowded compound columns** (an owner-reviewed derived-placement
+  extension, not a Gate A–C decision): if no ordinary candidate fits, and
+  only for these four kinds, a vertical tick may sit left of the note heads.
+  Every placement the ordinary rule finds is unchanged, and no existing kind
+  is affected.
+- **Left-edge invariant:** the `leftX` passed to `buildNeumeGeometry` is the
+  group's left ink edge for every layout consumer. Compaction, spacing and
+  reflow rebuild at `bounds.x + shift`. Whenever signs extend left of the
+  origin (prefix accidentals, or this fallback), the builder translates the
+  group once by the overhang. Previously this applied only when accidentals
+  were present; no existing kind ever overhangs without them, so their output
+  is unchanged.
 - **Shared consumers:** lyrics (first note), signs, accidentals, ghosts,
   palette icons, advance and whole-group wrapping.
 

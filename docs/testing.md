@@ -1024,5 +1024,9 @@ node docs/verification/compound-directional-neumes/existing-geometry-baseline.mj
 ```
 
 It compares every pre-existing kind (194,830 cases) with a baseline commit,
-default `5c24857`. The browser driver is `compound-directional-neumes`
+default `5c24857`. The 72 identical exceptions are pre-existing five-note
+Scandicus vertical-episema cases; see the
+[reference record](verification/compound-directional-neumes/README.md#pre-existing-sign-exceptions-owner-review-item-2).
+The left vertical-episema fallback has score-level regressions for spacing,
+compaction, lyric reflow, first-system placement and accidental clearance. The browser driver is `compound-directional-neumes`
 (production preview, both browsers).

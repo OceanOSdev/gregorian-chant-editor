@@ -234,6 +234,75 @@ One implementation finding needed a narrow rule:
   affected. Afterwards a one-off probe built 3,328,000 marked compound
   geometries without an exception: steps 1–5, first pitch −3..9, all
   episema masks, final mora on/off.
+- **Status:** the owner reviewed this fallback in the PR #80 review
+  (2026-11-14) as a narrow extension of the derived placement rules. It is
+  **not** one of the Gate A–C decisions.
+
+### Owner review follow-up: left-overhang integration
+
+**Defect found:** the fallback tick extended ink 3.75 units left of the
+requested origin. The overhang only normalized when accidentals were present,
+but layout assumes `leftX` is the left ink edge. A regression with the
+fallback-producing Scandicus flexus `[0,1,2,1]` (all horizontal episemata,
+vertical episema on note 1) after a Punctum showed:
+
+| Scenario                                           | Before fix                     | After fix                                   | Unmarked equivalent |
+| -------------------------------------------------- | ------------------------------ | ------------------------------------------- | ------------------- |
+| Ordinary word gap                                  | ink gap 29.25                  | 33                                          | 33                  |
+| Compact same-word join (narrow lyrics)             | tick overlapped the 2-unit gap | tick exactly 2 units after the previous ink | 2                   |
+| Lyric-shifted continuation ("A" / "b")             | first head 170.25              | 174                                         | 174                 |
+| Lyric-shifted continuation ("Glooooooooria" / "b") | 217.25                         | 221                                         | 221                 |
+| Lyric-shifted new word                             | 221.25                         | 225                                         | 225                 |
+
+In each case the reflow rebuild at `bounds.x + shift` lost the overhang.
+
+**Fix:** `buildNeumeGeometry` now applies the existing accidental
+normalization, a single translation of the group by its left overhang,
+whenever ink lies left of the origin. The local clearance checks and the
+tick are unchanged.
+
+**Also checked:**
+
+- **Accidentals:** a prefix flat ends at x = 112 with the tick at 116.25; no
+  overlap, and the group starts at the origin.
+- **First system:** the group starts at the same origin as the unmarked
+  figure.
+- **Preview/committed geometry:** consistent by construction, since both use
+  `buildNeumeGeometry`. A newly placed neume carries no marks, so its ghost
+  never uses the fallback.
+
+**Tests:** five layout/geometry regressions in
+`compound-directional-geometry.test.ts`. All five fail with the previous
+accidental-only condition and pass with the fix.
+
+### Pre-existing sign exceptions (owner review item 2)
+
+All 72 exceptions in the existing-geometry comparison, identical on master
+`5c24857` and this branch, are **five-note Scandicus** staircases:
+
+- 18 contours, each with every horizontal episema and a vertical episema on
+  note 1 (the first Pes's upper note);
+- 4 mark variants per contour: that vertical alone or on every note, each
+  with and without a final mora;
+- in every case note 3 (the following Punctum) is one step above note 1, for
+  example `[-2,-1,0,2,3]` or `[1,3,4,6,9]`.
+
+The cause is the same column crowding as the new fallback. There is
+`No local vertical episema placement`, so `buildNeumeGeometry` throws, and the
+editor would fail to render such an authored state. The probe covers only
+the comparison's mask subset for longer groups (empty, full and single-note
+masks), so this is a lower bound, not a full census.
+
+**No new editing path reaches them.** Deleting a constituent of a compound
+figure yields only three-note kinds, and four-note Scandicus normalization is
+unchanged. A focused test deletes every index of every bounded compound
+contour (steps 1–3) with every surviving mark (all horizontal episemata, each
+vertical-episema mask and a final mora). Every normalized result renders.
+
+**Proposed separate follow-up (not done here):** decide whether the extended
+five-note Scandicus should receive the same left-of-ink fallback, now safe
+under the left-edge invariant, or another rule. This changes existing
+derived output for those states, so it needs its own owner decision.
 
 **Existing geometry:**
 [`existing-geometry-baseline.mjs`](existing-geometry-baseline.mjs) compares

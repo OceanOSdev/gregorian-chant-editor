@@ -73,9 +73,14 @@ compose existing elements, except for two new porrectus joins.
   table's four-square Torculus resupinus and its Punctum + Torculus Scandicus
   flexus) are not selected.
 
-  A crowded compound column may leave no ordinary vertical-episema candidate.
-  Only in that case, and only for these four kinds, may the tick sit left of
-  the neume's ink. Every placement the ordinary rule finds is unchanged.
+- **Derived placement extension (owner-reviewed in PR #80 review, not a Gate
+  A–C decision).** A crowded compound column may leave no ordinary
+  vertical-episema candidate. Only in that case, and only for these four
+  kinds, may the tick sit left of the note heads. Every placement the
+  ordinary rule finds is unchanged. As with prefix accidentals,
+  `buildNeumeGeometry` translates the group so that no ink lies left of the
+  requested origin. Compaction, inter-neume spacing, lyric reflow, first-system
+  placement and accidental clearance therefore see the tick as ordinary ink.
 
 - **Forms and mora (approved, Gate B).** No authorable forms. Mora is
   `{none, final}`; final-two and earlier notes are deferred. No print shows a
