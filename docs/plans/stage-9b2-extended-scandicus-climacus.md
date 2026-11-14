@@ -3,12 +3,22 @@
 Branch: `feature/stage-9b2-extended-scandicus-climacus`  
 Target: `master`
 
-Status: implemented in PR #76. On 2026-11-13 the owner approved the three
-gates: the Mocquereau Fig. 34 Scandicus staircase as the initial profile,
+Status: **completed and owner-accepted (2026-11-13)** in PR #76; the
+verified implementation revision is `e859f3b`. Retained as the historical
+record of this stage. On 2026-11-13 the owner approved the three gates: the Mocquereau Fig. 34 Scandicus staircase as the initial profile,
 `{none, final}` mora for four- and five-note Scandicus/Climacus (final-two and
 earlier notes deferred), and the ADR 0023 amendment (Pes subtripunctis
 deletion leaving four strictly descending notes becomes a four-note Climacus).
-ADR 0024 is Accepted; the PR awaits final review.
+ADR 0024 is Accepted, and the final review of PR #76 at `e859f3b` was
+accepted on 2026-11-13. Acceptance rests on the automated verification at the verified
+implementation revision `e859f3b`: repository checks, unit and exhaustive
+geometry tests, the 119,808-case three-note comparison, and headless
+Chromium/Firefox preview drivers at 1440px and 320px. It also rests on
+qualitative historical comparisons. The dev-server clef, mid-score-clef and
+division drivers were last run at `34e7bb7`. One Firefox `mid-score-clefs`
+failure there remains intermittent and unresolved. Foreground owner
+interaction, actual screen-reader testing and a measured typographic
+comparison were not performed.
 See the [verification record](../verification/extended-scandicus-climacus/README.md).
 Stage 9B-1 (PR #75) is merged at `a2111bf`.
 

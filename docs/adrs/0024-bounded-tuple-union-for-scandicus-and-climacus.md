@@ -10,8 +10,17 @@ engraving profile, the `{none, final}` mora matrix for four- and five-note
 groups, and the narrow amendment to Accepted
 [ADR 0023](0023-bounded-tuple-union-for-pes-subpunctis.md) recorded below.
 Implemented under the Stage 9B-2
-[plan](../plans/stage-9b2-extended-scandicus-climacus.md); final owner review
-of the PR is pending.
+[plan](../plans/stage-9b2-extended-scandicus-climacus.md). The implementation
+was owner-accepted on 2026-11-13 after final review of PR #76 at `e859f3b`.
+Acceptance rests on the automated verification at the verified
+implementation revision `e859f3b`: repository checks, unit and exhaustive
+geometry tests, the 119,808-case three-note comparison, and headless
+Chromium/Firefox preview drivers at 1440px and 320px. It also rests on
+qualitative historical comparisons. The dev-server clef, mid-score-clef and
+division drivers were last run at `34e7bb7`. One Firefox `mid-score-clefs`
+failure there remains intermittent and unresolved. Foreground owner
+interaction, actual screen-reader testing and a measured typographic
+comparison were not performed.
 
 Narrowly extends the bounded-tuple qualification of
 [ADR 0004](0004-use-explicit-neume-types-and-ordered-tuples.md) that ADR 0023

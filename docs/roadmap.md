@@ -256,7 +256,8 @@ follow-up maintenance still applies: repair or retire the `lyric-anchors` and
 
 ## Extended Scandicus and Climacus (Stage 9B-2)
 
-**In final review (PR #76).** The existing Scandicus and Climacus kinds accept
+**Completed (owner-accepted 2026-11-13)** in PR #76; verified implementation
+revision `e859f3b`. The existing Scandicus and Climacus kinds accept
 four- and five-note strictly monotonic groups behind split controls, with
 native v8, following the [plan](plans/stage-9b2-extended-scandicus-climacus.md)
 and [Accepted ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
@@ -266,14 +267,29 @@ The owner approved the Mocquereau Fig. 34 Scandicus staircase profile, a
 [verification record](verification/extended-scandicus-climacus/README.md).
 
 Retained limits: final-two and earlier-note morae on longer groups are
-deferred; no lengths beyond five.
+deferred; no lengths beyond five. Acceptance rests on the automated verification at the verified
+implementation revision `e859f3b`: repository checks, unit and exhaustive
+geometry tests, the 119,808-case three-note comparison, and headless
+Chromium/Firefox preview drivers at 1440px and 320px. It also rests on
+qualitative historical comparisons. The dev-server clef, mid-score-clef and
+division drivers were last run at `34e7bb7`. One Firefox `mid-score-clefs`
+failure there remains intermittent and unresolved. Foreground owner
+interaction, actual screen-reader testing and a measured typographic
+comparison were not performed.
 
-## Follow-up maintenance (after Stage 9B-2)
+## Next planned maintenance (before Stage 9B-3)
 
-- Neume ledger lines: no neume kind draws ledger lines yet (only custodes do).
-  Long groups make this more visible; it is separate follow-up work.
-- Repair or retire the pre-existing failing `lyric-anchors` and `lyric-move`
-  browser drivers.
+In order, before Stage 9B-3:
+
+1. **Lyric verification repair:** repair or retire the pre-existing failing
+   `lyric-anchors` and `lyric-move` browser drivers.
+2. **Browser verification automation and development efficiency:** for
+   example, a runner that isolates parallel browser/preview lanes (separate
+   profiles, ports and origins), with per-run logs and timeouts.
+
+Separate follow-up work (not scheduled): neume ledger lines. No neume kind
+draws ledger lines yet (only custodes do), and long groups make this more
+visible.
 
 ## Later Stage 9B milestones (pending)
 

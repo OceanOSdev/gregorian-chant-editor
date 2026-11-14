@@ -170,4 +170,7 @@ ADR 0004 to two more named families. Approved decisions:
 - a narrow amendment to ADR 0023, under which Pes subtripunctis deletion
   leaving four strictly descending notes normalizes to a four-note Climacus.
 
-ADRs 0004 and 0023 remain Accepted.
+ADRs 0004 and 0023 remain Accepted. The implementation in PR #76 was
+owner-accepted on 2026-11-13 at `e859f3b`, based on headless automated
+browser verification and qualitative historical comparisons. Foreground,
+screen-reader and measured typographic verification were not performed.

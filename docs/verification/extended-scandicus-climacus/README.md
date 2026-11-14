@@ -1,6 +1,7 @@
 # Stage 9B-2: Extended Scandicus and Climacus implementation record
 
-Status: **implemented in PR #76; ADR 0024 Accepted.** It follows the committed
+Status: **completed and owner-accepted (2026-11-13)** in PR #76; the verified
+implementation revision is `e859f3b`. ADR 0024 is Accepted. It follows the committed
 [plan](../../plans/stage-9b2-extended-scandicus-climacus.md) and
 [Accepted ADR 0024](../../adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
 On 2026-11-13, after review of `34e7bb7`, the owner approved:
@@ -9,8 +10,8 @@ On 2026-11-13, after review of `34e7bb7`, the owner approved:
 2. `{none, final}` mora for four- and five-note groups;
 3. the ADR 0023 amendment.
 
-See [owner decisions](#owner-decisions-2026-11-13). Final review of the PR is
-pending.
+See [owner decisions](#owner-decisions-2026-11-13) and
+[owner acceptance](#owner-acceptance-2026-11-13).
 
 ## What is implemented
 
@@ -351,8 +352,25 @@ All three gates were approved after review of `34e7bb7`:
 3. **ADR 0023 amendment:** Pes subtripunctis deletion leaving four strictly
    descending notes normalizes to a four-note Climacus.
 
-ADR 0024 is Accepted and ADR 0023 records the amendment. Final review of
-PR #76 is pending.
+ADR 0024 is Accepted and ADR 0023 records the amendment.
+
+## Owner acceptance (2026-11-13)
+
+The owner accepted the final review of PR #76 at `e859f3b`. Acceptance rests on the automated verification at the verified
+implementation revision `e859f3b`: repository checks, unit and exhaustive
+geometry tests, the 119,808-case three-note comparison, and headless
+Chromium/Firefox preview drivers at 1440px and 320px. It also rests on
+qualitative historical comparisons. The dev-server clef, mid-score-clef and
+division drivers were last run at `34e7bb7`. One Firefox `mid-score-clefs`
+failure there remains intermittent and unresolved. Foreground owner
+interaction, actual screen-reader testing and a measured typographic
+comparison were not performed.
+
+Follow-up work, separate from this stage:
+
+- the next planned maintenance before Stage 9B-3: lyric verification repair,
+  then browser verification automation and development efficiency;
+- neume ledger lines.
 
 ## Remaining limitations
 
