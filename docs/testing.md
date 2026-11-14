@@ -262,7 +262,3 @@ and consult the owning record for feature-specific assertions and manual checks.
 - [Persistent placement](verification/testing-history.md#persistent-graphical-placement-regressions), [lyrics and word composition](verification/testing-history.md#anchored-lyric-regression-coverage), and [clefs and custodes](verification/testing-history.md#stage-6b-explicit-clefs-and-custodes).
 - [Persistence, note modifiers and authored note forms](verification/testing-history.md#local-persistence-verification-stage-7a), [episemata and accidentals](verification/testing-history.md#authored-vertical-episemata-stage-8c), and [repeated and extended neumes](verification/testing-history.md#repeated-note-neumes-stage-9a).
 - [Browser verification runner](verification/runner/README.md) for commands, selection, isolation and outputs; [verification index](verification/README.md) for evidence policy.
-
-## Browser verification runner
-
-The [runner guide](verification/runner/README.md) documents routine and full browser runs, standalone drivers, isolation, and outputs.

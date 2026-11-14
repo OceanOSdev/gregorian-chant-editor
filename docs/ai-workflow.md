@@ -110,9 +110,13 @@ reasons. Distinguish implementation, automated verification, manual testing,
 and deferred work. Do not infer passing checks from a plan or code inspection.
 Markdown-only changes skip hosted CI; skipped CI is not passed CI.
 
-Commit implementation on the same handoff branch and open a PR against the
-agreed base. Keep the committed plan available during review until the owner
-chooses its closeout below. The PR description and return summary should explain:
+Commit implementation on the same handoff branch and push those commits to the
+remote before opening or updating the PR against the agreed base. Before
+reporting delivery complete, verify that the remote branch head and PR head match
+the intended implementation commit, and that the PR lists the intended changed
+files. Report the implementation commit SHA. Keep the committed plan available
+during review until the owner chooses its closeout below. The PR description and
+return summary should explain:
 
 - what changed and why;
 - checks actually run and their results, including manual validation;
