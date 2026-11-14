@@ -1,6 +1,9 @@
 import type { InsertionIds } from './insert-editor-neume';
 
-/** Longest entry variant (Pes subtripunctis); extra IDs are simply unused. */
+/**
+ * Longest entry variants (Pes subtripunctis, five-note Scandicus/Climacus);
+ * extra IDs are simply unused.
+ */
 export const maximumEntryNoteCount = 5;
 
 /**

@@ -16,8 +16,12 @@ export type EditorTool =
   | { kind: 'place-tristropha' }
   | { kind: 'place-clivis' }
   | { kind: 'place-scandicus'; form?: 'quilisma' }
+  | { kind: 'place-scandicus-4' }
+  | { kind: 'place-scandicus-5' }
   | { kind: 'place-torculus' }
   | { kind: 'place-climacus' }
+  | { kind: 'place-climacus-4' }
+  | { kind: 'place-climacus-5' }
   | { kind: 'place-porrectus' };
 
 /** Split-control families: the ordinary member first, then exact variants. */
@@ -29,6 +33,25 @@ export const podatusFamily = [
   'pes-subtripunctis',
 ] as const;
 export type PodatusFamilyKind = (typeof podatusFamily)[number];
+export const scandicusFamily = [
+  'scandicus',
+  'scandicus-4',
+  'scandicus-5',
+] as const;
+export type ScandicusFamilyKind = (typeof scandicusFamily)[number];
+export const climacusFamily = ['climacus', 'climacus-4', 'climacus-5'] as const;
+export type ClimacusFamilyKind = (typeof climacusFamily)[number];
+
+export function isPunctumFamilyKind(
+  kind: GraphicalNeumeKind,
+): kind is PunctumFamilyKind {
+  return kind === 'punctum' || kind === 'bistropha' || kind === 'tristropha';
+}
+
+/** The ordinary (default-form) placement tool for an exact entry variant. */
+export function placeEntryTool(kind: GraphicalNeumeKind): EditorTool {
+  return { kind: `place-${kind}` };
+}
 
 export function selectTool(): EditorTool {
   return { kind: 'select' };
@@ -74,8 +97,12 @@ export function isPlacementTool(tool: EditorTool): boolean {
     tool.kind === 'place-podatus' ||
     tool.kind === 'place-clivis' ||
     tool.kind === 'place-scandicus' ||
+    tool.kind === 'place-scandicus-4' ||
+    tool.kind === 'place-scandicus-5' ||
     tool.kind === 'place-torculus' ||
     tool.kind === 'place-climacus' ||
+    tool.kind === 'place-climacus-4' ||
+    tool.kind === 'place-climacus-5' ||
     tool.kind === 'place-porrectus'
   );
 }

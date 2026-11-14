@@ -77,7 +77,9 @@ describe.each(kinds)('%s fixed written-unison group', (kind) => {
   it('validates every mora subset independently of the choices implementation', () => {
     const doc = fixture(kind),
       group = doc.neumes[0];
-    expect(moraChoices(kind)).toEqual([{ value: 'none', label: 'None' }]);
+    expect(moraChoices(kind, group.notes.length)).toEqual([
+      { value: 'none', label: 'None' },
+    ]);
     for (let mask = 0; mask < 2 ** group.notes.length; mask++) {
       const copy = structuredClone(doc);
       copy.neumes[0].notes.forEach((n, i) => {
@@ -308,10 +310,10 @@ describe.each(kinds)('%s fixed written-unison group', (kind) => {
       effective(signed).map((n) => [n.degree, n.alteration]),
     );
   });
-  it('round trips the current version (v7) and rejects the kinds under every exact legacy reader, guarding original cache bytes', () => {
+  it('round trips the current version (v8) and rejects the kinds under every exact legacy reader, guarding original cache bytes', () => {
     const doc = fixture(kind),
       text = encodeDocument(doc);
-    expect(JSON.parse(text).version).toBe(7);
+    expect(JSON.parse(text).version).toBe(8);
     expect(decodeDocument(text)).toEqual(doc);
     for (const version of [1, 2, 3, 4, 5]) {
       const payload = JSON.parse(text);

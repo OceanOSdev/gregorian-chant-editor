@@ -71,7 +71,8 @@ export function NoteContextToolbar({
   const refreshPosition = useRef<(() => NoteToolbarPosition | null) | null>(
     null,
   );
-  const moraUnavailable = moraChoices(neume.kind).length === 1;
+  const moraOptions = moraChoices(neume.kind, neume.notes.length);
+  const moraUnavailable = moraOptions.length === 1;
   const neumeName = neumeDisplayName(neume.kind, neume.notes.length);
   const moraHelpId = useId();
   const targetId = useId();
@@ -79,6 +80,7 @@ export function NoteContextToolbar({
   const forms = allowedNoteForms(
     neume.kind,
     neume.notes.findIndex((n) => n.id === note.id),
+    neume.notes.length,
   );
 
   useImperativeHandle(ref, () => ({
@@ -319,13 +321,13 @@ export function NoteContextToolbar({
           aria-describedby={moraUnavailable ? moraHelpId : undefined}
           value={getMoraScope(neume) ?? 'none'}
           onChange={(event) => {
-            const choice = moraChoices(neume.kind).find(
+            const choice = moraOptions.find(
               (c) => c.value === event.target.value,
             );
             if (choice) onMoraChange(choice.value);
           }}
         >
-          {moraChoices(neume.kind).map((choice) => (
+          {moraOptions.map((choice) => (
             <option key={choice.value} value={choice.value}>
               {choice.label}
             </option>

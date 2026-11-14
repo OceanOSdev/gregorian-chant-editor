@@ -6,6 +6,7 @@ import {
   type LayoutBounds,
   type NeumeGeometry,
 } from './neumes/shared';
+import { extendedScandicusElements } from './neumes/scandicus-extended';
 
 function overlaps(a: LayoutBounds, b: LayoutBounds, clearance = 2): boolean {
   return (
@@ -240,6 +241,14 @@ function verticalObstacles(
       addShaft(first.x + first.width - 1.5, first.anchorY, bottom);
   } else if (kind === 'climacus') {
     addShaft(first.x + first.width - 1.5, first.anchorY, first.anchorY + 27);
+  } else if (kind === 'scandicus' && geometry.notes.length > 3) {
+    // Only each staircase Podatus is joined (right stem); elements are not
+    // connected to each other, so no shaft is assumed between them.
+    for (const indexes of extendedScandicusElements(geometry.notes.length)) {
+      const [lower, upper] = indexes.map((index) => geometry.notes[index]);
+      if (lower && upper)
+        addShaft(lower.x + lower.width - 1.5, upper.anchorY, lower.anchorY);
+    }
   } else if (kind === 'pes-subpunctis') {
     // Only the Podatus is joined; the descending diamonds are detached.
     const apex = geometry.notes[1];

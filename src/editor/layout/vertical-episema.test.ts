@@ -45,7 +45,7 @@ describe('bounded vertical episema placement', () => {
               forms.push([{}, { form: 'quilisma' }, {}]);
             for (const appearance of forms)
               for (const horizontal of [false, true])
-                for (const scope of moraChoices(kind)) {
+                for (const scope of moraChoices(kind, appearance.length)) {
                   const modifiers = appearance.map(
                     (form, i): NoteAppearance => ({
                       ...form,

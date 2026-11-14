@@ -21,8 +21,12 @@ import { noteFormLabels } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
 import {
   entryAppearance,
+  climacusFamily,
   podatusFamily,
   punctumFamily,
+  scandicusFamily,
+  isPunctumFamilyKind,
+  placeEntryTool,
   toolNoteForm,
   type EditorTool,
 } from '../state/editor-tool';
@@ -115,6 +119,22 @@ const neumeTools = [
   { kind: 'climacus', tool: placeClimacusTool },
   { kind: 'porrectus', tool: placePorrectusTool },
 ] as const;
+
+/** Split-control families: ordinary member first, then exact variants. */
+const neumeFamilies = {
+  punctum: { variants: punctumFamily, tool: placePunctumTool },
+  podatus: { variants: podatusFamily, tool: placePodatusTool },
+  scandicus: { variants: scandicusFamily, tool: placeScandicusTool },
+  climacus: { variants: climacusFamily, tool: placeClimacusTool },
+} as const;
+type FamilyPrimary = keyof typeof neumeFamilies;
+
+function isFamilyVariant(
+  family: FamilyPrimary,
+  kind: GraphicalNeumeKind,
+): boolean {
+  return (neumeFamilies[family].variants as readonly string[]).includes(kind);
+}
 
 function isEditableTarget(target: EventTarget | null) {
   return (
@@ -320,8 +340,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   );
   /** Shared roving-focus and arming wiring for a family split control. */
   function familyMenuProps(
-    primaryTool: 'punctum' | 'podatus',
-    menuTool: 'punctum-menu' | 'podatus-menu',
+    primaryTool: FamilyPrimary,
+    menuTool: `${FamilyPrimary}-menu`,
     tool: () => EditorTool,
   ) {
     return {
@@ -697,68 +717,52 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         }}
       >
         {paletteTools.map((tool) =>
-          tool === 'punctum-menu' || tool === 'podatus-menu' ? null : tool ===
-            'punctum' ? (
-            <NeumeFamilyMenu
+          tool === 'punctum-menu' ||
+          tool === 'podatus-menu' ||
+          tool === 'scandicus-menu' ||
+          tool === 'climacus-menu' ? null : tool === 'punctum' ||
+            tool === 'podatus' ||
+            tool === 'scandicus' ||
+            tool === 'climacus' ? (
+            <NeumeFamilyMenu<GraphicalNeumeKind>
               key={tool}
-              family="Punctum"
-              familyClassName="punctum-menu"
-              variants={punctumFamily}
+              family={neumeName(tool)}
+              familyClassName={`${tool}-menu`}
+              variants={neumeFamilies[tool].variants}
               label={neumeName}
-              icon={(kind) => <PunctumIcon kind={kind} />}
+              icon={(kind) =>
+                isPunctumFamilyKind(kind) ? (
+                  <PunctumIcon kind={kind} />
+                ) : (
+                  <EntryIcon kind={kind} />
+                )
+              }
               active={
-                placementKind === 'punctum' && !toolNoteForm(activeTool)
-                  ? 'punctum'
-                  : placementKind === 'bistropha' ||
-                      placementKind === 'tristropha'
+                placementKind === tool && !toolNoteForm(activeTool)
+                  ? tool
+                  : placementKind &&
+                      placementKind !== tool &&
+                      isFamilyVariant(tool, placementKind)
                     ? placementKind
                     : null
               }
               remembered={
-                rememberedKind === 'bistropha' ||
-                rememberedKind === 'tristropha'
+                rememberedKind !== tool && isFamilyVariant(tool, rememberedKind)
                   ? rememberedKind
-                  : 'punctum'
+                  : tool
               }
               onChoose={(kind) =>
                 dispatch({
                   type: 'arm',
-                  tool: { kind: `place-${kind}` },
+                  tool: placeEntryTool(kind),
                   lyricCommitId: crypto.randomUUID(),
                 })
               }
-              {...familyMenuProps('punctum', 'punctum-menu', placePunctumTool)}
-            />
-          ) : tool === 'podatus' ? (
-            <NeumeFamilyMenu
-              key={tool}
-              family="Podatus"
-              familyClassName="podatus-menu"
-              variants={podatusFamily}
-              label={neumeName}
-              icon={(kind) => <EntryIcon kind={kind} />}
-              active={
-                placementKind === 'podatus' && !toolNoteForm(activeTool)
-                  ? 'podatus'
-                  : placementKind === 'pes-subbipunctis' ||
-                      placementKind === 'pes-subtripunctis'
-                    ? placementKind
-                    : null
-              }
-              remembered={
-                rememberedKind === 'pes-subbipunctis' ||
-                rememberedKind === 'pes-subtripunctis'
-                  ? rememberedKind
-                  : 'podatus'
-              }
-              onChoose={(kind) =>
-                dispatch({
-                  type: 'arm',
-                  tool: { kind: `place-${kind}` },
-                  lyricCommitId: crypto.randomUUID(),
-                })
-              }
-              {...familyMenuProps('podatus', 'podatus-menu', placePodatusTool)}
+              {...familyMenuProps(
+                tool,
+                `${tool}-menu`,
+                neumeFamilies[tool].tool,
+              )}
             />
           ) : (
             <button

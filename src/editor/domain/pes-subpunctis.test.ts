@@ -173,7 +173,7 @@ describe('pes subpunctis semantic family', () => {
   });
 
   it('allows exactly none or a final-note mora, derived from the actual tuple length', () => {
-    expect(moraChoices('pes-subpunctis')).toEqual([
+    expect(moraChoices('pes-subpunctis', 4)).toEqual([
       { value: 'none', label: 'None' },
       { value: 'final', label: 'Final note' },
     ]);
@@ -188,7 +188,7 @@ describe('pes subpunctis semantic family', () => {
       'climacus',
       'porrectus',
     ] as const)
-      expect(moraChoices(kind).map((c) => c.value)).toEqual([
+      expect(moraChoices(kind, 3).map((c) => c.value)).toEqual([
         'none',
         'final',
         'final-two',
@@ -253,7 +253,7 @@ describe('pes subpunctis semantic family', () => {
     }
   });
 
-  it('keeps a final-note mora on its stable note through movement, deletion, history and v7 persistence', () => {
+  it('keeps a final-note mora on its stable note through movement, deletion, history and current (v8) persistence', () => {
     const marked = (pitches: number[]) =>
       updateMoraScope(fixture(pitches), 'g', 'final');
     // Movement never moves the mark.
@@ -301,7 +301,7 @@ describe('pes subpunctis semantic family', () => {
     expect(deleteNote(five, 'n0')).toBe(five);
     // Persistence and exact v1–v6 rejection keep the mark untouched.
     const text = encodeDocument(five);
-    expect(JSON.parse(text).version).toBe(7);
+    expect(JSON.parse(text).version).toBe(8);
     expect(decodeDocument(text)).toEqual(five);
     for (const version of [2, 3, 4, 5, 6]) {
       const payload = JSON.parse(text);
@@ -525,12 +525,12 @@ describe('pes subpunctis semantic family', () => {
   });
 });
 
-describe('pes subpunctis native v7', () => {
+describe('pes subpunctis native persistence (kind introduced in v7)', () => {
   it('round trips both counts and rejects the kind under every exact v1–v6 reader without touching cache bytes', () => {
     for (const pitches of [[2, 4, 3, 2], kyrie.christe]) {
       const doc = fixture(pitches);
       const text = encodeDocument(doc);
-      expect(JSON.parse(text).version).toBe(7);
+      expect(JSON.parse(text).version).toBe(8);
       expect(decodeDocument(text)).toEqual(doc);
       for (const version of [1, 2, 3, 4, 5, 6]) {
         const payload = JSON.parse(text);
@@ -578,7 +578,7 @@ describe('pes subpunctis native v7', () => {
       (p) => (p.document.neumes[0].count = 5),
       (p) => (p.document.neumes[0].variant = 'subtripunctis'),
       (p) => (p.document.neumes[0].kind = 'pes-subtripunctis'),
-      (p) => (p.version = 8),
+      (p) => (p.version = 9),
     ];
     for (const change of mutations) {
       const value = structuredClone(good);

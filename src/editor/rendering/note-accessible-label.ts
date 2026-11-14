@@ -9,7 +9,10 @@ export function getNoteAccessibleLabel(
   noteIndex: number,
   noteCount = 0,
 ): string {
-  if (kind === 'pes-subpunctis')
+  if (
+    kind === 'pes-subpunctis' ||
+    ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
+  )
     return `Select ${ordinals[noteIndex]} note of ${neumeDisplayName(kind, noteCount)}`;
 
   if (kind === 'podatus') {

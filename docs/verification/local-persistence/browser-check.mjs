@@ -235,7 +235,7 @@ async function setTitle(title) {
 }
 const fixture = {
   format: 'gregorian-chant-editor',
-  version: 7,
+  version: 8,
   document: {
     accidentals: [],
     title: 'Salve / Regina',
@@ -467,7 +467,7 @@ try {
   const original = await raw();
   for (const bad of [
     '{broken',
-    JSON.stringify({ ...fixture, version: 8 }),
+    JSON.stringify({ ...fixture, version: 9 }),
     JSON.stringify({
       ...fixture,
       document: { ...fixture.document, neumes: null },

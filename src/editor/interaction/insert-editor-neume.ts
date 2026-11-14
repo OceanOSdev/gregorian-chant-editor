@@ -12,6 +12,7 @@ import { insertScandicus } from '../commands/insert-scandicus';
 import { insertTorculus } from '../commands/insert-torculus';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
 import {
+  monotonicNotes,
   pesSubpunctisNotes,
   staffPosition,
   type ScoreInsertionBoundary,
@@ -23,7 +24,8 @@ import type { ResolvedGraphicalNeumePlacement } from './resolve-graphical-neume-
 
 /**
  * IDs allocated once at the interaction boundary. Three IDs cover every
- * three-note entry; the longest entry variant needs five. Extra IDs are unused.
+ * three-note entry; the longest entry variants (Pes subtripunctis and the
+ * five-note Scandicus/Climacus) need five. Extra IDs are unused.
  */
 export interface InsertionIds {
   neumeId: string;
@@ -67,6 +69,27 @@ export function insertEditorNeume(
       return notes
         ? insertNeume(document, { ...base, kind: 'pes-subpunctis', notes }, at)
         : document;
+    }
+    case 'scandicus-4':
+    case 'scandicus-5':
+    case 'climacus-4':
+    case 'climacus-5': {
+      // Same bounded allocation contract as Pes subpunctis: the IDs come from
+      // the interaction boundary, and too few supplied IDs is a no-op.
+      if (ids.noteIds.length < insertion.staffPositions.length) return document;
+      const appearance = entryAppearance(insertion.kind, form);
+      const notes = monotonicNotes(
+        insertion.staffPositions.map((position, index) => ({
+          ...appearance[index],
+          id: ids.noteIds[index] ?? '',
+          staffPosition: position,
+        })),
+      );
+      if (!notes) return document;
+      return insertion.kind === 'scandicus-4' ||
+        insertion.kind === 'scandicus-5'
+        ? insertScandicus(document, { ...base, kind: 'scandicus', notes }, at)
+        : insertClimacus(document, { ...base, kind: 'climacus', notes }, at);
     }
     case 'bistropha':
       return insertNeume(
@@ -193,6 +216,10 @@ export function insertEditorNeume(
 const toolbarFallbackPitches = {
   'pes-subbipunctis': 2,
   'pes-subtripunctis': 2,
+  'scandicus-4': 2,
+  'scandicus-5': 2,
+  'climacus-4': 4,
+  'climacus-5': 4,
   bistropha: 2,
   tristropha: 2,
   punctum: 2,

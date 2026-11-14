@@ -311,7 +311,7 @@ async function placeAt(pitch = 2, systemIndex = 0) {
 }
 const base = {
   format: 'gregorian-chant-editor',
-  version: 7,
+  version: 8,
   document: {
     title: 'Stage 9B-1 pes subpunctis',
     lyricLanguage: 'la',
@@ -491,7 +491,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 7);
+      assert.equal(JSON.parse(await raw()).version, 8);
       assert.equal(await family(), kind);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -544,7 +544,7 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 7);
+    assert.equal(JSON.parse(exported).version, 8);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
     // A v6 file containing the new kind is rejected and leaves the score.
@@ -706,7 +706,7 @@ try {
       ],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 7);
+    assert.equal(JSON.parse(markedBytes).version, 8);
     await navigate();
     assert.equal(await raw(), markedBytes, 'reload keeps marked v7 bytes');
     assert.deepEqual(await score(), kyrieMarked);

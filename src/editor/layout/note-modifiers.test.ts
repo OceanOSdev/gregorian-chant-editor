@@ -51,7 +51,7 @@ describe('measured rhythmic signs', () => {
             const plain = buildNeumeGeometry(kind, positions, 50, 140);
             for (const episema of [false, true]) {
               const signatures = new Set<string>();
-              for (const choice of moraChoices(kind)) {
+              for (const choice of moraChoices(kind, positions.length)) {
                 const indexes = moraIndexes(choice.value, positions.length);
                 const modifiers = positions.map((_, i): NoteModifiers => ({
                   ...(indexes.includes(i) ? { mora: 1 } : {}),
