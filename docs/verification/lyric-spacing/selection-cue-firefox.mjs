@@ -93,6 +93,22 @@ try {
         },
       ],
     });
+  const closeNoteProperties = async () => {
+    // Dismiss while the selected note is onscreen, before resetting scroll/zoom.
+    const close = await ev(
+      `(()=>{const e=document.querySelector('[aria-label="Close note properties"]');const r=e.getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()`,
+    );
+    await pointer([
+      { type: 'pointerMove', ...close, origin: 'viewport' },
+      { type: 'pointerDown', button: 0 },
+      { type: 'pointerUp', button: 0 },
+    ]);
+    await pause();
+    assert.equal(
+      await ev(`document.querySelector('.note-context-toolbar')===null`),
+      true,
+    );
+  };
   const click = async (selector) => {
     const p = await ev(
       `(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()`,
@@ -160,6 +176,7 @@ try {
       ),
       before,
     );
+    await closeNoteProperties();
     await pointer([{ type: 'pointerMove', x: 10, y: 10, origin: 'viewport' }]);
     await ev('(window.scrollTo(0,0),true)');
     await pause();
