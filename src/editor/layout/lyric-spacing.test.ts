@@ -139,21 +139,18 @@ describe('combined music and lyric placement', () => {
     ).toBeGreaterThanOrEqual(33);
   });
   it.each([1, 2, 3])(
-    'keeps %i intervening melismatic neumes music-spaced',
+    'closes %i intervening melismatic neumes independently of wide lyric text',
     (gap) => {
       const d = fixture(['a'.repeat(30), 'b'.repeat(12)], gap + 3);
       d.syllables = d.syllables.map((s, i) => ({
         ...s,
         startsAtNeumeId: `n${i ? gap + 1 : 0}`,
       }));
-      const actual = notes(d),
-        baseline = notes({ ...d, syllables: [] });
+      const actual = notes(d);
       for (let i = 1; i <= gap; i++)
-        expect(actual[i].bounds.x - actual[i - 1].bounds.x).toBe(
-          baseline[i].bounds.x - baseline[i - 1].bounds.x,
-        );
+        expect(actual[i].bounds.x - actual[i - 1].bounds.x).toBe(18);
       expect(actual.at(-1)?.bounds.x).toBe(
-        Number(actual.at(-2)?.bounds.x) + 45,
+        Number(actual.at(-2)?.bounds.x) + 18,
       );
     },
   );

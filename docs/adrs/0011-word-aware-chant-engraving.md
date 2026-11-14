@@ -16,6 +16,15 @@ The owner accepted the current geometry-derived word composition as a
 good-enough baseline, not a promise of publication-quality hyphenation or
 a requirement to reproduce every GregoBase editorial choice. PR #45 was subsequently merged.
 
+**Accepted Stage 9C qualification (2026-11-14):**
+[ADR 0026](0026-derived-intra-syllable-spacing.md) adds close but independent
+spacing between eligible neumes in the same non-null ADR 0008 syllable span.
+The initial complete-ink minimum is 6 units, with division, explicit-clef and
+written-accidental-location barriers. Existing distinct-syllable compaction,
+hyphens, alignment and whole-neume wrapping remain unchanged. This ADR remains
+Accepted and is not superseded. Design approval is separate from visual and
+implementation acceptance; 9C-1 alone is authorized.
+
 ## Context
 
 Stage 4B ensured that separate lyric syllables did not overlap and that

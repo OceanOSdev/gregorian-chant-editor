@@ -113,7 +113,7 @@ export const compositionCorpus: CompositionCase[] = wordCorpus.flatMap(
             index === 0 &&
             (arrangement === 'melisma' || arrangement === 'break')
           )
-            for (let j = 0; j < (arrangement === 'break' ? 11 : 3); j++) {
+            for (let j = 0; j < (arrangement === 'break' ? 32 : 3); j++) {
               const next = `${id}-n${document.neumes.length}`;
               document.neumes.push(neume(next, false, 0));
             }

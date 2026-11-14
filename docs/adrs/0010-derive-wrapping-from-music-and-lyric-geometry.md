@@ -20,6 +20,15 @@ and outgoing hyphens. ADR 0010's combined-geometry layout, wrapping, lyric
 clearance, oversized progress and interaction contracts remain Accepted;
 ADR 0011 **does not supersede** this ADR.
 
+**Accepted Stage 9C qualification (2026-11-14):**
+[ADR 0026](0026-derived-intra-syllable-spacing.md) adds close but independent
+spacing between eligible neumes in the same non-null ADR 0008 syllable span.
+The initial complete-ink minimum is 6 units, with division, explicit-clef and
+written-accidental-location barriers. Existing distinct-syllable compaction,
+hyphens, alignment and whole-neume wrapping remain unchanged. This ADR remains
+Accepted and is not superseded. Design approval is separate from visual and
+implementation acceptance; 9C-1 alone is authorized.
+
 ## Context
 
 ADR 0005 established whole-neume, measured-geometry wrapping. Before Stage 4B,
