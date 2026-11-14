@@ -342,8 +342,10 @@ limitations remain.
 
 **Next major feature: Stage 9C.**
 
-The crowded five-note Scandicus vertical-episema repair extends the existing
-left-side fallback only after ordinary placement fails; see the
+The crowded five-note Scandicus vertical-episema repair is **completed and
+owner-accepted (2026-11-14)** at `eb49c99` in PR #81, with hosted CI run
+`43569176058` passing all four checks. It extends the existing left-side
+fallback only after ordinary placement fails; see the
 [focused resolution](verification/extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair).
 The historical 72 sampled exceptions remain recorded.
 

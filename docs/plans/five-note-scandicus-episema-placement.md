@@ -4,10 +4,15 @@ Branch: `fix/five-note-scandicus-episema-placement`
 Target: `master`
 Base: `15ca4ca` (Stage 9B-3, PR #80, merged).
 
-Status: implemented; verification and PR evidence recorded in the extended
-Scandicus verification record. Retained for owner review before Stage 9C. Read AGENTS.md,
-the [AI workflow](../ai-workflow.md), relevant layout and testing guides,
-and ADRs 0020, 0024 and 0025.
+Status: **completed and owner-accepted (2026-11-14)** after final review of
+[PR #81](https://github.com/OceanOSdev/gregorian-chant-editor/pull/81) at
+`eb49c99`. Hosted CI [run 43569176058](https://github.com/OceanOSdev/gregorian-chant-editor/actions/runs/43569176058)
+passed Format, Lint, Test and Build at that revision. No further implementation
+changes requested; retained as the historical agreed scope before Stage 9C.
+Actual verification, including revision/dirty-state distinctions and tested
+bounds, is recorded in the
+[verification record](../verification/extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair).
+The requirements below preserve the original handoff intent.
 
 ## Problem and goal
 

@@ -385,6 +385,15 @@ Follow-up work, separate from this stage:
 
 ## Crowded five-note Scandicus repair
 
+Status: **completed and owner-accepted (2026-11-14)** after final review of
+[PR #81](https://github.com/OceanOSdev/gregorian-chant-editor/pull/81) at
+`eb49c99`. No further implementation changes requested. Hosted CI
+[run 43569176058](https://github.com/OceanOSdev/gregorian-chant-editor/actions/runs/43569176058)
+passed all four checks (Format, Lint, Test and Build) on that committed
+revision. The local evidence below was collected before the implementation
+commit, at `474fdd5` with dirty implementation/tests; owner acceptance and
+hosted CI do not change that evidence's revision or scope.
+
 2026-11-14, handoff branch `fix/five-note-scandicus-episema-placement`,
 base `15ca4ca`, verification at `474fdd5` plus dirty implementation/tests.
 The two supplied contours `[-2,-1,0,2,3]` and `[1,3,4,6,9]` reproduced
@@ -429,3 +438,7 @@ Verification (Node 24.12.0):
 No comprehensive matrix, performance benchmark or unrelated driver was run.
 Stage 9C remains next; absent neume ledger lines, extreme-pitch vertical
 layout limits and the unrelated Firefox mid-score-clefs intermittency remain.
+
+The owner-acceptance closeout changes documentation only; formatting, diff
+and applicable link checks were performed, with no additional test, browser,
+compatibility or benchmark runs.
