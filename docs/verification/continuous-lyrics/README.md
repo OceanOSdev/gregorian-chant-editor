@@ -69,3 +69,35 @@ The selected-syllable button should instead delete Al after focus moves to it.
 Focus/selection feedback does not synchronize selection with focus or change
 command targets. Space inside a lyric input remains a word delimiter. Browser
 checks are not a spoken screen-reader verification.
+
+## Anchored music deletion (ported from Stage 1)
+
+Maintenance A (2026-11-13) ported the historical
+[Stage 1 scenario](../lyric-anchors/README.md) to the current UI as the final
+section of `browser-check.mjs`, using actual DevTools pointer clicks and keys:
+
+- A fresh lyricless, music-free fixture; **Insert Punctum** adds one neume
+  and focuses its note. L on that note opens `#lyric-input` targeting its
+  neume ID; typing `Ky` and Enter anchors one syllable there. **Done** leaves
+  Lyrics mode.
+- Selecting the anchored note and inserting another Punctum adds a lyricless
+  neume; the existing syllable keeps its ID, text and anchor.
+- A pointer click selects and focuses the anchored note itself (`aria-pressed`
+  on that note, no lyric selected, no input); Delete removes the neume and its
+  syllable together. The surviving neume keeps its ID, note ID and pitch.
+- One Undo restores the exact pre-deletion neumes and syllable (same IDs, text
+  and anchor) and re-renders the lyric; one Redo removes both again and leaves
+  nothing to redo. Further undos step back through the separate insertion and
+  syllable entries, confirming the deletion is one history entry.
+- No horizontal page overflow at 320 px.
+
+Semantic assertions read the editor's own autosaved document (the fixture
+clears it on mount), alongside rendered `data-neume-id`/`data-syllable-id`
+anchors. Occupied-anchor protection, previously checked through the Stage 1
+Add button, remains covered by the Stage 2 scenarios above.
+
+The whole driver, including all earlier scenarios, passed in headless Chromium
+against `npm run dev` on 2026-11-13. No Firefox or screen-reader run is claimed.
+
+Owner-accepted 2026-11-13 in PR #77 (verified implementation revision
+`49012eb`).

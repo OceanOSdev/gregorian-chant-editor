@@ -302,7 +302,10 @@ use anchor fixtures and verify lyric-independent music insertion. Stage 1 browse
 checks should cover selecting a free neume to add lyrics, occupied-anchor protection,
 text validation, insertion without lyrics, anchored deletion and undo/redo.
 
-The [Stage 1 browser record](verification/lyric-anchors/README.md) records historical interactions and verification limits. Its driver targets controls replaced in Stage 2 and does not pass against the current UI; use the Stage 2 driver below for current lyric checks.
+The [Stage 1 browser record](verification/lyric-anchors/README.md) records historical interactions and verification limits. Its driver targets controls replaced in Stage 2 and does not pass against the current UI; use the Stage 2 driver below for current lyric checks. Its anchored music deletion and atomic undo/redo scenario now runs in the Stage 2 driver
+([ported scenario](verification/continuous-lyrics/README.md#anchored-music-deletion-ported-from-stage-1)).
+The [verification inventory](verification/README.md) classifies current,
+special-purpose and historical browser drivers.
 
 ## Continuous lyric-entry verification
 
@@ -352,7 +355,9 @@ undo/redo, selection versus preview, cancellation and draft integration (includi
 stale/recovery targets). The [Stage 3 browser record](verification/lyric-move/README.md)
 covers actual pointer targeting, keyboard browsing/confirmation, native Tab,
 rejection announcements, text drafts, stable selection/focus and multi-system
-reveal at narrow widths. Stage 2 browser regressions remain applicable.
+reveal at narrow widths. Stage 2 browser regressions remain applicable. The
+driver reads editor announcements from `.editor-announcement`, not the first
+`[role=status]`, which belongs to document controls.
 
 ## Stage 4A vowel alignment
 

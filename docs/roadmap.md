@@ -277,15 +277,24 @@ failure there remains intermittent and unresolved. Foreground owner
 interaction, actual screen-reader testing and a measured typographic
 comparison were not performed.
 
+## Lyric verification repair (Maintenance A)
+
+**Completed (owner-accepted 2026-11-13)** in PR #77; verified implementation
+revision `49012eb`, following the
+[plan](plans/maintenance-a-lyric-verification-repair.md). `lyric-move`'s stale
+status selector is repaired, the Stage 1 anchored-deletion scenario is ported
+into `continuous-lyrics` (`lyric-anchors` stays historical), and a
+[driver inventory](verification/README.md) records current, special-purpose and
+historical drivers. Both affected drivers passed in headless Chromium only;
+Firefox, foreground focus and spoken screen-reader checks were not performed.
+The Firefox `mid-score-clefs` intermittent failure remains unresolved.
+
 ## Next planned maintenance (before Stage 9B-3)
 
-In order, before Stage 9B-3:
-
-1. **Lyric verification repair:** repair or retire the pre-existing failing
-   `lyric-anchors` and `lyric-move` browser drivers.
-2. **Browser verification automation and development efficiency:** for
-   example, a runner that isolates parallel browser/preview lanes (separate
-   profiles, ports and origins), with per-run logs and timeouts.
+1. **Maintenance B — browser verification automation and development
+   efficiency (next):** for example, a runner that isolates parallel
+   browser/preview lanes (separate profiles, ports and origins), with per-run
+   logs and timeouts. The Maintenance A inventory is its input.
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more

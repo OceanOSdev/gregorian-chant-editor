@@ -852,4 +852,173 @@ await writeFile(
     'base64',
   ),
 );
+
+// Ported Stage 1 scenario: deleting anchored music removes its syllable, and
+// undo/redo restores or removes both as one history entry. Uses real pointer
+// and keyboard input from a fresh lyricless score through current controls.
+await send('Emulation.setDeviceMetricsOverride', {
+  width: 1440,
+  height: 1000,
+  deviceScaleFactor: 1,
+  mobile: false,
+});
+await ev(
+  `mountChantFixture(${JSON.stringify({ title: 'Stage 1 port', clefChanges: [], divisions: [], lyricLanguage: 'la', clef: { type: 'c', staffLine: 3 }, syllables: [], neumes: [] })})`,
+);
+await pause();
+await ev('window.scrollTo(0,0)');
+await pause();
+const pointerAt = async (point) => {
+  for (const type of ['mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+};
+const pointerSelector = async (selector) =>
+  pointerAt(
+    await ev(
+      `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+    ),
+  );
+const pointerButton = async (text) => {
+  const point = await ev(
+    `(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith(${JSON.stringify(text)}));if(!b||b.disabled)return null;b.scrollIntoView({block:'nearest'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+  );
+  assert(point, `Missing or disabled button ${text}`);
+  await pointerAt(point);
+};
+// The fixture clears autosave on mount; each edit then writes the real
+// semantic document, which exposes stable IDs, pitches and anchors.
+const semantic = async () => {
+  const saved = await ev(
+    "localStorage.getItem('gregorian-chant-editor:active-document:v1')",
+  );
+  assert(saved, 'Expected an autosaved semantic document');
+  const { neumes, syllables } = JSON.parse(saved).document;
+  return { neumes, syllables };
+};
+const historyDisabled = (label) =>
+  ev(`document.querySelector('[aria-label="${label}"]').disabled`);
+const engravedLyricIds = () =>
+  ev(
+    "Array.from(document.querySelectorAll('.score__lyric')).map(n=>n.dataset.syllableId)",
+  );
+const renderedNeumeIds = () =>
+  ev(
+    "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>n.dataset.neumeId)",
+  );
+assert.deepEqual(await renderedNeumeIds(), []);
+assert.deepEqual(await engravedLyricIds(), []);
+// Contextual Punctum insertion into the empty lyricless score.
+await pointerButton('Insert Punctum');
+const afterFirst = await semantic();
+assert.equal(afterFirst.neumes.length, 1);
+assert.deepEqual(afterFirst.syllables, []);
+const anchored = afterFirst.neumes[0];
+const anchoredNoteId = anchored.notes[0].id;
+assert.equal(await ev('document.activeElement.dataset.noteId'), anchoredNoteId);
+// Anchored creation through current Lyrics mode on the focused note.
+await key('l', 'l');
+assert.equal(await input(), '');
+assert.equal(
+  await ev("document.querySelector('#lyric-input').dataset.targetNeumeId"),
+  anchored.id,
+);
+await type('Ky');
+await key('Enter', '\r');
+assert.equal(await input(), null);
+const afterLyric = await semantic();
+assert.equal(afterLyric.syllables.length, 1);
+const anchoredSyllable = afterLyric.syllables[0];
+assert.equal(anchoredSyllable.text, 'Ky');
+assert.equal(anchoredSyllable.startsAtNeumeId, anchored.id);
+assert.deepEqual(afterLyric.neumes, afterFirst.neumes);
+assert.deepEqual(await engravedLyricIds(), [anchoredSyllable.id]);
+// Leave Lyrics so the next insertion is ordinary music entry, not resumption.
+await pointerButton('Done');
+assert.equal(await lyricsActive(), 'false');
+assert.deepEqual(await semantic(), afterLyric);
+// Further music insertion neither creates nor moves lyrics.
+await pointerSelector(`[data-note-id="${anchoredNoteId}"]`);
+await pointerButton('Insert Punctum');
+const beforeDeletion = await semantic();
+assert.equal(beforeDeletion.neumes.length, 2);
+assert.deepEqual(beforeDeletion.syllables, afterLyric.syllables);
+assert.equal(await input(), null);
+const survivor = beforeDeletion.neumes.find((n) => n.id !== anchored.id);
+assert(survivor);
+assert.deepEqual(
+  beforeDeletion.neumes.find((n) => n.id === anchored.id),
+  anchored,
+);
+// Select the anchored note itself (not its lyric) and delete with real keys.
+await pointerSelector(`[data-note-id="${anchoredNoteId}"]`);
+assert.equal(await ev('document.activeElement.dataset.noteId'), anchoredNoteId);
+// A click selects the note (removing a Punctum's only note removes its neume).
+assert.deepEqual(
+  await ev(
+    "Array.from(document.querySelectorAll('.score__note[aria-pressed=true]')).map(n=>n.dataset.noteId)",
+  ),
+  [anchoredNoteId],
+);
+assert.deepEqual(
+  await ev(
+    "Array.from(document.querySelectorAll('.score__lyric[aria-pressed=true]')).map(n=>n.dataset.syllableId)",
+  ),
+  [],
+);
+assert.equal(await input(), null);
+await key('Delete');
+const afterDeletion = await semantic();
+assert.deepEqual(afterDeletion.neumes, [survivor]);
+assert.deepEqual(afterDeletion.syllables, []);
+assert.deepEqual(await renderedNeumeIds(), [survivor.id]);
+assert.deepEqual(await engravedLyricIds(), []);
+assert.equal(await historyDisabled('Redo last undone edit'), true);
+// One undo restores the same neume/note IDs, lyric and anchor together.
+await pointerButton('Undo');
+assert.deepEqual(await semantic(), beforeDeletion);
+assert.deepEqual(await engravedLyricIds(), [anchoredSyllable.id]);
+assert.equal(
+  await ev(
+    `document.querySelector('[data-note-id="${anchoredNoteId}"]')?.closest('[data-neume-id]')?.dataset.neumeId`,
+  ),
+  anchored.id,
+);
+assert.equal(await historyDisabled('Redo last undone edit'), false);
+// One redo removes both again; nothing further remains to redo.
+await pointerButton('Redo');
+assert.deepEqual(await semantic(), afterDeletion);
+assert.deepEqual(await engravedLyricIds(), []);
+assert.equal(await historyDisabled('Redo last undone edit'), true);
+// History boundaries: the deletion is one entry, separate from the insertion
+// of the surviving neume and from the earlier syllable entry.
+await pointerButton('Undo');
+assert.deepEqual(await semantic(), beforeDeletion);
+await pointerButton('Undo');
+assert.deepEqual(await semantic(), afterLyric);
+await pointerButton('Undo');
+assert.deepEqual(await semantic(), afterFirst);
+await pointerButton('Redo');
+await pointerButton('Redo');
+await pointerButton('Redo');
+assert.deepEqual(await semantic(), afterDeletion);
+await send('Emulation.setDeviceMetricsOverride', {
+  width: 320,
+  height: 800,
+  deviceScaleFactor: 1,
+  mobile: false,
+});
+await pause();
+assert.equal(
+  await ev('document.documentElement.scrollWidth <= innerWidth'),
+  true,
+);
+console.log(
+  'PASS: lyricless insertion, anchored Lyrics-mode creation, independent insertion, anchored-note Delete removes its syllable, atomic undo/redo with stable IDs, history boundaries, 320px overflow',
+);
 ws.close();

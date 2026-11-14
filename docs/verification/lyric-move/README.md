@@ -63,3 +63,25 @@ limitations above; no such checks are claimed by the Chromium scripts.
 Moving focus off an engraved lyric retains the caption's hidden layout space.
 The real button clicks exercise the resulting stable pointer-down/up targets;
 visible keyboard-target feedback still clears as soon as engraved focus leaves.
+
+## Maintenance A repair (2026-11-13)
+
+Stage 9A through 9B-2 records report this driver failing at line 189 (the
+first occupied-anchor rejection). Reproduced on the unmodified driver in
+headless Chromium against `npm run dev`: `status()` read the first
+`[role=status]` in the document, which since the integrated document controls
+(`a02dee1`) is the document-management status ("No cached score. Not saved
+yet. …"), not the editor announcement. The editor's announcements are rendered
+in `.editor-announcement` (`role="status"`), as other current drivers already
+read. Only that selector changed; no assertion, input method or fixture was
+altered, and no application regression was found.
+
+The complete repaired driver then passed in headless Chromium on 2026-11-13:
+occupied/crossing/current-anchor rejection, pointer and keyboard correction,
+focus versus selection, dirty lyric recovery, undo/redo, sibling anchors and
+unchanged music, multi-system edges, padded hit targets for all seven kinds
+and the 320 px viewport (screenshot inspected). Foreground Firefox and spoken
+screen-reader checks remain outstanding as described above.
+
+Owner-accepted 2026-11-13 in PR #77 (verified implementation revision
+`49012eb`).
