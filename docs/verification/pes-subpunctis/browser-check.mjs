@@ -848,7 +848,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, v7 reload/export/import and v6 rejection, hit ownership, disabled mora, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization/rejection/undo/redo, specimens/wrapping at 1440px and 320px',
+        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, v7 reload/export/import and v6 rejection, hit ownership, Mora scope offering exactly None/Final note, final-note mora kept through earlier-note deletion and removed with the marked note (undo/redo), marked five-note reload, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization/rejection/undo/redo, five-note clef-boundary Insert before/after, marked specimens/wrapping at 1440px and 320px',
     }),
   );
 } finally {

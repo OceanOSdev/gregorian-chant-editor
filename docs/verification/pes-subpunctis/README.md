@@ -1,10 +1,13 @@
 # Stage 9B-1: Pes subpunctis implementation record
 
-Status: **implemented, in final review (PR #75).** Implemented under the
-committed [plan](../../plans/stage-9b1-pes-subpunctis.md) and the **Accepted**
-[ADR 0023](../../adrs/0023-bounded-tuple-union-for-pes-subpunctis.md). The
-owner approved the bounded-tuple design and the none/final mora matrix on
-2026-11-13; see [mora decision](#mora-gate).
+Status: **implementation-complete and owner-accepted (2026-11-13)** in PR #75
+at `0e521b6`, under the committed
+[plan](../../plans/stage-9b1-pes-subpunctis.md) and
+[Accepted ADR 0023](../../adrs/0023-bounded-tuple-union-for-pes-subpunctis.md).
+The owner approved the bounded-tuple design and the none/final mora matrix on
+2026-11-13 ([mora decision](#mora-gate)). See
+[owner acceptance](#owner-acceptance-2026-11-13) for its basis and the checks
+not performed.
 
 ## What is implemented
 
@@ -215,10 +218,32 @@ a final mora, so this is existing uniform behavior, not a new rule.
 - Foreground owner interaction in Chromium and Firefox (real pointer, real
   keyboard focus behavior outside automation).
 - Actual screen-reader testing of the Podatus menu, active variant, note labels
-  ("fourth note of pes subtripunctis"), disabled mora and rejection messages.
+  ("fourth note of pes subtripunctis"), the None/Final note mora control and
+  rejection messages.
 - A measured typographic comparison with the printed sources.
-- `lyric-anchors` / `lyric-move` (pre-existing failures recorded in Stage 9A),
-  dev-server clef/division drivers and the optional legacy-build check.
+- `lyric-anchors` / `lyric-move` (pre-existing failures recorded in Stage 9A)
+  and the optional legacy-build check. The dev-server clef, mid-score-clef and
+  division drivers were not part of the initial run; they were run and passed
+  in the review revision above.
+
+## Owner acceptance (2026-11-13)
+
+The owner accepted the final review of PR #75 at `0e521b6`. Acceptance rests
+on the automated verification recorded above (repository checks, pure and
+exhaustive geometry tests, and the Chromium/Firefox drivers) and on the
+qualitative historical comparisons in `comparison.png`. It does not rest on
+any of the following, which were **not performed**; no claim is made that
+they passed:
+
+- Foreground browser interaction by the owner.
+- Actual screen-reader testing.
+- A measured typographic comparison with the printed sources.
+
+## Follow-up maintenance
+
+The pre-existing `lyric-anchors` and `lyric-move` driver failures (recorded in
+Stage 9A) remain out of scope. Repair or retire those drivers in separate
+maintenance work.
 
 ## Remaining limitations
 
@@ -226,4 +251,5 @@ a final mora, so this is existing uniform behavior, not a new rule.
 - Extended Scandicus/Climacus, other subpunctis families, intra-syllable
   fusion, liquescence, GABC interchange and the complete Kyrie XI remain later
   work.
-- Older builds cannot read v7 files, including files without the new kind.
+- Native v7: exact v1–v6 readers reject the new kind, and older builds cannot
+  read v7 files, including files without the new kind.

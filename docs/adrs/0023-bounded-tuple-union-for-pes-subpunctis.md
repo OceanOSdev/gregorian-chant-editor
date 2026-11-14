@@ -10,7 +10,11 @@ Narrowly qualifies the fixed-cardinality rule of
 family; ADR 0004 remains Accepted and its explicit-kind contract is not
 superseded. Extends ADRs 0007, 0016 and 0018. ADR 0021's accidental ownership
 and scope are unchanged. Implemented in PR #75 under the Stage 9B-1
-[plan](../plans/stage-9b1-pes-subpunctis.md).
+[plan](../plans/stage-9b1-pes-subpunctis.md); the implementation was
+owner-accepted on 2026-11-13 at `0e521b6`. Acceptance rests on automated
+Chromium/Firefox verification and qualitative historical comparisons.
+Foreground owner interaction, actual screen-reader testing and a measured
+typographic comparison were not performed.
 
 ## Context
 

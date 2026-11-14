@@ -238,11 +238,26 @@ already failing before Stage 9A.
 
 ## Pes subpunctis (Stage 9B-1)
 
-**In review.** Pes subbipunctis and Pes subtripunctis as one bounded semantic
-family with a Podatus split control, following the
-[plan](plans/stage-9b1-pes-subpunctis.md) and the **Accepted**
-[ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md). New saves
-write native v7; exact v1–v6 readers reject the new kind. Mora is
-owner-approved as none or final note; final-two is deferred pending further
-evidence (see the [mora record](verification/pes-subpunctis/README.md#mora-gate)). Extended Scandicus/Climacus, other subpunctis
-families, intra-syllable fusion and the complete Kyrie XI remain later work.
+**Completed (owner-accepted 2026-11-13)** in PR #75. Pes subbipunctis and Pes
+subtripunctis form one bounded semantic family with a Podatus split control,
+following the [plan](plans/stage-9b1-pes-subpunctis.md) and
+[Accepted ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md).
+Acceptance rests on the recorded automated Chromium/Firefox verification and
+qualitative historical comparisons. Foreground browser interaction, actual
+screen-reader testing and a measured typographic comparison were not
+performed. See the [verification record](verification/pes-subpunctis/README.md).
+
+Retained limits: mora is none or final note only; final-two and earlier-note
+patterns are deferred pending sufficient historical evidence and unambiguous
+engraving. New saves write native v7; exact v1–v6 readers reject the new kind,
+and older builds cannot read v7 files, including files without it. Separate
+follow-up maintenance still applies: repair or retire the `lyric-anchors` and
+`lyric-move` browser drivers, which were already failing before Stage 9A.
+
+## Later Stage 9B milestones (pending)
+
+Not started. Extended Scandicus/Climacus, other subpunctis families (for
+example Porrectus or Scandicus subpunctis), torculus resupinus, porrectus
+flexus, scandicus flexus, climacus resupinus, intra-syllable fusion and
+spacing, liquescence, and the complete Kyrie XI each need their own plan and
+owner review.

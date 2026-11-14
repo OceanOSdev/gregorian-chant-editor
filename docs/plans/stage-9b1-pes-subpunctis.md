@@ -3,7 +3,14 @@
 Branch: `feature/stage-9b1-pes-subpunctis`
 Target: `master`
 
-Status: implemented in PR #75, in final review. Stage 9A (PR #74) is merged.
+Status: **completed and owner-accepted (2026-11-13)** in PR #75 at `0e521b6`.
+Retained as the historical record of this milestone; its intent is not an
+active handoff. Acceptance rests on the recorded automated verification and
+qualitative historical comparisons in the
+[verification record](../verification/pes-subpunctis/README.md). Foreground
+browser interaction, actual screen-reader testing and a measured typographic
+comparison were not performed. Later Stage 9B milestones remain separate and
+pending.
 
 ## Owner decisions (2026-11-13, after review of `be79a1e`)
 
