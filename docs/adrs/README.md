@@ -158,3 +158,11 @@ qualifying ADR 0004 (which remains Accepted) and extending ADRs 0007, 0016 and
 (2026-11-13); final-two remains deferred. Implementation in PR #75 was
 owner-accepted on 2026-11-13, based on automated browser verification and
 qualitative historical comparisons.
+
+[Proposed ADR 0024: Extend Scandicus and Climacus to bounded three- to five-note tuples](0024-bounded-tuple-union-for-scandicus-and-climacus.md)
+records Stage 9B-2: the existing kinds become unions of three-, four- and
+five-note tuples with count-aware form and mora rules and native v8, extending
+ADR 0023's bounded-tuple qualification of ADR 0004 to two more named families.
+The extended Scandicus engraving profile, the mora matrix for longer groups and
+a narrow amendment to ADR 0023's Pes subtripunctis deletion rule await
+explicit owner approval.

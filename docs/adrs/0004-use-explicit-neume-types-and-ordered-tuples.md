@@ -69,3 +69,9 @@ Bistropha and Tristropha were added under the same decision in
 the fixed-cardinality rule for one named family, Pes subpunctis, whose notes
 are a union of exactly two fixed tuples (four or five notes). Every other kind
 keeps a single fixed tuple.
+
+The **Proposed**
+[ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md) applies the
+same bounded qualification to the existing Scandicus and Climacus kinds (three,
+four or five notes, strictly monotonic). All other kinds keep a single fixed
+tuple.

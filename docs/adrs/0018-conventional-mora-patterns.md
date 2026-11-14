@@ -85,3 +85,12 @@ Gregorio and the shared descending-tail construction.
 Mora scope indexes are now derived from the actual tuple length (`final` =
 last note, `final-two` = last two). Every existing pattern, including
 `final` = [2] and `final-two` = [1, 2] for three-note kinds, is unchanged.
+
+## Stage 9B-2 extended Scandicus/Climacus (proposed, owner gate)
+
+[ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md) makes
+`moraChoices` depend on the actual tuple length. Three-note Scandicus and
+Climacus keep none, final and final-two unchanged. Four- and five-note groups
+are **provisionally none-only**. The proposed matrix for owner approval is none
+or final note for both families and lengths, with final-two deferred. No other
+kind's matrix changes.

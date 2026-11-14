@@ -76,9 +76,9 @@ Bistropha: [same-pitch first, second]
 Tristropha:[same-pitch first, second, third]
 Podatus:   [lower, higher]
 Clivis:    [higher, lower]
-Scandicus: [lowest, middle, highest]
+Scandicus: [lowest, …, highest] (3, 4 or 5 notes, strictly ascending)
 Torculus:  [first, higher second, lower third]
-Climacus:  [highest, middle, lowest]
+Climacus:  [highest, …, lowest] (3, 4 or 5 notes, strictly descending)
 Porrectus: [first, lower second, higher third]
 Pes subpunctis: [lower, apex, descending…] (4 or 5 notes)
 ```
@@ -96,8 +96,10 @@ Fixed-cardinality tuples make the expected number and order of notes visible
 to TypeScript. Explicit kinds let commands, normalization, layout,
 interaction, and accessibility use exhaustive behavior. One arbitrary note
 array would leave cardinality, ordering, and kind-specific operations implicit.
-Pes subpunctis is the one bounded exception: a union of exactly two fixed
-tuples ([ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md)).
+Pes subpunctis is a bounded exception: a union of exactly two fixed tuples
+([ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md)). Scandicus
+and Climacus are bounded unions of three-, four- and five-note tuples
+([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
 
 TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
@@ -107,8 +109,9 @@ ordering defensively.
 
 Each stable-ID note optionally owns `mora: 1` and `episema: true`; omission
 means off. Mora is presence, not a count or duration. Punctum allows none/sole;
-Podatus and Clivis none/first/second/both; Scandicus, Torculus, Climacus and
-Porrectus none/final/final two. The shared pure pattern validator governs
+Podatus and Clivis none/first/second/both; Torculus, Porrectus and three-note
+Scandicus and Climacus none/final/final two. Choices depend on the actual tuple
+length; four- and five-note Scandicus/Climacus are provisionally none-only. The shared pure pattern validator governs
 commands and native decoding. A final pair marks two distinct note IDs and
 derives an auctum duplex; no second persisted sign object exists. Episema stays
 independent. Movement and normalization retain marks on surviving note IDs.
@@ -150,14 +153,15 @@ Deleting an individual note normalizes the owning neume:
 
 - deleting the note of a Punctum removes the neume;
 - deleting either Podatus or Clivis note produces a Punctum;
-- deleting any Scandicus note produces a Podatus from the two survivors.
+- deleting any note of a three-note Scandicus produces a Podatus from the two
+  survivors (longer groups: see Stage 9B-2 below).
 - deleting the first Torculus note produces a Clivis;
 - deleting the third Torculus note produces a Podatus;
 - deleting the middle Torculus note produces a Podatus when the outer notes
   ascend, a Clivis when they descend, or no edit when they are equal because
   the survivors cannot form a supported two-note neume.
 
-Climacus becomes Clivis after deletion of any constituent. For Porrectus,
+A three-note Climacus becomes Clivis after deletion of any constituent. For Porrectus,
 deleting the first note produces Podatus, and deleting the third produces
 Clivis. Deleting the middle produces Podatus when the outer notes ascend,
 Clivis when they descend, or no edit when they are equal, matching Torculus.
@@ -351,7 +355,8 @@ Constituent deletion is decided from the surviving contour, not tuple length:
 - five to four: stays a Pes subpunctis when the survivors satisfy its contour;
   otherwise (four strictly descending notes after deleting the first note, or
   equal adjacent survivors after deleting the apex) the deletion is rejected.
-  Extended Climacus is later work;
+  Stage 9B-2 proposes normalizing four descending survivors to a four-note
+  Climacus; this amendment awaits owner approval, so the rejection stands;
 - four to three: becomes Torculus when the survivors rise then fall, Climacus
   when they strictly descend, and is rejected otherwise (for example equal
   adjacent survivors).
@@ -373,3 +378,39 @@ keeps a surviving final mora on its own note (in the resulting Pes
 subpunctis, Torculus or Climacus); deleting the marked note removes the mora
 and never transfers it to the new final note.
 ADR 0021 B ownership applies unchanged, including contours that revisit B.
+
+## Extended Scandicus and Climacus (Stage 9B-2)
+
+The existing `scandicus` and `climacus` kinds have `notes: MonotonicNotes`, a
+bounded union of three-, four- and five-note tuples
+([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+Every adjacent pair strictly ascends (Scandicus) or strictly descends
+(Climacus). Construct the tuple with `monotonicNotes`, which returns `null`
+for any other length. No count or variant field is stored. Display names
+derive from the length (`neumeDisplayName`: "four-note scandicus"), and
+ordinary three-note names are unchanged. The traditional historical name for
+both longer forms is still Scandicus or Climacus (Mocquereau p. 152); they are
+not separate semantic kinds.
+
+Entry variants `scandicus-4`, `scandicus-5`, `climacus-4` and `climacus-5` map
+to the existing kinds through `semanticNeumeKind`; `entryNeumeKind` maps back
+from the tuple length.
+
+Commands rebuild a neume's correlated tuple through `mapNeumeNotes`, which
+never truncates or widens it. Individual moves must keep the strict contour;
+whole-neume moves transpose every note with stable IDs.
+
+Forms and mora depend on the tuple length:
+
+- `allowedNoteForms(kind, index, noteCount)` keeps the quilisma on the middle
+  of a three-note Scandicus only. Longer groups have no authored forms.
+- `moraChoices(kind, noteCount)` keeps the three-note matrix. Longer groups
+  are provisionally none-only, pending owner approval of the
+  [proposed matrix](verification/extended-scandicus-climacus/README.md#mora-gate).
+
+Deletion keeps the family from five to four and from four to three, with the
+neume ID, surviving note objects, order, marks and anchors. Survivors of a
+strict contour stay strict, so only a surviving mark that the shorter group
+does not allow can reject the deletion. Marks are never dropped or
+transferred. Three to two uses the existing Podatus/Clivis rule. ADR 0021 B
+ownership applies unchanged to every constituent.

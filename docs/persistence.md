@@ -5,13 +5,13 @@ sets the architectural contract. The semantic model remains authoritative;
 [history](commands-and-history.md) and [layout](layout-and-rendering.md) are not
 saved. This guide owns native format compatibility and browser recovery.
 
-## Native versions 1–7
+## Native versions 1–8
 
 `src/editor/persistence/native-document.ts` is the browser-independent codec.
 The UTF-8 JSON envelope has exactly `format: "gregorian-chant-editor"`,
-`version: 7`, and `document: ChantDocument`. The reader accepts exact v1–v7. The original seven document properties are
+`version: 8`, and `document: ChantDocument`. The reader accepts exact v1–v8. The original seven document properties are
 required, including empty `neumes`, `syllables`, `divisions`, and `clefChanges`
-arrays. Optional syllable alignment is supported in all seven versions. V2–v7 additionally accept
+arrays. Optional syllable alignment is supported in every version. V2–v8 additionally accept
 optional note fields `mora: 1` and `episema: true`; absence means off.
 Explicit zero/false/null, incorrect types and unknown fields reject. V1 retains
 its exact original note shape (`id`, `staffPosition` only), rejecting modifiers.
@@ -40,18 +40,18 @@ internal `StaffPosition` model.
 The v1 schema is now a compatibility obligation. Future domain changes must
 explicitly retain a v1 reader or introduce a versioned migration; unknown
 versions and formats reject clearly. V1 decoding preserves every semantic value and ID with no signs; encoding
-always writes v7. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
+always writes v8. There is no reinterpretation of unknown versions. Native JSON is an editor format, not GABC or a notation standard.
 
 ## One active browser score
 
 `browser-document.ts` guards storage access and owns the namespaced key
 `gregorian-chant-editor:active-document:v1`. The literal key is deliberately
-retained for Stage 9B-1: its suffix identifies the established single-score slot,
-not the envelope version. Hydration leaves existing v1/v2/v3/v4/v5/v6 bytes untouched. The next
-successful committed save writes v7 into that same key, after comparing the
+retained for Stage 9B-2: its suffix identifies the established single-score slot,
+not the envelope version. Hydration leaves existing v1–v7 bytes untouched. The next
+successful committed save writes v8 into that same key, after comparing the
 original observed bytes. No second slot, startup rewrite, removal or unguarded
 migration write exists. Existing corrupt/foreign caches and cross-tab protection
-retain their exact recovery policy. Older builds cannot be assumed to read a v7 score, but
+retain their exact recovery policy. Older builds cannot be assumed to read a v8 score, but
 must present their existing explicit recovery path rather than overwrite it. `use-persisted-session.ts` reads
 once per mounted editor initialization (development StrictMode may probe the
 initializer twice without writes), then creates a fresh session/history root.
@@ -276,3 +276,25 @@ Legacy hydration preserves original bytes and writes no automatic upgrade. The
 cache key, withdrawn draft-v2 recovery, original-source download, size limit
 and cross-tab conflict guard are unchanged. Older builds cannot read v7 files,
 including v7 files that contain only older kinds.
+
+## Native v8 extended Scandicus and Climacus (Stage 9B-2)
+
+Version 8 lets the existing `scandicus` and `climacus` kinds carry three, four
+or five notes
+([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+Because the kind names are old, the reader decides by envelope version:
+
+- **Exact v1–v7 readers** keep the original three-note contract. They reject a
+  four- or five-note instance with "Three-note neume requires three notes",
+  while three-note instances still read unchanged.
+- **v8** builds the bounded tuple with `monotonicNotes`. It rejects other
+  lengths and then validates the strict contour, count-aware note forms (no
+  quilisma on longer groups) and the count-aware mora matrix (none-only for
+  longer groups until the owner approves another).
+
+No count, variant or grouping field exists, and an entry-variant name such as
+`scandicus-5` is not a valid kind. Every other v7 rule, including Pes
+subpunctis, is unchanged. Hydration does not rewrite. The cache key, legacy
+draft-v2 recovery, original-source protection and cross-tab guard are
+unchanged. Older builds cannot read v8 files, including v8 files that contain
+only older kinds.

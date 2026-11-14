@@ -159,3 +159,12 @@ incompatible with this contract, stop with reference examples and alternatives
 before implementing conflicting changes. The owner explicitly accepted
 this note-form model, supported contexts, one-click insertion of
 quilismatic figures and native v3 compatibility on 2026-11-09.
+
+## Stage 9B-2 cardinality (proposed with ADR 0024)
+
+The quilisma context is the middle note of a **three-note** Scandicus only.
+[ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md) makes
+`allowedNoteForms` take the tuple length. Four- and five-note Scandicus and
+Climacus have no authorable forms, so a longer group can never inherit
+three-note form geometry. Existing three-note forms and legacy reads are
+unchanged.

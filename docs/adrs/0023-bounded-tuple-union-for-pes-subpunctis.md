@@ -75,3 +75,11 @@ cardinality that ADR 0004 protects.
   length; switches use the bounded helper.
 - Older builds cannot read v7 files, including files without the new kind.
 - Final-two and earlier-note morae cannot be authored for this family.
+
+## Proposed amendment (Stage 9B-2, awaiting owner approval)
+
+[ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md#proposed-amendment-to-adr-0023-owner-gate-not-applied)
+proposes that Pes subtripunctis survivors forming four strictly descending
+notes normalize to a four-note Climacus, preserving identity and valid marks.
+The rejection above remains the accepted, implemented behavior until the owner
+approves that amendment.

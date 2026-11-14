@@ -96,8 +96,8 @@ neume may have disconnected ink: Scandicus with adjacent first interval keeps
 its conventional first Punctum separate from the upper pair, including the
 explicit Punctum + Pes construction at (1,1). No artificial connector is added.
 Per-note head shapes exist for selection feedback; they do not separately paint
-the normal silhouette. Climacus has a Virga followed by two separate descending
-inclinata. Porrectus has one descending ribbon and fitted ascending terminal;
+the normal silhouette. Climacus has a Virga followed by one separate descending
+inclinatum per later note (two in the three-note form). Porrectus has one descending ribbon and fitted ascending terminal;
 its first two notes select regions of that shared ribbon, not artificial heads.
 
 A note's `anchorX` and `anchorY` represent its nominal musical position; its
@@ -727,3 +727,35 @@ disjoint. Vertical-episema obstacles include only the Podatus join. Rhythmic
 signs, accidentals, lyrics (anchored on the first Podatus note), ghosts,
 palette icons, advance and whole-neume wrapping consume the same geometry. See
 the [reference and verification record](verification/pes-subpunctis/README.md).
+
+## Extended Scandicus and Climacus (Stage 9B-2)
+
+Three-note Scandicus (ordinary and authored quilismatic) and Climacus output is
+byte-identical to the previous recipes. This was verified against a recorded
+master baseline of 119,808 cases: pitches −4..8, intervals 1–4, every mora
+scope and every horizontal × vertical episema mask.
+
+- **Climacus (four/five notes):** `neumes/climacus.ts` passes every
+  constituent after the virga to the shared `descendingDiamondCenters` /
+  `buildDiamondTail` helpers, so later diamonds use the approved
+  interval-sensitive plateaus and oblique pointer partitions. No connector,
+  duplicate virga or new spacing rule is added.
+- **Scandicus (four/five notes), proposed profile awaiting owner approval:**
+  `neumes/scandicus-extended.ts` draws the staircase of Mocquereau p. 152,
+  Fig. 34. Four notes are Pes + Pes; five are Pes + Punctum + Pes
+  (`extendedScandicusElements`). Each element is the unchanged approved
+  Podatus or Punctum in a successive 12-unit column. Elements are not joined
+  to each other, and the grouping does not depend on intervals. It is not a
+  chain of three-note Scandicus glyphs and adds no connector.
+- **Pointer regions:** the Scandicus regions are clipped at the shared column
+  edges, and within each Podatus they keep its nominal pitch split. All
+  regions stay pairwise disjoint.
+- **Vertical-episema obstacles:** these include only each staircase Podatus
+  join, not a shaft between every rising pair.
+- **Shared consumers:** lyrics (anchored on the first note), signs,
+  accidentals, ghosts, palette icons, advance and whole-group wrapping all use
+  the same geometry.
+- **Existing limitations:** neume ledger lines remain absent for every kind,
+  including the low and high notes of longer groups.
+
+See the [verification record](verification/extended-scandicus-climacus/README.md).

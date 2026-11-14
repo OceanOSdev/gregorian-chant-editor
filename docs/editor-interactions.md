@@ -899,3 +899,33 @@ survivors would form no supported neume). The contextual note editor names the
 group by its cardinality and offers exactly two mora scopes, None and Final
 note (the last note of the actual group); horizontal and vertical episemata
 remain per-note controls.
+
+## Scandicus and Climacus family split controls (Stage 9B-2)
+
+The Scandicus and Climacus palette slots use the same `NeumeFamilyMenu`, so
+the reviewed Stage 9A/9B-1 lifecycle above applies unchanged. Each primary
+button always arms the ordinary three-note figure with the default form. The
+chevron menus offer the ordinary figure, "Scandicus (4 notes)" and
+"Scandicus (5 notes)", and likewise for Climacus. Each item has an icon drawn
+from the shared measured geometry. Choosing an item arms that exact variant
+without inserting music, and one staff click inserts the whole group. Default
+entry contours from the clicked pitch p are stepwise: [p, p+1, p+2, p+3(,
+p+4)] ascending and the mirror for Climacus. Individual notes can then be
+moved within the strict contour.
+
+The palette's roving order is Scandicus, Scandicus chevron, Torculus,
+Climacus, Climacus chevron, Porrectus, still with one Tab stop. T focuses the
+family chevron for a remembered extended variant without arming the ordinary
+figure. I and contextual Insert controls insert the exact remembered count.
+Only one of the four family menus is open at a time, whether switching by
+pointer or keyboard. The authored quilismatic Scandicus (Quilisma button and
+"Quilisma figure" select) is unchanged; choosing the Scandicus primary
+returns to the ordinary default-form figure.
+
+The contextual note editor names longer groups by count ("Note 4 of
+five-note scandicus"; screen-reader labels "Select fourth note of five-note
+scandicus"). Its Form select is disabled for longer groups, and its Mora scope
+offers only None, with the existing explanation, until the owner approves a
+matrix. Horizontal and vertical episemata stay per-note controls. A rejected
+single-note move announces that every note must be strictly higher (or lower)
+than the previous note.

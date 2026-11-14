@@ -254,9 +254,24 @@ and older builds cannot read v7 files, including files without it. Separate
 follow-up maintenance still applies: repair or retire the `lyric-anchors` and
 `lyric-move` browser drivers, which were already failing before Stage 9A.
 
+## Extended Scandicus and Climacus (Stage 9B-2)
+
+**In review (draft PR).** The existing Scandicus and Climacus kinds accept
+four- and five-note strictly monotonic groups behind split controls, with
+native v8, following the [plan](plans/stage-9b2-extended-scandicus-climacus.md)
+and [proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
+Owner gates still open:
+
+- the Scandicus staircase profile (Mocquereau Fig. 34);
+- the mora matrix for longer groups (provisionally none-only);
+- the proposed ADR 0023 Pes-subtripunctis-to-Climacus deletion amendment
+  (not applied).
+
+See the [verification record](verification/extended-scandicus-climacus/README.md).
+
 ## Later Stage 9B milestones (pending)
 
-Not started. Extended Scandicus/Climacus, other subpunctis families (for
+Not started. Other subpunctis families (for
 example Porrectus or Scandicus subpunctis), torculus resupinus, porrectus
 flexus, scandicus flexus, climacus resupinus, intra-syllable fusion and
 spacing, liquescence, and the complete Kyrie XI each need their own plan and

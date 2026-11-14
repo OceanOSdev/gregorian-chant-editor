@@ -3,7 +3,10 @@
 Branch: `feature/stage-9b2-extended-scandicus-climacus`  
 Target: `master`
 
-Status: active handoff. Stage 9B-1 (PR #75) is merged at `a2111bf`.
+Status: implemented in a draft PR, awaiting owner review of three gates
+(Scandicus staircase profile, longer-group mora matrix, ADR 0023 amendment).
+See the [verification record](../verification/extended-scandicus-climacus/README.md).
+Stage 9B-1 (PR #75) is merged at `a2111bf`.
 
 ## Goal and scope
 

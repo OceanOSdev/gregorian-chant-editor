@@ -910,3 +910,55 @@ so choose an unrestricted preview port. Re-run the Stage 9A driver and the
 accidental, persistence, modifier, note-shape and vertical-episema drivers in
 both browsers. See the [record](verification/pes-subpunctis/README.md) for the
 actual results.
+
+## Extended Scandicus and Climacus (Stage 9B-2)
+
+`domain/extended-scandicus-climacus.test.ts` covers both families:
+
+- **Contours and construction:**
+  - every two- to six-note contour over a pitch range (55,980 per family)
+    against an independent oracle, plus sparse arrays;
+  - bounded construction and count-aware naming, labels and entry mapping.
+- **Forms and mora:**
+  - every form at every index rejected on longer groups, while the
+    three-note quilisma is kept;
+  - the provisional none-only mora matrix: every nonempty subset is rejected
+    by validation, commands and decoding;
+  - episemata on every constituent.
+- **Moves and deletion:**
+  - every single-note ±1 move of every valid four- or five-note contour in
+    range, plus whole-group transposition with stable IDs;
+  - deletion at every index (five to four, four to three) with stable IDs,
+    marks and anchors, and three to two unchanged;
+  - the still-accepted Pes subtripunctis rejection;
+  - B ownership on later constituents.
+- **Persistence:** v8 round trips; exact v1–v7 rejection of longer groups with
+  protected cache bytes while three-note instances still read; malformed v8
+  payloads.
+- **Entry and session:** insertion at every mixed-event boundary with exact,
+  insufficient or duplicate IDs; arm/I/T/primary reset; rejection
+  announcements; and undo/redo.
+
+`layout/extended-scandicus-climacus-geometry.test.ts` checks:
+
+- **Scandicus:** element reuse of the approved Podatus/Punctum for every four-
+  and five-note Scandicus with first pitch −3..7 and intervals 1–3
+  (1,188 contours).
+- **Climacus:** the virga and diamond prefix equal to the three-note Climacus,
+  for first pitch −1..10 and intervals 1–3 (1,296 contours).
+- **Representative contours:** disjoint pointer regions sampled on a grid;
+  exhaustive horizontal × vertical episema masks (all 2^(2n) combinations for
+  17 representative contours, 10,496 geometries) for sign counts, ownership,
+  bounds and no overlap.
+- **Quilisma:** an authored quilisma on a longer group throws rather than
+  drawing three notes.
+- **Placement and layout:** ghost/commit parity, lyric anchors and wrapping.
+
+Three-note byte identity was checked against a master worktree (method and
+counts in the [record](verification/extended-scandicus-climacus/README.md)).
+
+Run `node docs/verification/extended-scandicus-climacus/browser-check.mjs`
+against the production preview with the usual `CHANT_PREVIEW_URL`,
+`CHANT_CHROMIUM_URL` or `CHANT_FIREFOX_URL` overrides, then re-run the Stage
+9A/9B-1 and the accidental, bundled-example, persistence, modifier,
+note-shape and vertical-episema drivers in both browsers.
