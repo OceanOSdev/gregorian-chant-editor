@@ -8,9 +8,11 @@ valid; its UI steps need adaptation. No assertions were removed.
 
 Use the [Stage 2 browser driver](../continuous-lyrics/README.md) for current
 anchored creation, occupied protection, lyric history and input behavior.
-`lyric-anchors.test.ts` retains semantic anchor deletion and restoration coverage;
-the Stage 2 browser driver is not a complete replacement for this script's
-music-deletion scenario. Porting that scenario is a separate follow-up.
+`lyric-anchors.test.ts` retains semantic anchor deletion and restoration coverage.
+Maintenance A (2026-11-13) ported this script's anchored music-deletion and
+atomic undo/redo scenario to the current UI; see
+[anchored music deletion](../continuous-lyrics/README.md#anchored-music-deletion-ported-from-stage-1).
+This script remains unchanged as historical evidence.
 
 Verified with headless Chromium against `npm run dev` on 2026-10-29 using the
 real React editor and the existing development fixture mount. The dependency-free

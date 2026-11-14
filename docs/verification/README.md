@@ -1,5 +1,78 @@
 # Verification resources and housekeeping audit
 
+## Current standalone browser drivers (Maintenance A, 2026-11-13)
+
+A human-readable inventory, not a runner manifest. Each owning README holds
+setup, scenario coverage and dated results; it overrides this summary. Only
+`lyric-move` and `continuous-lyrics` were re-run for Maintenance A (headless
+Chromium against `npm run dev` on 5173, DevTools on 9230, at 1440px and 320px).
+Every other "latest known" entry is copied from its record and is not claimed
+as a fresh result.
+
+Shared requirements: Node with built-in `fetch` and `WebSocket`; an already
+open browser tab with a fresh disposable profile (never an owner profile:
+several drivers clear test-origin storage); drivers run sequentially per
+browser because they navigate and resize one shared tab. Screenshots and logs
+go to fresh system temporary directories. **CDP** drivers need Chromium with
+`--remote-debugging-port`; **BiDi** means Firefox is additionally supported
+through `CHANT_FIREFOX_URL=ws://127.0.0.1:<port>/session`. **Dev fixture**
+drivers load `placement/browser-fixture.html` from Vite (`npm run dev`) and
+take `CHANT_EDITOR_URL` where noted; **preview** drivers load the built app
+from `vite preview` and take `CHANT_PREVIEW_URL` (and `CHANT_CHROMIUM_URL` for
+a non-default DevTools endpoint).
+
+### Current runnable regression drivers
+
+| Driver                                                                                   | Browsers  | Server and endpoints                                                                      | Latest known result                                                                                                                                                                                                                            |
+| ---------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`continuous-lyrics/browser-check.mjs`](continuous-lyrics/README.md)                     | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); DevTools fixed at 9230                            | **Re-run 2026-11-13 (Maintenance A): Chromium pass**, including the ported Stage 1 anchored-deletion scenario. Firefox focus automation limitation documented.                                                                                 |
+| [`lyric-move/browser-check.mjs`](lyric-move/README.md)                                   | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); DevTools fixed at 9230                            | **Re-run 2026-11-13 (Maintenance A): Chromium pass** after the stale status-selector repair. Failed at line 189 in Stage 9A–9B-2 records.                                                                                                      |
+| [`vowel-alignment/browser-check.mjs`](vowel-alignment/README.md)                         | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230                                              | Chromium pass in the [Stage 6B record](mid-score-clefs/README.md). Not re-run since.                                                                                                                                                           |
+| [`lyric-spacing/browser-check.mjs`](lyric-spacing/README.md)                             | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230. `CHANT_BASELINE=1` is not a test            | Chromium pass in the Stage 6B record. Not re-run since.                                                                                                                                                                                        |
+| [`lyric-spacing/selection-cue-firefox.mjs`](lyric-spacing/README.md)                     | BiDi only | Dev fixture, `CHANT_EDITOR_URL` (5173); `CHANT_FIREFOX_URL` (default 9233)                | Firefox pass in the [Stage 4D record](stage-4d/README.md).                                                                                                                                                                                     |
+| [`word-composition/browser-check.mjs`](word-composition/README.md)                       | CDP, BiDi | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230 or `CHANT_FIREFOX_URL`; `CHANT_CORPUS` modes | Chromium and Firefox pass in the Stage 6B record (corpus not re-run there; `CHANT_CORPUS=diagnostic` and `CHANT_BASELINE=1` are not tests).                                                                                                    |
+| [`clefs/browser-check.mjs`](clefs/README.md)                                             | CDP       | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230                                              | Chromium pass at `34e7bb7` ([Stage 9B-2 record](extended-scandicus-climacus/README.md)).                                                                                                                                                       |
+| [`mid-score-clefs/browser-check.mjs`](mid-score-clefs/README.md)                         | CDP, BiDi | Dev fixture, 5173 fixed (no URL override); 9230 or `CHANT_FIREFOX_URL`                    | Chromium pass at `34e7bb7`. **Firefox: one intermittent, unresolved failure** (line 1032, 150% zoom pointer insertion), then two passes; see the [investigation](extended-scandicus-climacus/README.md#firefox-mid-score-clefs-investigation). |
+| [`divisions/browser-check.mjs`](divisions/README.md)                                     | CDP, BiDi | Dev fixture, `CHANT_EDITOR_URL` (5173); 9230 or `CHANT_FIREFOX_URL`                       | Chromium and Firefox pass at `34e7bb7`.                                                                                                                                                                                                        |
+| [`extended-scandicus-climacus/browser-check.mjs`](extended-scandicus-climacus/README.md) | CDP, BiDi | Preview (4173), `CHANT_PREVIEW_URL`, `CHANT_CHROMIUM_URL`                                 | Chromium and Firefox pass at `e859f3b` (Stage 9B-2).                                                                                                                                                                                           |
+| [`pes-subpunctis/browser-check.mjs`](pes-subpunctis/README.md)                           | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`repeated-note-neumes/browser-check.mjs`](repeated-note-neumes/README.md)               | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`note-modifiers/browser-check.mjs`](note-modifiers/README.md)                           | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`note-shapes/browser-check.mjs`](note-shapes/README.md)                                 | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`b-accidentals/browser-check.mjs`](b-accidentals/README.md)                             | CDP, BiDi | Preview (4173), as above; optional `CHANT_LEGACY_URL` older build                         | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`b-accidentals/acceptance-browser-check.mjs`](b-accidentals/README.md)                  | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`local-persistence/browser-check.mjs`](local-persistence/README.md)                     | CDP, BiDi | Preview (4173), as above; clears test-origin storage                                      | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`bundled-example/browser-check.mjs`](bundled-example/README.md)                         | CDP, BiDi | Preview (4173), as above; clears test-origin storage                                      | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`vertical-episemata/browser-check.mjs`](vertical-episemata/README.md)                   | CDP, BiDi | Preview (4173), as above                                                                  | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+| [`vertical-episemata/context-browser-check.mjs`](vertical-episemata/README.md)           | CDP, BiDi | Preview, default 4174 / DevTools 9236; `CHANT_*_URL` overrides                            | Chromium and Firefox pass at `e859f3b`.                                                                                                                                                                                                        |
+
+### Special-purpose checks (not routine regressions)
+
+| Script                                                                                                                      | Purpose and requirements                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vertical-episemata/raster-browser-check.mjs`, `weight-browser-check.mjs`, `render-weight-board.mjs`                        | Before/after raster and weight comparisons for owner review (preview 4180, DevTools 9246, BiDi 9247 in their [records](vertical-episemata/README.md)); not pass/fail regressions. |
+| `b-accidentals/`, `note-shapes/`, `pes-subpunctis/`, `repeated-note-neumes/`, `vertical-episemata/` `render-comparison.mjs` | Compose review boards from a driver's temporary output; some use Chromium via `CHANT_CHROMIUM_URL`. Evidence tools, not tests.                                                    |
+| `note-shapes/storage-review.mjs` with `storage-review-server.mjs`                                                           | Old-build storage comparison on its own historical subpath (4255, DevTools 9250); see [review follow-up](note-shapes/review-follow-up.md).                                        |
+| `extended-scandicus-climacus/three-note-baseline.mjs`                                                                       | Node/Vitest comparison against a baseline commit in a temporary worktree; no browser.                                                                                             |
+| `word-composition/corpus-browser.mjs`                                                                                       | Module imported by the word-composition driver under `CHANT_CORPUS`; not run directly.                                                                                            |
+
+### Historical drivers (not current checks)
+
+| Driver                                                       | Status                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`lyric-anchors/browser-check.mjs`](lyric-anchors/README.md) | Stage 1 scenario inventory; targets the removed `#new-syllable`/Add UI (recorded failing at line 48 in Stage 9A); not re-run. Its anchored music-deletion and atomic undo/redo scenario is ported into `continuous-lyrics` (Maintenance A). |
+| [`syllables/browser-check.mjs`](syllables/README.md)         | Pre-anchor syllable UI; adaptation source only (DevTools 9250 via `CHANT_CHROME_URL`).                                                                                                                                                      |
+| [`placement/browser-check.mjs`](placement/README.md)         | PR #35 placement scenarios on unanchored fixtures and removed controls; adaptation source only. Its `browser-fixture.html` is the **current** shared dev fixture and must be preserved.                                                     |
+
+Known limitations: browser drivers are not spoken screen-reader checks or
+foreground OS-focus checks; headless Firefox reported no document focus in the
+[Stage 2 environment](continuous-lyrics/README.md#focus-versus-selection), so
+foreground Firefox review remains manual where records say so. Endpoints and
+ports are partly hard-coded per driver; isolating parallel lanes is deferred
+to Maintenance B.
+
+## Earlier records and the post-PR-38 audit
+
 For current Stage 4 results and outstanding owner checks, see the
 [Stage 4D acceptance record](stage-4d/README.md). The audit below is historical;
 its statement that only Stage 2 is runnable describes the post-PR-38 checkout.
@@ -43,6 +116,8 @@ to delete approved specimens or independent expected geometry.
 
 ## Reproduction and maintenance
 
+This paragraph describes the post-PR-38 checkout; the current inventory is
+[above](#current-standalone-browser-drivers-maintenance-a-2026-11-13).
 Use the [Stage 2 instructions](continuous-lyrics/README.md) for the current
 browser regression. Node needs built-in fetch and WebSocket; Vite runs on 5173
 (or `CHANT_EDITOR_URL`) and Chromium DevTools on 9230. Run browser drivers
@@ -85,6 +160,8 @@ On the cleanup branch based on master after PR #38:
   anchored fixtures and current controls; evaluate remote-boundary assertions
   against the current contract rather than merely deleting failing assertions.
 - Port Stage 1 music deletion plus anchored lyric undo/redo to current UI steps.
+  (Done in Maintenance A, 2026-11-13: see the
+  [Stage 2 record](continuous-lyrics/README.md#anchored-music-deletion-ported-from-stage-1).)
 - Evaluate whether the old syllable driver's long-strip scrolling stress cases
   have a useful current equivalent; keep the source until that review.
 - Separately evaluate a dedicated browser-test location, shared DevTools helpers

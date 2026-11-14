@@ -282,7 +282,11 @@ comparison were not performed.
 In order, before Stage 9B-3:
 
 1. **Lyric verification repair:** repair or retire the pre-existing failing
-   `lyric-anchors` and `lyric-move` browser drivers.
+   `lyric-anchors` and `lyric-move` browser drivers. Maintenance A (in review,
+   [plan](plans/maintenance-a-lyric-verification-repair.md)) repairs
+   `lyric-move`'s stale status selector, ports the Stage 1 anchored-deletion
+   scenario into `continuous-lyrics` (`lyric-anchors` stays historical), and
+   adds a [driver inventory](verification/README.md) as input to item 2.
 2. **Browser verification automation and development efficiency:** for
    example, a runner that isolates parallel browser/preview lanes (separate
    profiles, ports and origins), with per-run logs and timeouts.
