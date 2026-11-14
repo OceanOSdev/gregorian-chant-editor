@@ -94,3 +94,78 @@ browser geometry and focus assertions are not owner visual acceptance. The owner
 still needs to review the 6-unit spacing against those references and visually
 accept the dense and narrow layouts. No performance benchmark, full
 compatibility comparison or comprehensive browser matrix was run or is implied.
+
+## Owner regression follow-up
+
+The owner's comprehensive run on `cfb93e22107bb7a4e71c9ff698a3220568e5587d`
+reported 29 passed, 7 failed, and 6 unsupported pairs in
+`.verification-runs/run-2026-11-14T23-20-04-773Z-WIS0Jn/`. The failures were
+reviewed individually; none required a change to ADR 0026's 6-unit spacing
+policy or production behavior:
+
+- **lyric-move / Chromium:** the music oracle included absolute `.score__ink`
+  SVG markup, so approved anchor-reassignment reflow changed its serialized
+  coordinates. It now compares rendered neume/note IDs, kinds, pitch positions
+  and accessible modifier labels, then checks the actual eligible `n3→n4`
+  derived gap is 6 units. It also derives edge clicks and same-system hit-region
+  disjointness from the committed midpoint clip rectangles. The old checks used
+  unclipped padded bounds, which could point into a neighboring owner's region.
+  Rejected moves, other lyric anchors, history, focus, native input and draft
+  checks remain in place.
+- **vowel-alignment / Chromium:** the 20-neume fixture no longer wrapped with
+  the compact final syllable. It now uses 36 neumes and still checks multiple
+  systems, vowel/manual alignment, contours, history, draft and keyboard paths.
+- **clefs / Chromium:** the expected layout omitted the SVG lyric measurer that
+  the editor uses. It now uses the same measurer and a 50-neume fixture with an
+  explicit multi-system assertion; repeated clef geometry, pitch transforms,
+  controls and history remain checked.
+- **divisions / Chromium:** the first recorded failure left the inserted
+  neume in the order after a native Undo-button pointer activation. The same
+  native insertion/undo path passed in three subsequent focused runs without an
+  application or driver change, so no cause was established and no assertion
+  was relaxed. This is recorded as a non-reproduced interaction result, not
+  classified as a spacing-oracle defect.
+- **divisions / Firefox:** compact spacing kept the second lyric at `n19` on
+  the first system. Moving it to `n38` and lengthening the specimen to 40
+  neumes restores a real outgoing continuation while retaining division,
+  zoom/focus and exceptional wrapping checks.
+- **b-accidentals / Chromium and Firefox:** `ownerB`'s fixed `r.left - 10`
+  offset did not identify the intended `ga→b` division boundary after
+  compaction. The native pointer now targets the midpoint computed from the
+  rendered neighboring ink bounds and transformed through the SVG screen CTM.
+  The exact `beforeNeumeId=b`, accidental restoration and exact undo assertions
+  remain.
+
+Two inexpensive review robustness fixes also require the intended n30 division
+slot instead of a fallback slot and require at least one clipped lyric-move
+target before `every()` can pass.
+
+The first requested nine-job rerun passed eight and exposed an overly broad
+lyric-move semantic snapshot (the dev fixture is not persisted to localStorage)
+and then the stale unclipped hit-bound assertions described above. A focused
+lyric-move Chromium run passed after correcting those checks. The exact
+owner-requested affected matrix then passed all nine runnable jobs, with the
+three declared unsupported pairs and no failures:
+
+```text
+npm run verify:browser -- --driver lyric-move,vowel-alignment,clefs,divisions,b-accidentals,word-composition --browser both -j 2
+```
+
+Run directory:
+`.verification-runs/run-2026-11-14T23-36-22-970Z-XXSCP7/` (build passed;
+Chromium 157.0.8103.38 and Firefox 146.0; 9 passed, 3 unsupported; cleanup
+successful). The summary identifies base revision `cfb93e2` and a dirty tree
+containing the six browser-driver changes. The new 50-neume clef multi-system
+assertion was added immediately after this matrix and separately passed in
+Chromium 157 at
+`.verification-runs/run-2026-11-14T23-39-13-902Z-XcSzFo/`.
+
+Division Chromium's initial native Undo failure was not reproduced: the same
+native keyboard insertion followed by native Undo passed in three subsequent
+focused/integrated runs without changing the driver activation or application.
+The failed run's unexpected retained neume therefore remains unattributed;
+the check itself was preserved intact. No production, domain, layout or unit
+test code changed. `npm run format:check`, `npm run lint` and
+`git diff --check` passed. The original comprehensive matrix will not be
+repeated; final owner comprehensive verification and visual acceptance remain
+pending.

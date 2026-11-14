@@ -454,9 +454,9 @@ try {
     await shot(`leading-trailing-${count}`);
   }
   // Real measured outgoing mark, reflow, font changes and exceptional scrolling.
-  const d = fixture(20);
+  const d = fixture(40);
   d.divisions = [{ id: 'D', kind: 'finalis', beforeNeumeId: 'n10' }];
-  d.syllables[1].startsAtNeumeId = 'n19';
+  d.syllables[1].startsAtNeumeId = 'n38';
   await mount(d);
   await focus('[data-division-id="D"]');
   await ev(`document.querySelector('main').style.zoom='1.5'`);

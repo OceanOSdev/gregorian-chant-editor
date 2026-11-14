@@ -171,7 +171,7 @@ export async function runIntraSyllableReview({
     await pause();
     assert.equal(
       await ev(
-        `Array.from(document.querySelectorAll('.score__move-target')).filter(e=>e.closest('[data-neume-id]').querySelector('clipPath')).every(e=>e.hasAttribute('clip-path'))`,
+        `(()=>{const targets=Array.from(document.querySelectorAll('.score__move-target')).filter(e=>e.closest('[data-neume-id]').querySelector('clipPath'));return targets.length>0&&targets.every(e=>e.hasAttribute('clip-path'))})()`,
       ),
       true,
       'dense lyric-move cues use ownership clips',
@@ -259,7 +259,7 @@ export async function runIntraSyllableReview({
     await ev(`(document.querySelector('[data-tool="punctum"]').click(),true)`);
     await pause();
     const intent = await ev(
-      `(()=>{const l=compositionLayout(${JSON.stringify(long)}),s=l.systems[1],slot=s.slots.find(v=>v.boundary.beforeNeumeId==='n30'&&v.boundary.beforeDivisionId==='division')??s.slots[2];const p={x:slot.x,y:s.y+100},r=intraPlacement(l,'punctum',p);return {p,caret:r.preview.caret,insertionIndex:r.insertionIndex,boundary:r.boundary}})()`,
+      `(()=>{const l=compositionLayout(${JSON.stringify(long)}),s=l.systems[1],slot=s.slots.find(v=>v.boundary.beforeNeumeId==='n30'&&v.boundary.beforeDivisionId==='division');if(!slot)throw Error('Missing intended n30 division slot');const p={x:slot.x,y:s.y+100},r=intraPlacement(l,'punctum',p);return {p,caret:r.preview.caret,insertionIndex:r.insertionIndex,boundary:r.boundary}})()`,
     );
     const stationary = await ev(
       `document.querySelector('.score').getAttribute('viewBox')+Array.from(document.querySelectorAll('[data-note-id]')).map(e=>e.closest('[data-system-index]').dataset.systemIndex).join(',')`,

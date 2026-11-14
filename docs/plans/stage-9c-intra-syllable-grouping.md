@@ -6,8 +6,12 @@ Base: `eb3dd67` (PR #81 merged after Stage 9B-3).
 Status: implementation and automated verification complete for owner review at
 `761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e` (rebased on master `e2a1f5b`).
 Checkpoint 9C-2 browser evidence passed on the pre-rebase working tree; the
-post-rebase browser rerun was blocked during Vite startup. Owner visual and
-implementation acceptance remain. Keep PR #82 draft; do not merge.
+owner's post-rebase comprehensive matrix then exposed seven browser-driver
+failures. The documented follow-up repaired the affected fixtures/oracles and
+the requested nine-job matrix passed on the dirty follow-up tree; final owner
+comprehensive verification, visual and implementation acceptance remain. Keep
+PR #82 draft; do not merge. See
+[checkpoint 9C-2 regression follow-up](../verification/intra-syllable-grouping/checkpoint-9c-2.md#owner-regression-follow-up).
 
 The [reference record](../verification/intra-syllable-grouping/README.md)
 retains the research evidence; [Accepted ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md)

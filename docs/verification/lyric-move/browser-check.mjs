@@ -141,8 +141,19 @@ const status = () =>
   ev("document.querySelector('.editor-announcement').textContent");
 const music = () =>
   ev(
-    "Array.from(document.querySelectorAll('[data-neume-id]')).map(n=>[n.dataset.neumeId,n.querySelector('.score__ink').outerHTML,Array.from(n.querySelectorAll('[data-note-id]')).map(n=>n.dataset.noteId)])",
+    `Array.from(document.querySelectorAll('[data-neume-id]')).map(neume=>{
+      const line=neume.closest('[data-system-index]').querySelector('.score__staff-line:last-of-type');
+      return [neume.dataset.neumeId,neume.dataset.neumeKind,Array.from(neume.querySelectorAll('[data-note-id]')).map(note=>{
+        const hit=note.querySelector('.score__note-hit-target');
+        return [note.dataset.noteId,Number(hit.getAttribute('y'))-Number(line.getAttribute('y1')),note.getAttribute('aria-label')];
+      })];
+    })`,
   );
+const eligibleGaps = () =>
+  ev(`Array.from(document.querySelectorAll('[data-neume-id]')).slice(1).map((n,i)=>{
+    const previous=document.querySelectorAll('[data-neume-id]')[i],a=previous.querySelector('.score__ink').getBBox(),b=n.querySelector('.score__ink').getBBox();
+    return {before:previous.dataset.neumeId,after:n.dataset.neumeId,gap:b.x-a.x-a.width,system:n.closest('[data-system-index]').dataset.systemIndex,previousSystem:previous.closest('[data-system-index]').dataset.systemIndex};
+  })`);
 const syllables = [
   { id: 'first', text: 'Ky', startsAtNeumeId: 'n1', boundaryBefore: 'word' },
   {
@@ -200,6 +211,14 @@ assert.equal(await selected(), 'middle');
 assert.deepEqual(await music(), originalMusic);
 const earlier = await position();
 assert.notDeepEqual(earlier, original);
+const movedGap = (await eligibleGaps()).find((gap) => gap.after === 'n4');
+assert(movedGap, 'the moved anchor retains its following melismatic neume');
+assert.equal(movedGap.system, movedGap.previousSystem);
+assert.equal(
+  movedGap.gap,
+  6,
+  'eligible intra-syllable gap uses Stage 9C spacing',
+);
 assert.deepEqual(await position('first'), originalFirst);
 assert.deepEqual(await position('last'), originalLast);
 await button('Undo');
@@ -436,7 +455,7 @@ for (const edge of ['left', 'right', 'top', 'bottom']) {
   await reset();
   await startMove();
   const point = await ev(
-    `(()=>{const r=document.querySelector('[data-neume-id=n3] .score__move-target');r.scrollIntoView({block:'nearest'});const b=r.getBoundingClientRect();return {x:${edge === 'left' ? 'b.left+0.5' : edge === 'right' ? 'b.right-0.5' : 'b.left+b.width/2'},y:${edge === 'top' ? 'b.top+0.5' : edge === 'bottom' ? 'b.bottom-0.5' : 'b.top+b.height/2'}}})()`,
+    `(()=>{const r=document.querySelector('[data-neume-id=n3] .score__move-target');r.scrollIntoView({block:'nearest'});const b=r.getBBox(),id=r.getAttribute('clip-path')?.match(/#([^)]*)/)?.[1],clip=id?document.getElementById(id)?.querySelector('rect')?.getBBox():null;const x=Math.max(b.x,clip?.x??b.x),right=Math.min(b.x+b.width,clip?clip.x+clip.width:b.x+b.width),y=Math.max(b.y,clip?.y??b.y),bottom=Math.min(b.y+b.height,clip?clip.y+clip.height:b.y+b.height);if(right<=x||bottom<=y)throw Error('Move target has no visible clipped area');const local={x:${edge === 'left' ? 'x+0.5' : edge === 'right' ? 'right-0.5' : '(x+right)/2'},y:${edge === 'top' ? 'y+0.5' : edge === 'bottom' ? 'bottom-0.5' : '(y+bottom)/2'}};return new DOMPoint(local.x,local.y).matrixTransform(r.getScreenCTM()).toJSON()})()`,
   );
   assert.equal(
     await ev(
@@ -471,13 +490,13 @@ for (let target = 0; target < mixed.length; target++) {
   await lyric('source');
   await button('Move syllable');
   const bounds = await ev(
-    "Array.from(document.querySelectorAll('.score__move-hit-target')).map(n=>({system:n.closest('[data-system-index]').dataset.systemIndex,x:+n.getAttribute('x'),right:+n.getAttribute('x') + +n.getAttribute('width')}))",
+    `Array.from(document.querySelectorAll('.score__move-hit-target')).map(n=>{const b=n.getBBox(),id=n.getAttribute('clip-path')?.match(/#([^)]*)/)?.[1],c=id?document.getElementById(id)?.querySelector('rect')?.getBBox():null;return {system:n.closest('[data-system-index]').dataset.systemIndex,x:Math.max(b.x,c?.x??b.x),right:Math.min(b.x+b.width,c?c.x+c.width:b.x+b.width)}})`,
   );
   for (let i = 1; i < bounds.length; i++)
     if (bounds[i - 1].system === bounds[i].system)
-      assert(bounds[i - 1].right + 3 < bounds[i].x);
+      assert(bounds[i - 1].right <= bounds[i].x + 0.001);
   const point = await ev(
-    `(()=>{const n=document.querySelector('[data-neume-id=mix${target}] .score__move-target'),h=document.querySelector('[data-neume-id=mix${target}] .score__move-hit-target');for(const a of ['x','y','width','height','rx'])if(n.getAttribute(a)!==h.getAttribute(a))throw Error('cue and hit bounds differ');n.scrollIntoView({block:'nearest'});const r=n.getBoundingClientRect();return {x:r.left+0.5,y:r.top+r.height/2}})()`,
+    `(()=>{const n=document.querySelector('[data-neume-id=mix${target}] .score__move-target'),h=document.querySelector('[data-neume-id=mix${target}] .score__move-hit-target');for(const a of ['x','y','width','height','rx'])if(n.getAttribute(a)!==h.getAttribute(a))throw Error('cue and hit bounds differ');h.scrollIntoView({block:'nearest'});const b=h.getBBox(),id=h.getAttribute('clip-path')?.match(/#([^)]*)/)?.[1],c=id?document.getElementById(id)?.querySelector('rect')?.getBBox():null;const x=Math.max(b.x,c?.x??b.x),right=Math.min(b.x+b.width,c?c.x+c.width:b.x+b.width);return new DOMPoint((x+right)/2,(b.y+b.height/2)).matrixTransform(h.getScreenCTM()).toJSON()})()`,
   );
   await pointerClick(point);
   assert.equal(await moving(), false);
