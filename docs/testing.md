@@ -922,15 +922,20 @@ actual results.
 - **Forms and mora:**
   - every form at every index rejected on longer groups, while the
     three-note quilisma is kept;
-  - the provisional none-only mora matrix: every nonempty subset is rejected
-    by validation, commands and decoding;
+  - the approved none/final mora matrix: every subset is checked against an
+    independent rule (valid iff empty or only the last note) in validation,
+    commands and decoding;
+  - marked movement, deletion (5→4→3→2), undo/redo and v8 persistence, with
+    the mark kept on its note or removed with it, never transferred;
   - episemata on every constituent.
 - **Moves and deletion:**
   - every single-note ±1 move of every valid four- or five-note contour in
     range, plus whole-group transposition with stable IDs;
   - deletion at every index (five to four, four to three) with stable IDs,
     marks and anchors, and three to two unchanged;
-  - the still-accepted Pes subtripunctis rejection;
+  - the ADR 0023 amendment: marked/unmarked first-note and apex deletion to a
+    four-note Climacus, rejected equal survivors and invalid surviving marks,
+    exact identity, B and lyric ownership, history and v8 persistence;
   - B ownership on later constituents.
 - **Persistence:** v8 round trips; exact v1–v7 rejection of longer groups with
   protected cache bytes while three-note instances still read; malformed v8
@@ -947,15 +952,18 @@ actual results.
 - **Climacus:** the virga and diamond prefix equal to the three-note Climacus,
   for first pitch −1..10 and intervals 1–3 (1,296 contours).
 - **Representative contours:** disjoint pointer regions sampled on a grid;
-  exhaustive horizontal × vertical episema masks (all 2^(2n) combinations for
-  17 representative contours, 10,496 geometries) for sign counts, ownership,
-  bounds and no overlap.
+  exhaustive horizontal × vertical episema masks (all 2^(2n) combinations)
+  × final mora on/off for 17 representative contours (20,992 geometries), for
+  sign counts, per-note ownership, dot placement, measured bounds and no
+  overlap.
 - **Quilisma:** an authored quilisma on a longer group throws rather than
   drawing three notes.
 - **Placement and layout:** ghost/commit parity, lyric anchors and wrapping.
 
-Three-note byte identity was checked against a master worktree (method and
-counts in the [record](verification/extended-scandicus-climacus/README.md)).
+Three-note byte identity is reproducible with
+`node docs/verification/extended-scandicus-climacus/three-note-baseline.mjs [ref]`
+(default `a2111bf`): it dumps 119,808 geometry hashes in a temporary
+baseline worktree and in the working tree and compares them.
 
 Run `node docs/verification/extended-scandicus-climacus/browser-check.mjs`
 against the production preview with the usual `CHANT_PREVIEW_URL`,

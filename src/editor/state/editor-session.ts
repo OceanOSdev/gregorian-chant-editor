@@ -685,7 +685,7 @@ function reduceSessionAction(
       )
         return announce(
           state,
-          'Edit rejected: deleting this note would leave a contour that no supported neume represents, such as four descending notes or two equal adjacent pitches. Delete the whole neume instead.',
+          'Edit rejected: deleting this note would leave a contour that no supported neume represents, such as two equal adjacent pitches, or a mark the resulting neume does not allow. Delete the whole neume instead.',
         );
       if (history === state.history)
         return action.formDeletionNoteId &&

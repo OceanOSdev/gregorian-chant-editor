@@ -652,17 +652,20 @@ try {
       ),
       /fourth note of five-note scandicus/,
     );
-    // Provisional matrix for longer groups: None only (owner gate pending);
+    // Owner-approved matrix for longer groups: exactly None and Final note;
     // no authorable form on longer groups.
     assert.deepEqual(
       await ev(
-        `[...document.querySelector('[aria-label="Mora scope"]').options].map(o=>o.value)`,
+        `[...document.querySelector('[aria-label="Mora scope"]').options].map(o=>[o.value,o.textContent])`,
       ),
-      ['none'],
+      [
+        ['none', 'None'],
+        ['final', 'Final note'],
+      ],
     );
     assert.equal(
       await ev(`document.querySelector('[aria-label="Mora scope"]').disabled`),
-      true,
+      false,
     );
     assert.equal(
       await ev(`document.querySelector('[aria-label="Form"]').disabled`),
@@ -758,11 +761,156 @@ try {
     );
     await undo();
     assert.deepEqual(await score(), marked);
+    // Final-note mora on a five-note Climacus: kept on its stable note when an
+    // earlier note is deleted (5 -> 4), removed (not transferred) with its
+    // note, exact undo/redo.
+    await select('c5-0');
+    const scoped = (await change('Mora scope', 'final')).document;
+    assert.deepEqual(
+      scoped.neumes[3].notes.map((n) => n.mora ?? 0),
+      [0, 0, 0, 0, 1],
+    );
+    await select('c5-1');
+    await key('Delete');
+    const keptMark = (await score()).neumes[3];
+    assert.equal(keptMark.kind, 'climacus');
+    assert.deepEqual(
+      keptMark.notes.map((n) => [n.id, n.mora ?? 0]),
+      [
+        ['c5-0', 0],
+        ['c5-2', 0],
+        ['c5-3', 0],
+        ['c5-4', 1],
+      ],
+    );
+    await undo();
+    assert.deepEqual(await score(), scoped);
+    await redo();
+    assert.deepEqual((await score()).neumes[3], keptMark);
+    await undo();
+    await select('c5-4');
+    await key('Delete');
+    const removedMark = (await score()).neumes[3];
+    assert.equal(removedMark.notes.length, 4);
+    assert.ok(
+      removedMark.notes.every((n) => !n.mora),
+      'mora not transferred',
+    );
+    await undo();
+    assert.deepEqual(await score(), scoped);
+    // Marked movement keeps the mark on its note; final-two is not offered.
+    await select('c5-4');
+    await key('ArrowDown');
+    assert.deepEqual(
+      (await score()).neumes[3].notes.map((n) => [
+        n.staffPosition,
+        n.mora ?? 0,
+      ]),
+      [
+        [7, 0],
+        [6, 0],
+        [4, 0],
+        [3, 0],
+        [0, 1],
+      ],
+    );
+    await undo();
+    // Final note on a four-note Scandicus as well.
+    await select('s4-1');
+    const scandicusMarked = (await change('Mora scope', 'final')).document;
+    assert.deepEqual(
+      scandicusMarked.neumes[0].notes.map((n) => n.mora ?? 0),
+      [0, 0, 0, 1],
+    );
     const markedBytes = await raw();
     assert.equal(JSON.parse(markedBytes).version, 8);
     await navigate();
     assert.equal(await raw(), markedBytes, 'reload keeps marked v8 bytes');
+    assert.deepEqual(await score(), scandicusMarked);
     await snapshot('interaction-' + width);
+    // ADR 0023 amendment: Pes subtripunctis deletion that leaves four
+    // strictly descending notes normalizes to a four-note Climacus.
+    const pes = (id, pitches, marks = {}) =>
+      neume('pes-subpunctis', id, pitches, marks);
+    await hydrate({
+      ...base,
+      document: {
+        ...base.document,
+        neumes: [
+          pes('pf', [4, 6, 5, 3, 2], {
+            2: { verticalEpisema: true },
+            3: { episema: true },
+            4: { mora: 1 },
+          }),
+          pes('pa', [4, 5, 3, 2, 1]),
+          pes('pe', [4, 5, 4, 3, 2]),
+        ],
+        syllables: [syl('p1', 'Ky', 'pf'), syl('p2', 'ri', 'pa')],
+        accidentals: [{ id: 'pacc', kind: 'flat', ownerNoteId: 'pf-2' }],
+      },
+    });
+    const pesBefore = await score();
+    // Marked first-note deletion: marks, B ownership and lyric anchor kept.
+    await select('pf-0');
+    await key('Delete');
+    let normalized = await score();
+    assert.equal(normalized.neumes[0].kind, 'climacus');
+    assert.deepEqual(
+      normalized.neumes[0].notes.map((n) => [
+        n.id,
+        n.mora ?? 0,
+        !!n.episema,
+        !!n.verticalEpisema,
+      ]),
+      [
+        ['pf-1', 0, false, false],
+        ['pf-2', 0, false, true],
+        ['pf-3', 0, true, false],
+        ['pf-4', 1, false, false],
+      ],
+    );
+    assert.deepEqual(normalized.accidentals, pesBefore.accidentals);
+    assert.deepEqual(normalized.syllables, pesBefore.syllables);
+    assert.match(
+      await ev(
+        `document.querySelector('[data-note-id="pf-4"]').getAttribute('aria-label')`,
+      ),
+      /fourth note of four-note climacus/,
+    );
+    const normalizedBytes = await raw();
+    assert.equal(JSON.parse(normalizedBytes).version, 8);
+    await navigate();
+    assert.equal(await raw(), normalizedBytes, 'normalized group reloads');
+    await undo();
+    assert.equal(
+      (await score()).neumes[0].kind,
+      'climacus',
+      'reload resets history',
+    );
+    await hydrate({ ...base, document: pesBefore });
+    await select('pf-0');
+    await key('Delete');
+    await undo();
+    assert.deepEqual(await score(), pesBefore);
+    await redo();
+    assert.equal((await score()).neumes[0].kind, 'climacus');
+    await undo();
+    // Unmarked apex deletion with descending survivors.
+    await select('pa-1');
+    await key('Delete');
+    normalized = await score();
+    assert.equal(normalized.neumes[1].kind, 'climacus');
+    assert.deepEqual(
+      normalized.neumes[1].notes.map((n) => n.id),
+      ['pa-0', 'pa-2', 'pa-3', 'pa-4'],
+    );
+    await undo();
+    // Equal adjacent survivors stay rejected with an announcement.
+    await select('pe-1');
+    await key('Delete');
+    assert.deepEqual(await score(), pesBefore);
+    assert.match(await announcement(), /two equal adjacent pitches/);
+    await snapshot('pes-normalization-' + width);
     // Five-note insertion through the clef-boundary Insert controls.
     for (const variant of ['scandicus-5', 'climacus-5']) {
       const family = variant.split('-')[0];
@@ -852,6 +1000,16 @@ try {
             4: { episema: true, verticalEpisema: true },
           }),
           scandicus('s-flat', [2, 3, 5, 6]),
+          scandicus('s4-mora', [2, 3, 4, 6], { 3: { mora: 1 } }),
+          scandicus('s5-mora', [1, 2, 3, 4, 6], {
+            2: { verticalEpisema: true },
+            4: { mora: 1 },
+          }),
+          climacus('c4-mora', [6, 5, 4, 3], { 3: { mora: 1 } }),
+          climacus('c5-mora', [7, 6, 5, 4, 3], {
+            1: { episema: true },
+            4: { mora: 1 },
+          }),
           ...Array.from({ length: 12 }, (_, i) =>
             i % 2
               ? climacus('wrap' + i, [6, 5, 4, 3, 2])
@@ -897,7 +1055,7 @@ try {
     const groups = await ev(
       `[...document.querySelectorAll('g[data-neume-kind="scandicus"],g[data-neume-kind="climacus"]')].map(n=>({id:n.dataset.neumeId,notes:n.querySelectorAll('[data-note-id]').length,w:n.getBBox().width,h:n.getBBox().height}))`,
     );
-    assert.equal(groups.length, 27);
+    assert.equal(groups.length, 31);
     assert.ok(
       groups.every((g) => g.w > 0 && g.h < 200 && g.notes >= 3),
       'whole groups',
@@ -915,7 +1073,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'Scandicus/Climacus split menus open/ArrowDown/Escape/Tab/primary-reset/active name, menus inside viewport, cross-menu switching across all four families with at most one menu, score-dismiss then I/T, exact ghosts and repeat placement of all four variants with distinct IDs, T/I recall, keyboard End/Home/ArrowDown/Enter selection, ordinary quilismatic Scandicus and primary reset, v8 reload/export/import and v7 rejection, centre-point hit ownership of every constituent, count-aware labels, None-only mora and disabled form on longer groups with the three-note matrix/quilisma intact, episemata, B on a later constituent, move rejection announcements, valid move, whole-group transpose, 5->4->3->2 deletion with undo/redo, five-note clef-boundary Insert before/after, specimens and wrapping at 1440px and 320px',
+        'Scandicus/Climacus split menus open/ArrowDown/Escape/Tab/primary-reset/active name, menus inside viewport, cross-menu switching across all four families with at most one menu, score-dismiss then I/T, exact ghosts and repeat placement of all four variants with distinct IDs, T/I recall, keyboard End/Home/ArrowDown/Enter selection, ordinary quilismatic Scandicus and primary reset, v8 reload/export/import and v7 rejection, centre-point hit ownership of every constituent, count-aware labels, exactly None/Final note mora and disabled form on longer groups with the three-note matrix/quilisma intact, final mora kept through earlier-note deletion/movement and removed with its note (undo/redo), Pes subtripunctis to four-note Climacus normalization (marked first-note, unmarked apex, rejected equal survivors, reload, undo/redo), episemata, B on a later constituent, move rejection announcements, valid move, whole-group transpose, 5->4->3->2 deletion with undo/redo, five-note clef-boundary Insert before/after, specimens and wrapping at 1440px and 320px',
     }),
   );
 } finally {

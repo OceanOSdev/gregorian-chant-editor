@@ -413,7 +413,12 @@ A surviving mark that the shorter group does not allow rejects with an
 announcement. Three-note behavior and announcements are unchanged.
 
 `updateMoraScope` and per-note mora edits consult
-`moraChoices(kind, noteCount)`. Until the owner approves a matrix for longer
-groups, only None is accepted for them, and every other scope returns the
-original document. Form edits consult `allowedNoteForms(kind, index,
+`moraChoices(kind, noteCount)`. For longer groups only None and Final note
+(the last note of the actual tuple) are accepted, each in one history entry;
+final-two, earlier-note scopes and per-note marks elsewhere return the
+original document. Deletion and movement keep a mark on its stable note and
+never transfer it. Pes subtripunctis deletion that leaves four strictly
+descending notes now produces a four-note Climacus in one history entry (ADR
+0023 amendment); the remaining rejection (equal adjacent survivors, or a mark
+the result does not allow) is announced. Form edits consult `allowedNoteForms(kind, index,
 noteCount)`.

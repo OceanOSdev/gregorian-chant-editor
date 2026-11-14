@@ -212,7 +212,7 @@ describe.each(['scandicus', 'climacus'] as const)(
     );
 
     it.each(representative[kind].map((p) => [p]))(
-      '%j renders and owns every horizontal x vertical episema combination (all masks)',
+      '%j renders and owns every horizontal x vertical episema mask with and without the approved final mora',
       (pitches) => {
         const count = pitches.length;
         const plain = buildNeumeGeometry(kind, positions(pitches), 100, 140);
@@ -235,74 +235,92 @@ describe.each(['scandicus', 'climacus'] as const)(
           a.y < b.y + b.height &&
           a.y + a.height > b.y;
         let checked = 0;
-        // Provisional mora matrix for longer groups is none only (ADR 0024),
-        // so the allowed-mora dimension has one value here.
-        for (let mask = 0; mask < 2 ** (count * 2); mask++) {
-          const marks = pitches.map((_, i): NoteModifiers => ({
-            ...(mask & (1 << i) ? { episema: true } : {}),
-            ...(mask & (1 << (i + count)) ? { verticalEpisema: true } : {}),
-          }));
-          const g = buildNeumeGeometry(
-            kind,
-            positions(pitches),
-            100,
-            140,
-            marks,
-          );
-          expect(g.ink.slice(0, plain.ink.length)).toEqual(plain.ink);
-          const signs = g.ink.slice(plain.ink.length);
-          const horizontal = marks.filter((m) => m.episema).length;
-          const vertical = marks.filter((m) => m.verticalEpisema).length;
-          expect(signs).toHaveLength(horizontal + vertical);
-          expect(signs.filter(isHorizontal)).toHaveLength(horizontal);
-          expect(signs.filter(isVertical)).toHaveLength(vertical);
-          // Signs never cover notation heads or each other.
-          for (const sign of signs) {
-            for (const note of g.notes)
-              expect(overlaps(sign.bounds, note.head.bounds)).toBe(false);
-            for (const other of signs)
-              if (other !== sign)
-                expect(overlaps(sign.bounds, other.bounds)).toBe(false);
+        const isDot = (s: InkShape) =>
+          s.kind === 'rect' && s.bounds.width === 4 && s.bounds.height === 4;
+        const last = count - 1;
+        // Owner-approved matrix for longer groups (ADR 0024): none or final.
+        for (let mask = 0; mask < 2 ** (count * 2); mask++)
+          for (const mora of [false, true]) {
+            const marks = pitches.map((_, i): NoteModifiers => ({
+              ...(mask & (1 << i) ? { episema: true } : {}),
+              ...(mask & (1 << (i + count)) ? { verticalEpisema: true } : {}),
+              ...(mora && i === last ? { mora: 1 } : {}),
+            }));
+            const g = buildNeumeGeometry(
+              kind,
+              positions(pitches),
+              100,
+              140,
+              marks,
+            );
+            expect(g.ink.slice(0, plain.ink.length)).toEqual(plain.ink);
+            const signs = g.ink.slice(plain.ink.length);
+            const horizontal = marks.filter((m) => m.episema).length;
+            const vertical = marks.filter((m) => m.verticalEpisema).length;
+            expect(signs).toHaveLength(horizontal + vertical + Number(mora));
+            expect(signs.filter(isHorizontal)).toHaveLength(horizontal);
+            expect(signs.filter(isVertical)).toHaveLength(vertical);
+            expect(signs.filter(isDot)).toHaveLength(Number(mora));
+            // Signs never cover notation heads or each other.
+            for (const sign of signs) {
+              for (const note of g.notes)
+                expect(overlaps(sign.bounds, note.head.bounds)).toBe(false);
+              for (const other of signs)
+                if (other !== sign)
+                  expect(overlaps(sign.bounds, other.bounds)).toBe(false);
+            }
+            g.notes.forEach((note, i) => {
+              const m = marks[i];
+              expect(note.head).toEqual(plain.notes[i].head);
+              expect(Boolean(note.modifierBounds)).toBe(
+                Boolean(m.episema || m.verticalEpisema || m.mora),
+              );
+              if (m.mora) {
+                // Trailing dot right of the final head, in or beside its row.
+                const dot = signs.find(isDot);
+                expect(dot).toBeDefined();
+                if (!dot) return;
+                expect(inside(dot.bounds, note.modifierBounds)).toBe(true);
+                expect(dot.bounds.x).toBeGreaterThanOrEqual(
+                  note.x + note.width - 4,
+                );
+                expect(
+                  Math.abs(dot.bounds.y + 2 - note.anchorY),
+                ).toBeLessThanOrEqual(12);
+              }
+              if (m.episema)
+                expect(
+                  signs.some(
+                    (s) =>
+                      isHorizontal(s) &&
+                      s.bounds.x === note.anchorX - 6 &&
+                      inside(s.bounds, note.modifierBounds),
+                  ),
+                ).toBe(true);
+              if (m.verticalEpisema)
+                expect(
+                  signs.some(
+                    (s) =>
+                      isVertical(s) &&
+                      Math.abs(s.bounds.x + 0.75 - note.anchorX) <= 15 &&
+                      inside(s.bounds, note.modifierBounds),
+                  ),
+                ).toBe(true);
+            });
+            for (const ink of g.ink) {
+              expect(ink.bounds.x).toBeGreaterThanOrEqual(g.bounds.x);
+              expect(ink.bounds.y).toBeGreaterThanOrEqual(g.bounds.y);
+              expect(ink.bounds.x + ink.bounds.width).toBeLessThanOrEqual(
+                g.bounds.x + g.bounds.width,
+              );
+              expect(ink.bounds.y + ink.bounds.height).toBeLessThanOrEqual(
+                g.bounds.y + g.bounds.height,
+              );
+            }
+            expect(g.advanceX).toBe(g.bounds.width + 33);
+            checked++;
           }
-          g.notes.forEach((note, i) => {
-            const m = marks[i];
-            expect(note.head).toEqual(plain.notes[i].head);
-            expect(Boolean(note.modifierBounds)).toBe(
-              Boolean(m.episema || m.verticalEpisema),
-            );
-            if (m.episema)
-              expect(
-                signs.some(
-                  (s) =>
-                    isHorizontal(s) &&
-                    s.bounds.x === note.anchorX - 6 &&
-                    inside(s.bounds, note.modifierBounds),
-                ),
-              ).toBe(true);
-            if (m.verticalEpisema)
-              expect(
-                signs.some(
-                  (s) =>
-                    isVertical(s) &&
-                    Math.abs(s.bounds.x + 0.75 - note.anchorX) <= 15 &&
-                    inside(s.bounds, note.modifierBounds),
-                ),
-              ).toBe(true);
-          });
-          for (const ink of g.ink) {
-            expect(ink.bounds.x).toBeGreaterThanOrEqual(g.bounds.x);
-            expect(ink.bounds.y).toBeGreaterThanOrEqual(g.bounds.y);
-            expect(ink.bounds.x + ink.bounds.width).toBeLessThanOrEqual(
-              g.bounds.x + g.bounds.width,
-            );
-            expect(ink.bounds.y + ink.bounds.height).toBeLessThanOrEqual(
-              g.bounds.y + g.bounds.height,
-            );
-          }
-          expect(g.advanceX).toBe(g.bounds.width + 33);
-          checked++;
-        }
-        expect(checked).toBe(2 ** (count * 2));
+        expect(checked).toBe(2 ** (count * 2) * 2);
       },
     );
 

@@ -281,7 +281,7 @@ including v7 files that contain only older kinds.
 
 Version 8 lets the existing `scandicus` and `climacus` kinds carry three, four
 or five notes
-([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+([ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
 Because the kind names are old, the reader decides by envelope version:
 
 - **Exact v1–v7 readers** keep the original three-note contract. They reject a
@@ -289,8 +289,9 @@ Because the kind names are old, the reader decides by envelope version:
   while three-note instances still read unchanged.
 - **v8** builds the bounded tuple with `monotonicNotes`. It rejects other
   lengths and then validates the strict contour, count-aware note forms (no
-  quilisma on longer groups) and the count-aware mora matrix (none-only for
-  longer groups until the owner approves another).
+  quilisma on longer groups) and the count-aware mora matrix (none or final
+  note only on longer groups). A Pes subpunctis normalized to a four-note
+  Climacus is an ordinary v8 Climacus.
 
 No count, variant or grouping field exists, and an entry-variant name such as
 `scandicus-5` is not a valid kind. Every other v7 rule, including Pes

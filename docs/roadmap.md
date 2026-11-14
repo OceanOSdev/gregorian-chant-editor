@@ -256,18 +256,24 @@ follow-up maintenance still applies: repair or retire the `lyric-anchors` and
 
 ## Extended Scandicus and Climacus (Stage 9B-2)
 
-**In review (draft PR).** The existing Scandicus and Climacus kinds accept
+**In final review (PR #76).** The existing Scandicus and Climacus kinds accept
 four- and five-note strictly monotonic groups behind split controls, with
 native v8, following the [plan](plans/stage-9b2-extended-scandicus-climacus.md)
-and [proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
-Owner gates still open:
+and [Accepted ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
+The owner approved the Mocquereau Fig. 34 Scandicus staircase profile, a
+`{none, final}` mora matrix for the longer groups, and the ADR 0023 amendment
+(Pes subtripunctis to four-note Climacus on deletion) on 2026-11-13. See the
+[verification record](verification/extended-scandicus-climacus/README.md).
 
-- the Scandicus staircase profile (Mocquereau Fig. 34);
-- the mora matrix for longer groups (provisionally none-only);
-- the proposed ADR 0023 Pes-subtripunctis-to-Climacus deletion amendment
-  (not applied).
+Retained limits: final-two and earlier-note morae on longer groups are
+deferred; no lengths beyond five.
 
-See the [verification record](verification/extended-scandicus-climacus/README.md).
+## Follow-up maintenance (after Stage 9B-2)
+
+- Neume ledger lines: no neume kind draws ledger lines yet (only custodes do).
+  Long groups make this more visible; it is separate follow-up work.
+- Repair or retire the pre-existing failing `lyric-anchors` and `lyric-move`
+  browser drivers.
 
 ## Later Stage 9B milestones (pending)
 

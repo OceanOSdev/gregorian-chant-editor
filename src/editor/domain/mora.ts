@@ -36,9 +36,11 @@ export function moraChoices(
       ];
     case 'scandicus':
     case 'climacus':
-      // Four- and five-note groups are provisionally unmarked: their mora
-      // matrix awaits owner approval (ADR 0024). Three-note groups unchanged.
-      if (noteCount !== 3) return [none];
+      // Owner-approved Stage 9B-2 matrix (ADR 0024): four- and five-note
+      // groups allow none or the final note of the actual tuple; final-two
+      // is deferred. Three-note groups are unchanged.
+      if (noteCount !== 3)
+        return [none, { value: 'final', label: 'Final note' }];
       return [
         none,
         { value: 'final', label: 'Final note' },

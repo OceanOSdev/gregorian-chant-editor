@@ -99,7 +99,7 @@ array would leave cardinality, ordering, and kind-specific operations implicit.
 Pes subpunctis is a bounded exception: a union of exactly two fixed tuples
 ([ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md)). Scandicus
 and Climacus are bounded unions of three-, four- and five-note tuples
-([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+([ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
 
 TypeScript protects correctly typed construction, but data can still arrive
 malformed at runtime. `isValidNeume` therefore checks cardinality and pitch
@@ -111,7 +111,7 @@ Each stable-ID note optionally owns `mora: 1` and `episema: true`; omission
 means off. Mora is presence, not a count or duration. Punctum allows none/sole;
 Podatus and Clivis none/first/second/both; Torculus, Porrectus and three-note
 Scandicus and Climacus none/final/final two. Choices depend on the actual tuple
-length; four- and five-note Scandicus/Climacus are provisionally none-only. The shared pure pattern validator governs
+length; four- and five-note Scandicus/Climacus allow none/final note. The shared pure pattern validator governs
 commands and native decoding. A final pair marks two distinct note IDs and
 derives an auctum duplex; no second persisted sign object exists. Episema stays
 independent. Movement and normalization retain marks on surviving note IDs.
@@ -353,10 +353,10 @@ derives the tool from the last placed group.
 Constituent deletion is decided from the surviving contour, not tuple length:
 
 - five to four: stays a Pes subpunctis when the survivors satisfy its contour;
-  otherwise (four strictly descending notes after deleting the first note, or
-  equal adjacent survivors after deleting the apex) the deletion is rejected.
-  Stage 9B-2 proposes normalizing four descending survivors to a four-note
-  Climacus; this amendment awaits owner approval, so the rejection stands;
+  becomes a four-note Climacus when the survivors strictly descend (after
+  deleting the first note, or the apex when the survivors descend; ADR 0023
+  amendment, Stage 9B-2); otherwise (equal adjacent survivors) the deletion
+  is rejected;
 - four to three: becomes Torculus when the survivors rise then fall, Climacus
   when they strictly descend, and is rejected otherwise (for example equal
   adjacent survivors).
@@ -383,7 +383,7 @@ ADR 0021 B ownership applies unchanged, including contours that revisit B.
 
 The existing `scandicus` and `climacus` kinds have `notes: MonotonicNotes`, a
 bounded union of three-, four- and five-note tuples
-([proposed ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
+([ADR 0024](adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md)).
 Every adjacent pair strictly ascends (Scandicus) or strictly descends
 (Climacus). Construct the tuple with `monotonicNotes`, which returns `null`
 for any other length. No count or variant field is stored. Display names
@@ -405,8 +405,11 @@ Forms and mora depend on the tuple length:
 - `allowedNoteForms(kind, index, noteCount)` keeps the quilisma on the middle
   of a three-note Scandicus only. Longer groups have no authored forms.
 - `moraChoices(kind, noteCount)` keeps the three-note matrix. Longer groups
-  are provisionally none-only, pending owner approval of the
-  [proposed matrix](verification/extended-scandicus-climacus/README.md#mora-gate).
+  allow exactly none or final note (the last note of the actual tuple);
+  final-two and earlier notes are deferred
+  ([evidence](verification/extended-scandicus-climacus/README.md#mora-gate)).
+  Deleting an earlier note keeps a surviving final mora on its own note;
+  deleting the marked note removes the mark and never transfers it.
 
 Deletion keeps the family from five to four and from four to three, with the
 neume ID, surviving note objects, order, marks and anchors. Survivors of a

@@ -286,10 +286,12 @@ export function normalizeNeumeAfterNoteDeletion(
 }
 
 /**
- * Five-note survivors stay a Pes subpunctis only when they still satisfy its
- * contour. Four-note survivors become the existing three-note kind whose rule
- * the actual contour satisfies. Anything else (for example four descending
- * notes, or equal adjacent pitches) is rejected by returning the input.
+ * Decided from the surviving contour, not the deleted index. Four survivors
+ * of a five-note group stay a Pes subpunctis when they still rise to the apex,
+ * or become a four-note Climacus when they strictly descend (ADR 0023
+ * amendment, ADR 0024). Three survivors become the three-note kind whose rule
+ * they satisfy. Anything else (equal adjacent pitches) or any surviving mark
+ * the result does not allow is rejected by returning the input.
  */
 function normalizePesSubpunctisSurvivors(
   neume: Neume,
@@ -298,9 +300,12 @@ function normalizePesSubpunctisSurvivors(
   const [a, b, c] = survivors;
   const candidates: Neume[] = [];
   const tuple = pesSubpunctisNotes(survivors);
-  if (tuple)
+  const monotonic = monotonicNotes(survivors);
+  if (tuple) {
     candidates.push({ id: neume.id, kind: 'pes-subpunctis', notes: tuple });
-  else if (a && b && c && survivors.length === 3)
+    if (monotonic && survivors.length === 4)
+      candidates.push({ id: neume.id, kind: 'climacus', notes: monotonic });
+  } else if (a && b && c && survivors.length === 3)
     // Survivors of p0 < p1 > p2 > p3 can only rise-fall or strictly descend.
     for (const kind of ['torculus', 'climacus'] as const)
       candidates.push({ id: neume.id, kind, notes: [a, b, c] });

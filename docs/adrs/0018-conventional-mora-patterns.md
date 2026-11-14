@@ -86,11 +86,14 @@ Mora scope indexes are now derived from the actual tuple length (`final` =
 last note, `final-two` = last two). Every existing pattern, including
 `final` = [2] and `final-two` = [1, 2] for three-note kinds, is unchanged.
 
-## Stage 9B-2 extended Scandicus/Climacus (proposed, owner gate)
+## Stage 9B-2 extended Scandicus/Climacus (owner-approved 2026-11-13)
 
 [ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md) makes
 `moraChoices` depend on the actual tuple length. Three-note Scandicus and
 Climacus keep none, final and final-two unchanged. Four- and five-note groups
-are **provisionally none-only**. The proposed matrix for owner approval is none
-or final note for both families and lengths, with final-two deferred. No other
-kind's matrix changes.
+allow exactly **none** or **final note**, where the final note is the last
+note of the actual tuple and the mark belongs to that stable note. Final-two
+and earlier-note patterns are deferred. No direct printed example of a final
+mora on an extended group was found; the policy rests on analogy with the
+Podatus and descending-diamond conventions and on unambiguous Gregorio
+rendering. No other kind's matrix changes.

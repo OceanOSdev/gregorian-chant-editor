@@ -3,8 +3,12 @@
 Branch: `feature/stage-9b2-extended-scandicus-climacus`  
 Target: `master`
 
-Status: implemented in a draft PR, awaiting owner review of three gates
-(Scandicus staircase profile, longer-group mora matrix, ADR 0023 amendment).
+Status: implemented in PR #76. On 2026-11-13 the owner approved the three
+gates: the Mocquereau Fig. 34 Scandicus staircase as the initial profile,
+`{none, final}` mora for four- and five-note Scandicus/Climacus (final-two and
+earlier notes deferred), and the ADR 0023 amendment (Pes subtripunctis
+deletion leaving four strictly descending notes becomes a four-note Climacus).
+ADR 0024 is Accepted; the PR awaits final review.
 See the [verification record](../verification/extended-scandicus-climacus/README.md).
 Stage 9B-1 (PR #75) is merged at `a2111bf`.
 

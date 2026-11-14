@@ -1,9 +1,16 @@
 # Stage 9B-2: Extended Scandicus and Climacus implementation record
 
-Status: **implemented in a draft PR, awaiting owner review.** It follows the
-committed [plan](../../plans/stage-9b2-extended-scandicus-climacus.md) and
-[Proposed ADR 0024](../../adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
-Three owner gates remain open; see the [owner checklist](#owner-checklist).
+Status: **implemented in PR #76; ADR 0024 Accepted.** It follows the committed
+[plan](../../plans/stage-9b2-extended-scandicus-climacus.md) and
+[Accepted ADR 0024](../../adrs/0024-bounded-tuple-union-for-scandicus-and-climacus.md).
+On 2026-11-13, after review of `34e7bb7`, the owner approved:
+
+1. the Scandicus staircase as the initial profile;
+2. `{none, final}` mora for four- and five-note groups;
+3. the ADR 0023 amendment.
+
+See [owner decisions](#owner-decisions-2026-11-13). Final review of the PR is
+pending.
 
 ## What is implemented
 
@@ -17,12 +24,15 @@ Three owner gates remain open; see the [owner checklist](#owner-checklist).
 - `mapNeumeNotes` rebuilds tuples in every command and removes the old
   fallback branches that would have silently truncated a longer group to
   three notes.
-- Count-aware form and mora eligibility: no forms on longer groups, and a
-  provisional none-only mora matrix. The three-note matrices are unchanged.
-- Deletion keeps the family from five to four and from four to three.
+- Count-aware form and mora eligibility: no forms on longer groups, and
+  exactly none or final note for their mora. The three-note matrices are
+  unchanged.
+- Deletion keeps the family from five to four and from four to three. Pes
+  subtripunctis deletion that leaves four strictly descending notes becomes a
+  four-note Climacus (ADR 0023 amendment).
 - Engraving:
   - Climacus extends the shared diamond tail.
-  - Scandicus uses the Mocquereau Fig. 34 staircase (proposed profile).
+  - Scandicus uses the Mocquereau Fig. 34 staircase (approved initial profile).
   - Three-note output is byte-identical.
 - Strict native v8; exact v1–v7 readers reject longer instances of the old
   kinds.
@@ -39,6 +49,7 @@ All crops are actual scans or actual Gregorio output; no notation is redrawn.
 | _Liber Usualis_ (1961), p. xxj, "Compound neums" table                                          | (not cropped)                         | Lists Pes subbipunctis, Torculus resupinus, Scandicus flexus, Porrectus flexus, Salicus flexus, Climacus resupinus. No four/five-note Scandicus or Climacus specimen in the table.                                                                                                                                                                                                                                                                                                                            |
 | Gregorio 6.0.0 / Greciliae, `partition.gabc`                                                    | `gregorio-partition.png`              | Gregorio's own grouping of plain ascending GABC: `fgh` is Punctum + Pes (matches the editor's three-note form); `fghj` is Punctum + Pes + Punctum; `efghj` is Punctum + Pes + Pes. **This differs from Mocquereau's printed staircase** and is parser behavior, not evidence of a printed convention (the plan's warning).                                                                                                                                                                                    |
 | Gregorio, `staircase-and-mora.gabc`                                                             | `gregorio-staircase-and-mora.png`     | a/d: Mocquereau's staircase forced with `!` joins (`fg!hj`, `ef!g!hj`). b/e: final mora; c/f: final-two. g–l: Climacus `iHGF`, `kJIHG` unmarked, final mora, final-two. m/n: episemata.                                                                                                                                                                                                                                                                                                                       |
+| Gregorio, `marked.gabc`                                                                         | `gregorio-marked.png`                 | Marked counterparts of the editor's marked specimens: `fg!hj.` (4-note Scandicus, final mora), `ef!g'!hj.` (5-note, final mora, vertical episema on note 3), `jIHG.` (4-note Climacus, final mora), `kJ_IHG.` (5-note, final mora, horizontal episema on note 2).                                                                                                                                                                                                                                             |
 | Editor, Chromium 1440px (`browser-check.mjs` `engraving-1440.png`)                              | `editor-engraving.png`                | Three-note ordinary and quilismatic Scandicus, both Fig. 34 contours, stepwise/skip/mixed four- and five-note Scandicus, Demetria's four-note Climacus, skip/mixed Climacus, signs on every family, a B-flat on a later constituent, lyrics and wrapping.                                                                                                                                                                                                                                                     |
 
 Reproduce the Gregorio images by compiling both `.gabc` files with `gregorio`,
@@ -53,31 +64,32 @@ p. 152, Liber p. xxj, Demetria pp. 39–40). Demetria's four-note Climacus is an
 exercise specimen. Kyrie XI and the Requiem Gradual were not re-examined for
 these figures, and no claim is made about any full chant.
 
-### Engraving decision (owner gate 1)
+### Engraving decision (approved 2026-11-13)
 
 - **Climacus (unambiguous):** virga + one detached diamond per later note,
   reusing the approved helpers. Mocquereau and Demetria both print this. The
   editor's first three heads are byte-identical to the three-note Climacus.
-- **Scandicus (proposed):** the only printed construction found is
-  Mocquereau's staircase, one figure per count: four notes = Pes + Pes, five
-  notes = Pes + Punctum + Pes. The editor reuses the approved Podatus and
-  Punctum in successive 12-unit columns.
+- **Scandicus (approved initial deterministic profile):** the only printed
+  construction found is Mocquereau's staircase, one figure per count: four
+  notes = Pes + Pes, five notes = Pes + Punctum + Pes. The editor reuses the
+  approved Podatus and Punctum in successive 12-unit columns.
   - It is not a chain of three-note Scandicus glyphs, adds no connector, and
     implies no salicus, oriscus, quilisma, liquescence or new rhythm.
-  - The grouping does not depend on intervals: Fig. 34 shows the same
-    grouping for its stepwise-then-skip contours, and no source showing
-    other groupings was found.
-  - Gregorio's partition (Punctum first) is the main alternative. It was not
-    adopted because it is parser output, not a printed convention.
+  - Applying this grouping to every other interval combination is the
+    **chosen initial engraving profile**, not a claim that all historical
+    extended Scandicus figures use this construction. Fig. 34 shows only its
+    two contours.
+  - Gregorio's default partition (Punctum first) remains a documented
+    alternative, not the selected profile.
 
   Comparison is **qualitative**; no measured typographic match is claimed.
 
 ## Mora gate
 
-Owner gate 2. Implemented provisionally as **none-only** for four- and
-five-note groups; three-note groups keep none/final/final-two unchanged.
+Approved 2026-11-13: **none or final note** for four- and five-note Scandicus
+and Climacus; three-note groups keep none/final/final-two unchanged.
 
-| Family / length | Pattern   | Direct printed evidence                            | Analogy                                                                                                                          | Gregorio                                                                                                                                                                                                      | Proposal |
+| Family / length | Pattern   | Direct printed evidence                            | Analogy                                                                                                                          | Gregorio                                                                                                                                                                                                      | Decision |
 | --------------- | --------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | Climacus 4/5    | None      | Demetria p. 40 (both examples), Mocquereau Fig. 34 | –                                                                                                                                | –                                                                                                                                                                                                             | Allow    |
 | Climacus 4/5    | Final     | **None found**                                     | Same descending-diamond tail and final-dot placement as the owner-approved Pes subpunctis final mora (Mocquereau Fig. 37 no. 21) | `iHGF.`, `kJIHG.`: one dot right of the last diamond in its row; unambiguous                                                                                                                                  | Allow    |
@@ -87,59 +99,118 @@ five-note groups; three-note groups keep none/final/final-two unchanged.
 | Scandicus 4/5   | Final two | None found                                         | The final two notes are exactly the final Podatus; Podatus "both" (auctum duplex) is established                                 | `fg!h.j.`, `ef!g!h.j.`: stacked pair right of the final Pes, clear in Gregorio. Plain GABC `fgh.i.` (Gregorio's own partition) instead puts the lower dot between elements, so the result depends on grouping | Defer    |
 | Either          | Earlier   | None                                               | –                                                                                                                                | Not investigated                                                                                                                                                                                              | Defer    |
 
-**Proposed matrix for owner approval:** none or final note for both families
-and both lengths. The final note is the last note of the actual tuple; the mark
-stays on that stable note ID through deletion of earlier notes and is removed,
-never transferred, when its note is deleted. Final-two is deferred for both.
-Scandicus final-two has the strongest analogy, but it has no printed example
-and its rendering depends on the grouping profile, which is itself a gate.
+**Approved matrix:** none or final note for both families and both lengths.
+The final note is the last note of the actual tuple. The mark stays on that
+stable note ID when earlier notes are deleted (5→4→3, and on to the
+established Podatus/Clivis "second note"). It is removed, never transferred,
+when its note is deleted. Final-two and earlier-note patterns are deferred.
 
-The final-note proposal rests on analogy plus unambiguous Gregorio rendering,
-**not** on a direct printed example. The owner may prefer to keep none-only.
-Enabling the proposal is a one-line change in `moraChoices`, plus tests and a
-browser check.
+**Evidence, stated accurately:** no direct printed example of a final mora on
+a four- or five-note Scandicus or Climacus was found. The policy rests on two
+things:
 
-## Proposed ADR 0023 amendment (owner gate 3)
+- analogy with the existing Podatus "second note" and the descending-diamond
+  final mora (the approved Pes subpunctis final mora, Mocquereau Fig. 37
+  no. 21);
+- unambiguous Gregorio rendering of the same marked groups
+  (`gregorio-marked.png`).
 
-Not applied; the accepted rejection is still implemented and tested.
+## ADR 0023 amendment (approved 2026-11-13)
 
-Proposal: deleting a Pes subtripunctis constituent that leaves four strictly
-descending notes normalizes to a four-note Climacus. This applies to deleting
-the first note, and to deleting the apex when the survivors strictly descend.
-The neume ID, survivor IDs, order, episemata, B ownership and anchors are
-preserved. A retained final mora must be legal for a four-note Climacus;
-otherwise the deletion is rejected rather than the mark being discarded:
+Deleting one Pes subtripunctis constituent normalizes to a four-note Climacus
+whenever the actual survivors strictly descend and every surviving authored
+modifier is valid there. The result is decided from the surviving contour, not
+from the deleted index:
 
-- under the current none-only matrix, a marked case still rejects;
-- under the proposed final-note matrix, it would normalize.
+- **First-note deletion:** `[2,5,4,3,2]` loses `n0` and becomes a four-note
+  Climacus.
+- **Apex deletion:** `[4,5,3,2,1]` becomes a four-note Climacus, while
+  `[3,5,4,2,1]` still rises and stays a Pes subpunctis.
+- **Equal adjacent survivors** (`[4,5,4,3,2]` minus its apex) remain rejected,
+  with the announcement "… such as two equal adjacent pitches, or a mark the
+  resulting neume does not allow".
 
-Equal adjacent survivors stay rejected, and no other normalization rule
-(including the equal-outer-note Torculus/Porrectus cases) is broadened.
-Evidence: the survivors satisfy the Climacus contour exactly, as printed
-(Demetria p. 40, Mocquereau Fig. 34). The change keeps identity and marks
-rather than forcing the author to delete and re-enter the group.
+The neume ID, survivor objects and order, horizontal/vertical episemata, a
+final mora (now legal on the four-note Climacus), B ownership and placement,
+lyric anchors and divisions are preserved. A surviving mark that the Climacus
+does not allow rejects the deletion. No other normalization rule is
+broadened.
 
 ## Three-note preservation (measured)
 
-A detached `master` worktree (`a2111bf`) and this branch each ran the same
-temporary Vitest dump (not committed). It produced SHA-256 hashes of the full
-`buildNeumeGeometry` JSON for:
+`three-note-baseline.mjs` (committed) creates a detached temporary worktree
+for a baseline commit (default `a2111bf`, Stage 9B-1 master). It runs the same
+temporary Vitest dump there and in the working tree, then compares the
+results. Both trees use this checkout's `node_modules`, and nothing is left
+behind. The dump records SHA-256 hashes of the full `buildNeumeGeometry` JSON
+for:
 
 - Scandicus (ordinary and with quilisma) and Climacus;
 - first pitch −4..8 and both intervals 1–4;
 - every mora scope (none/final/final-two) and all 8 × 8 horizontal × vertical
   episema masks.
 
-That is **119,808 cases**. The two outputs were byte-identical (file SHA-256
-`991e50b6…6600`), with zero exceptions. The three-note recipes and dispatch
-are untouched; the new recipe is selected only for length > 3.
+That is **119,808 cases**. Run it with:
+
+```sh
+node docs/verification/extended-scandicus-climacus/three-note-baseline.mjs
+```
+
+Results, all byte-identical with zero exceptions and the same file SHA-256
+`991e50b6bc1c9912686015bf2f2167c63e1e4e5f38829cf14ac982cd01696600`:
+
+- at `34e7bb7`, against the same dump run by hand;
+- after the owner-approved mora and normalization changes, run with the
+  committed script.
+
+The three-note recipes and dispatch are untouched; the new recipe is selected
+only for length > 3.
 
 ## Actual verification
 
+### After the owner decisions
+
+Run on the final changes:
+
+- `npm run format:check`, `npm run lint`, `npm test` (87 files, 1,894 tests)
+  and `npm run build` passed.
+- The pure tests and the exhaustive geometry tests (20,992 marked geometries)
+  pass.
+- `three-note-baseline.mjs` reported byte-identical three-note geometry.
+
+**Browser drivers were not re-run on the final changes.** The Stage 9B-2
+driver was extended (approved mora, marked deletion/movement, Pes-to-Climacus
+normalization) and the Stage 9B-1 driver was updated for the amended
+deletion. Neither updated driver has been run yet; to save time, the owner
+asked to stop before the browser runs. The browser results below are from
+`34e7bb7`.
+
+### Firefox mid-score-clefs investigation
+
+Branch and master `a2111bf` were each served by their own dev server
+(5180/5181) to one fresh headless Firefox 146 (BiDi), running alternating,
+otherwise identical copies of the driver. The copies added a diagnostic dump
+at line 1032. The results: **7 runs, all passed** (branch 4, master 3). The
+investigation was stopped early at the owner's request, before the planned 16
+runs.
+
+The failure was not reproduced on either tree, so its cause is
+**undetermined**. Observations:
+
+- The Firefox path rounds pointer coordinates to whole CSS pixels
+  (`Math.round`), while Chromium does not. At 150% zoom that can move a click
+  relative to the hovered point.
+- The one failure came first after a 22-run batch in the same long-lived
+  Firefox process.
+
+Both suggest a timing or coordinate effect rather than Stage 9B-2 code, but
+this is **not established**. A regression is unlikely given 0/4 branch
+failures, but it is not ruled out.
+
+### Initial run at `34e7bb7` (before owner decisions)
+
 Repository gate: `npm run format:check`, `npm run lint`, `npm test` (87
 files, 1,893 tests) and `npm run build` passed.
-
-### Browser results
 
 Environment:
 
@@ -175,14 +246,13 @@ port-substituted copies (9230→9260, 5173→5180) that are otherwise unedited:
 
 Note: the first Firefox `mid-score-clefs` run failed one assertion (no clef
 inserted by a pointer click at 150% CSS zoom; line 1032). Two unchanged
-reruns passed. That path uses no Scandicus/Climacus code. The failure is
-recorded as intermittent, not as a pass. It was not investigated further or
-compared against master.
+reruns passed. See the
+[investigation](#firefox-mid-score-clefs-investigation).
 
 Existing driver changes: only the current-version assertions and
 future-version probes were bumped by one (7→8, 8→9), as Stage 9B-1 did.
 
-The Stage 9B-2 driver exercises:
+At this stage the Stage 9B-2 driver exercised:
 
 - **Menus:** both split menus open, ArrowDown, Escape back to the chevron,
   Tab dismissal, aria-expanded/checked and the active-variant name; menus stay
@@ -221,21 +291,26 @@ The Stage 9B-2 driver exercises:
 - A measured typographic comparison with the printed sources.
 - `lyric-anchors` / `lyric-move` (pre-existing failures, separate maintenance).
 
-## Owner checklist
+## Owner decisions (2026-11-13)
 
-1. Approve, or change, the extended Scandicus staircase profile
-   (Pes + Pes; Pes + Punctum + Pes, interval-independent).
-2. Approve the mora matrix for four- and five-note groups (proposed: none +
-   final note for both families; final-two deferred), or keep none-only.
-3. Approve, or decline, the ADR 0023 amendment (Pes subtripunctis → four-note
-   Climacus on deletion).
-4. Review the qualitative comparisons and the automated results; then mark
-   ADR 0024 Accepted.
+All three gates were approved after review of `34e7bb7`:
+
+1. **Extended Scandicus engraving:** the Mocquereau Fig. 34 staircase as the
+   initial deterministic profile.
+2. **Mora:** `{none, final}` for four- and five-note Scandicus and Climacus;
+   final-two and earlier-note patterns deferred.
+3. **ADR 0023 amendment:** Pes subtripunctis deletion leaving four strictly
+   descending notes normalizes to a four-note Climacus.
+
+ADR 0024 is Accepted and ADR 0023 records the amendment. Final review of
+PR #76 is pending.
 
 ## Remaining limitations
 
 - Neume ledger lines remain absent for every kind (existing limitation), which
-  affects the outer notes of long groups far off the staff.
+  affects the outer notes of long groups far off the staff. This is recorded
+  as separate follow-up work in the [roadmap](../../roadmap.md).
+- Final-two and earlier-note morae on longer groups are deferred.
 - No lengths beyond five, no other compound directions, no authored forms on
   longer groups, no intra-syllable fusion, GABC interchange or playback.
 - Native v8: older builds cannot read v8 files, including files without longer

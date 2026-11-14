@@ -160,7 +160,7 @@ before implementing conflicting changes. The owner explicitly accepted
 this note-form model, supported contexts, one-click insertion of
 quilismatic figures and native v3 compatibility on 2026-11-09.
 
-## Stage 9B-2 cardinality (proposed with ADR 0024)
+## Stage 9B-2 cardinality (Accepted with ADR 0024)
 
 The quilisma context is the middle note of a **three-note** Scandicus only.
 [ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md) makes

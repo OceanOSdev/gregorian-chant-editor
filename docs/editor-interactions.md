@@ -895,7 +895,9 @@ reaches the menu item, not the covered button.
 
 Rejected single-note moves and rejected constituent deletions in a Pes
 subpunctis announce why (the contour must rise then strictly descend; the
-survivors would form no supported neume). The contextual note editor names the
+survivors would form no supported neume, for example two equal adjacent
+pitches; since Stage 9B-2 four strictly descending survivors become a
+four-note Climacus). The contextual note editor names the
 group by its cardinality and offers exactly two mora scopes, None and Final
 note (the last note of the actual group); horizontal and vertical episemata
 remain per-note controls.
@@ -924,8 +926,11 @@ returns to the ordinary default-form figure.
 
 The contextual note editor names longer groups by count ("Note 4 of
 five-note scandicus"; screen-reader labels "Select fourth note of five-note
-scandicus"). Its Form select is disabled for longer groups, and its Mora scope
-offers only None, with the existing explanation, until the owner approves a
-matrix. Horizontal and vertical episemata stay per-note controls. A rejected
+scandicus"). Its Form select is disabled for longer groups. Its Mora scope
+offers exactly None and Final note (the last note of the actual group).
+Horizontal and vertical episemata stay per-note controls. A rejected
 single-note move announces that every note must be strictly higher (or lower)
-than the previous note.
+than the previous note. Deleting a Pes subtripunctis note that leaves four
+strictly descending notes produces a four-note Climacus; a rejected Pes
+subpunctis deletion announces that the survivors would form no supported
+neume (for example two equal adjacent pitches).

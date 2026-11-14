@@ -648,11 +648,28 @@ try {
     await redo();
     assert.deepEqual(await score(), reduced);
     await undo();
+    // ADR 0023 amendment (Stage 9B-2): deleting the first note of
+    // [6,7,6,4,3] leaves four strictly descending notes, which normalize to a
+    // four-note Climacus that keeps IDs and the ictus marks on k-3.
     await ev(`document.querySelector('[data-note-id="k-0"]').focus()`);
     await key('Enter');
     await key('Delete');
+    const normalizedKyrie = (await score()).neumes[0];
+    assert.equal(normalizedKyrie.kind, 'climacus');
+    assert.deepEqual(
+      normalizedKyrie.notes.map((n) => n.id),
+      ['k-1', 'k-2', 'k-3', 'k-4'],
+    );
+    assert.equal(normalizedKyrie.notes[2].verticalEpisema, true);
+    assert.equal(normalizedKyrie.notes[2].episema, true);
+    await undo();
     assert.deepEqual(await score(), marked);
-    assert.match(await announcement(), /four descending notes/);
+    // Apex deletion leaving equal adjacent pitches [6,6,4,3] is rejected.
+    await ev(`document.querySelector('[data-note-id="k-1"]').focus()`);
+    await key('Enter');
+    await key('Delete');
+    assert.deepEqual(await score(), marked);
+    assert.match(await announcement(), /two equal adjacent pitches/);
     // Final-note mora: set by scope, kept on its stable note through
     // deletion of an earlier note, removed (not transferred) with its note.
     await select('p-1');

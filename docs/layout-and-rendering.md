@@ -740,13 +740,19 @@ scope and every horizontal × vertical episema mask.
   `buildDiamondTail` helpers, so later diamonds use the approved
   interval-sensitive plateaus and oblique pointer partitions. No connector,
   duplicate virga or new spacing rule is added.
-- **Scandicus (four/five notes), proposed profile awaiting owner approval:**
+- **Scandicus (four/five notes), owner-approved initial profile:**
   `neumes/scandicus-extended.ts` draws the staircase of Mocquereau p. 152,
   Fig. 34. Four notes are Pes + Pes; five are Pes + Punctum + Pes
   (`extendedScandicusElements`). Each element is the unchanged approved
   Podatus or Punctum in a successive 12-unit column. Elements are not joined
-  to each other, and the grouping does not depend on intervals. It is not a
-  chain of three-note Scandicus glyphs and adds no connector.
+  to each other, and the same grouping is applied to every interval
+  combination. This is the chosen initial deterministic profile, not a claim
+  that all historical extended Scandicus figures use this construction;
+  Gregorio's default partition (Punctum first) remains a documented
+  alternative. It is not a chain of three-note Scandicus glyphs and adds no
+  connector.
+- **Final mora:** a single trailing dot uses the existing single-sign rules:
+  right of the final head in its row (Climacus below-row preference as before).
 - **Pointer regions:** the Scandicus regions are clipped at the shared column
   edges, and within each Podatus they keep its nominal pitch split. All
   regions stay pairwise disjoint.
@@ -756,6 +762,7 @@ scope and every horizontal × vertical episema mask.
   accidentals, ghosts, palette icons, advance and whole-group wrapping all use
   the same geometry.
 - **Existing limitations:** neume ledger lines remain absent for every kind,
-  including the low and high notes of longer groups.
+  including the low and high notes of longer groups. Ledger-line support is
+  separate follow-up work.
 
 See the [verification record](verification/extended-scandicus-climacus/README.md).
