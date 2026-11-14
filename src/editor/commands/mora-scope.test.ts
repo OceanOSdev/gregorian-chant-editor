@@ -55,7 +55,7 @@ describe('conventional mora scope', () => {
         candidate.neumes[0].notes.forEach((n, i) => {
           if (mask & (1 << i)) n.mora = 1;
         });
-        const valid = moraChoices(kind).some(
+        const valid = moraChoices(kind, pitches.length).some(
           (c) =>
             moraIndexes(c.value, pitches.length).reduce(
               (m, i) => m | (1 << i),
@@ -79,7 +79,7 @@ describe('conventional mora scope', () => {
           ).toThrow(IncompatibleDraftDocumentError);
         }
       }
-      for (const choice of moraChoices(kind)) {
+      for (const choice of moraChoices(kind, pitches.length)) {
         const marked = updateMoraScope(document, 'neume', choice.value);
         expect(getMoraScope(marked.neumes[0])).toBe(choice.value);
         expect(marked.neumes[0].notes.map((n) => n.id)).toEqual(

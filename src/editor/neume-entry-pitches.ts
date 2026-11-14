@@ -6,11 +6,16 @@ import {
 
 /**
  * Exact entry-tool variants. Most map one-to-one to a semantic kind; the two
- * Pes subpunctis entries share one semantic family with different tuples.
+ * Pes subpunctis entries share one semantic family with different tuples, and
+ * the four-/five-note Scandicus and Climacus entries map to the ordinary kinds.
  */
 export type GraphicalNeumeKind =
   | 'pes-subbipunctis'
   | 'pes-subtripunctis'
+  | 'scandicus-4'
+  | 'scandicus-5'
+  | 'climacus-4'
+  | 'climacus-5'
   | 'bistropha'
   | 'tristropha'
   | 'punctum'
@@ -22,6 +27,44 @@ export type GraphicalNeumeKind =
   | 'porrectus';
 
 export type NeumeEntryPitches =
+  | {
+      kind: 'scandicus-4';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'scandicus-5';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'climacus-4';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
+  | {
+      kind: 'climacus-5';
+      staffPositions: readonly [
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+        StaffPosition,
+      ];
+    }
   | {
       kind: 'pes-subbipunctis';
       staffPositions: readonly [
@@ -82,9 +125,19 @@ export type GraphicalStaffPositions = NeumeEntryPitches['staffPositions'];
 
 /** The semantic family an entry variant creates; never stored as tool state. */
 export function semanticNeumeKind(kind: GraphicalNeumeKind): Neume['kind'] {
-  return kind === 'pes-subbipunctis' || kind === 'pes-subtripunctis'
-    ? 'pes-subpunctis'
-    : kind;
+  switch (kind) {
+    case 'pes-subbipunctis':
+    case 'pes-subtripunctis':
+      return 'pes-subpunctis';
+    case 'scandicus-4':
+    case 'scandicus-5':
+      return 'scandicus';
+    case 'climacus-4':
+    case 'climacus-5':
+      return 'climacus';
+    default:
+      return kind;
+  }
 }
 
 /** The exact entry variant that would create a neume of this kind and size. */
@@ -92,8 +145,11 @@ export function entryNeumeKind(
   kind: Neume['kind'],
   noteCount: number,
 ): GraphicalNeumeKind {
-  if (kind !== 'pes-subpunctis') return kind;
-  return noteCount === 5 ? 'pes-subtripunctis' : 'pes-subbipunctis';
+  if (kind === 'pes-subpunctis')
+    return noteCount === 5 ? 'pes-subtripunctis' : 'pes-subbipunctis';
+  if ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
+    return noteCount === 5 ? `${kind}-5` : `${kind}-4`;
+  return kind;
 }
 
 /** Default entry contours, independent of validity, engraving and insertion policy. */
@@ -118,6 +174,26 @@ export function createNeumeEntryPitches(
           at(1),
           firstStaffPosition,
         ],
+      };
+    case 'scandicus-4':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(1), at(2), at(3)],
+      };
+    case 'climacus-4':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(-1), at(-2), at(-3)],
+      };
+    case 'scandicus-5':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(1), at(2), at(3), at(4)],
+      };
+    case 'climacus-5':
+      return {
+        kind,
+        staffPositions: [firstStaffPosition, at(-1), at(-2), at(-3), at(-4)],
       };
     case 'bistropha':
       return { kind, staffPositions: [firstStaffPosition, firstStaffPosition] };

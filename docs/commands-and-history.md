@@ -389,3 +389,36 @@ and every other nonempty subset return the original document. Deletion and
 movement keep a mark on its stable note and never transfer it. Mora
 scope indexes are derived from the actual tuple length (`moraIndexes(scope,
 length)`); all prior kinds keep `final` = [2] and `final-two` = [1, 2].
+
+## Extended Scandicus and Climacus commands (Stage 9B-2)
+
+The four entry variants (`scandicus-4/5`, `climacus-4/5`) insert through the
+existing validated `insertScandicus`/`insertClimacus` commands. They use the
+same five-ID interaction-boundary allocation as Pes subpunctis, so every
+insertion path shares it: graphical placement, I, contextual Insert, and
+Insert before/after a clef or division. `insertEditorNeume` rejects too few or
+duplicate IDs.
+
+`move-note`, `move-neume` (`transposeNeume`), `update-note-form` and
+`update-note-modifiers` (including `updateMoraScope`) rebuild tuples through
+the shared domain helper `mapNeumeNotes`. This replaces kind switches whose
+fallback branches assumed three notes. The helper never truncates or widens
+the bounded tuples, so a four- or five-note group keeps every note through
+every edit. A single-note move is accepted only when the strict contour
+holds. A rejected move on a longer group returns the original document,
+creates no history or autosave entry, and announces the strict-direction
+rule. Deletion follows the
+[domain contract](domain-model.md#extended-scandicus-and-climacus-stage-9b-2).
+A surviving mark that the shorter group does not allow rejects with an
+announcement. Three-note behavior and announcements are unchanged.
+
+`updateMoraScope` and per-note mora edits consult
+`moraChoices(kind, noteCount)`. For longer groups only None and Final note
+(the last note of the actual tuple) are accepted, each in one history entry;
+final-two, earlier-note scopes and per-note marks elsewhere return the
+original document. Deletion and movement keep a mark on its stable note and
+never transfer it. Pes subtripunctis deletion that leaves four strictly
+descending notes now produces a four-note Climacus in one history entry (ADR
+0023 amendment); the remaining rejection (equal adjacent survivors, or a mark
+the result does not allow) is announced. Form edits consult `allowedNoteForms(kind, index,
+noteCount)`.

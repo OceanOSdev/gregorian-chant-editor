@@ -69,7 +69,11 @@ describe('authored form validation and immutable commands', () => {
         it(`${neume.kind} note ${index} ${form}: exact whitelist`, () => {
           const doc = document();
           const result = updateNoteForm(doc, note.id, form);
-          if (allowedNoteForms(neume.kind, index).includes(form)) {
+          if (
+            allowedNoteForms(neume.kind, index, neume.notes.length).includes(
+              form,
+            )
+          ) {
             expect(result).not.toBe(doc);
             expect(result.syllables).toBe(doc.syllables);
             expect(
@@ -272,7 +276,7 @@ describe('atomic direct insertion and matching ghost', () => {
 
 describe('exact versioned readers and guarded upgrade', () => {
   it.each([v1Source, v2Source])(
-    'loads actual old source unchanged, then saves v7 in the same key',
+    'loads actual old source unchanged, then saves v8 in the same key',
     (source) => {
       const originalKey = 'gregorian-chant-editor:active-document:v1';
       expect(autosaveKey).toBe(originalKey);
@@ -296,7 +300,7 @@ describe('exact versioned readers and guarded upgrade', () => {
       expect(edit).not.toBe(doc);
       expect(edit.neumes[0].notes[0].form).toBe(form);
       adapter.save(edit);
-      expect(JSON.parse(bytes).version).toBe(7);
+      expect(JSON.parse(bytes).version).toBe(8);
       expect(decodeDocument(bytes)).toEqual(edit);
       expect(doc.neumes.flatMap((n) => n.notes).some((n) => 'form' in n)).toBe(
         false,
@@ -329,7 +333,7 @@ describe('exact versioned readers and guarded upgrade', () => {
       encodeDocument(updateNoteForm(document(), 'pes0', 'quilisma')),
     );
     delete payload.document.accidentals;
-    for (const version of [1, 2, 8])
+    for (const version of [1, 2, 9])
       expect(() =>
         decodeDocument(JSON.stringify({ ...payload, version })),
       ).toThrow();

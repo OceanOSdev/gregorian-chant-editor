@@ -132,8 +132,13 @@ for (const { kind, pitches, tight, invalid } of cases) {
       const document = documentWith([unrelated]);
       const missingNote = candidate();
       missingNote.notes.pop();
+      // Four and five notes are valid since ADR 0024; six never are.
       const extraNote = candidate();
-      extraNote.notes.push({ id: 'fourth', staffPosition: staffPosition(-1) });
+      extraNote.notes.push(
+        { id: 'fourth', staffPosition: staffPosition(-1) },
+        { id: 'fifth', staffPosition: staffPosition(-2) },
+        { id: 'sixth', staffPosition: staffPosition(-3) },
+      );
       const duplicate = candidate();
       duplicate.notes[1] = { ...duplicate.notes[1], id: 'first' };
       const collision = candidate();

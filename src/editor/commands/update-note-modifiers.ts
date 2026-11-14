@@ -1,16 +1,11 @@
-import {
-  pesSubpunctisNotes,
-  type ChantDocument,
-  type ChantNote,
-  type Neume,
-} from '../domain/chant-document';
+import type { ChantDocument, ChantNote } from '../domain/chant-document';
 import {
   getMoraScope,
   moraChoices,
   moraIndexes,
   type MoraScope,
 } from '../domain/mora';
-import { isValidNeume, findNote } from '../domain/neume';
+import { isValidNeume, findNote, mapNeumeNotes } from '../domain/neume';
 
 export type NoteModifierEdit =
   | { kind: 'mora'; value: 0 | 1 }
@@ -39,30 +34,8 @@ export function updateNoteModifiers(
   // Reconstruct the existing correlated tuple without widening the Neume union.
   const replace = (n: ChantNote) => (n.id === noteId ? note : n);
   const neume = located.neume;
-  let updated: Neume;
-  switch (neume.kind) {
-    case 'pes-subpunctis': {
-      const notes = pesSubpunctisNotes(neume.notes.map(replace));
-      if (!notes) return document;
-      updated = { ...neume, notes };
-      break;
-    }
-    case 'punctum':
-      updated = { ...neume, notes: [replace(neume.notes[0])] };
-      break;
-    case 'bistropha':
-    case 'podatus':
-    case 'clivis': {
-      const [a, b] = neume.notes;
-      updated = { ...neume, notes: [replace(a), replace(b)] };
-      break;
-    }
-    default: {
-      const [a, b, c] = neume.notes;
-      updated = { ...neume, notes: [replace(a), replace(b), replace(c)] };
-    }
-  }
-  if (!isValidNeume(updated)) return document;
+  const updated = mapNeumeNotes(neume, replace);
+  if (!updated || !isValidNeume(updated)) return document;
   return {
     ...document,
     neumes: document.neumes.map((n) => (n === neume ? updated : n)),
@@ -78,7 +51,9 @@ export function updateMoraScope(
   const neume = document.neumes.find((n) => n.id === neumeId);
   if (
     !neume ||
-    !moraChoices(neume.kind).some((c) => c.value === scope) ||
+    !moraChoices(neume.kind, neume.notes.length).some(
+      (c) => c.value === scope,
+    ) ||
     getMoraScope(neume) === scope
   )
     return document;
@@ -91,36 +66,8 @@ export function updateMoraScope(
     else delete result.mora;
     return result;
   };
-  let updated: Neume;
-  switch (neume.kind) {
-    case 'pes-subpunctis': {
-      const notes = pesSubpunctisNotes(neume.notes.map(replace));
-      if (!notes) return document;
-      updated = { ...neume, notes };
-      break;
-    }
-    case 'punctum':
-      updated = { ...neume, notes: [replace(neume.notes[0], 0)] };
-      break;
-    case 'bistropha':
-    case 'podatus':
-    case 'clivis':
-      updated = {
-        ...neume,
-        notes: [replace(neume.notes[0], 0), replace(neume.notes[1], 1)],
-      };
-      break;
-    default:
-      updated = {
-        ...neume,
-        notes: [
-          replace(neume.notes[0], 0),
-          replace(neume.notes[1], 1),
-          replace(neume.notes[2], 2),
-        ],
-      };
-  }
-  if (!isValidNeume(updated)) return document;
+  const updated = mapNeumeNotes(neume, replace);
+  if (!updated || !isValidNeume(updated)) return document;
   return {
     ...document,
     neumes: document.neumes.map((n) => (n === neume ? updated : n)),

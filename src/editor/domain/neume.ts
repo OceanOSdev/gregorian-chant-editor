@@ -1,6 +1,7 @@
 import { hasValidNoteForms } from './note-forms';
 import { getMoraScope } from './mora';
 import {
+  monotonicNotes,
   pesSubpunctisNotes,
   type ChantDocument,
   type ChantNote,
@@ -112,18 +113,25 @@ export function isValidNeume(neume: Neume): boolean {
         ? firstNote.staffPosition < secondNote.staffPosition
         : firstNote.staffPosition > secondNote.staffPosition;
     }
-    case 'scandicus': {
-      if (neume.notes.length !== 3) {
-        return false;
+    case 'scandicus':
+    case 'climacus': {
+      // Exactly three, four or five notes (ADR 0024), strictly monotonic.
+      const notes: readonly (ChantNote | undefined)[] = neume.notes;
+      if (notes.length < 3 || notes.length > 5) return false;
+      // Index every slot: array iteration helpers skip holes.
+      for (let index = 0; index < notes.length; index++) {
+        const note = notes[index];
+        const previous = notes[index - 1];
+        if (!note) return false;
+        if (
+          previous &&
+          (neume.kind === 'scandicus'
+            ? previous.staffPosition >= note.staffPosition
+            : previous.staffPosition <= note.staffPosition)
+        )
+          return false;
       }
-
-      const [firstNote, secondNote, thirdNote] = neume.notes;
-
-      return (
-        Boolean(firstNote && secondNote && thirdNote) &&
-        firstNote.staffPosition < secondNote.staffPosition &&
-        secondNote.staffPosition < thirdNote.staffPosition
-      );
+      return true;
     }
     case 'torculus': {
       if (neume.notes.length !== 3) {
@@ -135,19 +143,6 @@ export function isValidNeume(neume: Neume): boolean {
       return (
         Boolean(firstNote && secondNote && thirdNote) &&
         firstNote.staffPosition < secondNote.staffPosition &&
-        secondNote.staffPosition > thirdNote.staffPosition
-      );
-    }
-    case 'climacus': {
-      if (neume.notes.length !== 3) {
-        return false;
-      }
-
-      const [firstNote, secondNote, thirdNote] = neume.notes;
-
-      return (
-        Boolean(firstNote && secondNote && thirdNote) &&
-        firstNote.staffPosition > secondNote.staffPosition &&
         secondNote.staffPosition > thirdNote.staffPosition
       );
     }
@@ -201,6 +196,21 @@ export function normalizeNeumeAfterNoteDeletion(
       ? { id: neume.id, kind: 'bistropha', notes: [a, b] }
       : { id: neume.id, kind: 'punctum', notes: [a] };
     return isValidNeume(normalized) ? normalized : neume;
+  }
+
+  if (
+    (neume.kind === 'scandicus' || neume.kind === 'climacus') &&
+    neume.notes.length > 3
+  ) {
+    // Five to four and four to three keep the family. Survivors of a strict
+    // contour stay strict; any form or mora that the shorter group does not
+    // allow rejects the deletion rather than being dropped or transferred.
+    const notes = monotonicNotes(
+      neume.notes.filter((note) => note.id !== noteId),
+    );
+    if (!notes) return neume;
+    const shorter: Neume = { id: neume.id, kind: neume.kind, notes };
+    return isValidNeume(shorter) ? shorter : neume;
   }
 
   if (neume.kind === 'scandicus') {
@@ -276,10 +286,12 @@ export function normalizeNeumeAfterNoteDeletion(
 }
 
 /**
- * Five-note survivors stay a Pes subpunctis only when they still satisfy its
- * contour. Four-note survivors become the existing three-note kind whose rule
- * the actual contour satisfies. Anything else (for example four descending
- * notes, or equal adjacent pitches) is rejected by returning the input.
+ * Decided from the surviving contour, not the deleted index. Four survivors
+ * of a five-note group stay a Pes subpunctis when they still rise to the apex,
+ * or become a four-note Climacus when they strictly descend (ADR 0023
+ * amendment, ADR 0024). Three survivors become the three-note kind whose rule
+ * they satisfy. Anything else (equal adjacent pitches) or any surviving mark
+ * the result does not allow is rejected by returning the input.
  */
 function normalizePesSubpunctisSurvivors(
   neume: Neume,
@@ -288,20 +300,65 @@ function normalizePesSubpunctisSurvivors(
   const [a, b, c] = survivors;
   const candidates: Neume[] = [];
   const tuple = pesSubpunctisNotes(survivors);
-  if (tuple)
+  const monotonic = monotonicNotes(survivors);
+  if (tuple) {
     candidates.push({ id: neume.id, kind: 'pes-subpunctis', notes: tuple });
-  else if (a && b && c && survivors.length === 3)
+    if (monotonic && survivors.length === 4)
+      candidates.push({ id: neume.id, kind: 'climacus', notes: monotonic });
+  } else if (a && b && c && survivors.length === 3)
     // Survivors of p0 < p1 > p2 > p3 can only rise-fall or strictly descend.
     for (const kind of ['torculus', 'climacus'] as const)
       candidates.push({ id: neume.id, kind, notes: [a, b, c] });
   return candidates.find(isValidNeume) ?? neume;
 }
 
-/** Lowercase descriptive name; Pes subpunctis is named by its actual count. */
+/**
+ * Lowercase descriptive name derived from the actual count: Pes subpunctis
+ * by its traditional names, extended Scandicus/Climacus by their note count.
+ */
 export function neumeDisplayName(
   kind: Neume['kind'],
   noteCount: number,
 ): string {
-  if (kind !== 'pes-subpunctis') return kind;
-  return noteCount === 5 ? 'pes subtripunctis' : 'pes subbipunctis';
+  if (kind === 'pes-subpunctis')
+    return noteCount === 5 ? 'pes subtripunctis' : 'pes subbipunctis';
+  if ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
+    return `${noteCount === 5 ? 'five' : 'four'}-note ${kind}`;
+  return kind;
+}
+
+/**
+ * Rebuilds a neume's own correlated tuple from mapped notes, so commands never
+ * widen the Neume union or silently truncate a bounded family. Validation of
+ * the mapped result remains the caller's responsibility.
+ */
+export function mapNeumeNotes(
+  neume: Neume,
+  map: (note: ChantNote, index: number) => ChantNote,
+): Neume | null {
+  switch (neume.kind) {
+    case 'pes-subpunctis': {
+      const notes = pesSubpunctisNotes(neume.notes.map(map));
+      return notes ? { ...neume, notes } : null;
+    }
+    case 'scandicus':
+    case 'climacus': {
+      const notes = monotonicNotes(neume.notes.map(map));
+      return notes ? { id: neume.id, kind: neume.kind, notes } : null;
+    }
+    case 'punctum':
+      return { ...neume, notes: [map(neume.notes[0], 0)] };
+    case 'bistropha':
+    case 'podatus':
+    case 'clivis': {
+      const [a, b] = neume.notes;
+      return { ...neume, notes: [map(a, 0), map(b, 1)] };
+    }
+    case 'tristropha':
+    case 'torculus':
+    case 'porrectus': {
+      const [a, b, c] = neume.notes;
+      return { ...neume, notes: [map(a, 0), map(b, 1), map(c, 2)] };
+    }
+  }
 }

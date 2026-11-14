@@ -356,7 +356,7 @@ try {
   await key('ArrowDown');
   await key('Tab');
   const signed = JSON.parse(await raw());
-  assert.equal(signed.version, 7);
+  assert.equal(signed.version, 8);
   assert.equal(signed.document.accidentals.length, 1);
   const id = signed.document.accidentals[0].id;
   assert.equal(signed.document.accidentals[0].ownerNoteId, 'ownerB');
@@ -554,7 +554,7 @@ try {
   await button('Undo last edit');
   assert.deepEqual(JSON.parse(await raw()), {
     ...JSON.parse(beforeWarning),
-    version: 7,
+    version: 8,
   });
   // Keep pitches preserves authored identities, kinds and anchored location.
   await ev(
@@ -1013,7 +1013,7 @@ try {
   await hydrate(legacy);
   await select(JSON.parse(legacy).document.neumes[0].notes[0].id);
   await change('Vertical episema', 'on');
-  assert.equal(JSON.parse(await raw()).version, 7);
+  assert.equal(JSON.parse(await raw()).version, 8);
   if (process.env.CHANT_LEGACY_URL) {
     const v4 = fixture();
     v4.version = 4;
@@ -1029,7 +1029,7 @@ try {
     assert.equal(await raw(), oldBytes, 'v4 hydration does not write');
     await select('ownerB');
     const v5 = await change('Written accidental', 'flat');
-    assert.equal(v5.version, 7);
+    assert.equal(v5.version, 8);
     assert.equal(
       v5.document.neumes.find((n) => n.id === 'b').notes[0].verticalEpisema,
       true,

@@ -1,12 +1,11 @@
 import { reconcileAccidentalsResult } from '../domain/accidentals';
 import {
-  pesSubpunctisNotes,
   staffPosition,
   type ChantDocument,
   type ChantNote,
   type Neume,
 } from '../domain/chant-document';
-import { findNeume, isValidNeume } from '../domain/neume';
+import { findNeume, isValidNeume, mapNeumeNotes } from '../domain/neume';
 
 function moveNote(note: ChantNote, delta: number): ChantNote {
   return {
@@ -52,49 +51,8 @@ function moveNeumeVerticallyCandidate(
 
 /** Translate every note while retaining kind-correlated tuples and identities. */
 export function transposeNeume(neume: Neume, delta: number): Neume {
-  switch (neume.kind) {
-    case 'pes-subpunctis': {
-      const notes = pesSubpunctisNotes(
-        neume.notes.map((note) => moveNote(note, delta)),
-      );
-      // A typed tuple always rebuilds; malformed input stays unchanged.
-      return notes ? { ...neume, notes } : neume;
-    }
-    case 'punctum': {
-      const [note] = neume.notes;
-
-      return {
-        ...neume,
-        notes: [moveNote(note, delta)],
-      };
-    }
-    case 'bistropha':
-    case 'podatus':
-    case 'clivis': {
-      const [firstNote, secondNote] = neume.notes;
-
-      return {
-        ...neume,
-        notes: [moveNote(firstNote, delta), moveNote(secondNote, delta)],
-      };
-    }
-    case 'scandicus':
-    case 'tristropha':
-    case 'climacus':
-    case 'porrectus':
-    case 'torculus': {
-      const [firstNote, secondNote, thirdNote] = neume.notes;
-
-      return {
-        ...neume,
-        notes: [
-          moveNote(firstNote, delta),
-          moveNote(secondNote, delta),
-          moveNote(thirdNote, delta),
-        ],
-      };
-    }
-  }
+  // A typed tuple always rebuilds; malformed input stays unchanged.
+  return mapNeumeNotes(neume, (note) => moveNote(note, delta)) ?? neume;
 }
 
 export function moveNeumeVerticallyResult(

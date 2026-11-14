@@ -7,8 +7,14 @@ export interface MoraChoice {
   label: string;
 }
 
-/** The supported notation profile, shared by controls, commands and decoding. */
-export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
+/**
+ * The supported notation profile, shared by controls, commands and decoding.
+ * Choices depend on the actual tuple length as well as the kind (ADR 0024).
+ */
+export function moraChoices(
+  kind: Neume['kind'],
+  noteCount: number,
+): readonly MoraChoice[] {
   const none: MoraChoice = { value: 'none', label: 'None' };
   switch (kind) {
     case 'bistropha':
@@ -29,8 +35,18 @@ export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
         { value: 'both', label: 'Both notes' },
       ];
     case 'scandicus':
-    case 'torculus':
     case 'climacus':
+      // Owner-approved Stage 9B-2 matrix (ADR 0024): four- and five-note
+      // groups allow none or the final note of the actual tuple; final-two
+      // is deferred. Three-note groups are unchanged.
+      if (noteCount !== 3)
+        return [none, { value: 'final', label: 'Final note' }];
+      return [
+        none,
+        { value: 'final', label: 'Final note' },
+        { value: 'final-two', label: 'Final two notes' },
+      ];
+    case 'torculus':
     case 'porrectus':
       return [
         none,
@@ -61,7 +77,7 @@ export function resolveMoraScope(
   if (values.some((value) => value !== undefined && value !== 1)) return null;
   const marked = values.flatMap((value, index) => (value === 1 ? [index] : []));
   return (
-    moraChoices(kind).find((choice) => {
+    moraChoices(kind, values.length).find((choice) => {
       const indexes = moraIndexes(choice.value, values.length);
       return (
         indexes.length === marked.length &&

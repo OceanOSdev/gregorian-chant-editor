@@ -28,7 +28,8 @@ export function buildAuthoredGeometry(
   if (
     authored.some(
       ({ form, index }) =>
-        !isNoteForm(form) || !allowedNoteForms(kind, index).includes(form),
+        !isNoteForm(form) ||
+        !allowedNoteForms(kind, index, positions.length).includes(form),
     )
   )
     throw new Error('Unsupported authored note form');

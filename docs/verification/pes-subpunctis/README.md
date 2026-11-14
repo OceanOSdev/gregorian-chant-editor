@@ -9,6 +9,12 @@ The owner approved the bounded-tuple design and the none/final mora matrix on
 [owner acceptance](#owner-acceptance-2026-11-13) for its basis and the checks
 not performed.
 
+> **Later amendment (Stage 9B-2, owner-approved 2026-11-13):** deletion that
+> leaves four strictly descending notes now normalizes to a four-note Climacus
+> instead of being rejected ([ADR 0023 amendment](../../adrs/0023-bounded-tuple-union-for-pes-subpunctis.md#amendment-stage-9b-2-owner-approved-2026-11-13)).
+> This record otherwise describes Stage 9B-1 as accepted; its driver was
+> updated for the new expectation.
+
 ## What is implemented
 
 - One explicit `pes-subpunctis` kind with a bounded union of four/five-note

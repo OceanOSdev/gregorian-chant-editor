@@ -29,8 +29,8 @@ export function buildScandicusOrTorculus(
   const lyricAnchorX = x + firstHeadHalfWidth(kind);
   const second = positions[1];
   const third = positions[2];
-  if (second === undefined || third === undefined)
-    throw new Error('A three-note neume must have three pitches');
+  if (second === undefined || third === undefined || positions.length !== 3)
+    throw new Error('A three-note neume must have exactly three pitches');
   const a = second - first;
   const b = Math.abs(third - second);
   const u = (first - second) * engravingStaffStep;

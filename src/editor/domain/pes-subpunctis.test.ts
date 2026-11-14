@@ -173,7 +173,7 @@ describe('pes subpunctis semantic family', () => {
   });
 
   it('allows exactly none or a final-note mora, derived from the actual tuple length', () => {
-    expect(moraChoices('pes-subpunctis')).toEqual([
+    expect(moraChoices('pes-subpunctis', 4)).toEqual([
       { value: 'none', label: 'None' },
       { value: 'final', label: 'Final note' },
     ]);
@@ -188,7 +188,7 @@ describe('pes subpunctis semantic family', () => {
       'climacus',
       'porrectus',
     ] as const)
-      expect(moraChoices(kind).map((c) => c.value)).toEqual([
+      expect(moraChoices(kind, 3).map((c) => c.value)).toEqual([
         'none',
         'final',
         'final-two',
@@ -253,7 +253,7 @@ describe('pes subpunctis semantic family', () => {
     }
   });
 
-  it('keeps a final-note mora on its stable note through movement, deletion, history and v7 persistence', () => {
+  it('keeps a final-note mora on its stable note through movement, deletion, history and current (v8) persistence', () => {
     const marked = (pitches: number[]) =>
       updateMoraScope(fixture(pitches), 'g', 'final');
     // Movement never moves the mark.
@@ -297,11 +297,18 @@ describe('pes subpunctis semantic family', () => {
     const fourWithoutMark = deleteNote(four, 'n3').neumes[0];
     expect(fourWithoutMark.kind).toBe('torculus');
     expect(fourWithoutMark.notes.some((n) => n.mora)).toBe(false);
-    // Unsupported survivors still reject with the mark intact.
-    expect(deleteNote(five, 'n0')).toBe(five);
+    // ADR 0023 amendment: four strictly descending survivors become a
+    // four-note Climacus, keeping the final mora on its own stable note.
+    const climacusFour = deleteNote(five, 'n0').neumes[0];
+    expect(climacusFour.kind).toBe('climacus');
+    expect(climacusFour.notes.at(-1)).toBe(five.neumes[0].notes[4]);
+    expect(getMoraScope(climacusFour)).toBe('final');
+    // Unsupported (equal adjacent) survivors still reject, mark intact.
+    const equal = marked([4, 5, 4, 3, 2]);
+    expect(deleteNote(equal, 'n1')).toBe(equal);
     // Persistence and exact v1–v6 rejection keep the mark untouched.
     const text = encodeDocument(five);
-    expect(JSON.parse(text).version).toBe(7);
+    expect(JSON.parse(text).version).toBe(8);
     expect(decodeDocument(text)).toEqual(five);
     for (const version of [2, 3, 4, 5, 6]) {
       const payload = JSON.parse(text);
@@ -431,11 +438,16 @@ describe('pes subpunctis semantic family', () => {
         pitches.forEach((_, index) => {
           const survivors = pitches.filter((_, i) => i !== index);
           const [a, b, c] = survivors;
+          const strictlyDescending = survivors.every(
+            (p, i) => i === 0 || survivors[i - 1] > p,
+          );
           const expectedKind =
             survivors.length === 4
               ? oracle(survivors)
                 ? 'pes-subpunctis'
-                : null
+                : strictlyDescending
+                  ? 'climacus'
+                  : null
               : a < b && b > c
                 ? 'torculus'
                 : a > b && b > c
@@ -466,13 +478,32 @@ describe('pes subpunctis semantic family', () => {
     expect([...seen].sort()).toEqual([
       '4->climacus',
       '4->torculus',
+      '5->climacus',
       '5->pes-subpunctis',
     ]);
     expect(fiveToFour).toBeGreaterThan(0);
     expect(rejected).toBeGreaterThan(0);
-    // Named cases: first-note deletion of a five leaves four descending notes.
+    // Named cases: first-note deletion of a five leaves four strictly
+    // descending notes, which normalize to a four-note Climacus (ADR 0023
+    // amendment); apex deletion follows the actual survivors.
     const five = fixture([2, 5, 4, 3, 2]);
-    expect(deleteNote(five, 'n0')).toBe(five);
+    const firstDeleted = deleteNote(five, 'n0').neumes[0];
+    expect(firstDeleted.kind).toBe('climacus');
+    expect(firstDeleted.id).toBe('g');
+    expect(firstDeleted.notes.map((n) => n.id)).toEqual([
+      'n1',
+      'n2',
+      'n3',
+      'n4',
+    ]);
+    const apexToClimacus = deleteNote(fixture([4, 5, 3, 2, 1]), 'n1').neumes[0];
+    expect(apexToClimacus.kind).toBe('climacus');
+    expect(apexToClimacus.notes.map((n) => n.id)).toEqual([
+      'n0',
+      'n2',
+      'n3',
+      'n4',
+    ]);
     expect(deleteNote(five, 'n4').neumes[0].kind).toBe('pes-subpunctis');
     // Peak deletion: survivors decide (rise -> pes, equal or fall -> reject).
     expect(deleteNote(five, 'n1').neumes[0].kind).toBe('pes-subpunctis');
@@ -525,12 +556,12 @@ describe('pes subpunctis semantic family', () => {
   });
 });
 
-describe('pes subpunctis native v7', () => {
+describe('pes subpunctis native persistence (kind introduced in v7)', () => {
   it('round trips both counts and rejects the kind under every exact v1–v6 reader without touching cache bytes', () => {
     for (const pitches of [[2, 4, 3, 2], kyrie.christe]) {
       const doc = fixture(pitches);
       const text = encodeDocument(doc);
-      expect(JSON.parse(text).version).toBe(7);
+      expect(JSON.parse(text).version).toBe(8);
       expect(decodeDocument(text)).toEqual(doc);
       for (const version of [1, 2, 3, 4, 5, 6]) {
         const payload = JSON.parse(text);
@@ -578,7 +609,7 @@ describe('pes subpunctis native v7', () => {
       (p) => (p.document.neumes[0].count = 5),
       (p) => (p.document.neumes[0].variant = 'subtripunctis'),
       (p) => (p.document.neumes[0].kind = 'pes-subtripunctis'),
-      (p) => (p.version = 8),
+      (p) => (p.version = 9),
     ];
     for (const change of mutations) {
       const value = structuredClone(good);
@@ -712,13 +743,24 @@ describe('pes subpunctis entry', () => {
     });
     expect(move.history).toBe(session.history);
     expect(move.announcement.text).toContain('strictly descend');
-    const deletion = reduceEditorSession(session, {
+    // First-note deletion now normalizes to a four-note Climacus in one
+    // history entry; equal adjacent survivors are rejected and announced.
+    const normalized = reduceEditorSession(session, {
       type: 'edit',
       formDeletionNoteId: 'n0',
       edit: (d) => deleteNote(d, 'n0'),
     });
-    expect(deletion.history).toBe(session.history);
-    expect(deletion.announcement.text).toContain('four descending notes');
+    expect(normalized.history.present.neumes[0].kind).toBe('climacus');
+    expect(normalized.history.past).toHaveLength(1);
+    const equalDoc = fixture([4, 5, 4, 3, 2]);
+    const equalSession = createEditorSession(equalDoc);
+    const deletion = reduceEditorSession(equalSession, {
+      type: 'edit',
+      formDeletionNoteId: 'n1',
+      edit: (d) => deleteNote(d, 'n1'),
+    });
+    expect(deletion.history).toBe(equalSession.history);
+    expect(deletion.announcement.text).toContain('two equal adjacent pitches');
     const accepted = reduceEditorSession(session, {
       type: 'edit',
       formDeletionNoteId: 'n4',

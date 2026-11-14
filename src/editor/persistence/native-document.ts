@@ -1,6 +1,7 @@
 import { hasValidAccidentals } from '../domain/accidentals';
 import { isNoteForm } from '../domain/note-forms';
 import {
+  monotonicNotes,
   pesSubpunctisNotes,
   type ChantDocument,
   type ChantAccidental,
@@ -21,8 +22,8 @@ import { isValidNeume } from '../domain/neume';
 
 export const maximumDocumentBytes = 1024 * 1024;
 const format = 'gregorian-chant-editor';
-type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-export const currentSchemaVersion = 7;
+type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export const currentSchemaVersion = 8;
 function fail(message: string): never {
   throw new Error(message);
 }
@@ -121,10 +122,22 @@ function neume(value: unknown, version: SchemaVersion): Neume {
         return fail('Two-note neume requires two notes.');
       result = { id: identity, kind: n.kind, notes: [a, b] };
       break;
-    case 'tristropha':
     case 'scandicus':
+    case 'climacus': {
+      // Exact v1–v7 readers keep the original three-note contract even though
+      // the kind name is unchanged; v8 adds four and five (ADR 0024).
+      const tuple = monotonicNotes(notes);
+      if (!tuple || (version < 8 && tuple.length !== 3))
+        return fail(
+          version < 8
+            ? 'Three-note neume requires three notes.'
+            : 'Scandicus and Climacus require three, four or five notes.',
+        );
+      result = { id: identity, kind: n.kind, notes: tuple };
+      break;
+    }
+    case 'tristropha':
     case 'torculus':
-    case 'climacus':
     case 'porrectus':
       if (notes.length !== 3 || !a || !b || !c)
         return fail('Three-note neume requires three notes.');
@@ -301,10 +314,11 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 4 &&
     envelope.version !== 5 &&
     envelope.version !== 6 &&
-    envelope.version !== 7
+    envelope.version !== 7 &&
+    envelope.version !== 8
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6 and 7.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6, 7 and 8.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);

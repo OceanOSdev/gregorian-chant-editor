@@ -49,7 +49,7 @@ import {
   type LyricAction,
   type LyricEntry,
 } from './lyric-entry';
-import { findNeume, findNote } from '../domain/neume';
+import { findNeume, findNote, neumeDisplayName } from '../domain/neume';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import {
   insertEditorNeume,
@@ -290,6 +290,10 @@ export function createEditorSession(document: ChantDocument): EditorSession {
 }
 
 export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
+  // Extended Scandicus/Climacus entries name their actual note count.
+  const extended = /^(scandicus|climacus)-([45])$/.exec(kind);
+  if (extended)
+    return `${extended[1][0].toUpperCase()}${extended[1].slice(1)} (${extended[2]} notes)`;
   return (kind[0].toUpperCase() + kind.slice(1)).replace('-', ' ');
 }
 
@@ -434,7 +438,13 @@ function reduceSessionAction(
                   : state.rememberedKind === 'pes-subbipunctis' ||
                       state.rememberedKind === 'pes-subtripunctis'
                     ? 'podatus-menu'
-                    : state.rememberedKind,
+                    : state.rememberedKind === 'scandicus-4' ||
+                        state.rememberedKind === 'scandicus-5'
+                      ? 'scandicus-menu'
+                      : state.rememberedKind === 'climacus-4' ||
+                          state.rememberedKind === 'climacus-5'
+                        ? 'climacus-menu'
+                        : state.rememberedKind,
         },
       };
     case 'hover':
@@ -638,7 +648,34 @@ function reduceSessionAction(
             state,
             'Edit rejected: a pes subpunctis must rise to its second note and then strictly descend. Select the whole neume to move the group.',
           );
+        const moved = findNote(state.history.present, action.noteMoveId)?.neume;
+        if (
+          moved &&
+          (moved.kind === 'scandicus' || moved.kind === 'climacus') &&
+          moved.notes.length > 3 &&
+          result.rejection !== 'ownership-conflict'
+        )
+          return announce(
+            state,
+            `Edit rejected: every note of a ${neumeDisplayName(moved.kind, moved.notes.length)} must be strictly ${moved.kind === 'scandicus' ? 'higher' : 'lower'} than the previous note. Select the whole neume to move the group.`,
+          );
       }
+      const shortened = action.formDeletionNoteId
+        ? findNote(state.history.present, action.formDeletionNoteId)?.neume
+        : undefined;
+      if (
+        history === state.history &&
+        shortened &&
+        (shortened.kind === 'scandicus' || shortened.kind === 'climacus') &&
+        shortened.notes.length > 3 &&
+        result.rejection !== 'ownership-conflict'
+      )
+        // Survivors of a strict contour stay strict; only a surviving mark that
+        // the shorter group does not allow can reject the deletion.
+        return announce(
+          state,
+          `Edit rejected: a mark on a remaining note is not available on the shorter ${shortened.kind}. Remove it before deleting this note, or delete the whole neume.`,
+        );
       if (
         history === state.history &&
         action.formDeletionNoteId &&
@@ -648,7 +685,7 @@ function reduceSessionAction(
       )
         return announce(
           state,
-          'Edit rejected: deleting this note would leave a contour that no supported neume represents, such as four descending notes or two equal adjacent pitches. Delete the whole neume instead.',
+          'Edit rejected: deleting this note would leave a contour that no supported neume represents, such as two equal adjacent pitches, or a mark the resulting neume does not allow. Delete the whole neume instead.',
         );
       if (history === state.history)
         return action.formDeletionNoteId &&

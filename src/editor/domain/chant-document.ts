@@ -78,11 +78,20 @@ export interface ClivisNeume {
   notes: [ChantNote, ChantNote];
 }
 
-/** Three notes in semantic order with each pitch strictly ascending. */
+/**
+ * A bounded union of the three supported Scandicus/Climacus cardinalities
+ * (ADR 0024). Its length is the only count; no variant field duplicates it.
+ */
+export type MonotonicNotes =
+  | [ChantNote, ChantNote, ChantNote]
+  | [ChantNote, ChantNote, ChantNote, ChantNote]
+  | [ChantNote, ChantNote, ChantNote, ChantNote, ChantNote];
+
+/** Three, four or five notes in semantic order, each strictly ascending. */
 export interface ScandicusNeume {
   id: string;
   kind: 'scandicus';
-  notes: [ChantNote, ChantNote, ChantNote];
+  notes: MonotonicNotes;
 }
 
 /** Three notes in semantic order that rise and then strictly fall. */
@@ -92,11 +101,11 @@ export interface TorculusNeume {
   notes: [ChantNote, ChantNote, ChantNote];
 }
 
-/** Three notes in semantic order with each pitch strictly descending. */
+/** Three, four or five notes in semantic order, each strictly descending. */
 export interface ClimacusNeume {
   id: string;
   kind: 'climacus';
-  notes: [ChantNote, ChantNote, ChantNote];
+  notes: MonotonicNotes;
 }
 
 /** Three notes in semantic order that fall and then strictly rise. */
@@ -144,6 +153,16 @@ export function pesSubpunctisNotes(
 ): PesSubpunctisNotes | null {
   const [a, b, c, d, e, ...rest] = notes;
   if (!a || !b || !c || !d || rest.length) return null;
+  return e ? [a, b, c, d, e] : [a, b, c, d];
+}
+
+/** Builds the bounded 3/4/5 tuple without truncating or padding a note list. */
+export function monotonicNotes(
+  notes: readonly ChantNote[],
+): MonotonicNotes | null {
+  const [a, b, c, d, e, ...rest] = notes;
+  if (!a || !b || !c || rest.length) return null;
+  if (!d) return e ? null : [a, b, c];
   return e ? [a, b, c, d, e] : [a, b, c, d];
 }
 

@@ -15,6 +15,9 @@ owner-accepted on 2026-11-13 at `0e521b6`. Acceptance rests on automated
 Chromium/Firefox verification and qualitative historical comparisons.
 Foreground owner interaction, actual screen-reader testing and a measured
 typographic comparison were not performed.
+Narrowly amended on 2026-11-13 by [ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md):
+four strictly descending survivors now normalize to a four-note Climacus
+(see [Amendment](#amendment-stage-9b-2-owner-approved-2026-11-13)).
 
 ## Context
 
@@ -42,7 +45,8 @@ cardinality that ADR 0004 protects.
   not allow arbitrary-length neumes or generalize any other family.
 - Deletion normalizes from the surviving contour: five to four stays this kind
   when valid, four to three becomes Torculus or Climacus when valid; anything
-  else (four descending notes, equal adjacent pitches) is rejected.
+  else (equal adjacent pitches) is rejected. _Amended 2026-11-13:_ four strictly descending survivors become a four-note Climacus
+  (see the amendment below); the original rule rejected them.
 - Geometry reuses the approved Podatus and the Climacus diamond tail with
   pairwise disjoint pointer regions; no connector or apex stem is added.
 - Mora (owner-approved): exactly **none** or **final note** for both
@@ -75,3 +79,14 @@ cardinality that ADR 0004 protects.
   length; switches use the bounded helper.
 - Older builds cannot read v7 files, including files without the new kind.
 - Final-two and earlier-note morae cannot be authored for this family.
+
+## Amendment (Stage 9B-2, owner-approved 2026-11-13)
+
+[ADR 0024](0024-bounded-tuple-union-for-scandicus-and-climacus.md#amendment-to-adr-0023-owner-approved-2026-11-13)
+introduces four-note Climacus. Deleting one Pes subtripunctis constituent now
+normalizes to a four-note Climacus whenever the actual survivors strictly
+descend and every surviving modifier is valid there. This covers first-note
+deletion, and apex deletion with descending survivors. Identity, note order,
+marks (including a final mora on its own note), B ownership and anchors are
+preserved. Equal adjacent survivors remain rejected. The rest of this ADR is
+unchanged.

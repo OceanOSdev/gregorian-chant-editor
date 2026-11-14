@@ -311,7 +311,7 @@ async function placeAt(pitch = 2, systemIndex = 0) {
 }
 const base = {
   format: 'gregorian-chant-editor',
-  version: 7,
+  version: 8,
   document: {
     title: 'Stage 9B-1 pes subpunctis',
     lyricLanguage: 'la',
@@ -491,7 +491,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 7);
+      assert.equal(JSON.parse(await raw()).version, 8);
       assert.equal(await family(), kind);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -531,7 +531,7 @@ try {
     const keyed = (await score()).neumes.filter((n) => !keyboardIds.has(n.id));
     assert.equal(keyed.length, 1);
     assert.equal(keyed[0].notes.length, 4);
-    // Native v7 refresh, export and import.
+    // Current native (v8) refresh, export and import.
     const bytes = await raw();
     await navigate();
     assert.equal(await raw(), bytes);
@@ -544,10 +544,11 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 7);
+    assert.equal(JSON.parse(exported).version, 8);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
-    // A v6 file containing the new kind is rejected and leaves the score.
+    // Intentional legacy check: a v6 file containing the kind (introduced in
+    // v7) is rejected and leaves the score.
     const before6 = await raw();
     await importText(JSON.stringify({ ...JSON.parse(exported), version: 6 }));
     assert.equal(await raw(), before6);
@@ -633,7 +634,9 @@ try {
     );
     await undo();
     assert.deepEqual(await score(), marked);
-    // Deletion normalizes to Climacus; four descending survivors are rejected.
+    // Four-note deletion normalizes to Climacus (Stage 9B-1); five-note
+    // deletion leaving four strictly descending notes normalizes to a
+    // four-note Climacus (ADR 0023 amendment); equal survivors are rejected.
     await ev(`document.querySelector('[data-note-id="p-0"]').focus()`);
     await key('Enter');
     await key('Delete');
@@ -648,11 +651,28 @@ try {
     await redo();
     assert.deepEqual(await score(), reduced);
     await undo();
+    // ADR 0023 amendment (Stage 9B-2): deleting the first note of
+    // [6,7,6,4,3] leaves four strictly descending notes, which normalize to a
+    // four-note Climacus that keeps IDs and the ictus marks on k-3.
     await ev(`document.querySelector('[data-note-id="k-0"]').focus()`);
     await key('Enter');
     await key('Delete');
+    const normalizedKyrie = (await score()).neumes[0];
+    assert.equal(normalizedKyrie.kind, 'climacus');
+    assert.deepEqual(
+      normalizedKyrie.notes.map((n) => n.id),
+      ['k-1', 'k-2', 'k-3', 'k-4'],
+    );
+    assert.equal(normalizedKyrie.notes[2].verticalEpisema, true);
+    assert.equal(normalizedKyrie.notes[2].episema, true);
+    await undo();
     assert.deepEqual(await score(), marked);
-    assert.match(await announcement(), /four descending notes/);
+    // Apex deletion leaving equal adjacent pitches [6,6,4,3] is rejected.
+    await ev(`document.querySelector('[data-note-id="k-1"]').focus()`);
+    await key('Enter');
+    await key('Delete');
+    assert.deepEqual(await score(), marked);
+    assert.match(await announcement(), /two equal adjacent pitches/);
     // Final-note mora: set by scope, kept on its stable note through
     // deletion of an earlier note, removed (not transferred) with its note.
     await select('p-1');
@@ -706,9 +726,13 @@ try {
       ],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 7);
+    assert.equal(JSON.parse(markedBytes).version, 8);
     await navigate();
-    assert.equal(await raw(), markedBytes, 'reload keeps marked v7 bytes');
+    assert.equal(
+      await raw(),
+      markedBytes,
+      'reload keeps marked current (v8) bytes',
+    );
     assert.deepEqual(await score(), kyrieMarked);
     await snapshot('interaction-' + width);
     // Five-note insertion through the clef-boundary Insert controls, which
@@ -848,7 +872,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, v7 reload/export/import and v6 rejection, hit ownership, Mora scope offering exactly None/Final note, final-note mora kept through earlier-note deletion and removed with the marked note (undo/redo), marked five-note reload, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization/rejection/undo/redo, five-note clef-boundary Insert before/after, marked specimens/wrapping at 1440px and 320px',
+        'Podatus split menu open/Escape/Tab/primary-reset/cross-menu/score-dismiss/keyboard, exact ghosts and repeat placement of both variants, I/T recall, current v8 reload/export/import and legacy v6 rejection, hit ownership, Mora scope offering exactly None/Final note, final-note mora kept through earlier-note deletion and removed with the marked note (undo/redo), marked five-note reload, episemata/ictus, B ownership, move rejection/acceptance, whole-group move, normalization (including five-note to four-note Climacus) with equal-survivor rejection/undo/redo, five-note clef-boundary Insert before/after, marked specimens/wrapping at 1440px and 320px',
     }),
   );
 } finally {

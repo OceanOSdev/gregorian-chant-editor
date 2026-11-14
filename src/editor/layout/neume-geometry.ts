@@ -17,6 +17,7 @@ import { buildPunctum } from './neumes/punctum';
 import { buildPodatusOrClivis } from './neumes/podatus-clivis';
 import { buildScandicusOrTorculus } from './neumes/scandicus-torculus';
 import { buildClimacus } from './neumes/climacus';
+import { buildExtendedScandicus } from './neumes/scandicus-extended';
 import { buildPorrectus } from './neumes/porrectus';
 import { buildPesSubpunctis } from './neumes/pes-subpunctis';
 
@@ -96,6 +97,11 @@ function buildUnmodifiedGeometry(
     case 'clivis':
       return buildPodatusOrClivis(kind, positions, leftX, bottomStaffY);
     case 'scandicus':
+      // The approved three-note recipe is untouched; longer groups use the
+      // sourced staircase (ADR 0024).
+      return positions.length > 3
+        ? buildExtendedScandicus(positions, leftX, bottomStaffY)
+        : buildScandicusOrTorculus(kind, positions, leftX, bottomStaffY);
     case 'torculus':
       return buildScandicusOrTorculus(kind, positions, leftX, bottomStaffY);
     case 'climacus':
