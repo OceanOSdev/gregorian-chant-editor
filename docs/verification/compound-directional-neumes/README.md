@@ -258,4 +258,73 @@ flexus, Scandicus flexus, Climacus resupinus and a Torculus resupinus with
 nonadjacent unisons. Compare it qualitatively with `gregorio-cases.png` and
 the Liber crops. No measured typographic match is claimed.
 
-VERIFICATION_RESULTS_PLACEHOLDER
+### Verification at `d15d2ef` (clean tree)
+
+**Repository gate:** `npm run format:check`, `npm run lint`, `npm test` (89
+files, 1,976 tests), `npm run build`, `git diff --check` and
+`npm run test:verify-runner` (28 tests, after adding the manifest entry) all
+passed.
+
+**Browsers:** one runner invocation of the new driver and every genuinely
+affected driver, in both browsers. Environment:
+
+- headless Chromium 157.0.8103.38 (CDP) and Firefox 146.0 (BiDi), production
+  preview for preview drivers;
+- run directory `.verification-runs/run-2026-11-14T06-18-27-903Z-xqrhYk`
+  (local, git-ignored).
+
+Result: **27 passed, 0 failed, 1 expected unsupported** (`clefs` is
+Chromium-only); wall clock 445 s at concurrency 2.
+
+Drivers run:
+
+- `compound-directional-neumes` (new) and `extended-scandicus-climacus`;
+- `pes-subpunctis`, `repeated-note-neumes`, `note-modifiers`, `note-shapes`;
+- `b-accidentals`, `b-accidentals-acceptance`, `local-persistence`,
+  `bundled-example`;
+- `vertical-episemata`, `vertical-episemata-context`, `clefs`,
+  `mid-score-clefs`.
+
+Earlier runs on the uncommitted tree failed 10 jobs, all on deliberate
+contract changes, which the existing drivers were updated for:
+
+- Scandicus/Climacus menu End now reaches the named compound figure;
+- saves now write v9;
+- "unknown version" probes used 9 and now use 10.
+
+No engraving, interaction or persistence code changed to make a driver pass.
+
+The new driver covers, at 1440px and 320px:
+
+- all six split families: keyboard browse to each named figure, Escape and
+  Tab, menus inside the viewport, cross-menu switching with at most one menu
+  open, and one Tab stop;
+- dismiss-only score click, then I/T recall;
+- exact ghosts and repeated one-click placement of all four kinds with
+  distinct IDs;
+- centre-point hit ownership of all 16 constituents, and pointer selection of
+  both ends of each stroke after natively dismissing note properties
+  (Maintenance C);
+- labels; None/Final mora only; disabled Form; episemata; B ownership;
+- move rejection with its announcement, a valid move and whole-neume
+  transposition;
+- contour normalization keeping marks, B and lyric, with exact undo/redo;
+  mark and B removed with their owner; equal-survivor rejection;
+- v9 reload, export and import, and v8 rejection;
+- wrapping.
+
+**Not run (left to the owner's comprehensive matrix):** the lyric drivers
+(`continuous-lyrics`, `lyric-move`, `vowel-alignment`, `lyric-spacing`,
+`lyric-spacing-selection-cue`), `word-composition` and `divisions`. These
+dev-fixture drivers address palette buttons by `data-tool` and do not
+exercise the changed kinds or versions. The Firefox `mid-score-clefs`
+intermittency remains unresolved, although it passed here.
+
+**Limitations:**
+
+- headless only, so there is no foreground focus, real OS/browser zoom,
+  native popup/IME or spoken screen-reader verification;
+- no measured typographic comparison;
+- no performance benchmark;
+- neume ledger lines remain absent;
+- the mora policy rests on analogy and Gregorio, not marked print.
