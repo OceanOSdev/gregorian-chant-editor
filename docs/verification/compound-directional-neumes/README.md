@@ -220,7 +220,7 @@ Implemented as approved; see the owning guides for contracts:
 - [layout](../../layout-and-rendering.md#compound-directional-neumes-stage-9b-3);
 - [interactions](../../editor-interactions.md#compound-directional-neumes-stage-9b-3);
 - [persistence](../../persistence.md#native-v9-compound-directional-neumes-stage-9b-3);
-- [testing](../../testing.md#compound-directional-neumes-stage-9b-3).
+- [testing](../testing-history.md#compound-directional-neumes-stage-9b-3).
 
 One implementation finding needed a narrow rule:
 

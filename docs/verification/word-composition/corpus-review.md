@@ -122,7 +122,7 @@ compact neume pairs at desktop/320px in Chromium and Firefox. Existing Chromium
 spacing and vowel-alignment drivers passed, including font reload, selection vs
 focus, undo/redo, graphical insertion, scrolling and narrow layouts.
 
-Reproduce using the [testing guide](../../testing.md#pr-45-corpus-verification).
+Reproduce using the [testing guide](../testing-history.md#pr-45-corpus-verification).
 The final Chromium diagnostic directories are `uHROM7`, `GgyUE9`, `gSYQW3` under
 `/tmp/chant-word-composition-`; Firefox uses `48Ra4S`, `uFpEXt`, `D3rglR` there.
 Routine diagnostics stay temporary; the two selected PNGs are intentional review

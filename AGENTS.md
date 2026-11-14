@@ -73,6 +73,15 @@ guides linked and avoid copying one authoritative explanation into several
 files. Use the [testing guide](docs/testing.md) for test seams and manual
 verification responsibilities.
 
+## Context efficiency
+
+Read this guide and the committed task plan first. Use the documentation map to
+read affected contracts and accepted ADRs; inspect implementation and tests when
+behavior matters. Prefer heading searches, targeted excerpts and diffs, and avoid
+re-reading unchanged material. Keep command output concise and inspect relevant
+failure excerpts. Efficiency does not override correctness or required checks;
+read complete files when needed.
+
 ## Task handoffs
 
 Follow the [AI collaboration workflow](docs/ai-workflow.md) when working from a
