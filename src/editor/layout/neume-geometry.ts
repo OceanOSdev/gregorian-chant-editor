@@ -77,7 +77,7 @@ export function buildNeumeGeometry(
   const result = buildAt(leftX);
   // `leftX` is the group's left ink edge for every layout consumer (spacing,
   // compaction and reflow rebuild at `bounds.x + shift`). Prefix accidentals,
-  // and the compound-only left vertical-episema fallback (ADR 0025), can
+  // and the left vertical-episema fallback (ADR 0025), can
   // extend ink left of it; translate the group so they never overhang.
   return result.bounds.x < leftX
     ? buildAt(leftX + leftX - result.bounds.x)

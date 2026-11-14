@@ -82,6 +82,15 @@ compose existing elements, except for two new porrectus joins.
   requested origin. Compaction, inter-neume spacing, lyric reflow, first-system
   placement and accidental clearance therefore see the tick as ordinary ink.
 
+- **Narrow five-note Scandicus repair (2026-11-14).** Extend only the
+  fallback eligibility above to ADR 0024's five-note Pes + Punctum + Pes
+  staircase. Ordinary candidates still run first; candidate order, bounded
+  search, dimensions, staff/head/join/sign clearance and same-column ownership
+  checks are unchanged. Shared left-edge normalization handles any overhang.
+  ADR 0020's authored presence and modifier semantics, note identities and
+  native v9 remain unchanged. See the
+  [focused verification](../verification/extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair).
+
 - **Forms and mora (approved, Gate B).** No authorable forms. Mora is
   `{none, final}`; final-two and earlier notes are deferred. No print shows a
   marked instance, so the rule rests on analogy and Gregorio. Existing episema

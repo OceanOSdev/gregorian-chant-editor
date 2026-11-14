@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   fourNotes,
+  monotonicNotes,
   type Neume,
   staffPosition,
   type ChantDocument,
@@ -334,136 +335,196 @@ describe.each(kinds)('%s in score layout', (kind) => {
   });
 });
 
-describe('left vertical-episema fallback in score layout (owner review of PR #80)', () => {
-  // [0,1,2,1] with every horizontal episema and a vertical one on the Pes's
-  // upper note: no ordinary candidate fits, so the tick sits left of the ink.
-  const pitches = [0, 1, 2, 1];
-  const fallback: NoteAppearance[] = [
-    { episema: true },
-    { episema: true, verticalEpisema: true },
-    { episema: true },
-    { episema: true },
-  ];
-  const plain: NoteAppearance[] = pitches.map(() => ({ episema: true }));
-  const tick = (g: NeumeGeometry) =>
-    g.ink.filter((s) => s.kind === 'rect' && s.bounds.width === 1.5);
-  const measure =
-    (unit: number): MeasureLyricText =>
-    (text) => ({
-      width: text.length * unit,
-      boundaries: Array.from({ length: text.length + 1 }, (_, i) => i * unit),
-    });
-  const score = (
-    marks: readonly NoteAppearance[],
-    previousText: string,
-    boundaryBefore: 'word' | 'continuation',
-  ): ChantDocument => {
-    const notes = fourNotes(
-      pitches.map((p, i) => ({
-        id: `sf${i}`,
-        staffPosition: staffPosition(p),
-        ...marks[i],
-      })),
-    );
-    if (!notes) throw Error('tuple');
-    return {
-      ...blankDocument(),
-      neumes: [
-        {
-          id: 'p',
-          kind: 'punctum',
-          notes: [{ id: 'p0', staffPosition: staffPosition(3) }],
-        },
-        { id: 'sf', kind: 'scandicus-flexus', notes },
-      ],
-      syllables: [
-        {
-          id: 's1',
-          text: previousText,
-          boundaryBefore: 'word',
-          startsAtNeumeId: 'p',
-        },
-        { id: 's2', text: 'b', boundaryBefore, startsAtNeumeId: 'sf' },
-      ],
-    };
-  };
-  const pair = (doc: ChantDocument, unit: number) => {
-    const [previous, current] = layoutChant(doc, measure(unit)).systems[0]
-      .neumes;
-    return { previous, current };
-  };
-
-  it('keeps every sign right of the requested origin, as for prefix accidentals', () => {
-    const g = build('scandicus-flexus', pitches, fallback, 100);
-    // The fallback tick is genuinely left of the note heads...
-    expect(tick(g)[0].bounds.x).toBeLessThan(g.notes[0].head.bounds.x);
-    // ...but the group's left ink edge is the origin.
-    expect(g.bounds.x).toBe(100);
-    expect(tick(g)[0].bounds.x).toBe(100);
-    // With a prefix accidental as well, neither overhangs or collides.
-    const signed = buildNeumeGeometry(
-      'scandicus-flexus',
-      positions(pitches),
-      100,
-      140,
-      fallback,
-      [{ kind: 'flat', staffPosition: 1, noteIndex: null }],
-    );
-    expect(signed.bounds.x).toBe(100);
-    const flat = signed.accidentals?.[0]?.ink.bounds;
-    if (!flat) throw Error('accidental');
-    for (const t of tick(signed))
-      expect(
-        t.bounds.x >= flat.x + flat.width ||
-          t.bounds.y + t.bounds.height <= flat.y,
-      ).toBe(true);
-  });
-
-  it('keeps the compact same-word ink gap to the previous neume', () => {
-    const { previous, current } = pair(score(fallback, 'a', 'continuation'), 2);
-    const gap = current.bounds.x - (previous.bounds.x + previous.bounds.width);
-    expect(gap).toBe(compactNeumeInkGap);
-    expect(
-      Math.min(...tick(current).map((t) => t.bounds.x)),
-    ).toBeGreaterThanOrEqual(
-      previous.bounds.x + previous.bounds.width + compactNeumeInkGap,
-    );
-  });
-
-  it('keeps the ordinary inter-neume ink gap', () => {
-    const { previous, current } = pair(score(fallback, 'a', 'word'), 2);
-    expect(current.bounds.x - (previous.bounds.x + previous.bounds.width)).toBe(
-      interNeumeInkGap,
-    );
-  });
-
-  it('applies lyric reflow shifts exactly as for the same figure without the tick', () => {
-    for (const [text, boundary, unit] of [
-      ['A', 'continuation', 10],
-      ['Glooooooooria', 'continuation', 10],
-      ['Glooooooooria', 'word', 10],
-    ] as const) {
-      const marked = pair(score(fallback, text, boundary), unit).current;
-      const unmarked = pair(score(plain, text, boundary), unit).current;
-      // Lyric-driven placement is decided by the anchor; the overhang must
-      // not move the music or its lyric left of the computed shift.
-      expect(marked.lyricAnchorX).toBe(unmarked.lyricAnchorX);
-      expect(marked.notes.map((n) => n.anchorX)).toEqual(
-        unmarked.notes.map((n) => n.anchorX),
+describe.each(['compound', 'five-note Scandicus'])(
+  'left vertical-episema fallback in score layout: %s',
+  (profile) => {
+    // [0,1,2,1] with every horizontal episema and a vertical one on the Pes's
+    // upper note: no ordinary candidate fits, so the tick sits left of the ink.
+    const kind = profile === 'compound' ? 'scandicus-flexus' : 'scandicus';
+    const pitches = profile === 'compound' ? [0, 1, 2, 1] : [-2, -1, 0, 2, 3];
+    const fallback: NoteAppearance[] = [
+      { episema: true },
+      { episema: true, verticalEpisema: true },
+      { episema: true },
+      { episema: true },
+    ];
+    if (profile !== 'compound') fallback.push({ episema: true });
+    const plain: NoteAppearance[] = pitches.map(() => ({ episema: true }));
+    const tick = (g: NeumeGeometry) =>
+      g.ink.filter((s) => s.kind === 'rect' && s.bounds.width === 1.5);
+    const measure =
+      (unit: number): MeasureLyricText =>
+      (text) => ({
+        width: text.length * unit,
+        boundaries: Array.from({ length: text.length + 1 }, (_, i) => i * unit),
+      });
+    const score = (
+      marks: readonly NoteAppearance[],
+      previousText: string,
+      boundaryBefore: 'word' | 'continuation',
+    ): ChantDocument => {
+      const notes = monotonicNotes(
+        pitches.map((p, i) => ({
+          id: `sf${i}`,
+          staffPosition: staffPosition(p),
+          ...marks[i],
+        })),
       );
-    }
-  });
+      if (!notes) throw Error('tuple');
+      return {
+        ...blankDocument(),
+        neumes: [
+          {
+            id: 'p',
+            kind: 'punctum',
+            notes: [{ id: 'p0', staffPosition: staffPosition(3) }],
+          },
+          { id: 'sf', kind, notes } as Neume,
+        ],
+        syllables: [
+          {
+            id: 's1',
+            text: previousText,
+            boundaryBefore: 'word',
+            startsAtNeumeId: 'p',
+          },
+          { id: 's2', text: 'b', boundaryBefore, startsAtNeumeId: 'sf' },
+        ],
+      };
+    };
+    const pair = (doc: ChantDocument, unit: number) => {
+      const [previous, current] = layoutChant(doc, measure(unit)).systems[0]
+        .neumes;
+      return { previous, current };
+    };
 
-  it('keeps first-system placement at the ordinary group origin', () => {
-    const first = (marks: readonly NoteAppearance[]) =>
-      layoutChant({
-        ...score(marks, 'a', 'word'),
-        neumes: score(marks, 'a', 'word').neumes.slice(1),
+    it('keeps every sign right of the requested origin, as for prefix accidentals', () => {
+      const g = buildNeumeGeometry(
+        kind,
+        positions(pitches),
+        100,
+        140,
+        fallback,
+      );
+      // The fallback tick is genuinely left of the note heads...
+      expect(tick(g)[0].bounds.x).toBeLessThan(g.notes[0].head.bounds.x);
+      // ...but the group's left ink edge is the origin.
+      expect(g.bounds.x).toBe(100);
+      expect(tick(g)[0].bounds.x).toBe(100);
+      // With a prefix accidental as well, neither overhangs or collides.
+      const signed = buildNeumeGeometry(
+        kind,
+        positions(pitches),
+        100,
+        140,
+        fallback,
+        [{ kind: 'flat', staffPosition: 1, noteIndex: null }],
+      );
+      expect(signed.bounds.x).toBe(100);
+      const flat = signed.accidentals?.[0]?.ink.bounds;
+      if (!flat) throw Error('accidental');
+      for (const t of tick(signed))
+        expect(
+          t.bounds.x >= flat.x + flat.width ||
+            t.bounds.y + t.bounds.height <= flat.y,
+        ).toBe(true);
+    });
+
+    it('keeps the compact same-word ink gap to the previous neume', () => {
+      const { previous, current } = pair(
+        score(fallback, 'a', 'continuation'),
+        2,
+      );
+      const gap =
+        current.bounds.x - (previous.bounds.x + previous.bounds.width);
+      expect(gap).toBe(compactNeumeInkGap);
+      expect(
+        Math.min(...tick(current).map((t) => t.bounds.x)),
+      ).toBeGreaterThanOrEqual(
+        previous.bounds.x + previous.bounds.width + compactNeumeInkGap,
+      );
+    });
+
+    it('keeps the ordinary inter-neume ink gap', () => {
+      const { previous, current } = pair(score(fallback, 'a', 'word'), 2);
+      expect(
+        current.bounds.x - (previous.bounds.x + previous.bounds.width),
+      ).toBe(interNeumeInkGap);
+    });
+
+    it('applies lyric reflow shifts exactly as for the same figure without the tick', () => {
+      for (const [text, boundary, unit] of [
+        ['A', 'continuation', 10],
+        ['Glooooooooria', 'continuation', 10],
+        ['Glooooooooria', 'word', 10],
+      ] as const) {
+        const marked = pair(score(fallback, text, boundary), unit).current;
+        const unmarked = pair(score(plain, text, boundary), unit).current;
+        // Lyric-driven placement is decided by the anchor; the overhang must
+        // not move the music or its lyric left of the computed shift.
+        expect(marked.lyricAnchorX).toBe(unmarked.lyricAnchorX);
+        expect(marked.notes.map((n) => n.anchorX)).toEqual(
+          unmarked.notes.map((n) => n.anchorX),
+        );
+      }
+    });
+
+    it('keeps complete fallback ink at a wrapped system boundary', () => {
+      const doc = score(fallback, 'a', 'word');
+      const preceding: Neume[] = Array.from({ length: 30 }, (_, i) => ({
+        id: `prefix-${i}`,
+        kind: 'punctum',
+        notes: [{ id: `prefix-note-${i}`, staffPosition: staffPosition(3) }],
+      }));
+      const layout = layoutChant({
+        ...doc,
         syllables: [],
-      }).systems[0].neumes[0];
-    expect(first(fallback).bounds.x).toBe(first(plain).bounds.x);
-  });
-});
+        neumes: [
+          ...preceding,
+          ...Array.from({ length: 20 }, (_, i): Neume => {
+            const values = doc.neumes[1].notes.map((n) => ({
+              ...n,
+              id: `${n.id}-${i}`,
+            }));
+            if (kind === 'scandicus-flexus') {
+              const notes = fourNotes(values);
+              if (!notes) throw Error('four notes');
+              return { id: `fallback-${i}`, kind, notes };
+            }
+            const notes = monotonicNotes(values);
+            if (!notes) throw Error('five notes');
+            return { id: `fallback-${i}`, kind, notes };
+          }),
+        ],
+      });
+      const boundary = layout.systems
+        .slice(1)
+        .find((system) => system.neumes[0]?.neumeId.startsWith('fallback-'));
+      expect(boundary).toBeDefined();
+      if (!boundary) throw Error('wrapped fallback');
+      const current = boundary.neumes[0];
+      expect(Math.min(...current.ink.map((s) => s.bounds.x))).toBe(
+        current.bounds.x,
+      );
+      expect(tick(current)[0].bounds.x).toBe(current.bounds.x);
+      expect(current.notes.map((n) => n.noteId)).toEqual(
+        doc.neumes[1].notes.map(
+          (n) => `${n.id}-${current.neumeId.replace('fallback-', '')}`,
+        ),
+      );
+    });
+
+    it('keeps first-system placement at the ordinary group origin', () => {
+      const first = (marks: readonly NoteAppearance[]) =>
+        layoutChant({
+          ...score(marks, 'a', 'word'),
+          neumes: score(marks, 'a', 'word').neumes.slice(1),
+          syllables: [],
+        }).systems[0].neumes[0];
+      expect(first(fallback).bounds.x).toBe(first(plain).bounds.x);
+    });
+  },
+);
 
 describe('compound deletion never reaches the pre-existing sign exceptions', () => {
   // The 72 pre-existing exceptions (identical on master) are all five-note

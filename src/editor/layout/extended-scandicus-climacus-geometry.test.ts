@@ -80,6 +80,8 @@ const representative = {
     [2, 3, 4, 5, 6],
     [1, 2, 3, 4, 6], // Mocquereau Fig. 34, second figure: +1 +1 +1 +2
     [-2, 0, 1, 4, 5],
+    [-2, -1, 0, 2, 3],
+    [1, 3, 4, 6, 9],
     [4, 5, 7, 8, 10],
   ],
   climacus: [
@@ -253,7 +255,14 @@ describe.each(['scandicus', 'climacus'] as const)(
               140,
               marks,
             );
-            expect(g.ink.slice(0, plain.ink.length)).toEqual(plain.ink);
+            const shiftedPlain = buildNeumeGeometry(
+              kind,
+              positions(pitches),
+              100 + g.notes[0].anchorX - plain.notes[0].anchorX,
+              140,
+            );
+            expect(g.bounds.x).toBe(100);
+            expect(g.ink.slice(0, plain.ink.length)).toEqual(shiftedPlain.ink);
             const signs = g.ink.slice(plain.ink.length);
             const horizontal = marks.filter((m) => m.episema).length;
             const vertical = marks.filter((m) => m.verticalEpisema).length;
@@ -271,7 +280,7 @@ describe.each(['scandicus', 'climacus'] as const)(
             }
             g.notes.forEach((note, i) => {
               const m = marks[i];
-              expect(note.head).toEqual(plain.notes[i].head);
+              expect(note.head).toEqual(shiftedPlain.notes[i].head);
               expect(Boolean(note.modifierBounds)).toBe(
                 Boolean(m.episema || m.verticalEpisema || m.mora),
               );

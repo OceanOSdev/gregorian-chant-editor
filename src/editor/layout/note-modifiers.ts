@@ -196,12 +196,13 @@ export function addNoteModifiers(
           ? candidate.y + candidate.height <= other.head.bounds.y - 2
           : candidate.y >= other.head.bounds.y + other.head.bounds.height + 2;
       });
-    // Compound four-note figures (ADR 0025) can crowd a column; only when
+    // Compound figures and five-note Scandicus (ADR 0025) can crowd a column; only when
     // no ordinary candidate fits may a tick sit left of the neume's ink.
     // Every placement that the ordinary rule finds is unchanged.
     const bounds =
       candidates.find((candidate) => placeable(candidate, false)) ??
-      (isCompoundDirectionalKind(kind)
+      (isCompoundDirectionalKind(kind) ||
+      (kind === 'scandicus' && geometry.notes.length === 5)
         ? candidates.find((candidate) => placeable(candidate, true))
         : undefined);
     if (!bounds)
