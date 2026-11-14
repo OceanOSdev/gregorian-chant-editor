@@ -64,6 +64,12 @@ a non-default DevTools endpoint).
 | [`syllables/browser-check.mjs`](syllables/README.md)         | Pre-anchor syllable UI; adaptation source only (DevTools 9250 via `CHANT_CHROME_URL`).                                                                                                                                                      |
 | [`placement/browser-check.mjs`](placement/README.md)         | PR #35 placement scenarios on unanchored fixtures and removed controls; adaptation source only. Its `browser-fixture.html` is the **current** shared dev fixture and must be preserved.                                                     |
 
+### Maintenance A acceptance
+
+Owner-accepted 2026-11-13 in PR #77 at verified implementation revision
+`49012eb`. The results above are those recorded at that revision; no further
+browser runs were made for the documentation closeout.
+
 Known limitations: browser drivers are not spoken screen-reader checks or
 foreground OS-focus checks; headless Firefox reported no document focus in the
 [Stage 2 environment](continuous-lyrics/README.md#focus-versus-selection), so

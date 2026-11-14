@@ -3,7 +3,10 @@
 Branch: `maintenance/lyric-verification-repair`
 Target: `master`
 
-Status: active handoff. Stage 9B-2 (PR #76) merged at `c7fb73a`.
+Status: **completed (owner-accepted 2026-11-13)** in PR #77; verified
+implementation revision `49012eb`. Results are recorded in the
+[verification inventory](../verification/README.md#maintenance-a-acceptance).
+Stage 9B-2 (PR #76) merged at `c7fb73a`.
 
 ## Goal
 

@@ -98,3 +98,6 @@ Add button, remains covered by the Stage 2 scenarios above.
 
 The whole driver, including all earlier scenarios, passed in headless Chromium
 against `npm run dev` on 2026-11-13. No Firefox or screen-reader run is claimed.
+
+Owner-accepted 2026-11-13 in PR #77 (verified implementation revision
+`49012eb`).

@@ -82,3 +82,6 @@ focus versus selection, dirty lyric recovery, undo/redo, sibling anchors and
 unchanged music, multi-system edges, padded hit targets for all seven kinds
 and the 320 px viewport (screenshot inspected). Foreground Firefox and spoken
 screen-reader checks remain outstanding as described above.
+
+Owner-accepted 2026-11-13 in PR #77 (verified implementation revision
+`49012eb`).
