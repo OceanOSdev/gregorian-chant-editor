@@ -986,3 +986,43 @@ against the production preview with the usual `CHANT_PREVIEW_URL`,
 `CHANT_CHROMIUM_URL` or `CHANT_FIREFOX_URL` overrides, then re-run the Stage
 9A/9B-1 and the accidental, bundled-example, persistence, modifier,
 note-shape and vertical-episema drivers in both browsers.
+
+## Compound directional neumes (Stage 9B-3)
+
+`domain/compound-directional.test.ts`:
+
+- validity against an independent adjacent-contour oracle over every
+  four-note tuple in −1..5, plus cardinality, holes and printed unisons and
+  crossings;
+- `{none, final}` mora and no forms;
+- episemata on every note;
+- every deletion index of every valid contour against an independent matrix
+  oracle (including the exact set of reachable outcomes), with retained IDs,
+  marks and anchors;
+- every ±1 single-note move;
+- transposition, history, B ownership, v9 round trips, exact v1–v8 rejection
+  with protected cache bytes, malformed payloads, insertion at every
+  mixed-event boundary, and arm/I/T recall.
+
+`layout/compound-directional-geometry.test.ts`:
+
+- every contour with steps 1–3 (first pitch −2..6) × all 16 × 16 horizontal ×
+  vertical episema masks × final mora on/off draws, without exceptions,
+  four constituents with exact anchors, sign counts and advance;
+- per-element pointer ownership for steps 1–4;
+- reuse of the approved Punctum, Porrectus, Podatus, Clivis and Climacus
+  recipes;
+- the Torculus resupinus stem derived for a third note above, at and below
+  the first;
+- final-mora placement;
+- ghost/commit parity, whole-group wrapping and lyric anchors.
+
+Existing-geometry identity (run when a shared recipe changes):
+
+```sh
+node docs/verification/compound-directional-neumes/existing-geometry-baseline.mjs [ref]
+```
+
+It compares every pre-existing kind (194,830 cases) with a baseline commit,
+default `5c24857`. The browser driver is `compound-directional-neumes`
+(production preview, both browsers).

@@ -934,3 +934,36 @@ than the previous note. Deleting a Pes subtripunctis note that leaves four
 strictly descending notes produces a four-note Climacus; a rejected Pes
 subpunctis deletion announces that the survivors would form no supported
 neume (for example two equal adjacent pitches).
+
+## Compound directional neumes (Stage 9B-3)
+
+Torculus and Porrectus become `NeumeFamilyMenu` split controls, so six
+families share the reviewed lifecycle:
+
+| Family    | Menu items                                                            |
+| --------- | --------------------------------------------------------------------- |
+| Torculus  | Torculus, Torculus resupinus                                          |
+| Porrectus | Porrectus, Porrectus flexus                                           |
+| Scandicus | Scandicus, Scandicus (4 notes), Scandicus (5 notes), Scandicus flexus |
+| Climacus  | Climacus, Climacus (4 notes), Climacus (5 notes), Climacus resupinus  |
+
+Each primary button still arms the ordinary three-note figure. One staff click
+inserts all four notes. Default contours from the clicked pitch p are:
+
+| Figure             | Default contour    |
+| ------------------ | ------------------ |
+| Torculus resupinus | [p, p+2, p+1, p+3] |
+| Porrectus flexus   | [p, p−2, p+1, p−1] |
+| Scandicus flexus   | [p, p+1, p+3, p+2] |
+| Climacus resupinus | [p, p−1, p−3, p−2] |
+
+The roving order adds `torculus-menu` and `porrectus-menu` after their
+primaries and keeps one Tab stop. T focuses a remembered variant's family
+chevron. I and the contextual Insert controls insert the exact remembered
+figure. Only one of the six menus is open at a time.
+
+The contextual editor names the figures ("Select fourth note of torculus
+resupinus") and disables Form. Mora scope offers exactly None and Final note.
+A rejected single-note move announces that the figure must keep its contour.
+A rejected deletion uses the existing "no supported neume, such as two equal
+adjacent pitches" announcement.

@@ -307,7 +307,30 @@ The Firefox `mid-score-clefs` intermittent failure remains unresolved.
    intermittency remains unresolved despite passing this run; headless
    verification limitations remain.
 
-**Next: Stage 9B-3.**
+## Compound directional neumes (Stage 9B-3)
+
+**Implemented; owner Gates A–C approved 2026-11-14** (PR #80); implementation
+acceptance is pending owner review. Torculus resupinus, Porrectus flexus,
+Scandicus flexus and Climacus resupinus are fixed four-note kinds with:
+
+- sourced Roman/Solesmes engraving profiles;
+- `{none, final}` mora;
+- contour-based deletion normalization;
+- six split toolbar families;
+- native v9.
+
+This follows the [plan](plans/stage-9b3-compound-directional-neumes.md) and
+[Accepted ADR 0025](adrs/0025-compound-directional-four-note-neumes.md). See
+the [reference record](verification/compound-directional-neumes/README.md).
+
+Retained limits:
+
+- final-two and earlier-note morae are deferred;
+- no authored forms on these kinds;
+- longer flexus/resupinus extensions are out of scope;
+- older builds cannot read v9 files.
+
+**Next:** the owner chooses the next Stage 9B milestone.
 
 Separate follow-up work (not scheduled): neume ledger lines. No neume kind
 draws ledger lines yet (only custodes do), and long groups make this more
@@ -316,7 +339,6 @@ visible.
 ## Later Stage 9B milestones (pending)
 
 Not started. Other subpunctis families (for
-example Porrectus or Scandicus subpunctis), torculus resupinus, porrectus
-flexus, scandicus flexus, climacus resupinus, intra-syllable fusion and
-spacing, liquescence, and the complete Kyrie XI each need their own plan and
-owner review.
+example Porrectus or Scandicus subpunctis), longer flexus/resupinus
+extensions, intra-syllable fusion and spacing, liquescence, and the complete
+Kyrie XI each need their own plan and owner review.

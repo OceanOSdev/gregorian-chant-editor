@@ -75,3 +75,9 @@ The **Accepted**
 same bounded qualification to the existing Scandicus and Climacus kinds (three,
 four or five notes, strictly monotonic). All other kinds keep a single fixed
 tuple.
+
+The **Accepted**
+[ADR 0025](0025-compound-directional-four-note-neumes.md) adds Torculus
+resupinus, Porrectus flexus, Scandicus flexus and Climacus resupinus. Each
+has a single fixed four-note tuple with strict adjacent directions, so this
+decision applies unqualified.

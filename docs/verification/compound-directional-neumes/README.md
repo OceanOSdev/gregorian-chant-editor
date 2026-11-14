@@ -1,9 +1,13 @@
 # Stage 9B-3: Compound directional neumes — reference and decision record
 
-Status: **research complete; owner Gates A–C pending** (2026-11-13). Nothing
-is implemented. Follows the committed
-[plan](../../plans/stage-9b3-compound-directional-neumes.md) and supports
-**Proposed** [ADR 0025](../../adrs/0025-compound-directional-four-note-neumes.md).
+Status: **owner Gates A–C approved (2026-11-14); implemented with focused
+verification; implementation acceptance pending owner review** (PR #80).
+Follows the committed
+[plan](../../plans/stage-9b3-compound-directional-neumes.md) and
+**Accepted** [ADR 0025](../../adrs/0025-compound-directional-four-note-neumes.md).
+The research sections below are preserved as written for the gate review
+(2026-11-13); [owner decisions](#owner-decisions-2026-11-14) and
+[implementation and verification](#implementation-and-verification) follow.
 
 All crops are actual scans or actual Gregorio output; no notation is redrawn.
 Pitches are read from the scans as staff-step intervals (`+1` = one step up).
@@ -16,8 +20,9 @@ Pitches are read from the scans as staff-step intervals (`+1` = one step up).
 - Sister M. Demetria, _Basic Gregorian Chant and Sight Reading_ (1960),
   Lessons 18–21, pp. 49–55 (600 ppi bilevel scan). Its "Excerpts from the
   Liber" were checked against the Liber where located.
-- Gregorio 6.0.0 / GregorioTeX (Stage 8C/8D tree), [`cases.gabc`](cases.gabc),
-  [`marked.gabc`](marked.gabc), [`comparison.tex`](comparison.tex).
+- Gregorio 6.0.0 / GregorioTeX 6.0.0, [`cases.gabc`](cases.gabc),
+  [`marked.gabc`](marked.gabc), [`comparison.tex`](comparison.tex); see
+  [regenerating the Gregorio references](#regenerating-the-gregorio-references).
 - Suñol, Mocquereau and the Gregorio/Cambridge/SMuFL references cited in the
   plan were not re-imaged; Mocquereau's flexus/resupinus text (printed
   pp. 153–154) gives definitions only.
@@ -84,8 +89,8 @@ one monolithic ink path:
 - TR: a leading punctum and a variable-length left stem.
 - PF: a right-stem clivis terminal in place of the porrectus terminal crown.
 
-Three-note porrectus output must stay byte-identical, so both are gated
-geometry. They are not implemented before approval.
+Three-note porrectus output must stay byte-identical, so both were gated
+geometry, implemented only after approval (see below).
 
 ## Gate B: mora
 
@@ -137,9 +142,120 @@ Checked against the code at `5c24857`:
   A `version < 9` gate keeps v1–v8 exact. The next ADR number, **0025**, is
   free: no ADR, branch or open PR uses it.
 
-## Not done
+## Research-phase limits
 
-No editor screenshots exist, because nothing is implemented. The comparison is
-qualitative, not measured. Suñol, Mocquereau's figures and the Nocturnale
-Romanum were not re-imaged. No browser, performance or full regression run
-was needed for this research-only change.
+At the gate review no editor screenshots existed, because nothing was
+implemented. The comparison is qualitative, not measured. Suñol, Mocquereau's
+figures and the Nocturnale Romanum were not re-imaged. No browser, performance
+or full regression run was needed for the research-only change.
+
+## Regenerating the Gregorio references
+
+[`regenerate-gregorio.sh`](regenerate-gregorio.sh) recompiles both GABC files
+and re-crops `gregorio-cases.png` and `gregorio-marked.png`. It is evidence
+tooling, not an application dependency. It does not assume any temporary
+directory survives.
+
+Prerequisites, at the versions used for the committed images:
+
+- `gregorio` 6.0.0;
+- a GregorioTeX 6.0.0 TeX tree (the TeX files must match the binary's
+  version);
+- LuaLaTeX (TeX Live);
+- `pdftoppm` (Poppler);
+- ImageMagick 6 `convert`.
+
+Configuration:
+
+| Variable            | Meaning                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `GREGORIOTEX_TEXMF` | TEXMF root that holds a matching GregorioTeX; exported as `TEXMFHOME`. Unset: use the TeX installation's own copy. |
+| `GREGORIO`          | Executable, default `gregorio`.                                                                                    |
+| `OUT`               | Output directory, default a new temporary directory.                                                               |
+
+```sh
+GREGORIOTEX_TEXMF=/path/to/texmf \
+  sh docs/verification/compound-directional-neumes/regenerate-gregorio.sh
+```
+
+On 2026-11-14 the script reproduced both committed images pixel-for-pixel
+(ImageMagick `compare -metric AE`: 0 differing pixels). The committed files
+are the script's output. That run used a local GregorioTeX 6.0.0 extract
+(the Stage 8C/8D tree); any matching tree works.
+
+The marked image previously clipped the Torculus resupinus row. It now shows
+the complete examples: `fgfg.`, `fgf.g.` and `fhgh.`.
+
+## Owner decisions (2026-11-14)
+
+After reviewing draft PR #80 at `9bb4564`, the owner approved:
+
+- **Gate A — the recommended deterministic profiles:**
+  - Torculus resupinus: a leading Punctum joined to the Porrectus left stem,
+    with interval-sensitive geometry. Stem attachment and extent derive from
+    the actual pitches (third note above, equal to or below the first), with
+    no fixed stem adjustment.
+  - Porrectus flexus: the Porrectus stroke with a right-stemmed Clivis
+    terminal.
+  - Scandicus flexus: Pes + Clivis as one semantic neume.
+  - Climacus resupinus: the ordinary three-note Climacus followed by a
+    detached Punctum, with no connector.
+
+  Existing three-note and extended-family geometry must stay byte-identical.
+
+- **Gate B:** `{none, final}` mora for all four, explicitly based on analogy
+  and Gregorio rather than direct marked print. Final-two and earlier-note
+  mora remain deferred. There are no authored alternate forms. Independent
+  horizontal and vertical episemata stay supported.
+- **Gate C:** the four fixed tuples, the deletion matrix, six split toolbar
+  families and strict native v9. ADR 0004 needs no new qualification. All
+  older normalization rules, stable identities, lyric/structural anchors and
+  ADR 0021 accidental ownership are preserved.
+
+## Implementation and verification
+
+Implemented as approved; see the owning guides for contracts:
+
+- [domain model](../../domain-model.md#compound-directional-neumes-stage-9b-3);
+- [layout](../../layout-and-rendering.md#compound-directional-neumes-stage-9b-3);
+- [interactions](../../editor-interactions.md#compound-directional-neumes-stage-9b-3);
+- [persistence](../../persistence.md#native-v9-compound-directional-neumes-stage-9b-3);
+- [testing](../../testing.md#compound-directional-neumes-stage-9b-3).
+
+One implementation finding needed a narrow rule:
+
+- **What failed:** exhaustive sign testing found 272 Scandicus flexus cases
+  with no vertical-episema placement. Each had horizontal episemata on all
+  four notes, a vertical episema on a Pes note, and the Clivis head one step
+  above the Pes.
+- **Rule:** for the four new kinds only, a tick may sit left of the neume's
+  ink, and only when no ordinary candidate fits.
+- **Effect:** every ordinary placement is unchanged and no existing kind is
+  affected. Afterwards a one-off probe built 3,328,000 marked compound
+  geometries without an exception: steps 1–5, first pitch −3..9, all
+  episema masks, final mora on/off.
+
+**Existing geometry:**
+[`existing-geometry-baseline.mjs`](existing-geometry-baseline.mjs) compares
+every pre-existing kind with master `5c24857`:
+
+- valid contours with steps of ±1..3 and unisons;
+- every supported form and mora scope;
+- the full episema matrix for one- to three-note kinds, and empty, full and
+  single-note masks for longer kinds.
+
+The cases were compared both before and after the vertical-episema fallback:
+
+- 194,830 cases in each tree;
+- 72 exceptions in both, already present on master and unchanged;
+- identical output, SHA-256
+  `8cddd271325fe0b4d1dfbc8d9bf3382c5afe27e3838eb10bb3385c2b04f27e8e`.
+
+**Editor rendering:** `editor-engraving.png` is the browser driver's
+1440px Chromium capture of the fixture. It shows Torculus resupinus with a
+B flat, horizontal and vertical episemata and a final mora, then Porrectus
+flexus, Scandicus flexus, Climacus resupinus and a Torculus resupinus with
+nonadjacent unisons. Compare it qualitatively with `gregorio-cases.png` and
+the Liber crops. No measured typographic match is claimed.
+
+VERIFICATION_RESULTS_PLACEHOLDER

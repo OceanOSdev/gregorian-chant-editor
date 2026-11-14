@@ -4,7 +4,11 @@ Branch: `feature/stage-9b3-compound-directional-neumes`
 Target: `master`
 Base: `5c24857` (Maintenance C merged, PR #79).
 
-Status: research delivered (see the [reference record](../verification/compound-directional-neumes/README.md) and Proposed [ADR 0025](../adrs/0025-compound-directional-four-note-neumes.md)); owner Gates A–C pending, no implementation.
+Status: owner Gates A–C approved 2026-11-14 (after review of draft PR #80
+at `9bb4564`). Implemented on this branch with focused verification;
+implementation acceptance is pending owner review. See the
+[reference record](../verification/compound-directional-neumes/README.md#owner-decisions-2026-11-14)
+and Accepted [ADR 0025](../adrs/0025-compound-directional-four-note-neumes.md).
 Read AGENTS.md, the owning guides, accepted ADRs and
 [Stage 9B-2](stage-9b2-extended-scandicus-climacus.md).
 Use the [verification tiers](../ai-workflow.md#verification-tiers-and-efficiency)

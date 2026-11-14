@@ -766,3 +766,44 @@ scope and every horizontal × vertical episema mask.
   separate follow-up work.
 
 See the [verification record](verification/extended-scandicus-climacus/README.md).
+
+## Compound directional neumes (Stage 9B-3)
+
+`neumes/compound-directional.ts` draws the owner-approved Roman/Solesmes
+profiles ([ADR 0025](adrs/0025-compound-directional-four-note-neumes.md)).
+Each kind uses one deterministic construction for every interval:
+
+- **Torculus resupinus:** the approved Punctum, then the Porrectus in the
+  next 12-unit column. The Porrectus left stem starts at the Punctum's right
+  edge. Its extent (`leftStemBottom`) is derived from the actual first rise:
+  it ends at the Punctum's underside whether the third note lies above, at or
+  below the first. The ribbon may pass lower than the Punctum. Without the
+  parameter `buildPorrectus` is the unchanged approved recipe.
+- **Porrectus flexus:** the unchanged Porrectus. A 1.5-unit join on the
+  terminal's right edge descends to a fourth head placed as the approved
+  Clivis second head: abutting for a step, overlapping the stem for a skip.
+- **Scandicus flexus:** the approved Podatus, then the approved Clivis in the
+  next column (`clivisStemLength` is shared, not duplicated).
+- **Climacus resupinus:** the unchanged three-note Climacus, then a detached
+  Punctum 6 units after the last diamond's ink. There is no connector.
+
+The other rules are shared with earlier stages:
+
+- **Pointer regions:** cut at the element boundaries (Punctum/stroke,
+  Pes/Clivis, Porrectus/fourth head, last diamond/Punctum). Every constituent,
+  including both ends of each stroke, has its own region.
+- **Final mora:** uses the single-sign rules. The Torculus resupinus dot
+  starts right of the ink, as for Porrectus.
+- **Vertical-episema obstacles:** follow each kind's actual joins.
+- **Crowded compound columns:** if no ordinary candidate fits, and only for
+  these four kinds, a vertical tick may sit left of the neume's ink. Every
+  placement the ordinary rule finds is unchanged, and no existing kind is
+  affected.
+- **Shared consumers:** lyrics (first note), signs, accidentals, ghosts,
+  palette icons, advance and whole-group wrapping.
+
+All previous kinds remain byte-identical to the Maintenance C master
+(`5c24857`). This was verified over 194,830 cases with the committed
+[`existing-geometry-baseline.mjs`](verification/compound-directional-neumes/existing-geometry-baseline.mjs).
+Neume ledger lines remain absent for every kind. See the
+[reference record](verification/compound-directional-neumes/README.md).
