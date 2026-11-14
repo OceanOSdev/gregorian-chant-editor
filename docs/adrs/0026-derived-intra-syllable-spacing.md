@@ -4,14 +4,15 @@ Date: 2026-11-14
 
 ## Status
 
-**Proposed. Owner Gates A–D pending; no implementation authorized.**
-Numbering checked: 0025 was the highest existing ADR on the handoff branch.
+**Accepted (owner-approved Gates A–D, 2026-11-14), after review of PR #82
+at `d1665bb`.** Checkpoint 9C-1 alone is authorized for implementation.
+Checkpoint 9C-2 and visual acceptance remain pending separate owner review.
 
-If accepted, narrowly qualify [ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md)'s
+Narrowly qualifies [ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md)'s
 ordinary musical minimum and [ADR 0011](0011-word-aware-chant-engraving.md)'s
-exclusion of melismatic neumes from contextual compaction. Extend
+exclusion of melismatic neumes from contextual compaction. Extends
 [ADR 0013](0013-divisions-interrupt-word-compaction.md)'s division barrier to
-this new case. None is superseded or amended by this proposal's publication.
+this new case. Those ADRs remain Accepted; none is superseded.
 
 ## Context
 
@@ -29,16 +30,15 @@ Requiem's pé melisma contains a division without a new syllable. These examples
 support closer independent engraving without requiring cross-neume fusion.
 They do not establish one universal historical gap or exhaust authored cuts.
 
-## Proposed decision
+## Decision
 
 - Retain anchor-derived membership, all 14 existing kinds and independent
   stable neume/note/syllable identities. No semantic fields, native version,
   migration, cache key change or automatic source rewrite. Preserve strict
   v1–v8 readers/recovery and current v9 output.
 - Within a system, adjacent independent neumes with the same **non-null**
-  derived syllable ID may use a smaller complete-ink minimum. Start owner
-  review at **6 units** (half the current head width), exploring 5–8 for the
-  plain punctum pair. This is a proposed engineering metric informed by et,
+  derived syllable ID use a **6-unit minimum between complete measured ink bounds**.
+  This engineering starting metric remains subject to visual acceptance,
   not an assertion that all printed pairs share its spacing. Complete
   modifier/sign/text clearance remains mandatory.
 - Block this new compaction across divisions, explicit clefs and boundaries
@@ -97,9 +97,10 @@ The small raster corpus cannot settle all-kind proportions or fusion rules.
 
 ## Approval and follow-through
 
-Owner approval must resolve A (unchanged semantics/v9), B (metric, barriers and
-wrapping), C (existing editing contracts) and D (one implementation PR with two
-reviewable checkpoints). See the research record for the independent oracle,
-exact/approximate fixtures and integrated acceptance plan. Only after approval
-should an implementation handoff update owning guides and accepted ADR links.
-No application verification or implementation acceptance is claimed here.
+The owner approved A (unchanged semantics/v9), B (6-unit complete-ink metric,
+barriers and wrapping), C (existing editing contracts) and D (two checkpoints
+on the existing draft PR #82). Checkpoint 9C-1 covers pure classification/layout
+and focused unit verification. Stop for review before 9C-2, which owns integrated
+browser verification and the final repository gate. See the
+[retained plan](../plans/stage-9c-intra-syllable-grouping.md) for current status.
+Design acceptance does not establish visual or implementation acceptance.

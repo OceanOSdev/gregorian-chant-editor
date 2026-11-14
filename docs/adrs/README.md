@@ -190,10 +190,10 @@ ADRs 0004 and 0021–0024 remain Accepted and unamended. Implementation
 acceptance is pending owner review of PR #80; see the
 [reference record](../verification/compound-directional-neumes/README.md).
 
-[Proposed ADR 0026: Derive close spacing between independent neumes of one syllable](0026-derived-intra-syllable-spacing.md)
-records Stage 9C's bounded research recommendation: retain ADR 0008 membership
-and native v9, add conservative derived spacing without fusion or new editing
-operations. Owner Gates A–D remain pending. If accepted, it would narrowly
-qualify ADRs 0010/0011 and extend ADR 0013's barrier; those Accepted decisions
-remain unchanged during review. See the
+[Accepted ADR 0026: Derive close spacing between independent neumes of one syllable](0026-derived-intra-syllable-spacing.md)
+records Stage 9C's owner-approved Gates A–D (2026-11-14): retain ADR 0008
+membership/native v9 and use a 6-unit complete-ink minimum between eligible
+independent neumes, without fusion or new editing operations. It narrowly
+qualifies ADRs 0010/0011 and extends ADR 0013's barrier; none is superseded.
+Checkpoint 9C-1 alone is authorized; 9C-2 and visual acceptance remain pending. See the
 [printed evidence and decision record](../verification/intra-syllable-grouping/README.md).

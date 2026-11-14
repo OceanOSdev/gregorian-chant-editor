@@ -8,6 +8,15 @@ Accepted (2026-11-02), by explicit owner approval during Stage 5B review.
 ADR 0011 remains Accepted and unchanged. This decision narrowly qualifies
 its compaction eligibility; it does not supersede ADR 0010 or ADR 0011.
 
+**Accepted Stage 9C qualification (2026-11-14):**
+[ADR 0026](0026-derived-intra-syllable-spacing.md) adds close but independent
+spacing between eligible neumes in the same non-null ADR 0008 syllable span.
+The initial complete-ink minimum is 6 units, with division, explicit-clef and
+written-accidental-location barriers. Existing distinct-syllable compaction,
+hyphens, alignment and whole-neume wrapping remain unchanged. This ADR remains
+Accepted and is not superseded. Design approval is separate from visual and
+implementation acceptance; 9C-1 alone is authorized.
+
 ## Context
 
 The Stage 5B plan proposed that a visible division block contextual same-word

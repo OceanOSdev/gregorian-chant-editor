@@ -6,8 +6,7 @@ import {
   hasValidLyricAnchors,
 } from '../domain/lyrics';
 import { isValidNeume } from '../domain/neume';
-import { layoutChant, staffEndX } from './layout-chant';
-import { interNeumeInkGap } from './neume-geometry';
+import { layoutChant, staffEndX, intraSyllableInkGap } from './layout-chant';
 import { alignLyricText, type MeasureLyricText } from './lyric-text-metrics';
 const measure: MeasureLyricText = (text) => ({
   width: text.length * 10,
@@ -63,7 +62,7 @@ describe.each(etLuxCorpus)('$id', (sample) => {
       );
     else if (first && second)
       expect(second.bounds.x - first.bounds.x - first.bounds.width).toBe(
-        interNeumeInkGap,
+        intraSyllableInkGap,
       );
   });
 });

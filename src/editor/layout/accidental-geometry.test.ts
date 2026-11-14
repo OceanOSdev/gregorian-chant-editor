@@ -530,9 +530,9 @@ it.each(['earlier-anchor', 'default-prefix'] as const)(
           }
         : {
             before: [140, 160],
-            natural: [234, 242],
-            after: [246, 306],
-            hyphen: [187, 207],
+            natural: [207, 215],
+            after: [219, 279],
+            hyphen: [173.5, 193.5],
           },
     );
     const [hyphenLeft, hyphenRight] = hyphenInk(hyphen);
