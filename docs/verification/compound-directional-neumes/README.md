@@ -275,15 +275,15 @@ tick are unchanged.
 `compound-directional-geometry.test.ts`. All five fail with the previous
 accidental-only condition and pass with the fix.
 
-**Verification at `05e655d`** (clean tree; code identical to `dabb446`, which
-adds docs only):
+**Verification on the fix revision** (code at `05e655d`; `dabb446` adds only
+docs):
 
 - **Repository gate:** `format:check`, `lint`, `test` (89 files, 1,985
   tests), `build` and `git diff --check` all passed.
 - **Existing geometry:** still byte-identical to `5c24857`: 194,830 cases,
   the same 72 exceptions, SHA-256 `8cddd271…`.
-- **Browser runner, Chromium 157 and Firefox 146, headless:** 12 of 12
-  passed for `compound-directional-neumes`, `extended-scandicus-climacus`,
+- **Browser runner, at `dabb446` (clean tree), Chromium 157 and Firefox 146,
+  headless:** 12 of 12 passed for `compound-directional-neumes`, `extended-scandicus-climacus`,
   `b-accidentals`, `b-accidentals-acceptance`, `vertical-episemata` and
   `vertical-episemata-context`. The remaining evidence at `d15d2ef` still
   applies to drivers this change cannot affect.
