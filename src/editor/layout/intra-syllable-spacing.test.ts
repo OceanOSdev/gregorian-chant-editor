@@ -8,6 +8,11 @@ import {
 } from '../domain/chant-document';
 import { findSyllableForNeume } from '../domain/lyrics';
 import {
+  spacingSpecimens,
+  ownershipSpecimen,
+} from '../../../docs/verification/intra-syllable-grouping/fixtures';
+import { encodeDocument, decodeDocument } from '../persistence/native-document';
+import {
   hasValidAccidentals,
   resolveEffectivePitches,
 } from '../domain/accidentals';
@@ -540,3 +545,17 @@ it('keeps the Kyrie XI nine-note eleison in existing kinds and places its flat a
   expect(s.lyrics[0].anchorX).toBe(s.neumes[0].notes[0].anchorX);
   expect(s.hyphens).toEqual([]);
 });
+
+it.each([
+  ...spacingSpecimens,
+  { id: 'all-fourteen', document: ownershipSpecimen },
+])(
+  'keeps the $id browser specimen valid and exactly readable as native v9',
+  ({ document }) => {
+    expect(document.neumes.every(isValidNeume)).toBe(true);
+    expect(hasValidAccidentals(document)).toBe(true);
+    const encoded = encodeDocument(document);
+    expect(JSON.parse(encoded).version).toBe(9);
+    expect(decodeDocument(encoded)).toEqual(document);
+  },
+);

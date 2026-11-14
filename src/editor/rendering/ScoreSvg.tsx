@@ -798,6 +798,18 @@ export function ScoreSvg({
                           if (element) {
                             noteElements.current.set(note.noteId, element);
                           } else {
+                            // Remember actual SVG focus before React detaches
+                            // a reparented note. Firefox may not have emitted
+                            // the bubbling focus event used by the listener.
+                            const previous = noteElements.current.get(
+                              note.noteId,
+                            );
+                            if (previous && document.activeElement === previous)
+                              focusedEntity.current = {
+                                kind: 'note',
+                                id: note.noteId,
+                                element: previous,
+                              };
                             noteElements.current.delete(note.noteId);
                           }
                         }}

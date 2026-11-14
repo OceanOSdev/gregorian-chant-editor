@@ -2,7 +2,8 @@
 
 2026-11-14. **Research complete; owner Gates A–D accepted after review at
 `d1665bb`.** This record retains the research findings; current checkpoint
-implementation and verification are recorded in [9C-1](checkpoint-9c-1.md). Read with the [handoff plan](../../plans/stage-9c-intra-syllable-grouping.md)
+implementation and verification are recorded in [9C-1](checkpoint-9c-1.md)
+and [9C-2](checkpoint-9c-2.md). Read with the [handoff plan](../../plans/stage-9c-intra-syllable-grouping.md)
 and [Accepted ADR 0026](../../adrs/0026-derived-intra-syllable-spacing.md).
 
 ## Architecture findings

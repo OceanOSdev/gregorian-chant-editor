@@ -27,7 +27,8 @@ The initial complete-ink minimum is 6 units, with division, explicit-clef and
 written-accidental-location barriers. Existing distinct-syllable compaction,
 hyphens, alignment and whole-neume wrapping remain unchanged. This ADR remains
 Accepted and is not superseded. Design approval is separate from visual and
-implementation acceptance; 9C-1 alone is authorized.
+implementation acceptance; 9C-2 verification is now authorized, with final
+owner review pending.
 
 ## Context
 

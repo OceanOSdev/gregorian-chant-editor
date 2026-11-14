@@ -4,8 +4,7 @@ Branch: `design/stage-9c-intra-syllable-grouping`
 Target: `master`
 Base: `eb3dd67` (PR #81 merged after Stage 9B-3).
 Status: owner Gates A–D and ADR 0026 accepted (2026-11-14), following review
-of draft PR #82 at `d1665bb`. Checkpoint 9C-1 implementation complete for review; stop
-for review before 9C-2. Keep this branch and PR #82 draft; do not merge.
+of draft PR #82 at `d1665bb`. Checkpoint 9C-1 reviewed at `88051f6`; checkpoint 9C-2 authorized and in progress. Keep this branch and PR #82 draft; do not merge.
 
 The [reference record](../verification/intra-syllable-grouping/README.md)
 retains the research evidence; [Accepted ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md)
@@ -16,7 +15,7 @@ Checkpoint evidence: [9C-1 implementation and focused checks](../verification/in
 
 ## Approved implementation checkpoints
 
-1. **9C-1 — authorized now:** contextual spacing classification and pure layout
+1. **9C-1 — completed and reviewed:** contextual spacing classification and pure layout
    integration using existing derived membership; 6-unit complete-ink gaps only
    for eligible non-null same-syllable neighbors. Preserve existing distinct-
    syllable/word spacing, fallback, anchors, contours, independent interaction
@@ -27,11 +26,24 @@ Checkpoint evidence: [9C-1 implementation and focused checks](../verification/in
    melisma-to-next-syllable regressions. Reuse et/lux and supported Kyrie
    fragments. Run focused relevant unit tests, formatting, type and lint checks,
    then commit/push and stop for review.
-2. **9C-2 — not authorized yet:** integrated browser verification and final
+2. **9C-2 — authorized:** integrated browser verification and final
    repository gate, visual/reference acceptance and any justified ownership
    repairs. No comprehensive matrix, full compatibility comparisons or benchmark
    in 9C-1. No grouping UI, connectors/fusion, selection hierarchy, silent lyric
    transfer or changes to editing/history/persistence contracts.
+
+## 9C-2 review follow-up
+
+Repair the authored-diamond wrapping fixture reported by hosted CI run
+43571275197 without changing the approved spacing. Replace repeated per-neume
+membership lookup with a single forward traversal of the existing measured
+anchor/index data, preserving readiness and null-prefix behavior. Extend the
+existing word-composition browser driver with supported et/lux and Kyrie XI
+specimens, dense all-kind ownership/clipping, slots/caret/ghost, focus reflow,
+structural/sign barriers and native history checks. Run the standard repository
+gate once and affected supported browser drivers through the runner. Leave the
+comprehensive matrix, compatibility comparisons and benchmarking to the owner;
+keep PR #82 draft pending final review.
 
 ## Original bounded research brief (historical)
 

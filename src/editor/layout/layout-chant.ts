@@ -40,7 +40,6 @@ import {
   type DivisionLayout,
 } from './division-geometry';
 import { lyricLanguage } from '../domain/lyric-alignment';
-import { findSyllableForNeume } from '../domain/lyrics';
 import {
   alignLyricText,
   lyricFontSize,
@@ -238,6 +237,7 @@ function geometryInput(neume: Neume): GeometryInput {
 }
 
 interface LyricRequirement {
+  syllableId: string;
   alignment: ReturnType<typeof alignLyricText>;
   boundaryBefore: LyricSyllable['boundaryBefore'];
   continues: boolean;
@@ -856,6 +856,7 @@ export function layoutChant(
       const alignment = alignments.get(syllable.id);
       if (index !== undefined && alignment)
         requirements.set(index, {
+          syllableId: syllable.id,
           alignment,
           boundaryBefore: syllable.boundaryBefore,
           continues:
@@ -896,18 +897,24 @@ export function layoutChant(
     neumeIndex: c.neumeIndex,
     neumeKind: c.neume.kind,
   });
-  const wrappedSystems = placeNeumeSequence(
-    document.neumes.map((neume) => ({
+  // Requirements contain only measured anchors. Carry the last anchor forward
+  // once in semantic order (ADR 0008), leaving the lyricless prefix undefined.
+  let activeSyllableId: string | undefined;
+  const inputs = document.neumes.map((neume, index) => {
+    const anchor = requirements.get(index);
+    if (anchor) activeSyllableId = anchor.syllableId;
+    return {
       ...geometryInput(neume),
-      syllableId: ready
-        ? findSyllableForNeume(document, neume.id)?.id
-        : undefined,
+      syllableId: activeSyllableId,
       accidentals: signsForNeume(neume.id).map((s) => ({
         kind: s.entity.kind,
         staffPosition: s.owner.degree - s.location.offset,
         noteIndex: s.entity.placement ? s.location.noteIndex : null,
       })),
-    })),
+    };
+  });
+  const wrappedSystems = placeNeumeSequence(
+    inputs,
     staffEndX,
     requirements,
     hyphenWidth,

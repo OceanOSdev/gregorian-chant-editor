@@ -5,8 +5,9 @@ Date: 2026-11-14
 ## Status
 
 **Accepted (owner-approved Gates A–D, 2026-11-14), after review of PR #82
-at `d1665bb`.** Checkpoint 9C-1 alone is authorized for implementation.
-Checkpoint 9C-2 and visual acceptance remain pending separate owner review.
+at `d1665bb`.** Checkpoint 9C-1 was reviewed at `88051f6`; the owner
+subsequently authorized checkpoint 9C-2 integrated verification. Final visual
+and implementation acceptance remain pending owner review.
 
 Narrowly qualifies [ADR 0010](0010-derive-wrapping-from-music-and-lyric-geometry.md)'s
 ordinary musical minimum and [ADR 0011](0011-word-aware-chant-engraving.md)'s

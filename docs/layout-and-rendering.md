@@ -187,7 +187,8 @@ positions in CSS pixels to match the unscaled SVG.
 Pointer conversion uses the inverse screen CTM, including scrolling and negative
 origins. Focus reveal visits local scroll containers before the page. Reparented
 note/lyric controls restore browser focus by ID after measurement reflow without
-changing semantic selection or stealing focus from editor controls.
+changing semantic selection or stealing focus from editor controls. The note ref-detach callback also remembers an actually focused SVG control
+before React reparents it, covering Firefox cases without a bubbling `focusin`.
 
 ### Stage 4C word composition
 
@@ -267,7 +268,8 @@ Committed rendering and interaction still consume the same measured layout.
 [Accepted ADR 0026](adrs/0026-derived-intra-syllable-spacing.md) adds a separate
 **6-unit minimum between complete measured ink bounds** for adjacent independent
 neumes in the same non-null syllable span, as derived by ADR 0008's
-`findSyllableForNeume`. The layout input carries only that derived ID; no second
+ordered anchors. A single forward traversal carries the last ready anchor ID
+from the existing index/measurement map into the layout input; no second
 ownership authority or persistent field exists. Both-null lyricless membership
 is ineligible. Complete text/hyphen measurement readiness is required; missing,
 partial or invalid snapshots retain ordinary music-only placement.
@@ -290,8 +292,8 @@ normal leading-clef spacing. Tight neighbors reuse the same midpoint hit clips
 and shared committed-layout slots/previews described above. No connector or
 fusion is added.
 
-Checkpoint 9C-1 implements the pure classification/layout seam; browser ownership
-and visual acceptance remain for separately approved checkpoint 9C-2. The 6-unit
+Checkpoint 9C-1 implements the pure classification/layout seam; checkpoint 9C-2
+adds integrated browser verification. Final visual acceptance remains with the owner. The 6-unit
 metric is an engineering starting point, not a universal historical constant.
 
 ## Committed layout and previews
