@@ -7,7 +7,9 @@ const screenshotDirectory = await mkdtemp(
 );
 console.log(`Screenshots: ${screenshotDirectory}`);
 const editorUrl = process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173';
-const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
+const pages = await (
+  await fetch(process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json')
+).json();
 const page = pages.find((candidate) => candidate.type === 'page');
 assert(page, 'Open a Chromium tab before running browser checks');
 const ws = new WebSocket(page.webSocketDebuggerUrl);

@@ -8,7 +8,11 @@ const output = await mkdtemp(join(tmpdir(), 'chant-mid-clefs-'));
 const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 const pages = firefox
   ? []
-  : await (await fetch('http://127.0.0.1:9230/json')).json();
+  : await (
+      await fetch(
+        process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json',
+      )
+    ).json();
 const ws = new WebSocket(
   process.env.CHANT_FIREFOX_URL ??
     pages.find((p) => p.type === 'page').webSocketDebuggerUrl,
@@ -328,7 +332,9 @@ try {
   }
   await viewport(1440);
   await send('Page.navigate', {
-    url: 'http://127.0.0.1:5173/docs/verification/placement/browser-fixture.html',
+    url:
+      (process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173') +
+      '/docs/verification/placement/browser-fixture.html',
   });
   for (let i = 0; i < 50; i++) {
     await pause();

@@ -11,7 +11,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:browser": "node docs/verification/runner/cli.mjs",
+    "test:verify-runner": "node --test docs/verification/runner/test/*.node-test.mjs"
   },
   "dependencies": {
     "react": "^19.2.7",

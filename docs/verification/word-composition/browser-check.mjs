@@ -10,7 +10,9 @@ const editorUrl = process.env.CHANT_EDITOR_URL ?? 'http://127.0.0.1:5173';
 const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 let socketUrl = process.env.CHANT_FIREFOX_URL;
 if (!firefox) {
-  const pages = await (await fetch('http://127.0.0.1:9230/json')).json();
+  const pages = await (
+    await fetch(process.env.CHANT_CHROMIUM_URL ?? 'http://127.0.0.1:9230/json')
+  ).json();
   socketUrl = pages.find((p) => p.type === 'page').webSocketDebuggerUrl;
 }
 const ws = new WebSocket(socketUrl);
