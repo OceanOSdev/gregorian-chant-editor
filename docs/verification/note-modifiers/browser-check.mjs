@@ -435,7 +435,7 @@ try {
     expected.neumes[0].notes[0].mora = 1;
     assert.deepEqual(saved, {
       format: base.format,
-      version: 8,
+      version: 9,
       document: expected,
     });
     await navigate();
@@ -451,7 +451,7 @@ try {
       JSON.parse(await raw()),
       {
         ...baseline,
-        version: 8,
+        version: 9,
         document: { ...baseline.document, accidentals: [] },
       },
       'v1 file import preserves every semantic value',
@@ -675,7 +675,7 @@ try {
       await pause();
       assert.deepEqual(JSON.parse(await raw()), {
         ...fixture,
-        version: 8,
+        version: 9,
         document: { ...fixture.document, accidentals: [] },
       });
       assert.equal(

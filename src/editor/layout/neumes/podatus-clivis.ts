@@ -11,6 +11,12 @@ import {
   type NeumeGeometry,
 } from './shared';
 
+/** The approved Clivis left stem below its first head, by interval. */
+export function clivisStemLength(distance: number): number {
+  // Δ>5 retains the Δ4–5 plateau as a documented project extrapolation.
+  return distance <= 2 ? 27 : distance === 3 ? 39 : 45;
+}
+
 export function buildPodatusOrClivis(
   kind: 'podatus' | 'clivis',
   positions: readonly StaffPosition[],
@@ -68,8 +74,7 @@ export function buildPodatusOrClivis(
   } else {
     const adjacent = distance === 1;
     const secondX = adjacent ? 12 : 10.5;
-    // Δ>5 retains the Δ4–5 plateau as a documented project extrapolation.
-    const stem = distance <= 2 ? 27 : distance === 3 ? 39 : 45;
+    const stem = clivisStemLength(distance);
     const contact = adjacent ? `V${y + 7.5} L${move(10.5, 6)}` : `V${y + 6}`;
     const fittedScoop = `C${move(9, 6)} ${move(8, 4.8)} ${move(6, 4.8)} C${move(4, 4.8)} ${move(3, 6)} ${move(1.5, 6)}`;
     const firstHead = shape(

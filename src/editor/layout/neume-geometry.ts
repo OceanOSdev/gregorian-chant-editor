@@ -19,6 +19,7 @@ import { buildScandicusOrTorculus } from './neumes/scandicus-torculus';
 import { buildClimacus } from './neumes/climacus';
 import { buildExtendedScandicus } from './neumes/scandicus-extended';
 import { buildPorrectus } from './neumes/porrectus';
+import { buildCompoundDirectional } from './neumes/compound-directional';
 import { buildPesSubpunctis } from './neumes/pes-subpunctis';
 
 export {
@@ -86,6 +87,11 @@ function buildUnmodifiedGeometry(
   bottomStaffY: number,
 ): NeumeGeometry {
   switch (kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus':
+      return buildCompoundDirectional(kind, positions, leftX, bottomStaffY);
     case 'pes-subpunctis':
       return buildPesSubpunctis(positions, leftX, bottomStaffY);
     case 'bistropha':

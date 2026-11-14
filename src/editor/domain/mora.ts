@@ -24,6 +24,13 @@ export function moraChoices(
     // last note of the actual four- or five-note tuple. Final two is deferred.
     case 'pes-subpunctis':
       return [none, { value: 'final', label: 'Final note' }];
+    // Owner-approved Stage 9B-3 matrix (ADR 0025): none or the final note,
+    // by analogy and Gregorio; final-two and earlier notes are deferred.
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus':
+      return [none, { value: 'final', label: 'Final note' }];
     case 'punctum':
       return [none, { value: 'sole', label: 'Sole note' }];
     case 'podatus':

@@ -11,9 +11,11 @@ export const paletteTools = [
   'scandicus',
   'scandicus-menu',
   'torculus',
+  'torculus-menu',
   'climacus',
   'climacus-menu',
   'porrectus',
+  'porrectus-menu',
   'c-clef',
   'f-clef',
 ] as const;

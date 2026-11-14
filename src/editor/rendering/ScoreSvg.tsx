@@ -902,7 +902,10 @@ export function ScoreSvg({
                             placementActive || lyricMove
                               ? 'none'
                               : neume.kind === 'climacus' ||
+                                  neume.kind === 'climacus-resupinus' ||
                                   neume.kind === 'porrectus' ||
+                                  neume.kind === 'porrectus-flexus' ||
+                                  neume.kind === 'torculus-resupinus' ||
                                   neume.kind === 'pes-subpunctis'
                                 ? 'fill'
                                 : undefined

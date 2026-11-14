@@ -33,12 +33,14 @@ import {
   deleteDivision,
 } from '../commands/edit-division';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
-import type {
-  ChantDocument,
-  Clef,
-  DivisionKind,
-  NoteForm,
-  ScoreInsertionBoundary,
+import {
+  compoundDirectionalContours,
+  isCompoundDirectionalKind,
+  type ChantDocument,
+  type Clef,
+  type DivisionKind,
+  type NoteForm,
+  type ScoreInsertionBoundary,
 } from '../domain/chant-document';
 import { reassignLyricSyllable } from '../commands/reassign-lyric-syllable';
 import {
@@ -69,10 +71,13 @@ import {
   type DocumentHistory,
 } from './document-history';
 import {
+  neumeFamilyMembers,
   toolNoteForm,
   isPlacementTool,
   selectTool,
   type EditorTool,
+  type FamilyVariant,
+  type NeumeFamily,
 } from './editor-tool';
 import {
   clearSelection,
@@ -432,19 +437,7 @@ function reduceSessionAction(
               : state.rememberedForm === 'virga' ||
                   state.rememberedForm === 'inclinatum'
                 ? state.rememberedForm
-                : state.rememberedKind === 'bistropha' ||
-                    state.rememberedKind === 'tristropha'
-                  ? 'punctum-menu'
-                  : state.rememberedKind === 'pes-subbipunctis' ||
-                      state.rememberedKind === 'pes-subtripunctis'
-                    ? 'podatus-menu'
-                    : state.rememberedKind === 'scandicus-4' ||
-                        state.rememberedKind === 'scandicus-5'
-                      ? 'scandicus-menu'
-                      : state.rememberedKind === 'climacus-4' ||
-                          state.rememberedKind === 'climacus-5'
-                        ? 'climacus-menu'
-                        : state.rememberedKind,
+                : rememberedPaletteTool(state.rememberedKind),
         },
       };
     case 'hover':
@@ -648,6 +641,15 @@ function reduceSessionAction(
             state,
             'Edit rejected: a pes subpunctis must rise to its second note and then strictly descend. Select the whole neume to move the group.',
           );
+        if (
+          kind &&
+          isCompoundDirectionalKind(kind) &&
+          result.rejection !== 'ownership-conflict'
+        )
+          return announce(
+            state,
+            `Edit rejected: a ${neumeDisplayName(kind, 4)} must keep its contour (${compoundDirectionalContours[kind].map((step) => (step > 0 ? 'up' : 'down')).join(', ')}). Select the whole neume to move the group.`,
+          );
         const moved = findNote(state.history.present, action.noteMoveId)?.neume;
         if (
           moved &&
@@ -663,6 +665,7 @@ function reduceSessionAction(
       const shortened = action.formDeletionNoteId
         ? findNote(state.history.present, action.formDeletionNoteId)?.neume
         : undefined;
+      const shortenedKind = shortened?.kind;
       if (
         history === state.history &&
         shortened &&
@@ -680,8 +683,9 @@ function reduceSessionAction(
         history === state.history &&
         action.formDeletionNoteId &&
         result.rejection !== 'ownership-conflict' &&
-        findNote(state.history.present, action.formDeletionNoteId)?.neume
-          .kind === 'pes-subpunctis'
+        (shortenedKind === 'pes-subpunctis' ||
+          (shortenedKind !== undefined &&
+            isCompoundDirectionalKind(shortenedKind)))
       )
         return announce(
           state,
@@ -1562,4 +1566,29 @@ function transitionEditorSession(
       'Draft target changed. Your text is preserved; retry at a free neume or discard.',
     );
   return next;
+}
+
+/**
+ * T focuses the remembered entry: an ordinary member by its own button, an
+ * exact variant by its family's menu button.
+ */
+function rememberedPaletteTool(kind: GraphicalNeumeKind): PaletteTool {
+  return isFamilyVariant(kind) ? `${variantFamily(kind)}-menu` : kind;
+}
+
+function variantFamily(kind: FamilyVariant): NeumeFamily {
+  const family = (Object.keys(neumeFamilyMembers) as NeumeFamily[]).find(
+    (candidate) =>
+      neumeFamilyMembers[candidate].some((member) => member === kind),
+  );
+  if (!family) throw new Error(`No family lists ${kind}.`);
+  return family;
+}
+
+function isFamilyVariant(kind: GraphicalNeumeKind): kind is FamilyVariant {
+  return (Object.keys(neumeFamilyMembers) as NeumeFamily[]).some(
+    (family) =>
+      kind !== family &&
+      neumeFamilyMembers[family].some((member) => member === kind),
+  );
 }

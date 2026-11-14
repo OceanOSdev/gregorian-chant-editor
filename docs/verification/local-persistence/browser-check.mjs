@@ -281,6 +281,8 @@ const fixture = {
     ],
   },
 };
+// Saves, imports and exports write the current native version (v9).
+const current = { ...fixture, version: 9 };
 try {
   if (firefox) {
     await rawSend('session.new', { capabilities: {} });
@@ -309,7 +311,8 @@ try {
   assert.equal(await raw(), before);
   await ev(`window.confirm=()=>true`);
   await importText(JSON.stringify(fixture));
-  assert.deepEqual(JSON.parse(await raw()), fixture);
+  // Import re-saves the current native version.
+  assert.deepEqual(JSON.parse(await raw()), current);
   assert.equal(
     await ev(
       `document.querySelector('[aria-label="Undo last edit"]').disabled`,
@@ -323,7 +326,7 @@ try {
   await captureExports();
   await button('Export');
   const exported = await ev(`window.exported.text()`);
-  assert.deepEqual(JSON.parse(exported), fixture);
+  assert.deepEqual(JSON.parse(exported), current);
   assert.equal(await ev('window.exportName'), 'Salve-Regina.chant.json');
   await button('New');
   assert.equal(JSON.parse(await raw()).document.neumes.length, 0);
@@ -463,11 +466,11 @@ try {
   assert.equal(await ev('window.exportName'), 'untitled.chant.json');
 
   await importText(exported);
-  assert.deepEqual(JSON.parse(await raw()), fixture);
+  assert.deepEqual(JSON.parse(await raw()), current);
   const original = await raw();
   for (const bad of [
     '{broken',
-    JSON.stringify({ ...fixture, version: 9 }),
+    JSON.stringify({ ...fixture, version: 10 }),
     JSON.stringify({
       ...fixture,
       document: { ...fixture.document, neumes: null },
@@ -512,9 +515,9 @@ try {
   );
   await pause();
   await button('Undo');
-  assert.deepEqual(JSON.parse(await raw()), fixture);
+  assert.deepEqual(JSON.parse(await raw()), current);
   await navigate();
-  assert.deepEqual(JSON.parse(await raw()), fixture);
+  assert.deepEqual(JSON.parse(await raw()), current);
   await ev(
     `(()=>{const e=document.querySelector('[aria-label="Lyric language"]');e.value='en';e.dispatchEvent(new Event('change',{bubbles:true}));})()`,
   );

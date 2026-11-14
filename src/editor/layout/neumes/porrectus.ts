@@ -10,10 +10,16 @@ import {
   type NeumeGeometry,
 } from './shared';
 
+/**
+ * `leftStemBottom` (local y below the first pitch) replaces the ordinary
+ * interval-dependent descending stem; Torculus resupinus derives it from the
+ * preceding Punctum (ADR 0025). Omitted, the output is the approved recipe.
+ */
 export function buildPorrectus(
   positions: readonly StaffPosition[],
   leftX: number,
   bottomStaffY: number,
+  leftStemBottom?: number,
 ): NeumeGeometry {
   const { first, x, y, move, shape } = geometryContext(
     positions,
@@ -40,7 +46,7 @@ export function buildPorrectus(
   const w = 34 + 8 * (a - 1) + (b === 1 ? 4 : 0);
   const z = w - 12;
   const top = v - (b === 1 ? 8 : 6);
-  const stem = a <= 2 ? 27 : a === 3 ? 39 : 45;
+  const stem = leftStemBottom ?? (a <= 2 ? 27 : a === 3 ? 39 : 45);
   const upper = `M${move(0, -8)} C${move(0.27 * w, 8)} ${move(0.6 * w, u - 12)} ${move(z, u - 5)}`;
   const hook = `C${move(w - 7, u - 3)} ${move(w - 3, u - 3)} ${move(w - 1.5, u - 6)}`;
   const lower = `C${move(0.6 * w, u + 4)} ${move(0.25 * w, 16)} ${move(1.5, 6)}`;

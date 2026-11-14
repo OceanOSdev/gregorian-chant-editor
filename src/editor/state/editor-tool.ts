@@ -22,7 +22,11 @@ export type EditorTool =
   | { kind: 'place-climacus' }
   | { kind: 'place-climacus-4' }
   | { kind: 'place-climacus-5' }
-  | { kind: 'place-porrectus' };
+  | { kind: 'place-porrectus' }
+  | { kind: 'place-torculus-resupinus' }
+  | { kind: 'place-porrectus-flexus' }
+  | { kind: 'place-scandicus-flexus' }
+  | { kind: 'place-climacus-resupinus' };
 
 /** Split-control families: the ordinary member first, then exact variants. */
 export const punctumFamily = ['punctum', 'bistropha', 'tristropha'] as const;
@@ -37,10 +41,36 @@ export const scandicusFamily = [
   'scandicus',
   'scandicus-4',
   'scandicus-5',
+  'scandicus-flexus',
 ] as const;
 export type ScandicusFamilyKind = (typeof scandicusFamily)[number];
-export const climacusFamily = ['climacus', 'climacus-4', 'climacus-5'] as const;
+export const torculusFamily = ['torculus', 'torculus-resupinus'] as const;
+export type TorculusFamilyKind = (typeof torculusFamily)[number];
+export const climacusFamily = [
+  'climacus',
+  'climacus-4',
+  'climacus-5',
+  'climacus-resupinus',
+] as const;
 export type ClimacusFamilyKind = (typeof climacusFamily)[number];
+export const porrectusFamily = ['porrectus', 'porrectus-flexus'] as const;
+export type PorrectusFamilyKind = (typeof porrectusFamily)[number];
+
+/** The six split-control families, keyed by their ordinary member. */
+export const neumeFamilyMembers = {
+  punctum: punctumFamily,
+  podatus: podatusFamily,
+  scandicus: scandicusFamily,
+  torculus: torculusFamily,
+  climacus: climacusFamily,
+  porrectus: porrectusFamily,
+} as const;
+export type NeumeFamily = keyof typeof neumeFamilyMembers;
+/** Exact non-primary entry variants, reachable only from a family menu. */
+export type FamilyVariant = Exclude<
+  (typeof neumeFamilyMembers)[NeumeFamily][number],
+  NeumeFamily
+>;
 
 export function isPunctumFamilyKind(
   kind: GraphicalNeumeKind,
@@ -103,7 +133,11 @@ export function isPlacementTool(tool: EditorTool): boolean {
     tool.kind === 'place-climacus' ||
     tool.kind === 'place-climacus-4' ||
     tool.kind === 'place-climacus-5' ||
-    tool.kind === 'place-porrectus'
+    tool.kind === 'place-porrectus' ||
+    tool.kind === 'place-torculus-resupinus' ||
+    tool.kind === 'place-porrectus-flexus' ||
+    tool.kind === 'place-scandicus-flexus' ||
+    tool.kind === 'place-climacus-resupinus'
   );
 }
 

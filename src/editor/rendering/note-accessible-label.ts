@@ -1,5 +1,9 @@
 import { noteFormLabels } from '../domain/note-forms';
-import type { NoteAppearance, Neume } from '../domain/chant-document';
+import {
+  isCompoundDirectionalKind,
+  type NoteAppearance,
+  type Neume,
+} from '../domain/chant-document';
 import { neumeDisplayName } from '../domain/neume';
 
 const ordinals = ['first', 'second', 'third', 'fourth', 'fifth'] as const;
@@ -10,6 +14,7 @@ export function getNoteAccessibleLabel(
   noteCount = 0,
 ): string {
   if (
+    isCompoundDirectionalKind(kind) ||
     kind === 'pes-subpunctis' ||
     ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
   )

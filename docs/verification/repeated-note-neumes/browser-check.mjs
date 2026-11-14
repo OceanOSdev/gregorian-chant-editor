@@ -449,7 +449,7 @@ try {
         ),
       );
       assert.equal(await family(), kind);
-      assert.equal(JSON.parse(await raw()).version, 8);
+      assert.equal(JSON.parse(await raw()).version, 9);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
       await key('t', 'KeyT');

@@ -36,7 +36,7 @@ describe('native v2 and exact v1 compatibility', () => {
         value: 1,
       });
       adapter.save(marked);
-      expect(JSON.parse(bytes).version).toBe(8);
+      expect(JSON.parse(bytes).version).toBe(9);
       expect(new BrowserDocument(() => storage).load(original)).toEqual(marked);
       expect(decodeDocument(encodeDocument(marked))).toEqual(marked);
     },

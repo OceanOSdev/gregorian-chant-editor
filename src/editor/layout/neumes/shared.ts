@@ -48,6 +48,10 @@ export const interNeumeInkGap = 33;
 
 export function firstHeadHalfWidth(kind: Neume['kind']): number {
   switch (kind) {
+    case 'torculus-resupinus':
+    case 'porrectus-flexus':
+    case 'scandicus-flexus':
+    case 'climacus-resupinus':
     case 'pes-subpunctis':
     case 'bistropha':
     case 'tristropha':
