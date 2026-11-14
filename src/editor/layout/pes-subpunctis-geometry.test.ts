@@ -137,64 +137,124 @@ describe('pes subpunctis measured geometry', () => {
     },
   );
 
-  it('places every horizontal/vertical episema combination within measured bounds', () => {
-    for (const pitches of [
-      contours[0],
-      contours[5],
-      contours[10],
-      contours[11],
-    ]) {
+  // Representative contours: adjacent/wider intervals, line/space starts,
+  // tails crossing the first pitch, and both Kyrie XI fragments.
+  const exhaustive = [
+    [2, 4, 3, 2],
+    [1, 3, 2, 1],
+    [0, 4, 2, -1],
+    [2, 5, 4, 3, 2],
+    [1, 4, 3, 2, 1],
+    [5, 9, 8, 6, 3],
+    [6, 7, 6, 4, 3],
+    [2, 3, 2, 0, -1],
+  ];
+  it.each(exhaustive)(
+    '%j renders and owns every episema combination with and without a final mora',
+    (...pitches) => {
       const count = pitches.length;
-      for (let mask = 0; mask < 2 ** (count * 2); mask += count === 5 ? 7 : 1) {
-        const marks = pitches.map((_, i): NoteModifiers => ({
-          ...(mask & (1 << i) ? { episema: true } : {}),
-          ...(mask & (1 << (i + count)) ? { verticalEpisema: true } : {}),
-        }));
-        const g = buildNeumeGeometry(
-          'pes-subpunctis',
-          positions(pitches),
-          100,
-          140,
-          marks,
-        );
-        const signs = marks.reduce(
-          (sum, m) => sum + Number(!!m.episema) + Number(!!m.verticalEpisema),
-          0,
-        );
-        expect(g.ink).toHaveLength(1 + count - 2 + signs);
-        g.notes.forEach((note, i) =>
-          expect(Boolean(note.modifierBounds)).toBe(
-            Boolean(marks[i].episema || marks[i].verticalEpisema),
-          ),
-        );
-        for (const ink of g.ink) {
-          expect(ink.bounds.x).toBeGreaterThanOrEqual(g.bounds.x);
-          expect(ink.bounds.x + ink.bounds.width).toBeLessThanOrEqual(
-            g.bounds.x + g.bounds.width,
-          );
-        }
-      }
-    }
-  });
-
-  it('derives a final-note mora position for the pending owner review without enabling it', () => {
-    // Evidence for the mora gate only: commands and decoding still reject it.
-    for (const pitches of [contours[0], contours[5], contours[11]]) {
-      const marks = pitches.map((_, i): NoteModifiers =>
-        i === pitches.length - 1 ? { mora: 1 } : {},
-      );
-      const g = buildNeumeGeometry(
+      const last = count - 1;
+      const plain = buildNeumeGeometry(
         'pes-subpunctis',
         positions(pitches),
         100,
         140,
-        marks,
       );
-      const last = g.notes[pitches.length - 1];
-      expect(last.modifierBounds).toBeDefined();
-      expect(last.modifierBounds?.x).toBeGreaterThan(last.x + last.width - 4);
-    }
-  });
+      const isHorizontal = (s: InkShape) =>
+        s.kind === 'rect' && s.bounds.width === 12 && s.bounds.height === 2;
+      const isVertical = (s: InkShape) =>
+        s.kind === 'rect' && s.rasterization === 'vertical-episema';
+      const isDot = (s: InkShape) =>
+        s.kind === 'rect' && s.bounds.width === 4 && s.bounds.height === 4;
+      const inside = (
+        a: InkShape['bounds'],
+        b: InkShape['bounds'] | undefined,
+      ) =>
+        !!b &&
+        a.x >= b.x - 1e-9 &&
+        a.y >= b.y - 1e-9 &&
+        a.x + a.width <= b.x + b.width + 1e-9 &&
+        a.y + a.height <= b.y + b.height + 1e-9;
+      let checked = 0;
+      for (let mask = 0; mask < 2 ** (count * 2); mask++)
+        for (const mora of [false, true]) {
+          const marks = pitches.map((_, i): NoteModifiers => ({
+            ...(mask & (1 << i) ? { episema: true } : {}),
+            ...(mask & (1 << (i + count)) ? { verticalEpisema: true } : {}),
+            ...(mora && i === last ? { mora: 1 } : {}),
+          }));
+          const g = buildNeumeGeometry(
+            'pes-subpunctis',
+            positions(pitches),
+            100,
+            140,
+            marks,
+          );
+          // Notation ink is untouched; every authored sign is added once.
+          expect(g.ink.slice(0, plain.ink.length)).toEqual(plain.ink);
+          const signs = g.ink.slice(plain.ink.length);
+          const horizontal = marks.filter((m) => m.episema).length;
+          const vertical = marks.filter((m) => m.verticalEpisema).length;
+          expect(signs).toHaveLength(horizontal + vertical + Number(mora));
+          expect(signs.filter(isHorizontal)).toHaveLength(horizontal);
+          expect(signs.filter(isVertical)).toHaveLength(vertical);
+          expect(signs.filter(isDot)).toHaveLength(Number(mora));
+          g.notes.forEach((note, i) => {
+            const m = marks[i];
+            expect(note.head).toEqual(plain.notes[i].head);
+            expect(Boolean(note.modifierBounds)).toBe(
+              Boolean(m.episema || m.verticalEpisema || m.mora),
+            );
+            // Each sign sits on or locally beside its own note and lies
+            // inside that note's modifier bounds.
+            if (m.episema)
+              expect(
+                signs.some(
+                  (sign) =>
+                    isHorizontal(sign) &&
+                    sign.bounds.x === note.anchorX - 6 &&
+                    inside(sign.bounds, note.modifierBounds),
+                ),
+              ).toBe(true);
+            if (m.verticalEpisema)
+              expect(
+                signs.some(
+                  (sign) =>
+                    isVertical(sign) &&
+                    Math.abs(sign.bounds.x + 0.75 - note.anchorX) <= 15 &&
+                    inside(sign.bounds, note.modifierBounds),
+                ),
+              ).toBe(true);
+            if (m.mora) {
+              const dot = signs.find(isDot);
+              expect(dot).toBeDefined();
+              if (!dot) return;
+              expect(inside(dot.bounds, note.modifierBounds)).toBe(true);
+              // Trailing dot right of the final diamond, in its own row.
+              expect(dot.bounds.x).toBeGreaterThanOrEqual(
+                note.x + note.width - 4,
+              );
+              expect(
+                Math.abs(dot.bounds.y + 2 - note.anchorY),
+              ).toBeLessThanOrEqual(12);
+            }
+          });
+          for (const ink of g.ink) {
+            expect(ink.bounds.x).toBeGreaterThanOrEqual(g.bounds.x);
+            expect(ink.bounds.y).toBeGreaterThanOrEqual(g.bounds.y);
+            expect(ink.bounds.x + ink.bounds.width).toBeLessThanOrEqual(
+              g.bounds.x + g.bounds.width,
+            );
+            expect(ink.bounds.y + ink.bounds.height).toBeLessThanOrEqual(
+              g.bounds.y + g.bounds.height,
+            );
+          }
+          expect(g.advanceX).toBe(g.bounds.width + 33);
+          checked++;
+        }
+      expect(checked).toBe(2 ** (count * 2) * 2);
+    },
+  );
 
   it('matches ghost and committed geometry, keeps groups whole across systems and anchors lyrics on the first note', () => {
     const many = (count: number): ChantDocument => ({

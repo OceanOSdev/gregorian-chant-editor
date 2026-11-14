@@ -3,7 +3,27 @@
 Branch: `feature/stage-9b1-pes-subpunctis`
 Target: `master`
 
-Status: active implementation handoff. Stage 9A (PR #74) is merged.
+Status: implemented in PR #75, in final review. Stage 9A (PR #74) is merged.
+
+## Owner decisions (2026-11-13, after review of `be79a1e`)
+
+- ADR 0023's bounded four-/five-note tuple approach is approved; ADR 0023 is
+  Accepted and narrowly qualifies ADR 0004 without superseding its
+  explicit-kind contract.
+- Mora: approve **{none, final}** for both Pes subbipunctis and Pes
+  subtripunctis. The final note derives from the actual tuple length and stays
+  attached to its stable note ID. Final-two and all other nonempty patterns
+  are deferred pending sufficient historical evidence and unambiguous
+  engraving. Document that the four-note form has direct printed evidence and
+  that the five-note form follows the same final-note convention, supported by
+  Gregorio and the shared descending-tail construction.
+- Deleting an earlier constituent preserves a surviving valid mora; deleting
+  the marked constituent removes it rather than transferring it. The
+  contextual toolbar offers exactly None and Final note.
+- Review requests: exhaustive modifier-geometry coverage (including both final
+  mora states), focused marked deletion/movement/history/persistence/browser
+  tests, matched marked Gregorio comparisons, and the clef, mid-score-clef and
+  division browser drivers with a five-note clef-boundary insertion.
 
 ## Goal
 

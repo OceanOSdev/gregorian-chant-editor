@@ -265,8 +265,9 @@ New saves/exports write version **7**, adding the `pes-subpunctis` kind. Its
 notes with distinct global IDs and the contour p0 < p1 > p2 > p3 (> p4). There
 is no count or variant field: the array length is the only cardinality, and
 any extra neume field (for example `count` or `variant`) is rejected. Notes
-accept independent horizontal/vertical episemata only; authored forms and
-every nonempty mora subset are rejected under the provisional none-only scope.
+accept independent horizontal/vertical episemata and a mora on the final note
+only (the owner-approved none/final matrix); authored forms and every other
+nonempty mora subset are rejected.
 Other lengths are rejected, never truncated or padded.
 
 Exact v1–v6 readers retain their original kind and field whitelists and reject

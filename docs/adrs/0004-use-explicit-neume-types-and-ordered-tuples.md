@@ -64,7 +64,7 @@ neume types under the same decision. The current supported shapes are documented
 [domain model](../domain-model.md#supported-neumes-and-tuple-order).
 
 Bistropha and Tristropha were added under the same decision in
-[ADR 0022](0022-explicit-repeated-note-neumes.md). The **Proposed**
+[ADR 0022](0022-explicit-repeated-note-neumes.md). The **Accepted**
 [ADR 0023](0023-bounded-tuple-union-for-pes-subpunctis.md) narrowly qualifies
 the fixed-cardinality rule for one named family, Pes subpunctis, whose notes
 are a union of exactly two fixed tuples (four or five notes). Every other kind

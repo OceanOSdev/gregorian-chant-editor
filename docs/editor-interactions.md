@@ -896,4 +896,6 @@ reaches the menu item, not the covered button.
 Rejected single-note moves and rejected constituent deletions in a Pes
 subpunctis announce why (the contour must rise then strictly descend; the
 survivors would form no supported neume). The contextual note editor names the
-group by its cardinality and explains that mora authoring is unavailable.
+group by its cardinality and offers exactly two mora scopes, None and Final
+note (the last note of the actual group); horizontal and vertical episemata
+remain per-note controls.

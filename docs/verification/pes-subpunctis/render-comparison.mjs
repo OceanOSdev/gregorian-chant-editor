@@ -18,6 +18,13 @@ convert(
   '+repage',
   join(root, 'editor-engraving.png'),
 );
+convert(
+  join(captured, 'engraving-1440.png'),
+  '-crop',
+  '760x190+330+330',
+  '+repage',
+  join(root, 'editor-marked.png'),
+);
 const rows = [
   [
     'Mocquereau, Fig. 37 no. 21: pes subbipunctis (2nd with final mora)',
@@ -44,6 +51,14 @@ const rows = [
   [
     'Gregorio: final mora (i, m) and final-two (j, n), episema cases (k, l)',
     'gregorio-mora-cases.png',
+  ],
+  [
+    "Gregorio marked.gabc: fhGF. egFE. f_h_G'F_'. fiHGF. eiHGE. jkJH'G_. fgFD'C.",
+    'gregorio-marked.png',
+  ],
+  [
+    'Editor marked (system 2): ictus, signs + final mora, subbipunctis mora, Kyrie ictus + episema + mora',
+    'editor-marked.png',
   ],
   [
     'Editor (Chromium 1440px): both counts, line/space, wide, Kyrie fragments, signs, flat, wrapping',

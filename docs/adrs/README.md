@@ -151,8 +151,8 @@ ADR 0018 conservatively; historical expanded mora support remains deferred.
 Implementation in PR #74 was owner-accepted on 2026-11-13, based on automated
 browser verification and a qualitative reference comparison.
 
-[Proposed ADR 0023: Allow a bounded union of fixed tuples for Pes subpunctis](0023-bounded-tuple-union-for-pes-subpunctis.md)
+[Accepted ADR 0023: Allow a bounded union of fixed tuples for Pes subpunctis](0023-bounded-tuple-union-for-pes-subpunctis.md)
 records Stage 9B-1's one named family with four- or five-note tuples, narrowly
 qualifying ADR 0004 (which remains Accepted) and extending ADRs 0007, 0016 and
-0018 with native v7. Its mora matrix is provisionally none-only pending the
-owner's [mora gate](../verification/pes-subpunctis/README.md#mora-gate).
+0018 with native v7. Its owner-approved mora matrix is none or final note
+(2026-11-13); final-two remains deferred.

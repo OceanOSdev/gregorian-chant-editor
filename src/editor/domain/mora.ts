@@ -14,10 +14,10 @@ export function moraChoices(kind: Neume['kind']): readonly MoraChoice[] {
     case 'bistropha':
     case 'tristropha':
       return [none];
-    // Provisional Stage 9B-1 gate: none-only until the owner approves a
-    // sourced matrix (see docs/verification/pes-subpunctis/README.md).
+    // Owner-approved Stage 9B-1 matrix (ADR 0023): final note only, on the
+    // last note of the actual four- or five-note tuple. Final two is deferred.
     case 'pes-subpunctis':
-      return [none];
+      return [none, { value: 'final', label: 'Final note' }];
     case 'punctum':
       return [none, { value: 'sole', label: 'Sole note' }];
     case 'podatus':

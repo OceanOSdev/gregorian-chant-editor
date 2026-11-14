@@ -590,16 +590,19 @@ try {
       ),
       /fourth note of pes subtripunctis/,
     );
-    assert.equal(
+    // Owner-approved matrix: exactly None and Final note.
+    assert.deepEqual(
       await ev(
-        `document.querySelector('[aria-label="Mora scope"]').getAttribute('aria-disabled')`,
+        `[...document.querySelector('[aria-label="Mora scope"]').options].map(o=>[o.value,o.textContent])`,
       ),
-      'true',
+      [
+        ['none', 'None'],
+        ['final', 'Final note'],
+      ],
     );
-    assert.ok(
-      await ev(
-        `document.querySelector('.note-context-toolbar').textContent.includes('Mora authoring is unavailable for pes subtripunctis')`,
-      ),
+    assert.equal(
+      await ev(`document.querySelector('[aria-label="Mora scope"]').disabled`),
+      false,
     );
     await change('Vertical episema', 'on');
     await change('Horizontal episema', 'on');
@@ -650,7 +653,117 @@ try {
     await key('Delete');
     assert.deepEqual(await score(), marked);
     assert.match(await announcement(), /four descending notes/);
+    // Final-note mora: set by scope, kept on its stable note through
+    // deletion of an earlier note, removed (not transferred) with its note.
+    await select('p-1');
+    const scoped = (await change('Mora scope', 'final')).document;
+    assert.deepEqual(
+      scoped.neumes[1].notes.map((n) => n.mora ?? 0),
+      [0, 0, 0, 1],
+    );
+    await select('p-0');
+    await key('Delete');
+    const climacus = (await score()).neumes[1];
+    assert.equal(climacus.kind, 'climacus');
+    assert.deepEqual(
+      climacus.notes.map((n) => [n.id, n.mora ?? 0]),
+      [
+        ['p-1', 0],
+        ['p-2', 0],
+        ['p-3', 1],
+      ],
+    );
+    await undo();
+    assert.deepEqual(await score(), scoped);
+    await redo();
+    assert.deepEqual((await score()).neumes[1], climacus);
+    await undo();
+    await select('p-3');
+    await key('Delete');
+    const torculus = (await score()).neumes[1];
+    assert.equal(torculus.kind, 'torculus');
+    assert.ok(
+      torculus.notes.every((n) => !n.mora),
+      'mora not transferred',
+    );
+    await undo();
+    assert.deepEqual(await score(), scoped);
+    // Five-note group: final mora combined with the ictus episemata.
+    await select('k-0');
+    const kyrieMarked = (await change('Mora scope', 'final')).document;
+    assert.deepEqual(
+      kyrieMarked.neumes[0].notes.map((n) => [
+        n.mora ?? 0,
+        !!n.episema,
+        !!n.verticalEpisema,
+      ]),
+      [
+        [0, false, false],
+        [0, false, false],
+        [0, false, false],
+        [0, true, true],
+        [1, false, false],
+      ],
+    );
+    const markedBytes = await raw();
+    assert.equal(JSON.parse(markedBytes).version, 7);
+    await navigate();
+    assert.equal(await raw(), markedBytes, 'reload keeps marked v7 bytes');
+    assert.deepEqual(await score(), kyrieMarked);
     await snapshot('interaction-' + width);
+    // Five-note insertion through the clef-boundary Insert controls, which
+    // share the interaction-boundary ID allocator.
+    await hydrate({
+      ...base,
+      document: {
+        ...base.document,
+        neumes: [punctum('a', 2), punctum('b', 3)],
+        clefChanges: [
+          {
+            id: 'C',
+            clef: { type: 'c', staffLine: 3 },
+            beforeNeumeId: 'b',
+            beforeDivisionId: null,
+          },
+        ],
+      },
+    });
+    await choose('pes-subtripunctis');
+    await pointer('[data-tool="select"]');
+    for (const side of ['after', 'before']) {
+      await pointer('[data-clef-change-id="C"]');
+      const before = await score();
+      const label = `Insert Pes subtripunctis ${side} clef`;
+      assert.ok(
+        await ev(
+          `[...document.querySelectorAll('button')].some(b=>b.textContent.trim()===${JSON.stringify(label)})`,
+        ),
+        label,
+      );
+      await ev(
+        `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(label)}).click()`,
+      );
+      await pause();
+      const after = await score();
+      const added = after.neumes.filter(
+        (n) => !before.neumes.some((o) => o.id === n.id),
+      );
+      assert.equal(added.length, 1, side);
+      assert.equal(added[0].kind, 'pes-subpunctis');
+      assert.equal(added[0].notes.length, 5);
+      assert.equal(
+        new Set([added[0].id, ...added[0].notes.map((n) => n.id)]).size,
+        6,
+      );
+      const clefAnchor = after.clefChanges[0].beforeNeumeId;
+      if (side === 'after') assert.equal(clefAnchor, added[0].id);
+      else
+        assert.equal(
+          after.neumes[after.neumes.findIndex((n) => n.id === added[0].id) + 1]
+            .id,
+          clefAnchor,
+        );
+    }
     // Specimens: both counts, adjacent/wider intervals, line/space, signs,
     // Kyrie XI fragments, lyrics, neighbors and an accidental; plus wrapping.
     const specimen = {
@@ -662,7 +775,7 @@ try {
           pes('bi-line', [2, 4, 3, 2]),
           pes('bi-space', [1, 3, 2, 1]),
           pes('bi-wide', [0, 4, 2, -1]),
-          pes('tri-line', [2, 5, 4, 3, 2]),
+          pes('tri-line', [2, 5, 4, 3, 2], { 4: { mora: 1 } }),
           pes('tri-space', [1, 4, 3, 2, 1]),
           punctum('z', 3),
           pes('christe', [6, 7, 6, 4, 3], { 3: { verticalEpisema: true } }),
@@ -671,7 +784,12 @@ try {
             0: { episema: true },
             1: { episema: true },
             2: { verticalEpisema: true },
-            3: { episema: true, verticalEpisema: true },
+            3: { episema: true, verticalEpisema: true, mora: 1 },
+          }),
+          pes('bi-mora', [1, 3, 2, 1], { 3: { mora: 1 } }),
+          pes('tri-signs', [6, 7, 6, 4, 3], {
+            3: { verticalEpisema: true },
+            4: { episema: true, mora: 1 },
           }),
           pes('flat', [5, 6, 5, 4]),
           ...Array.from({ length: 10 }, (_, i) =>
@@ -712,7 +830,7 @@ try {
     const groups = await ev(
       `[...document.querySelectorAll('g[data-neume-kind="pes-subpunctis"]')].map(n=>{const b=n.getBBox();return {w:b.width,h:b.height}})`,
     );
-    assert.equal(groups.length, 19);
+    assert.equal(groups.length, 21);
     assert.ok(
       groups.every((g) => g.w > 0 && g.h < 160),
       'whole groups',

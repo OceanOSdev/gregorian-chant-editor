@@ -1,10 +1,10 @@
 # Stage 9B-1: Pes subpunctis implementation record
 
-Status: **implemented, in review, mora gate open.** Implemented under the
-committed [plan](../../plans/stage-9b1-pes-subpunctis.md) and the **Proposed**
-[ADR 0023](../../adrs/0023-bounded-tuple-union-for-pes-subpunctis.md). Mora is
-**provisionally none-only** and the PR must not merge until the owner resolves
-the [mora gate](#mora-gate).
+Status: **implemented, in final review (PR #75).** Implemented under the
+committed [plan](../../plans/stage-9b1-pes-subpunctis.md) and the **Accepted**
+[ADR 0023](../../adrs/0023-bounded-tuple-union-for-pes-subpunctis.md). The
+owner approved the bounded-tuple design and the none/final mora matrix on
+2026-11-13; see [mora decision](#mora-gate).
 
 ## What is implemented
 
@@ -21,7 +21,7 @@ the [mora gate](#mora-gate).
   Climacus output was verified byte-identical after the shared tail extraction
   (4,000 cases recorded before and after the refactor).
 - Independent horizontal/vertical episemata on every note; length-aware mora
-  indexes; provisional none-only mora.
+  indexes; owner-approved none/final-note mora.
 - Strict native v7; exact v1–v6 readers reject the kind.
 
 ## Reference evidence
@@ -64,24 +64,37 @@ records. No new example score was bundled.
 
 ## Mora gate
 
-The plan requires sourced, unambiguous patterns before enabling any new mora.
+Resolved by the owner on 2026-11-13: **none or final note** for both
+cardinalities. Final-two and every other nonempty subset are deferred until
+there is sufficient historical evidence and unambiguous engraving.
 
-| Pattern       | Printed evidence found                                                                              | Gregorio rendering                                                                                                                                           | Proposal                  |
-| ------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
-| None          | All examples                                                                                        | n/a                                                                                                                                                          | Allow (implemented)       |
-| Final note    | Mocquereau Fig. 37 no. 21 (dot after the final diamond; the transcription lengthens only that note) | `fhGF.`, `fiHGF.`: one dot right of the last diamond, unambiguous ownership                                                                                  | **Proposed for approval** |
-| Final two     | None found in Mocquereau, Demetria or the Kyrie XI page                                             | `fhG.F.`, `fiHG.F.`: auctum-duplex column after the last diamond; the upper dot sits inside the descending stagger, so ownership is less clear than in print | Unresolved, keep disabled |
-| Earlier notes | None                                                                                                | Not investigated (out of scope)                                                                                                                              | Not allowed               |
+| Pattern       | Printed evidence found                                                                              | Gregorio rendering                                                                                                                                           | Decision |
+| ------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| None          | All examples                                                                                        | n/a                                                                                                                                                          | Allowed  |
+| Final note    | Mocquereau Fig. 37 no. 21 (dot after the final diamond; the transcription lengthens only that note) | `fhGF.`, `fiHGF.` and the marked cases in `marked.gabc`: one dot right of the last diamond, unambiguous ownership                                            | Allowed  |
+| Final two     | None found in Mocquereau, Demetria or the Kyrie XI page                                             | `fhG.F.`, `fiHG.F.`: auctum-duplex column after the last diamond; the upper dot sits inside the descending stagger, so ownership is less clear than in print | Deferred |
+| Earlier notes | None                                                                                                | Not investigated (out of scope)                                                                                                                              | Deferred |
 
-Implementation state: commands, contextual UI and native decoding accept only
-`none`. `moraIndexes` is length-aware, so enabling `final` would be a one-line
-change to `moraChoices('pes-subpunctis')`. `pes-subpunctis-geometry.test.ts`
-already checks that a final-note dot is placed right of the last diamond, as
-evidence only.
+**Strength of evidence differs by cardinality.** The four-note form has a
+direct printed example (Mocquereau Fig. 37 no. 21). No printed five-note
+example with a final mora was found in the sources examined. The five-note
+form is allowed by the same final-note convention: Gregorio renders it with
+identical, unambiguous ownership (`fiHGF.`, `eiHGE.`, `jkJH'G_.`, `fgFD'C.`),
+and the editor uses the same descending-tail construction and sign placement
+for both counts.
 
-**Owner decision requested:** (1) keep none-only, or (2) approve {none, final}
-based on Mocquereau Fig. 37 and Gregorio. Final-two stays out without further
-printed evidence either way. ADR 0018 and ADR 0023 will record the decision.
+Implementation: `moraChoices('pes-subpunctis')` offers None and Final note.
+The final note is derived from the actual tuple length (index 3 or 4), and the
+mark belongs to that stable note ID. Commands and native decoding reject every
+other subset. Deleting an earlier note keeps a surviving final mora on its own
+note (in the resulting Pes subpunctis, Torculus or Climacus); deleting the
+marked note removes the mora and never transfers it to the new final note.
+
+`gregorio-marked.png` (`marked.gabc`, `marked.tex`) and `editor-marked.png`
+compare marked groups of both counts, including a final mora combined with
+episemata and the Kyrie ictus. Both place the dot after the last diamond in
+that note's row. Episema placement details differ qualitatively, for example
+whether a Podatus episema sits above or below.
 
 ## Actual verification (2026-11-13)
 
@@ -133,6 +146,70 @@ recorded). The driver detects this and switches families by keyboard (Escape,
 then Enter on the Podatus chevron). Headless Firefox emits no blur for
 programmatic `focus()`, so Escape is used rather than a focus move.
 
+## Review revision: approved mora and coverage (2026-11-13)
+
+After the owner's review of `be79a1e`:
+
+- **Mora:** None and Final note are enabled (see [mora decision](#mora-gate)).
+- **Pure tests:**
+  - `domain/pes-subpunctis.test.ts` checks every mora subset of three contours
+    against an independent rule (valid iff empty or only the last note);
+  - scope and per-note edits;
+  - movement, transposition, deletion of earlier and marked notes (five to
+    four, and four to Climacus/Torculus), rejected survivors, one-entry
+    history with exact undo, and v7 round trip with v2–v6 rejection.
+- **Exhaustive modifier geometry:** `layout/pes-subpunctis-geometry.test.ts`
+  renders every horizontal/vertical episema combination × final mora on/off
+  for eight contours (11,776 geometries): `[2,4,3,2]`, `[1,3,2,1]`,
+  `[0,4,2,-1]`, `[2,5,4,3,2]`, `[1,4,3,2,1]`, `[5,9,8,6,3]` and both Kyrie
+  fragments. For each, it checks:
+  - unchanged notation ink;
+  - exact sign counts by type;
+  - per-note modifier ownership: horizontal episemata on their own note,
+    vertical episemata within ±15 units, the dot right of the final diamond
+    in its row;
+  - all ink inside the measured bounds;
+  - no exceptions.
+
+  This replaces the earlier sampled (step 7) five-note loop.
+
+- **Browser driver additions:**
+  - the Mora scope options are exactly None/Final note and enabled;
+  - a Final note scope edit, then deleting an earlier note (mora kept on
+    `p-3` in the resulting Climacus) with undo/redo;
+  - deleting the marked note (Torculus with no mora);
+  - a five-note final mora combined with the ictus, persisted across reload;
+  - marked specimens;
+  - five-note insertion through both "Insert Pes subtripunctis before/after
+    clef" controls, with distinct IDs and correct clef anchoring.
+- **Clef/division drivers** (dev server; port-substituted copies, 9230→9250
+  and 5173→5180, otherwise unedited):
+
+  | Driver            | Chromium | Firefox               |
+  | ----------------- | -------- | --------------------- |
+  | `clefs`           | pass     | n/a (CDP-only driver) |
+  | `mid-score-clefs` | pass     | pass                  |
+  | `divisions`       | pass     | pass                  |
+
+An earlier attempt at these drivers was interrupted when the host laptop
+suspended mid-run. After a clean restart of servers and browsers, each driver
+ran separately with its own log and hard kill, and all passed.
+
+Repository gate after the revision: `format:check`, `lint`, `npm test` (85
+files, 1,801 tests) and `build` passed. Preview regression results:
+
+All 20 runs passed on the revised build: the `pes-subpunctis`,
+`repeated-note-neumes`, `b-accidentals` (both), `bundled-example`,
+`local-persistence`, `note-modifiers`, `note-shapes` and `vertical-episemata`
+(both) drivers, each in headless Chromium 157 and Firefox 146 against the
+production preview, run sequentially with per-driver logs and a 10-minute hard
+kill.
+
+Observation: in same-word continuations the existing word-compaction policy
+(ADR 0011) places the next neume close after a trailing mora dot. A layout
+probe showed identical gaps for Climacus and Pes subpunctis with and without
+a final mora, so this is existing uniform behavior, not a new rule.
+
 ### Not performed
 
 - Foreground owner interaction in Chromium and Firefox (real pointer, real
@@ -145,7 +222,7 @@ programmatic `focus()`, so Escape is used rather than a focus move.
 
 ## Remaining limitations
 
-- Mora is provisionally none-only; the gate above is open.
+- Final-two and earlier-note morae are deferred (owner decision).
 - Extended Scandicus/Climacus, other subpunctis families, intra-syllable
   fusion, liquescence, GABC interchange and the complete Kyrie XI remain later
   work.

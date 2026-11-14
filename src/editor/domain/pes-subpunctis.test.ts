@@ -172,12 +172,14 @@ describe('pes subpunctis semantic family', () => {
     ).toEqual([2, 5, 4, 3, 2]);
   });
 
-  it('keeps mora provisionally none-only, with length-aware indexes and every prior pattern unchanged', () => {
+  it('allows exactly none or a final-note mora, derived from the actual tuple length', () => {
     expect(moraChoices('pes-subpunctis')).toEqual([
       { value: 'none', label: 'None' },
+      { value: 'final', label: 'Final note' },
     ]);
     expect(moraIndexes('final', 3)).toEqual([2]);
     expect(moraIndexes('final-two', 3)).toEqual([1, 2]);
+    expect(moraIndexes('final', 4)).toEqual([3]);
     expect(moraIndexes('final', 5)).toEqual([4]);
     expect(moraIndexes('final-two', 4)).toEqual([2, 3]);
     for (const kind of [
@@ -191,40 +193,154 @@ describe('pes subpunctis semantic family', () => {
         'final',
         'final-two',
       ]);
-    for (const pitches of [[2, 4, 3, 2], kyrie.christe]) {
+    for (const pitches of [[2, 4, 3, 2], kyrie.christe, [2, 5, 4, 3, 2]]) {
       const doc = fixture(pitches);
+      const last = pitches.length - 1;
+      const finalMask = 1 << last;
+      // Independent of moraChoices: only the empty set and the last note.
       for (let mask = 0; mask < 2 ** pitches.length; mask++) {
         const copy = structuredClone(doc);
         copy.neumes[0].notes.forEach((n, i) => {
           if (mask & (1 << i)) n.mora = 1;
         });
-        expect(isValidNeume(copy.neumes[0])).toBe(mask === 0);
+        const valid = mask === 0 || mask === finalMask;
+        expect(isValidNeume(copy.neumes[0])).toBe(valid);
         expect(
           resolveMoraScope(
             'pes-subpunctis',
             copy.neumes[0].notes.map((n) => n.mora),
           ),
-        ).toBe(mask ? null : 'none');
-        if (mask) expect(() => decodeDocument(envelope(copy, 7))).toThrow();
+        ).toBe(mask === 0 ? 'none' : valid ? 'final' : null);
+        if (valid) expect(decodeDocument(envelope(copy, 7))).toEqual(copy);
+        else expect(() => decodeDocument(envelope(copy, 7))).toThrow();
+        if (!valid) expect(() => encodeDocument(copy)).toThrow();
       }
       for (const scope of [
         'sole',
         'first',
         'second',
         'both',
-        'final',
         'final-two',
       ] satisfies MoraScope[])
         expect(updateMoraScope(doc, 'g', scope)).toBe(doc);
-      expect(getMoraScope(doc.neumes[0])).toBe('none');
-      for (const note of doc.neumes[0].notes) {
-        expect(
-          updateNoteModifiers(doc, note.id, { kind: 'mora', value: 1 }),
-        ).toBe(doc);
+      const marked = updateMoraScope(doc, 'g', 'final');
+      expect(getMoraScope(marked.neumes[0])).toBe('final');
+      expect(marked.neumes[0].notes.map((n) => n.mora)).toEqual(
+        pitches.map((_, i) => (i === last ? 1 : undefined)),
+      );
+      // Unaffected notes keep their objects; the mark sits on the stable ID.
+      marked.neumes[0].notes
+        .slice(0, last)
+        .forEach((n, i) => expect(n).toBe(doc.neumes[0].notes[i]));
+      expect(marked.neumes[0].notes[last].id).toBe('n' + last);
+      expect(updateMoraScope(marked, 'g', 'none')).toEqual(doc);
+      expect(updateMoraScope(marked, 'g', 'final')).toBe(marked);
+      doc.neumes[0].notes.forEach((note, index) => {
+        const single = updateNoteModifiers(doc, note.id, {
+          kind: 'mora',
+          value: 1,
+        });
+        if (index === last) expect(single).toEqual(marked);
+        else expect(single).toBe(doc);
         for (const form of ['virga', 'inclinatum', 'quilisma'] as const)
           expect(updateNoteForm(doc, note.id, form)).toBe(doc);
-      }
+      });
+      // A second mark on the marked group is never accepted.
+      for (let i = 0; i < last; i++)
+        expect(
+          updateNoteModifiers(marked, 'n' + i, { kind: 'mora', value: 1 }),
+        ).toBe(marked);
     }
+  });
+
+  it('keeps a final-note mora on its stable note through movement, deletion, history and v7 persistence', () => {
+    const marked = (pitches: number[]) =>
+      updateMoraScope(fixture(pitches), 'g', 'final');
+    // Movement never moves the mark.
+    const five = marked([2, 5, 4, 3, 2]);
+    const moved = moveNoteVertically(five, 'n4', -1);
+    expect(moved.neumes[0].notes[4]).toMatchObject({ id: 'n4', mora: 1 });
+    const transposed = moveNeumeVertically(five, 'g', 2);
+    expect(transposed.neumes[0].notes.map((n) => n.mora)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      1,
+    ]);
+    // Deleting an earlier constituent keeps the surviving final mora.
+    const fiveToFour = deleteNote(five, 'n1');
+    expect(fiveToFour.neumes[0].kind).toBe('pes-subpunctis');
+    expect(fiveToFour.neumes[0].notes.at(-1)).toBe(five.neumes[0].notes[4]);
+    expect(getMoraScope(fiveToFour.neumes[0])).toBe('final');
+    const four = marked([2, 4, 3, 2]);
+    for (const [deleted, kind] of [
+      ['n0', 'climacus'],
+      ['n2', 'torculus'],
+      ['n1', 'torculus'],
+    ] as const) {
+      const result = deleteNote(four, deleted).neumes[0];
+      expect(result.kind).toBe(kind);
+      expect(result.notes.at(-1)).toBe(four.neumes[0].notes[3]);
+      expect(getMoraScope(result)).toBe('final');
+    }
+    // Deleting the marked note removes the mora; it never transfers.
+    const withoutMark = deleteNote(five, 'n4').neumes[0];
+    expect(withoutMark.kind).toBe('pes-subpunctis');
+    expect(withoutMark.notes.map((n) => n.id)).toEqual([
+      'n0',
+      'n1',
+      'n2',
+      'n3',
+    ]);
+    expect(withoutMark.notes.some((n) => n.mora)).toBe(false);
+    const fourWithoutMark = deleteNote(four, 'n3').neumes[0];
+    expect(fourWithoutMark.kind).toBe('torculus');
+    expect(fourWithoutMark.notes.some((n) => n.mora)).toBe(false);
+    // Unsupported survivors still reject with the mark intact.
+    expect(deleteNote(five, 'n0')).toBe(five);
+    // Persistence and exact v1–v6 rejection keep the mark untouched.
+    const text = encodeDocument(five);
+    expect(JSON.parse(text).version).toBe(7);
+    expect(decodeDocument(text)).toEqual(five);
+    for (const version of [2, 3, 4, 5, 6]) {
+      const payload = JSON.parse(text);
+      payload.version = version;
+      if (version < 5) delete payload.document.accidentals;
+      expect(() => decodeDocument(JSON.stringify(payload))).toThrow();
+    }
+    // History: one entry per accepted edit, exact undo/redo.
+    let session = createEditorSession(fixture([2, 5, 4, 3, 2]));
+    const original = session.history.present;
+    session = reduceEditorSession(session, {
+      type: 'edit',
+      edit: (d) => updateMoraScope(d, 'g', 'final'),
+    });
+    const scoped = session.history.present;
+    expect(scoped).toEqual(five);
+    session = reduceEditorSession(session, {
+      type: 'edit',
+      formDeletionNoteId: 'n1',
+      edit: (d) => deleteNote(d, 'n1'),
+    });
+    expect(session.history.present).toEqual(fiveToFour);
+    session = reduceEditorSession(session, {
+      type: 'history',
+      direction: 'undo',
+      focusedNoteId: null,
+    });
+    expect(session.history.present).toBe(scoped);
+    session = reduceEditorSession(session, {
+      type: 'history',
+      direction: 'undo',
+      focusedNoteId: null,
+    });
+    expect(session.history.present).toBe(original);
+    const rejected = reduceEditorSession(session, {
+      type: 'edit',
+      edit: (d) => updateMoraScope(d, 'g', 'final-two'),
+    });
+    expect(rejected.history).toBe(session.history);
   });
 
   it('authors independent horizontal and vertical episemata on every constituent, including the Kyrie ictus', () => {
@@ -453,7 +569,12 @@ describe('pes subpunctis native v7', () => {
       (p) => (p.document.neumes[0].notes[3].staffPosition = 4),
       (p) => (p.document.neumes[0].notes[3].id = 'n2'),
       (p) => (p.document.neumes[0].notes[2].form = 'inclinatum'),
-      (p) => (p.document.neumes[0].notes[4].mora = 1),
+      (p) => (p.document.neumes[0].notes[3].mora = 1),
+      (p) => {
+        p.document.neumes[0].notes[3].mora = 1;
+        p.document.neumes[0].notes[4].mora = 1;
+      },
+      (p) => (p.document.neumes[0].notes[4].mora = 2),
       (p) => (p.document.neumes[0].count = 5),
       (p) => (p.document.neumes[0].variant = 'subtripunctis'),
       (p) => (p.document.neumes[0].kind = 'pes-subtripunctis'),

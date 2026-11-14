@@ -382,7 +382,10 @@ resulting contour remains valid; whole-neume moves transpose every note.
 Constituent deletion follows the
 [domain normalization contract](domain-model.md#pes-subpunctis-stage-9b-1);
 rejected moves and deletions return the original document, create no history
-or autosave entry, and announce the reason. Mora scope edits and nonempty
-per-note mora edits are rejected under the provisional none-only scope. Mora
+or autosave entry, and announce the reason. The contextual
+Final note scope edit marks only the last note of the actual tuple in one
+history entry; a per-note mora edit is accepted only on that note. Final-two
+and every other nonempty subset return the original document. Deletion and
+movement keep a mark on its stable note and never transfer it. Mora
 scope indexes are derived from the actual tuple length (`moraIndexes(scope,
 length)`); all prior kinds keep `final` = [2] and `final-two` = [1, 2].

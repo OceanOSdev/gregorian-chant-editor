@@ -364,7 +364,12 @@ must keep the contour valid; whole-neume moves transpose every note.
 Every constituent supports independent horizontal and vertical episemata
 (including the Kyrie XI ictus on the inner descending note). The derived
 diamond is not an authored inclinatum, and no authored Virga, Inclinatum or
-Quilisma context is added. Mora is **provisionally none-only** pending owner
-review of the sourced matrix in the
+Quilisma context is added. Mora is owner-approved as exactly **none** or
+**final note** (the last note of the actual tuple), recorded in ADRs 0018 and
+0023 with the evidence in the
 [verification record](verification/pes-subpunctis/README.md#mora-gate).
+Final-two and other nonempty subsets are rejected. Deleting an earlier note
+keeps a surviving final mora on its own note (in the resulting Pes
+subpunctis, Torculus or Climacus); deleting the marked note removes the mora
+and never transfers it to the new final note.
 ADR 0021 B ownership applies unchanged, including contours that revisit B.

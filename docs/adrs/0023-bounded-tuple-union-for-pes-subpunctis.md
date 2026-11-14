@@ -4,15 +4,13 @@ Date: 2026-11-13
 
 ## Status
 
-Proposed. Narrowly qualifies the fixed-cardinality rule of
+Accepted (owner-approved 2026-11-13, including the mora matrix below).
+Narrowly qualifies the fixed-cardinality rule of
 [ADR 0004](0004-use-explicit-neume-types-and-ordered-tuples.md) for one named
-family; ADR 0004 remains Accepted and is not superseded. Extends ADRs 0007,
-0016 and 0018. ADR 0021's accidental ownership and scope are unchanged. The
-owner agreed to begin this bounded-family approach in the Stage 9B-1
-[plan](../plans/stage-9b1-pes-subpunctis.md); acceptance follows PR review.
-
-**Open gate:** the mora matrix below is provisional (none-only) until the owner
-decides the [mora gate](../verification/pes-subpunctis/README.md#mora-gate).
+family; ADR 0004 remains Accepted and its explicit-kind contract is not
+superseded. Extends ADRs 0007, 0016 and 0018. ADR 0021's accidental ownership
+and scope are unchanged. Implemented in PR #75 under the Stage 9B-1
+[plan](../plans/stage-9b1-pes-subpunctis.md).
 
 ## Context
 
@@ -43,9 +41,20 @@ cardinality that ADR 0004 protects.
   else (four descending notes, equal adjacent pitches) is rejected.
 - Geometry reuses the approved Podatus and the Climacus diamond tail with
   pairwise disjoint pointer regions; no connector or apex stem is added.
-- Mora (provisional): none-only. Mora scope indexes are derived from the tuple
-  length, so every prior pattern is unchanged. The proposed sourced matrix is
-  {none, final note}; final-two is unresolved. See the gate record.
+- Mora (owner-approved): exactly **none** or **final note** for both
+  cardinalities. The final note is the last note of the actual tuple (index 3
+  or 4); the mark stays on that stable note ID. Final-two and every other
+  nonempty subset are deferred until sufficient historical evidence and
+  unambiguous engraving exist. Commands and native decoding reject them. Mora
+  scope indexes are derived from the tuple length, so every prior pattern is
+  unchanged. Evidence: a direct printed example for the four-note form
+  (Mocquereau Fig. 37 no. 21); the five-note form follows the same final-note
+  convention, supported by Gregorio and the shared descending-tail
+  construction rather than a printed five-note example. See the
+  [verification record](../verification/pes-subpunctis/README.md#mora-gate).
+- Deletion never moves a mora: deleting an earlier note keeps a surviving
+  final mark (valid in Pes subpunctis, Torculus and Climacus), and deleting
+  the marked note removes the mark rather than transferring it.
 - Native v7 introduces the kind; exact v1–v6 readers reject it.
 
 ## Consequences
@@ -61,4 +70,4 @@ cardinality that ADR 0004 protects.
 - Consumers must handle a union tuple for this kind instead of indexing a fixed
   length; switches use the bounded helper.
 - Older builds cannot read v7 files, including files without the new kind.
-- Mora authoring is unavailable for the family until the gate is resolved.
+- Final-two and earlier-note morae cannot be authored for this family.

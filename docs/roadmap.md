@@ -240,10 +240,9 @@ already failing before Stage 9A.
 
 **In review.** Pes subbipunctis and Pes subtripunctis as one bounded semantic
 family with a Podatus split control, following the
-[plan](plans/stage-9b1-pes-subpunctis.md) and the **Proposed**
+[plan](plans/stage-9b1-pes-subpunctis.md) and the **Accepted**
 [ADR 0023](adrs/0023-bounded-tuple-union-for-pes-subpunctis.md). New saves
 write native v7; exact v1–v6 readers reject the new kind. Mora is
-**provisionally none-only** pending the owner's decision on the sourced
-[mora gate](verification/pes-subpunctis/README.md#mora-gate); this cannot merge
-until that gate is resolved. Extended Scandicus/Climacus, other subpunctis
+owner-approved as none or final note; final-two is deferred pending further
+evidence (see the [mora record](verification/pes-subpunctis/README.md#mora-gate)). Extended Scandicus/Climacus, other subpunctis
 families, intra-syllable fusion and the complete Kyrie XI remain later work.
