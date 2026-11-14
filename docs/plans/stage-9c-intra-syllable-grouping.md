@@ -3,8 +3,15 @@
 Branch: `design/stage-9c-intra-syllable-grouping`
 Target: `master`
 Base: `eb3dd67` (PR #81 merged after Stage 9B-3).
-Status: design/research only; owner decisions pending. No implementation
-is authorized by this plan.
+Status: bounded design/research complete (2026-11-14); owner Gates A–D and
+Proposed ADR 0026 pending. No implementation is authorized by this plan.
+
+Deliverable: [reference and decision record](../verification/intra-syllable-grouping/README.md),
+including actual print crops and matched reference inputs/renderings, and
+[Proposed ADR 0026](../adrs/0026-derived-intra-syllable-spacing.md).
+Recommendation: retain anchor-derived membership/native v9, close independent
+engraving with conservative barriers, and existing editing operations. Stop
+for owner review; implementation checkpoints require a separate approval.
 
 ## Goal and current baseline
 
@@ -54,6 +61,7 @@ not generalize this one measurement to all pairs. Distinguish two
 ordinary puncta from Bistropha/Tristropha or other authored forms.
 
 Inspect actual Roman/Solesmes print examples, including:
+
 - the Requiem gradual (GregoBase id 1261), et(hh) and the longer
   perpetua melisma, and an ordinary word-spacing control;
 - Kyrie XI Orbis Factor (GregoBase id 2982; Liber Usualis p. 46),
@@ -64,6 +72,7 @@ Inspect actual Roman/Solesmes print examples, including:
   cross-system continuation, if a suitable case is located.
 
 Primary starting references:
+
 - [Requiem gradual, GregoBase](https://gregobase.selapa.net/chant.php?id=1261)
 - [Kyrie XI, GregoBase](https://gregobase.selapa.net/chant.php?id=2982)
 - [Liber Usualis scan](https://archive.ccwatershed.org/media/pdfs/18/11/29/00-45-28_0.pdf)
@@ -89,6 +98,7 @@ transcribe the entire Kyrie or exhaustively search all chant books.
 ### A. Semantic scope and native compatibility
 
 Compare three approaches:
+
 1. Retain anchor-derived syllable membership and derive contextual
    spacing between adjacent independent neumes; no new persistent
    fields (preferred initial hypothesis).
@@ -116,6 +126,7 @@ rewrites or autosave cache key changes.
 Propose a general contextual spacing policy with an evidence-supported
 initial metric range and rules for eligible boundaries. Explicitly
 distinguish:
+
 - two independent neumes within the same derived syllable;
 - successive distinct syllables of the same word (existing compaction);
 - new word and lyricless music (ordinary rule);
