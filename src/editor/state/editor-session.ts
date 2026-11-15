@@ -140,6 +140,11 @@ export interface EditorSession {
   /** Visible explanation of the last failed copy/paste; spoken once via announcement. */
   clipboardFeedback: string | null;
   noteFormError: string | null;
+  /**
+   * Increments with every engraving-edit rejection, so a repeated identical
+   * reason remounts its single role="alert" and is announced again.
+   */
+  noteFormErrorSequence: number;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
   keyboardClefPlacement: ClefPlacementCursor | null;
@@ -245,7 +250,7 @@ export type EditorAction =
   | {
       type: 'engraving-edit';
       edit: DocumentEdit;
-      /** Visible, announced reason when the edit leaves the document unchanged. */
+      /** Visible role="alert" reason when the edit leaves the document unchanged. */
       rejection?: string;
       /** Announced when the edit changes the document. */
       announcement?: string;
@@ -311,6 +316,7 @@ export function createEditorSession(
     clipboard,
     clipboardFeedback: null,
     noteFormError: null,
+    noteFormErrorSequence: 0,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
     keyboardClefPlacement: null,
@@ -679,12 +685,15 @@ function reduceSessionAction(
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;
       const history = applyDocumentEdit(state.history, action.edit);
+      // The visible role="alert" reason is the one announcement; repeating it
+      // in the polite live region would announce the rejection twice.
       if (history === state.history)
         return action.rejection
-          ? announce(
-              { ...state, noteFormError: action.rejection },
-              action.rejection,
-            )
+          ? {
+              ...state,
+              noteFormError: action.rejection,
+              noteFormErrorSequence: state.noteFormErrorSequence + 1,
+            }
           : state;
       const next = { ...state, history, noteFormError: null };
       return action.announcement ? announce(next, action.announcement) : next;

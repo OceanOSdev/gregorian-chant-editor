@@ -341,6 +341,13 @@ const toolbar = () =>
     controls:[...t.querySelectorAll('select,button')].map(c=>c.getAttribute('aria-label')??c.textContent.trim()),
     visible:r.width>0&&r.height>0&&getComputedStyle(t).visibility==='visible'&&r.left>=0&&r.right<=innerWidth+1,
   }})()`);
+/** Rejection feedback: role="alert" count, visible alerts, live duplicate. */
+const rejectionFeedback = () =>
+  ev(`(()=>{const alerts=[...document.querySelectorAll('[role="alert"]')].filter(a=>/Edit rejected/.test(a.textContent));return {
+    alerts:alerts.length,
+    visible:alerts.filter(a=>{const r=a.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(a).visibility==='visible'}).length,
+    live:/Edit rejected/.test(document.querySelector('.editor-announcement')?.textContent??''),
+  }})()`);
 const figures = () =>
   ev(
     `[...document.querySelectorAll('g[data-neume-id]')].map(g=>({id:g.dataset.neumeId,kind:g.dataset.neumeKind,figure:g.dataset.liquescentFigure??null,labels:[...g.querySelectorAll('[data-note-id]')].map(n=>n.getAttribute('aria-label'))}))`,
@@ -628,13 +635,85 @@ try {
     t = await toolbar();
     assert.match(t.error, /Remove marks from the second note first/);
     assert.equal(t.appearance, 'ordinary');
-    assert.match(
-      await announcement(),
-      /Remove marks from the second note first/,
+    assert.deepEqual(await rejectionFeedback(), {
+      alerts: 1,
+      visible: 1,
+      live: false,
+    });
+    await key('Escape');
+    // Whole-neume rejection: one visible alert, no bottom fallback, no live
+    // duplicate; document, history and appearance unchanged.
+    await select('cis-0');
+    await key('Enter', { shift: true });
+    await key('Tab');
+    t = await toolbar();
+    assert.equal(t.neumeFor, 'cis');
+    assert.equal(t.noteFor, null);
+    const undoBefore = await ev(
+      `document.querySelector('button[aria-label="Undo last edit"]').disabled`,
+    );
+    await changeSelect('Appearance', 'diminutive');
+    assert.equal(await raw(), marked, 'whole-neume rejection keeps bytes');
+    t = await toolbar();
+    assert.match(t.error, /Remove marks from the second note first/);
+    assert.equal(t.appearance, 'ordinary');
+    assert.deepEqual(await rejectionFeedback(), {
+      alerts: 1,
+      visible: 1,
+      live: false,
+    });
+    assert.equal(
+      await ev(
+        `document.querySelector('button[aria-label="Undo last edit"]').disabled`,
+      ),
+      undoBefore,
+      'no history entry',
+    );
+    assert.equal(
+      await ev(`!!document.querySelector('[data-selected-neume-id="cis"]')`),
+      true,
+      'whole-neume selection kept',
     );
     await key('Escape');
 
-    // 6. Whole-neume selection exposes only the appearance control.
+    // 6. Whole-neume toolbar entered from the second constituent returns
+    // focus there on Escape and on Shift+Tab, keeping whole-neume selection.
+    for (const exit of ['Escape', 'Shift+Tab']) {
+      await select('er-1');
+      await key('Enter', { shift: true });
+      assert.equal(
+        await ev(`!!document.querySelector('[data-selected-neume-id="er"]')`),
+        true,
+      );
+      await key('Tab');
+      assert.equal(
+        await ev(
+          `document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.tagName`,
+        ),
+        'Appearance',
+      );
+      if (exit === 'Escape') await key('Escape');
+      else await key('Tab', { shift: true });
+      assert.equal(
+        await ev(`document.activeElement?.dataset?.noteId ?? null`),
+        'er-1',
+        `${exit} returns to the entry constituent`,
+      );
+      assert.equal(
+        await ev(`!!document.querySelector('[data-selected-neume-id="er"]')`),
+        true,
+        `${exit} keeps whole-neume selection`,
+      );
+      assert.equal(
+        await ev(
+          `(()=>{const r=document.activeElement.getBoundingClientRect(),t=document.querySelector('.editor-sticky-toolbar');const top=getComputedStyle(t).position==='sticky'?t.getBoundingClientRect().bottom:0;return r.top>=top-1&&r.bottom<=innerHeight+1})()`,
+        ),
+        true,
+        `${exit} focus visible`,
+      );
+      await key('Escape');
+    }
+    // 6b. Whole-neume selection exposes only the appearance control.
     await select('er-0');
     await key('Enter', { shift: true });
     await key('Tab');
@@ -755,7 +834,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'Podatus family (5 options) and new Clivis family; owner v9 WIP hydrated without write and continued with Ad te via after-division insertion, remembered I insertion, pitch moves and lyrics (Ad/epiphonus/te, v10 save, WIP prefix unchanged); all six inventory figures engraved with labels and score count; Podatus Appearance selector transitions with stable IDs and retained selection; second-note marks disabled with explanation; Clivis Liquescent toggle; visible/announced rejection with no autosave; whole-neume appearance toolbar with undo; D5 deletion announcement and exact undo; clipboard copy/paste of augmentative pes; v10 reload/export/import and v9 rejection; one-click graphical placement of all three variants; no overflow; at 1440px and 320px',
+        'Podatus family (5 options) and new Clivis family; owner v9 WIP hydrated without write and continued with Ad te via after-division insertion, remembered I insertion, pitch moves and lyrics (Ad/epiphonus/te, v10 save, WIP prefix unchanged); all six inventory figures engraved with labels and score count; Podatus Appearance selector transitions with stable IDs and retained selection; second-note marks disabled with explanation; Clivis Liquescent toggle; single visible role=alert rejection (note and whole-neume selection) with no live duplicate, no history or autosave; whole-neume toolbar focus return to the entry constituent on Escape/Shift+Tab; whole-neume appearance toolbar with undo; D5 deletion announcement and exact undo; clipboard copy/paste of augmentative pes; v10 reload/export/import and v9 rejection; one-click graphical placement of all three variants; no overflow; at 1440px and 320px',
     }),
   );
 } finally {

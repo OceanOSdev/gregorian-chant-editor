@@ -301,17 +301,38 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       ? selectedNeume
       : null;
   const selectedWholeNeumeId = selectedWholeNeume?.id;
+  // The constituent from which the whole-neume toolbar was entered, so Escape
+  // and Shift+Tab return there rather than to the first note.
+  const neumeToolbarOrigin = useRef<{ neumeId: string; noteId: string } | null>(
+    null,
+  );
   const getSelectedNeumeElement = useCallback(() => {
     if (!selectedWholeNeumeId) return null;
     const group = scoreWorkspace.current?.querySelector<SVGGElement>(
       `[data-neume-id="${CSS.escape(selectedWholeNeumeId)}"]`,
     );
     const active = document.activeElement;
-    return active instanceof SVGGElement &&
+    if (
+      active instanceof SVGGElement &&
       active.dataset.noteId &&
       group?.contains(active)
-      ? active
-      : (group?.querySelector<SVGGElement>('[data-note-id]') ?? null);
+    ) {
+      neumeToolbarOrigin.current = {
+        neumeId: selectedWholeNeumeId,
+        noteId: active.dataset.noteId,
+      };
+      return active;
+    }
+    const origin = neumeToolbarOrigin.current;
+    const remembered =
+      origin?.neumeId === selectedWholeNeumeId
+        ? group?.querySelector<SVGGElement>(
+            `[data-note-id="${CSS.escape(origin.noteId)}"]`,
+          )
+        : null;
+    return (
+      remembered ?? group?.querySelector<SVGGElement>('[data-note-id]') ?? null
+    );
   }, [selectedWholeNeumeId]);
   const neumeToolbarAvailable = Boolean(
     selectedWholeNeume &&
@@ -1450,7 +1471,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             }
             onFocusNoteModifiers={
               noteToolbarAvailable || neumeToolbarAvailable
-                ? () => noteToolbar.current?.focus() ?? false
+                ? () => {
+                    // Record the entry constituent before focus leaves it.
+                    if (neumeToolbarAvailable) getSelectedNeumeElement();
+                    return noteToolbar.current?.focus() ?? false;
+                  }
                 : undefined
             }
             clefPreview={clefPlacement?.preview ?? null}
@@ -1665,6 +1690,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             getNoteElement={getSelectedNoteElement}
             onFormChange={changeNoteForm}
             formError={session.noteFormError}
+            formErrorKey={session.noteFormErrorSequence}
             onMoraChange={changeMoraScope}
             onEpisemaChange={changeEpisema}
             onHistory={navigateHistory}
@@ -1682,6 +1708,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             getNoteElement={getSelectedNeumeElement}
             onFormChange={() => undefined}
             formError={session.noteFormError}
+            formErrorKey={session.noteFormErrorSequence}
             onMoraChange={() => undefined}
             onEpisemaChange={() => undefined}
             onHistory={navigateHistory}
@@ -1860,7 +1887,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           }
         />
       </div>
-      {session.noteFormError && !noteToolbarAvailable ? (
+      {/* Fallback only when no contextual toolbar can show the reason. */}
+      {session.noteFormError &&
+      !noteToolbarAvailable &&
+      !neumeToolbarAvailable ? (
         <p className="note-form-error" role="alert">
           {session.noteFormError}
         </p>

@@ -55,6 +55,8 @@ interface NoteContextToolbarProps {
   getNoteElement: () => SVGGElement | null;
   onFormChange: (form: NoteForm | undefined) => void;
   formError: string | null;
+  /** Remounts the alert so a repeated identical reason is announced again. */
+  formErrorKey?: number;
   onMoraChange: (scope: MoraScope) => void;
   onEpisemaChange: (
     kind: 'episema' | 'verticalEpisema',
@@ -73,6 +75,7 @@ export function NoteContextToolbar({
   getNoteElement,
   onFormChange,
   formError,
+  formErrorKey,
   onMoraChange,
   onEpisemaChange,
   onHistory,
@@ -291,7 +294,11 @@ export function NoteContextToolbar({
         {note ? `Note ${noteIndex + 1} of ${neumeName}` : `Whole ${neumeName}`}
       </p>
       {formError ? (
-        <p role="alert" className="note-form-error note-context-toolbar__error">
+        <p
+          key={formErrorKey}
+          role="alert"
+          className="note-form-error note-context-toolbar__error"
+        >
           {formError}
         </p>
       ) : null}

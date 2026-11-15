@@ -589,7 +589,9 @@ describe('direct entry and session behaviour', () => {
     });
     expect(rejected.history).toBe(state.history);
     expect(rejected.noteFormError).toBe(rejection);
-    expect(rejected.announcement.text).toBe(rejection);
+    // One announcement: the visible role="alert" reason, not the live region.
+    expect(rejected.announcement).toEqual(state.announcement);
+    expect(rejected.noteFormErrorSequence).toBe(1);
     const plain = createEditorSession(doc([podatus()]));
     const changed = reduceEditorSession(plain, {
       type: 'engraving-edit',
@@ -609,6 +611,37 @@ describe('direct entry and session behaviour', () => {
     expect(undoDocumentEdit(changed.history).present).toEqual(
       plain.history.present,
     );
+  });
+
+  it('rejects from whole-neume selection once, keeping document, history and appearance', () => {
+    const marked = doc([
+      podatus(undefined, [n('lo', 2), n('hi', 3, { episema: true })]),
+    ]);
+    let state = reduceEditorSession(createEditorSession(marked), {
+      type: 'select',
+      selection: { kind: 'neume', neumeId: 'pes' },
+    });
+    const before = state;
+    const rejection = liquescenceRejection(marked.neumes[0], 'diminutive');
+    expect(rejection).toMatch(/Remove marks from the second note first/);
+    const attempt = () =>
+      reduceEditorSession(state, {
+        type: 'engraving-edit',
+        edit: (d) => updateNeumeLiquescence(d, 'pes', 'diminutive'),
+        rejection: rejection ?? undefined,
+      });
+    state = attempt();
+    expect(state.history).toBe(before.history);
+    expect(state.history.present).toBe(marked);
+    expect(state.history.present.neumes[0]).not.toHaveProperty('liquescence');
+    expect(state.selection).toEqual({ kind: 'neume', neumeId: 'pes' });
+    expect(state.noteFormError).toBe(rejection);
+    expect(state.announcement).toEqual(before.announcement);
+    // A repeated identical rejection gets a fresh alert key to be re-announced.
+    const sequence = state.noteFormErrorSequence;
+    state = attempt();
+    expect(state.noteFormErrorSequence).toBe(sequence + 1);
+    expect(state.history).toBe(before.history);
   });
 
   it('announces D5 deletion normalization in one undoable edit', () => {
