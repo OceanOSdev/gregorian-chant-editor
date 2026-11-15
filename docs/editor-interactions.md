@@ -74,7 +74,10 @@ Automatic focus uses `focus({ preventScroll: true })`, without refocusing an
 already focused destination. Separately, clipped notation is minimally revealed
 in nested scroll containers and the window with an 8 px margin. An oversized
 neume uses its first-note anchor. The SVG/system is never centered. Document
-shrinkage can still cause native scroll-range clamping.
+shrinkage can still cause native scroll-range clamping. Native score focus
+(including Tab/Shift+Tab) also performs this minimal reveal after browser
+traversal settles, accounting for the sticky tools without changing selection
+or intercepting traversal.
 
 Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
 while armed), never a disabled constituent note. Its concise accessible name is
@@ -564,7 +567,9 @@ Pitch handling and selected division/clef editing remain outside this region.
 
 The palette Division split button follows the clef tools. Its primary arms
 Minima; its menu immediately arms Minima, Minor, Maior or Finalis using the
-shared family menu keyboard, focus and dismissal lifecycle. Changing the
+shared family menu keyboard, focus and dismissal lifecycle. Both primary and
+menu activation remember the armed division for the next menu opening; this
+does not change the remembered neume. Changing the
 variant while armed changes the ghost.
 Hover shows a semantic-slot caret and shared division ink; click inserts one
 atomic edit and leaves placement armed. Escape returns to Select. Division tools

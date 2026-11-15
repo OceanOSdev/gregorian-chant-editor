@@ -223,7 +223,7 @@ try {
     );
     await pause();
   };
-  const key = async (name) => {
+  const key = async (name, shift = false) => {
     if (firefox) {
       const value =
         {
@@ -242,8 +242,10 @@ try {
             type: 'key',
             id: 'keyboard',
             actions: [
+              ...(shift ? [{ type: 'keyDown', value: '\uE008' }] : []),
               { type: 'keyDown', value },
               { type: 'keyUp', value },
+              ...(shift ? [{ type: 'keyUp', value: '\uE008' }] : []),
             ],
           },
         ],
@@ -252,6 +254,7 @@ try {
       for (const type of ['keyDown', 'keyUp'])
         await send('Input.dispatchKeyEvent', {
           type,
+          modifiers: shift ? 8 : 0,
           key: name,
           code: name,
           ...(name === 'Enter' && type === 'keyDown' ? { text: '\r' } : {}),
@@ -604,23 +607,72 @@ try {
     'division-menu',
   );
   await key('Escape');
-  // A covered score target is minimally revealed; repeating focus never scrolls.
-  await ev(
-    `(()=>{const n=document.querySelector('[data-note-id="note50"]');window.scrollTo(0,n.getBoundingClientRect().top+scrollY-80)})()`,
+  await nativeClick('[data-tool="minima"]');
+  await key('Escape');
+  await focus('[data-tool="division-menu"]');
+  await key('Enter');
+  assert.equal(
+    await ev(`document.activeElement.dataset.variant`),
+    'minima',
+    'primary remembers Minima after Finalis',
   );
-  await pause();
-  const reveal = `import('/src/editor/rendering/focus-visibility.ts').then(m=>{m.focusAndReveal(document.querySelector('[data-note-id="note50"]'));return true})`;
-  await ev(reveal);
-  await pause();
+  await key('Escape');
   assert.equal(
     await ev(
-      `document.querySelector('[data-note-id="note50"]').getBoundingClientRect().top >= document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom+7`,
+      `document.querySelector('.editor-insert').textContent.includes('Punctum')`,
     ),
     true,
   );
-  const revealedScroll = await ev('scrollY');
-  await ev(reveal);
-  assert.equal(await ev('scrollY'), revealedScroll);
+  assert.equal(
+    await ev(`document.querySelector('.division-controls') === null`),
+    true,
+    'no empty division fieldset',
+  );
+  // Native traversal must reveal focus without selecting or editing notation.
+  for (const reverse of [false, true]) {
+    await ev(
+      `document.querySelector('[data-note-id="note${reverse ? 51 : 49}"]').focus({preventScroll:true})`,
+    );
+    await pause();
+    await ev(
+      `(()=>{const n=document.querySelector('[data-note-id="note50"]');window.scrollTo(0,n.getBoundingClientRect().top+scrollY-80)})()`,
+    );
+    await pause();
+    const selected = await ev(
+      `document.querySelector('[aria-pressed="true"][data-note-id]')?.dataset.noteId ?? null`,
+    );
+    await key('Tab', reverse);
+    assert.equal(await ev(`document.activeElement.dataset.noteId`), 'note50');
+    assert.equal(
+      await ev(
+        `document.activeElement.getBoundingClientRect().top >= document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom+7`,
+      ),
+      true,
+      'native Tab reveals covered focus',
+    );
+    assert.equal(
+      await ev(
+        `document.querySelector('[aria-pressed="true"][data-note-id]')?.dataset.noteId ?? null`,
+      ),
+      selected,
+    );
+  }
+  await ev(
+    `document.querySelector('[data-note-id="note49"]').focus({preventScroll:true})`,
+  );
+  await pause();
+  await ev(
+    `(()=>{const n=document.querySelector('[data-note-id="note50"]');window.scrollTo(0,n.getBoundingClientRect().top+scrollY-innerHeight/2)})()`,
+  );
+  await pause();
+  const visibleScroll = await ev('scrollY');
+  await key('Tab');
+  assert.equal(await ev(`document.activeElement.dataset.noteId`), 'note50');
+  assert.equal(
+    await ev('scrollY'),
+    visibleScroll,
+    'visible native focus does not scroll',
+  );
   console.log(
     firefox
       ? 'PASS: native Tab reaches both explicit insertion-side buttons. NOT RUN: Firefox headless HTML Enter activation; owner foreground check pending.'

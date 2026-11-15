@@ -386,12 +386,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             : placementKind === primaryTool && !toolNoteForm(activeTool),
         disabled: paletteDisabled,
         onFocus: () => setRovingTool(primaryTool),
-        onClick: () =>
+        onClick: () => {
+          if (primaryTool === 'minima') setDivisionKind('minima');
           dispatch({
             type: 'arm',
             tool: tool(),
             lyricCommitId: crypto.randomUUID(),
-          }),
+          });
+        },
       },
       buttonProps: {
         type: 'button' as const,
@@ -1132,16 +1134,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         or Podatus reaches its variants menu; Enter opens it. Up/Down browses
         variants, Enter selects, Escape closes, Tab leaves.
       </p>
-      <fieldset
-        className="division-controls"
-        disabled={Boolean(
-          session.lyricMove ||
-          session.pendingHistory ||
-          session.clefTransaction,
-        )}
-      >
-        <legend>Divisions</legend>
-        {divisionTarget ? (
+      {divisionTarget ? (
+        <fieldset
+          className="division-controls"
+          disabled={Boolean(
+            session.lyricMove ||
+            session.pendingHistory ||
+            session.clefTransaction,
+          )}
+        >
+          <legend>Divisions</legend>
           <div data-notation-shortcuts>
             <p>
               Division target: {divisionTarget.kind}.{' '}
@@ -1209,8 +1211,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               Delete division
             </button>
           </div>
-        ) : null}
-      </fieldset>
+        </fieldset>
+      ) : null}
       <details className="editor-help">
         <summary>Keyboard help</summary>
         <p>
