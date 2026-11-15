@@ -166,6 +166,38 @@ focused/integrated runs without changing the driver activation or application.
 The failed run's unexpected retained neume therefore remains unattributed;
 the check itself was preserved intact. No production, domain, layout or unit
 test code changed. `npm run format:check`, `npm run lint` and
-`git diff --check` passed. The original comprehensive matrix will not be
-repeated; final owner comprehensive verification and visual acceptance remain
-pending.
+`git diff --check` passed at implementation closeout. The comprehensive matrix
+and visual acceptance were pending at that point; the final owner acceptance
+below completes them.
+
+## Final owner acceptance — 2026-11-14
+
+The owner accepted the implementation, the 6-unit intra-syllable spacing and
+the visual engraving after the comprehensive run at clean revision
+`00ac462f3c6fe798d8cbd25f3ed784a511588d63`:
+
+```text
+npm run verify:browser -- --preset full --browser both -j 4
+```
+
+The retained summary is
+`.verification-runs/run-2026-11-14T23-59-15-826Z-Cd9OEF/summary.json`.
+Chromium 157.0.8103.38 snap and Firefox 146.0 produced **36 passed, 0 failed,
+6 expected unsupported**. The production build passed in 335 ms; elapsed time
+was 306.383 seconds at concurrency 4. All runner-owned processes stopped and
+cleanup reported no errors. All seven previously failing jobs passed, including
+the native Chromium division insertion/Undo sequence. The earlier division
+Undo failure remains an unexplained, non-reproduced observation; it was not
+identified as a root cause or fixed. The known intermittent Firefox
+mid-score-clef 150% zoom pointer-insertion limitation also remains unresolved;
+that driver passed this run.
+
+The earlier standard repository gate remains recorded above on clean revision
+`761f2bcd69cd2459081fd5fd2f4ccea3f87cdd6e`: format, lint, build,
+`git diff --check`, and **2,022 tests across 90 files** passed. Hosted CI run
+[43654537032](https://github.com/OceanOSdev/gregorian-chant-editor/actions/runs/43654537032)
+also passed all four checks (Format, Lint, Test and Build) on the final
+implementation revision `00ac462`. Stage 9C is completed and owner-accepted.
+Native v9 and Accepted ADR 0026's scope remain unchanged; graphical fusion,
+connectors and grouping UI remain deferred. No compatibility comparison or
+benchmark was run for final acceptance.

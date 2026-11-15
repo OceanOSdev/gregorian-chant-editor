@@ -340,7 +340,26 @@ The marked fallback state lacks browser coverage; the intermittent Firefox
 mid-score-clefs issue, historical mora evidence and headless verification
 limitations remain.
 
-**Next major feature: Stage 9C.**
+## Intra-syllable spacing (Stage 9C)
+
+**Completed and owner-accepted 2026-11-14** in PR #82 at
+`00ac462f3c6fe798d8cbd25f3ed784a511588d63`. Accepted ADR 0026 adds a 6-unit
+complete-ink minimum between eligible independent neumes in one non-null
+syllable span, preserving anchor-derived ownership, independent identities,
+native v9, existing editing/history behavior and whole-neume wrapping. No
+graphical fusion, connectors, or grouping UI were added; fusion remains deferred.
+See the [completed plan](plans/stage-9c-intra-syllable-grouping.md) and
+[final verification record](verification/intra-syllable-grouping/checkpoint-9c-2.md#final-owner-acceptance--2026-11-14).
+
+The owner comprehensive matrix on the clean final revision passed **36 jobs,
+zero failures and six expected unsupported pairs**, on Chromium 157.0.8103.38
+snap and Firefox 146.0, at concurrency 4 in 306.383 seconds. The production
+build passed in 335 ms; cleanup succeeded. All previously failing jobs passed,
+including native division insertion/Undo. The earlier division Undo failure
+remains unexplained and non-reproduced. The known intermittent Firefox
+mid-score-clef 150% zoom pointer-insertion limitation remains unresolved even
+though that driver passed this run. The earlier 2,022-test repository gate
+passed, and hosted CI run 43654537032 passed Format, Lint, Test and Build.
 
 The crowded five-note Scandicus vertical-episema repair is **completed and
 owner-accepted (2026-11-14)** at `eb49c99` in PR #81, with hosted CI run
@@ -357,5 +376,6 @@ visible.
 
 Not started. Other subpunctis families (for
 example Porrectus or Scandicus subpunctis), longer flexus/resupinus
-extensions, intra-syllable fusion and spacing, liquescence, and the complete
-Kyrie XI each need their own plan and owner review.
+extensions, graphical intra-syllable fusion, liquescence, and the complete
+Kyrie XI each need their own plan and owner review. Stage 9C spacing is complete;
+future fusion remains a separate deferred design question.
