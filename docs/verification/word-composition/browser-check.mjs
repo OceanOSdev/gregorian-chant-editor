@@ -118,6 +118,55 @@ try {
   };
   const pause = () => new Promise((r) => setTimeout(r, 100));
 
+  const key = async (key, modifiers = 0) => {
+    if (firefox) {
+      const held = [
+        ...(modifiers & 2 ? ['\uE009'] : []),
+        ...(modifiers & 8 ? ['\uE008'] : []),
+      ];
+      const value =
+        { Escape: '\uE00C', ArrowUp: '\uE013', Tab: '\uE004' }[key] ?? key;
+      await rawSend('input.performActions', {
+        context,
+        actions: [
+          {
+            type: 'key',
+            id: 'intra-key',
+            actions: [
+              ...held.map((value) => ({ type: 'keyDown', value })),
+              { type: 'keyDown', value },
+              { type: 'keyUp', value },
+              ...held.toReversed().map((value) => ({ type: 'keyUp', value })),
+            ],
+          },
+        ],
+      });
+    } else {
+      for (const type of ['keyDown', 'keyUp'])
+        await rawSend('Input.dispatchKeyEvent', {
+          type,
+          key,
+          modifiers,
+          windowsVirtualKeyCode:
+            { Escape: 27, ArrowUp: 38, Tab: 9, z: 90 }[key] ?? 0,
+        });
+    }
+    await pause();
+  };
+  const shift = async (down) => {
+    if (firefox)
+      await rawSend('input.performActions', {
+        context,
+        actions: [
+          {
+            type: 'key',
+            id: 'intra-shift',
+            actions: [{ type: down ? 'keyDown' : 'keyUp', value: '\uE008' }],
+          },
+        ],
+      });
+  };
+
   const viewport = async (width) =>
     send('Emulation.setDeviceMetricsOverride', {
       width,
@@ -218,14 +267,14 @@ try {
         {
           ...fixture,
           title: 'Word across systems',
-          neumes: Array.from({ length: 16 }, (_, i) => ({
+          neumes: Array.from({ length: 40 }, (_, i) => ({
             id: `n${i}`,
             kind: 'punctum',
             notes: [{ id: `note${i}`, staffPosition: 2 }],
           })),
           syllables: fixture.syllables.map((s, i) => ({
             ...s,
-            startsAtNeumeId: `n${[0, 11, 12, 13, 14][i]}`,
+            startsAtNeumeId: `n${[0, 35, 36, 37, 38][i]}`,
           })),
         },
       ],
@@ -456,6 +505,18 @@ try {
           edge.width === 720,
         'near-edge first source must reserve its displayed outgoing mark',
       );
+      const { runIntraSyllableReview } =
+        await import('../intra-syllable-grouping/browser-review.mjs');
+      await runIntraSyllableReview({
+        ev,
+        send,
+        viewport,
+        mount,
+        shot,
+        key,
+        shift,
+        screenshotDirectory,
+      });
       console.log(
         'PASS: native pointer ownership for every constituent of all seven compact neume pairs at desktop and 320px; clipped selection/placement/move cues and inert measured hyphens.',
       );

@@ -44,7 +44,7 @@ describe('word-aware composition', () => {
     expect(s.hyphens?.[0].outgoing).toBe(false);
     expect(
       s.neumes[1].bounds.x - s.neumes[0].bounds.x - s.neumes[0].bounds.width,
-    ).toBe(33);
+    ).toBe(6);
     expect(
       s.neumes[4].bounds.x - s.neumes[3].bounds.x - s.neumes[3].bounds.width,
     ).toBeLessThan(33);
@@ -78,7 +78,7 @@ describe('word-aware composition', () => {
     }
   });
   it('reserves outgoing marks, never incoming marks or melisma-only breaks', () => {
-    const d = fixture([0, 13], 18);
+    const d = fixture([0, 30], 34);
     const l = layoutChant(d, measure);
     expect(l.systems[0].hyphens).toHaveLength(1);
     expect(l.systems[0].hyphens?.[0].outgoing).toBe(true);

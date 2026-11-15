@@ -208,6 +208,8 @@ function staffLineY(line: StaffLine, bottomStaffY: number) {
 }
 
 interface GeometryInput {
+  /** Derived from ADR 0008 anchors only when the font snapshot is ready. */
+  syllableId?: string;
   accidentals?: readonly AccidentalSpec[];
   modifiers?: readonly NoteAppearance[];
   kind: Neume['kind'];
@@ -235,12 +237,14 @@ function geometryInput(neume: Neume): GeometryInput {
 }
 
 interface LyricRequirement {
+  syllableId: string;
   alignment: ReturnType<typeof alignLyricText>;
   boundaryBefore: LyricSyllable['boundaryBefore'];
   continues: boolean;
 }
 
 export const compactNeumeInkGap = 2;
+export const intraSyllableInkGap = 6;
 // A join must remain substantially tighter than the quarter-em word gap.
 // Occupied edges include guarded glyph ink, so this permits near-contiguous
 // text without leaving an unmarked word-space-sized continuation.
@@ -481,20 +485,32 @@ function placeNeumeSequence(
       : undefined;
     const build = () => {
       const previous = geometries.at(-1);
-      const compact =
+      const compactSyllables =
         previous &&
         !followingEvents
           .get(inputIndex - 1)
           ?.some((item) => item.type === 'division') &&
         lyric?.boundaryBefore === 'continuation' &&
         lyrics.has(inputIndex - 1);
+      const compactMelisma =
+        previous &&
+        input.syllableId !== undefined &&
+        input.syllableId === inputs[inputIndex - 1]?.syllableId &&
+        !followingEvents.get(inputIndex - 1)?.length &&
+        !previous.accidentals?.length &&
+        !input.accidentals?.length;
+      const minimumGap = compactSyllables
+        ? compactNeumeInkGap
+        : compactMelisma
+          ? intraSyllableInkGap
+          : interNeumeInkGap;
       let initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         hasItems()
-          ? compact
+          ? previous && minimumGap < interNeumeInkGap
             ? Math.max(
-                previous.bounds.x + previous.bounds.width + compactNeumeInkGap,
+                previous.bounds.x + previous.bounds.width + minimumGap,
                 lastBoundaryEventRight === null
                   ? -Infinity
                   : lastBoundaryEventRight + interNeumeInkGap,
@@ -840,6 +856,7 @@ export function layoutChant(
       const alignment = alignments.get(syllable.id);
       if (index !== undefined && alignment)
         requirements.set(index, {
+          syllableId: syllable.id,
           alignment,
           boundaryBefore: syllable.boundaryBefore,
           continues:
@@ -880,15 +897,24 @@ export function layoutChant(
     neumeIndex: c.neumeIndex,
     neumeKind: c.neume.kind,
   });
-  const wrappedSystems = placeNeumeSequence(
-    document.neumes.map((neume) => ({
+  // Requirements contain only measured anchors. Carry the last anchor forward
+  // once in semantic order (ADR 0008), leaving the lyricless prefix undefined.
+  let activeSyllableId: string | undefined;
+  const inputs = document.neumes.map((neume, index) => {
+    const anchor = requirements.get(index);
+    if (anchor) activeSyllableId = anchor.syllableId;
+    return {
       ...geometryInput(neume),
+      syllableId: activeSyllableId,
       accidentals: signsForNeume(neume.id).map((s) => ({
         kind: s.entity.kind,
         staffPosition: s.owner.degree - s.location.offset,
         noteIndex: s.entity.placement ? s.location.noteIndex : null,
       })),
-    })),
+    };
+  });
+  const wrappedSystems = placeNeumeSequence(
+    inputs,
     staffEndX,
     requirements,
     hyphenWidth,

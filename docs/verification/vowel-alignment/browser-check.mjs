@@ -68,7 +68,7 @@ const fixture = {
     startsAtNeumeId: `n${i}`,
     boundaryBefore: i === 0 ? 'word' : 'continuation',
   })),
-  neumes: Array.from({ length: 20 }, (_, i) => ({
+  neumes: Array.from({ length: 36 }, (_, i) => ({
     id: `n${i}`,
     kind: 'punctum',
     notes: [{ id: `note${i}`, staffPosition: 2 }],

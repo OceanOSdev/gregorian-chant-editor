@@ -212,7 +212,7 @@ describe('authored ink through actual lyric layout and wrapping', () => {
   it('wraps at a different boundary when the authored diamond is measured instead of a square', () => {
     const doc = blankDocument();
     doc.lyricLanguage = 'und';
-    doc.neumes = Array.from({ length: 12 }, (_, i) => ({
+    doc.neumes = Array.from({ length: 32 }, (_, i) => ({
       id: 'n' + i,
       kind: 'punctum',
       notes: [
@@ -236,21 +236,21 @@ describe('authored ink through actual lyric layout and wrapping', () => {
     unmarked.neumes.forEach((n) => n.notes.forEach((n) => delete n.form));
     const ordinary = layoutChant(unmarked, wide);
     expect(authored.systems[0].neumes.map((n) => n.neumeId)).toEqual(
-      Array.from({ length: 10 }, (_, i) => 'n' + i),
+      Array.from({ length: 23 }, (_, i) => 'n' + i),
     );
     expect(ordinary.systems[0].neumes.map((n) => n.neumeId)).toEqual(
-      Array.from({ length: 11 }, (_, i) => 'n' + i),
+      Array.from({ length: 26 }, (_, i) => 'n' + i),
     );
-    expect(authored.systems[1].startNeumeIndex).toBe(10);
-    expect(ordinary.systems[1].startNeumeIndex).toBe(11);
+    expect(authored.systems[1].startNeumeIndex).toBe(23);
+    expect(ordinary.systems[1].startNeumeIndex).toBe(26);
     expect(
       authored.systems[0].neumes[1].bounds.x -
         authored.systems[0].neumes[0].bounds.x,
-    ).toBe(47);
+    ).toBe(20);
     expect(
       ordinary.systems[0].neumes[1].bounds.x -
         ordinary.systems[0].neumes[0].bounds.x,
-    ).toBe(45);
+    ).toBe(18);
     expect(authored.systems[0].neumes[0].bounds.width).toBe(14);
     expect(ordinary.systems[0].neumes[0].bounds.width).toBe(12);
   });

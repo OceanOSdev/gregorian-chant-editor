@@ -117,7 +117,7 @@ try {
     if (await ev(`typeof mountChantFixture === 'function'`)) break;
   }
   await ev(
-    `(async()=>{const l=await import('/src/editor/layout/layout-chant.ts');window.clefLayout=l.layoutChant;})()`,
+    `(async()=>{const l=await import('/src/editor/layout/layout-chant.ts');const m=await import('/src/editor/rendering/use-lyric-measurement.ts');window.clefLayout=doc=>l.layoutChant(doc,m.createSvgLyricMeasurer());})()`,
   );
   for (const width of [1440, 320]) {
     await viewport(width);
@@ -125,7 +125,7 @@ try {
       for (const line of [1, 2, 3, 4]) {
         // Midrange melody for each independently authored specimen. All semantic
         // transforms are separately exercised below and in the exhaustive tests.
-        const document = fixture(20);
+        const document = fixture(50);
         document.clef = { type, staffLine: line };
         await mount(document);
         const results = await ev(`(()=>{
@@ -139,6 +139,7 @@ try {
           summary:document.querySelector('.score desc').textContent };
       })()`);
         assert.equal(results.count, results.systems);
+        assert.ok(results.systems > 1, 'clef specimen spans multiple systems');
         assert.equal(results.controls, 1);
         assert.equal(results.tab, '0');
         assert.ok(results.boxes.every(Boolean));
@@ -149,7 +150,7 @@ try {
         );
         if (line === 3 || line === 4) await shot(`${width}-${type}${line}`);
       }
-    await mount(fixture(20));
+    await mount(fixture(50));
     const initial = await pitches();
     await click('[data-initial-clef]');
     assert.equal(

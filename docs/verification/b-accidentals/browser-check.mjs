@@ -632,17 +632,18 @@ try {
   }
   await hydrate(reference);
   await button('Place division');
-  await ev(
-    `(()=>{const r=document.querySelector('[data-note-id="ownerB"]').getBoundingClientRect();window.scrollBy({top:r.top+r.height/2-innerHeight/2,behavior:'instant'});})()`,
-  );
-  await pause();
   const point = await ev(
-    `(()=>{const r=document.querySelector('[data-note-id="ownerB"] .score__note-hit-target').getBoundingClientRect();return{x:r.left-10,y:r.top+r.height/2}})()`,
+    `(()=>{const svg=document.querySelector('.score'),previous=document.querySelector('[data-neume-id="ga"] .score__ink').getBBox(),next=document.querySelector('[data-neume-id="b"] .score__ink').getBBox();const point=new DOMPoint((previous.x+previous.width+next.x)/2,(previous.y+next.y+next.height)/2).matrixTransform(svg.getScreenCTM());window.scrollBy({top:point.y-innerHeight/2,behavior:'instant'});return true})()`,
+  );
+  assert.equal(point, true);
+  await pause();
+  const placementPoint = await ev(
+    `(()=>{const svg=document.querySelector('.score'),previous=document.querySelector('[data-neume-id="ga"] .score__ink').getBBox(),next=document.querySelector('[data-neume-id="b"] .score__ink').getBBox();return new DOMPoint((previous.x+previous.width+next.x)/2,(previous.y+next.y+next.height)/2).matrixTransform(svg.getScreenCTM()).toJSON()})()`,
   );
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
       type,
-      ...point,
+      ...placementPoint,
       button: 'left',
       clickCount: 1,
     });

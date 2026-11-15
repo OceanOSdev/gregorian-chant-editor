@@ -234,14 +234,14 @@ describe('derived division layout and explicit insertion', () => {
     ).toHaveLength(0);
   });
   it('preserves outgoing continuation after a phrase-ending division across reflow', () => {
-    const d = divided(20);
+    const d = divided(40);
     d.divisions[0] = { id: 'D', kind: 'finalis', beforeNeumeId: 'n10' };
     d.syllables = [
       { id: 's0', text: 'Al', startsAtNeumeId: 'n0', boundaryBefore: 'word' },
       {
         id: 's1',
         text: 'le',
-        startsAtNeumeId: 'n19',
+        startsAtNeumeId: 'n39',
         boundaryBefore: 'continuation',
       },
     ];
