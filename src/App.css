@@ -165,9 +165,9 @@ kbd {
 .score__neume-selection {
   fill: rgb(126 73 163 / 8%);
   stroke: #7e49a3;
-  stroke-dasharray: 5 3;
-  stroke-width: 2.5;
-  vector-effect: non-scaling-stroke;
+  /* User units: about 5px/3px at the usual wide score scale. Stroke width is
+     a per-neume presentation attribute fitted to ownership clearance. */
+  stroke-dasharray: 4 2.4;
 }
 
 .score__placement-preview {

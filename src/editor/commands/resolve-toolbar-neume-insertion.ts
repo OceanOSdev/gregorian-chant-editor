@@ -11,7 +11,8 @@ export function resolveToolbarNeumeInsertion(
   document: ChantDocument,
   selection: EditorSelection,
   fallback: StaffPosition,
-): ToolbarNeumeInsertion {
+): ToolbarNeumeInsertion | null {
+  if (selection.kind === 'neume-range') return null;
   const note =
     selection.kind === 'note'
       ? findNote(document, selection.noteId)

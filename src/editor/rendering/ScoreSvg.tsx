@@ -1,3 +1,5 @@
+import { rangeSelectionBounds } from './range-selection-bounds';
+import { neumeSelectionBounds } from './neume-selection-bounds';
 import { getAccidentalAccessibleLabel } from './accidental-accessible-label';
 import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
 import { getNoteModifierDescription } from './note-accessible-label';
@@ -83,6 +85,8 @@ interface ScoreSvgProps {
   onMoveDestination: (neumeId: string) => void;
   placementPreview: GraphicalPlacementPreviewLayout | null;
   selection: EditorSelection;
+  rangeIds?: ReadonlySet<string>;
+  onExtendSelection?: (noteId: string, direction: -1 | 1) => void;
   activeTool: EditorTool;
   placementDescription: string;
   focusRequest: EditorFocusRequest | null;
@@ -134,6 +138,8 @@ export function ScoreSvg({
   onMoveDestination,
   placementPreview,
   selection,
+  rangeIds,
+  onExtendSelection,
   activeTool,
   placementDescription,
   focusRequest,
@@ -326,6 +332,7 @@ export function ScoreSvg({
       return;
     }
 
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.shiftKey) {
       onSelectNeumeForNote(noteId);
     } else {
@@ -392,7 +399,11 @@ export function ScoreSvg({
     isNeumeSelected: boolean,
   ) {
     if (
+      transactionBlocked ||
       lyricMove ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
       isPlacementTool(activeTool) ||
       event.nativeEvent.isComposing
     ) {
@@ -413,6 +424,16 @@ export function ScoreSvg({
       return;
     }
 
+    if (
+      onExtendSelection &&
+      event.shiftKey &&
+      (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      onExtendSelection(noteId, event.key === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       event.stopPropagation();
@@ -525,6 +546,9 @@ export function ScoreSvg({
       <desc id="score-description">
         {getScoreAccessibleDescription(layout)}
       </desc>
+      <desc id="range-member-description">
+        Member of selected passage. Individual note editing is unavailable.
+      </desc>
       <desc id="whole-neume-selection-instruction">
         {wholeNeumeSelectionInstruction} When a note is selected, Tab opens its
         nearby properties. Escape in the properties closes them and returns to
@@ -533,6 +557,20 @@ export function ScoreSvg({
 
       {layout.systems.map((system) => (
         <g key={system.index} data-system-index={system.index}>
+          {(() => {
+            const bounds = rangeSelectionBounds(system, rangeIds);
+            if (!bounds) return null;
+            return (
+              <rect
+                className="score__range-selection"
+                {...bounds}
+                rx={3}
+                fill="#e9ddf7"
+                pointerEvents="none"
+                aria-hidden="true"
+              />
+            );
+          })()}
           <SystemStaff system={system} />
           {system.index === 0 ? (
             <ClefControl
@@ -696,7 +734,6 @@ export function ScoreSvg({
                 neume.notes.length,
               );
               const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
-              const selectionGap = 5;
               const ownershipClip = neume.hitClip
                 ? `url(#hit-clip-${neume.neumeId})`
                 : undefined;
@@ -733,14 +770,12 @@ export function ScoreSvg({
                     </desc>
                   ) : null}
                   {isNeumeSelected ? (
+                    // Fitted inside ownership rather than clipped, so the
+                    // dashed outline stays complete at compact boundaries.
                     <rect
                       className="score__neume-selection"
-                      clipPath={ownershipClip}
                       data-selected-neume-id={neume.neumeId}
-                      x={neume.bounds.x - selectionGap}
-                      y={neume.bounds.y - selectionGap}
-                      width={neume.bounds.width + selectionGap * 2}
-                      height={neume.bounds.height + selectionGap * 2}
+                      {...neumeSelectionBounds(neume)}
                       rx="4"
                       pointerEvents="none"
                       aria-hidden="true"
@@ -849,7 +884,7 @@ export function ScoreSvg({
                         aria-describedby={
                           lyricMove
                             ? 'lyric-move-help'
-                            : `whole-neume-selection-instruction${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
+                            : `whole-neume-selection-instruction${rangeIds?.has(neume.neumeId) ? ' range-member-description' : ''}${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
                         }
                         aria-pressed={isNoteSelected}
                         aria-disabled={
@@ -858,6 +893,20 @@ export function ScoreSvg({
                           (!!accidentalTargetIds &&
                             !accidentalTargetIds.includes(note.noteId))
                         }
+                        onMouseDown={(event) => {
+                          if (
+                            onExtendSelection &&
+                            event.shiftKey &&
+                            !event.ctrlKey &&
+                            !event.metaKey &&
+                            !event.altKey &&
+                            !placementActive &&
+                            !transactionBlocked &&
+                            !lyricMove &&
+                            !accidentalTargetIds
+                          )
+                            event.preventDefault();
+                        }}
                         onClick={(event) => handleNoteClick(event, note.noteId)}
                         onKeyDown={(event) => {
                           if (accidentalTargetIds) {

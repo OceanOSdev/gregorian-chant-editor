@@ -422,3 +422,12 @@ descending notes now produces a four-note Climacus in one history entry (ADR
 0023 amendment); the remaining rejection (equal adjacent survivors, or a mark
 the result does not allow) is announced. Form edits consult `allowedNoteForms(kind, index,
 noteCount)`.
+
+## Contiguous selection boundaries
+
+Directional range endpoints remain transient selection, excluded from history
+and persistence. Selection reconciliation keeps the original range object only
+when both endpoints survive. Toolbar insertion resolvers return null for a
+range, and the session rejects range insertion and selection-based music edits.
+No range command is introduced; [interaction rules](editor-interactions.md#active-syllable-and-selection)
+own gestures and explicit single-target transitions.

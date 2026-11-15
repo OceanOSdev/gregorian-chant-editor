@@ -625,7 +625,8 @@ try {
     await undo();
     assert.deepEqual(await score(), marked);
     // Whole-group transpose.
-    await ev(`document.querySelector('[data-note-id="p-0"]').focus()`);
+    // Different-neume Shift activation now extends; explicitly select this target first.
+    await select('p-0');
     await key('Enter', 'Enter', true);
     await key('ArrowUp');
     assert.deepEqual(

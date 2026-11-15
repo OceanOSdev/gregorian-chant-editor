@@ -379,3 +379,13 @@ example Porrectus or Scandicus subpunctis), longer flexus/resupinus
 extensions, graphical intra-syllable fusion, liquescence, and the complete
 Kyrie XI each need their own plan and owner review. Stage 9C spacing is complete;
 future fusion remains a separate deferred design question.
+
+## Contiguous passage selection
+
+Contiguous selection uses stable directional endpoints, context-sensitive Shift
+activation and Shift+Left/Right, with connected per-system highlighting. See the
+[interaction contract](editor-interactions.md#active-syllable-and-selection) and
+[verification record](verification/contiguous-selection/README.md).
+Clipboard semantics, range deletion/transposition/movement, non-contiguous and
+marquee selection remain deferred. Foreground visual and keyboard acceptance
+of dense Kyrie XI passages remains an owner check.

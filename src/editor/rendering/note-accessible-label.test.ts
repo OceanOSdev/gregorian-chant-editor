@@ -94,7 +94,7 @@ describe('getNoteAccessibleLabel', () => {
 
   it('provides a concise whole-neume keyboard instruction', () => {
     expect(wholeNeumeSelectionInstruction).toBe(
-      'Shift plus Enter or Space selects the whole neume.',
+      'Shift plus Enter or Space selects a whole neume or extends the musical selection. Shift plus Left or Right extends by neume.',
     );
   });
 

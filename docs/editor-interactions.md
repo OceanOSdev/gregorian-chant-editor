@@ -25,14 +25,50 @@ Score selection uses stable IDs for entities and a singleton tag for the clef:
 - no selection;
 - one note ID;
 - one whole-neume ID;
+- a contiguous range with directional `anchorNeumeId` and `endpointNeumeId`;
 - one syllable ID;
 - one division ID;
 - one explicit clef-change ID;
 - the required initial clef (no semantic ID).
 
 Clicking a note or pressing Enter/Space on its focused control selects the
-note. Shift+click or Shift+Enter/Space promotes through the constituent note to
-whole-neume selection. Clicking the score background in Select mode clears
+note. Shift+click or Shift+Enter/Space promotes the owning neume when there is
+no musical selection or the target is in the same neume. From a note or whole
+neume, activation of another neume extends an inclusive passage. An existing
+range retains its anchor and moves only its endpoint. Shift+Left/Right extends
+or contracts by one semantic neume, crosses the anchor, and clamps at document
+bounds. Equal endpoints normalize to ordinary whole-neume selection. Arrow
+extension focuses the endpoint's first note; activation retains the invoking
+constituent. A boundary no-op does not request focus. Native Tab changes focus
+without changing membership.
+
+Range membership resolves once from canonical `document.neumes` order,
+independently of systems and reflow. Both endpoints must survive reconciliation;
+otherwise selection clears. Interior insertion joins the interval and removal
+contracts it. Undo/redo never restores selection from history. Document replacement
+clears it. Selection gestures preserve exact document/history identity and redo.
+
+Ranges are selection only: no clipboard, deletion, movement, transposition or
+non-contiguous selection. Visual membership never enables single-note/neume
+editing. Insert and global Lyrics are disabled with a visible explanation;
+I also rejects before focused clef/division retargeting, and insertion resolvers
+return null. Explicit L on a note/lyric enters that single lyric target and leaves
+the range only on successful entry. Division contextual controls are suppressed
+while a range exists. Explicit entity selection replaces it. Successful placement
+tool arming clears ranges; rejected transitions retain them. All range gestures
+are confined to ordinary Select outside lyric drafts/moves, pending history,
+clef transactions and accidental placement. During lyric recovery, Shift+click
+and Shift+Enter/Space keep their earlier meaning: they select one whole neume as
+the **Retry** target and never start or extend a range.
+
+Connected pale-purple, pointer-inert bands mark each affected system, behind
+notation and outside the lyric row. Stable membership drives these decorations;
+individual-note red selection, dashed whole-neume selection and keyboard focus
+remain distinct. A compact count/Escape hint and live announcements describe
+range changes, including clearing by explicit selection, placement-tool arming
+or a document change (such as Undo/Redo removing an endpoint) and a count change
+caused by reconciliation. Focus movement alone is not announced. Members have an accessible description without individual
+`aria-pressed` selection. Clicking the score background in Select mode clears
 selection. Escape also clears selection when no placement tool is active.
 
 After a document change, selection is reconciled by stable ID. A missing note
@@ -120,7 +156,7 @@ and the filled style identify the active tool independently of focus.
 The remembered neume starts at Punctum and changes only when a neume tool is
 activated. Select, Escape, focus browsing, score selection, syllable changes,
 and Undo/Redo do not erase or replace it. It is transient state outside history.
-The visible **Insert Punctum** (or remembered name) command is always available
+The visible **Insert Punctum** (or remembered name) command is available outside exclusive transactions and multi-neume ranges,
 including when no syllables exist. Its label follows remembered state, not palette focus.
 
 Unmodified **I** inserts the remembered kind; **T** focuses its palette button
