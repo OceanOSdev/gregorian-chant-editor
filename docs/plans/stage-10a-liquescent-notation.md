@@ -32,6 +32,7 @@ Establish which shapes are connected, which notehead/terminal strokes differ, in
 Read current `src/editor/domain/chant-document.ts`, `domain/note-forms.ts`, `domain/neume.ts`, `domain/accidentals.ts`, mora scope/episema rules, native codec and version migrations, layout geometry/ink and placement, editor tool/palette, note contextual controls, and `commands/musical-passage-clipboard.ts`. Consult accepted ADRs 0018 (mora), 0019 (forms/contours), 0020 (vertical episema), 0021 (accidentals), 0023–0026 (bounded compounds/group spacing), plus persistence and identity/clef ADRs.
 
 Compare:
+
 1. Add an authored terminal note appearance property or NoteForm variant.
 2. Add a neume-level discriminated liquescence appearance (ordinary Podatus/Clivis remain same kind and tuple).
 3. Add dedicated semantic kinds for epiphonus/cephalicus/augmentative variants.
@@ -63,3 +64,14 @@ Focused unit tests: every approved shape and validity combination, v9 legacy com
 ## Out of scope
 
 Scandicus subpunctis, arbitrary compound grouping/fusion (gf{gh}), other regional single-note forms, division notation extensions, automatic liquescence from text, GABC import/export, playback, unrelated UI/refactors, full Salve Regina transcription. These remain future repertoire findings. No implementation commits, production schema changes, or merging without owner gate.
+
+## Research checkpoint (2026-11-15)
+
+Research deliverables are complete and awaiting the owner gate; no
+application code, schema or accepted ADR changed.
+
+- Research record: [`docs/verification/liquescent-notation/README.md`](../verification/liquescent-notation/README.md)
+- Proposed plan and owner decision table: [`stage-10b-liquescent-podatus-clivis.md`](stage-10b-liquescent-podatus-clivis.md)
+- Proposed (not accepted) ADR: [`0027-neume-level-liquescence.md`](../adrs/0027-neume-level-liquescence.md)
+
+Fixture `salve-regina-dominican-wip.chant.json` is unchanged.
