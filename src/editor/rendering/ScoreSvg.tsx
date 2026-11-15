@@ -411,7 +411,7 @@ export function ScoreSvg({
     }
 
     if (
-      isNoteSelected &&
+      (isNoteSelected || isNeumeSelected) &&
       event.key === 'Tab' &&
       !event.shiftKey &&
       !event.ctrlKey &&
@@ -732,6 +732,7 @@ export function ScoreSvg({
                 neume.kind,
                 isNeumeSelected,
                 neume.notes.length,
+                neume.liquescentFigure,
               );
               const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
               const ownershipClip = neume.hitClip
@@ -751,6 +752,7 @@ export function ScoreSvg({
                   key={neume.neumeId}
                   data-neume-id={neume.neumeId}
                   data-neume-kind={neume.kind}
+                  data-liquescent-figure={neume.liquescentFigure}
                 >
                   {neume.hitClip ? (
                     <defs>
@@ -832,6 +834,7 @@ export function ScoreSvg({
                         neume.kind,
                         noteIndex,
                         neume.notes.length,
+                        neume.liquescentFigure,
                       ) +
                       getNoteModifierDescription(
                         note,

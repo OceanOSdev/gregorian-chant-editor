@@ -40,6 +40,7 @@ import {
   type DivisionLayout,
 } from './division-geometry';
 import { lyricLanguage } from '../domain/lyric-alignment';
+import { liquescentFigure, type LiquescentFigure } from '../domain/liquescence';
 import {
   alignLyricText,
   lyricFontSize,
@@ -49,6 +50,8 @@ import {
 import {
   buildNeumeGeometry,
   firstHeadHalfWidth,
+  geometryKindFor,
+  type GeometryKind,
   engravingStaffStep,
   interNeumeInkGap,
   type NeumeGeometry,
@@ -116,6 +119,8 @@ export interface NeumeLayout extends Omit<
   hitClip?: { left: number; right: number };
 
   kind: Neume['kind'];
+  /** Derived liquescent figure for labels/data hooks (ADR 0027); never stored. */
+  liquescentFigure?: LiquescentFigure;
   notes: readonly NoteLayout[];
 }
 
@@ -212,7 +217,8 @@ interface GeometryInput {
   syllableId?: string;
   accidentals?: readonly AccidentalSpec[];
   modifiers?: readonly NoteAppearance[];
-  kind: Neume['kind'];
+  /** Semantic kind, or the derived liquescent figure (ADR 0027). */
+  kind: GeometryKind;
   staffPositions: readonly StaffPosition[];
 }
 
@@ -230,7 +236,7 @@ interface PositionedSystem {
 
 function geometryInput(neume: Neume): GeometryInput {
   return {
-    kind: neume.kind,
+    kind: geometryKindFor(neume),
     modifiers: neume.notes,
     staffPositions: neume.notes.map((note) => note.staffPosition),
   };
@@ -735,7 +741,7 @@ function placeNeumeSequence(
 
 export function measureNeumeWidth(neume: Neume): number {
   return buildNeumeGeometry(
-    neume.kind,
+    geometryKindFor(neume),
     geometryInput(neume).staffPositions,
     0,
     firstSystemBottomStaffY,
@@ -796,6 +802,11 @@ export function getNeumeBoundaryCenterX(
     : firstNeumeCenterX;
 }
 
+function liquescentLayout(neume: Neume): Pick<NeumeLayout, 'liquescentFigure'> {
+  const figure = liquescentFigure(neume);
+  return figure ? { liquescentFigure: figure } : {};
+}
+
 function layoutCommittedNeume(
   neume: Neume,
   geometry: Omit<NeumeGeometry, 'accidentals'>,
@@ -805,6 +816,7 @@ function layoutCommittedNeume(
     neumeId: neume.id,
 
     kind: neume.kind,
+    ...liquescentLayout(neume),
     notes: geometry.notes.map((note, index) => ({
       ...note,
       noteId: neume.notes[index].id,

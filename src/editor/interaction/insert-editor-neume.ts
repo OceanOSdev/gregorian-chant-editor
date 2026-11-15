@@ -173,6 +173,40 @@ export function insertEditorNeume(
         },
         at,
       );
+    // Liquescent entry variants (ADR 0027): the semantic kind plus its
+    // neume-level appearance in one atomic insertion. Forms never apply.
+    case 'epiphonus':
+    case 'augmentative-pes':
+      return insertPodatus(
+        document,
+        {
+          ...base,
+          kind: 'podatus',
+          notes: [
+            note(0, insertion.staffPositions[0]),
+            note(1, insertion.staffPositions[1]),
+          ],
+          liquescence:
+            insertion.kind === 'epiphonus'
+              ? 'diminutive'
+              : 'augmentative-descending',
+        },
+        at,
+      );
+    case 'cephalicus':
+      return insertClivis(
+        document,
+        {
+          ...base,
+          kind: 'clivis',
+          notes: [
+            note(0, insertion.staffPositions[0]),
+            note(1, insertion.staffPositions[1]),
+          ],
+          liquescence: 'diminutive',
+        },
+        at,
+      );
     case 'scandicus':
       return insertScandicus(
         document,
@@ -243,7 +277,10 @@ const toolbarFallbackPitches = {
   tristropha: 2,
   punctum: 2,
   podatus: 2,
+  epiphonus: 2,
+  'augmentative-pes': 2,
   clivis: 3,
+  cephalicus: 3,
   scandicus: 2,
   torculus: 2,
   climacus: 3,

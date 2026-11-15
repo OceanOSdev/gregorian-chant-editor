@@ -1,5 +1,6 @@
 import { hasValidAccidentals } from '../domain/accidentals';
 import { isNoteForm } from '../domain/note-forms';
+import { isLiquescenceFor } from '../domain/liquescence';
 import {
   monotonicNotes,
   pesSubpunctisNotes,
@@ -26,8 +27,8 @@ import { isValidNeume } from '../domain/neume';
 
 export const maximumDocumentBytes = 1024 * 1024;
 const format = 'gregorian-chant-editor';
-type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-export const currentSchemaVersion = 9;
+type SchemaVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export const currentSchemaVersion = 10;
 function fail(message: string): never {
   throw new Error(message);
 }
@@ -98,7 +99,21 @@ function note(value: unknown, version: SchemaVersion): ChantNote {
   };
 }
 function neume(value: unknown, version: SchemaVersion): Neume {
-  const n = shape(value, ['id', 'kind', 'notes']);
+  // v10 adds the optional neume-level Podatus/Clivis appearance (ADR 0027).
+  // Exact v1–v9 readers reject it under their own version tag.
+  if (isRecord(value) && Object.hasOwn(value, 'liquescence')) {
+    if (version < 10)
+      fail('Unsupported neume appearance for this schema version.');
+    if (value.kind !== 'podatus' && value.kind !== 'clivis')
+      fail('Only a Podatus or Clivis may be liquescent.');
+    if (!isLiquescenceFor(value.kind, value.liquescence))
+      fail('Unknown liquescent appearance for this neume.');
+  }
+  const n = shape(
+    value,
+    ['id', 'kind', 'notes'],
+    version >= 10 ? ['liquescence'] : [],
+  );
   if (version < 6 && (n.kind === 'bistropha' || n.kind === 'tristropha'))
     fail('Unsupported neume kind for this schema version.');
   if (version < 7 && n.kind === 'pes-subpunctis')
@@ -137,11 +152,34 @@ function neume(value: unknown, version: SchemaVersion): Neume {
       result = { id: identity, kind: n.kind, notes: [a] };
       break;
     case 'bistropha':
-    case 'podatus':
-    case 'clivis':
       if (notes.length !== 2 || !a || !b)
         return fail('Two-note neume requires two notes.');
       result = { id: identity, kind: n.kind, notes: [a, b] };
+      break;
+    case 'podatus':
+      if (notes.length !== 2 || !a || !b)
+        return fail('Two-note neume requires two notes.');
+      result = {
+        id: identity,
+        kind: n.kind,
+        notes: [a, b],
+        ...(n.liquescence === 'diminutive' ||
+        n.liquescence === 'augmentative-descending'
+          ? { liquescence: n.liquescence }
+          : {}),
+      };
+      break;
+    case 'clivis':
+      if (notes.length !== 2 || !a || !b)
+        return fail('Two-note neume requires two notes.');
+      result = {
+        id: identity,
+        kind: n.kind,
+        notes: [a, b],
+        ...(n.liquescence === 'diminutive'
+          ? { liquescence: n.liquescence }
+          : {}),
+      };
       break;
     case 'scandicus':
     case 'climacus': {
@@ -283,6 +321,8 @@ function checkDraftModifiers(value: unknown): void {
   const document = record(value);
   const draftMarks: { id: string; mora: unknown }[][] = [];
   const neumes = array(document.neumes).map((value) => {
+    if (isRecord(value) && Object.hasOwn(value, 'liquescence'))
+      fail('Unsupported neume appearance for this schema version.');
     const n = shape(value, ['id', 'kind', 'notes']);
     const rawNotes = array(n.notes);
     const marks: { id: string; mora: unknown }[] = [];
@@ -337,10 +377,11 @@ export function decodeDocument(text: string): ChantDocument {
     envelope.version !== 6 &&
     envelope.version !== 7 &&
     envelope.version !== 8 &&
-    envelope.version !== 9
+    envelope.version !== 9 &&
+    envelope.version !== 10
   )
     fail(
-      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6, 7, 8 and 9.',
+      'Unsupported schema version. This editor reads versions 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10.',
     );
   if (envelope.version === 2) checkDraftModifiers(envelope.document);
   return validateDocument(envelope.document, envelope.version);

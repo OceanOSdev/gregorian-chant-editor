@@ -11,7 +11,7 @@ import { staffPosition } from '../domain/chant-document';
 import { buildNeumeGeometry } from '../layout/neume-geometry';
 import {
   createNeumeEntryPitches,
-  semanticNeumeKind,
+  entryGeometryKind,
   type GraphicalNeumeKind,
 } from '../neume-entry-pitches';
 import { NeumeInk } from '../rendering/NeumeInk';
@@ -36,7 +36,7 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
 /** The exact default entry contour, drawn from the shared measured geometry. */
 export function EntryIcon({ kind }: { kind: GraphicalNeumeKind }) {
   const geometry = buildNeumeGeometry(
-    semanticNeumeKind(kind),
+    entryGeometryKind(kind),
     createNeumeEntryPitches(kind, staffPosition(0)).staffPositions,
     0,
     0,

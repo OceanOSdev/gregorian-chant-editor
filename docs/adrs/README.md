@@ -198,3 +198,12 @@ qualifies ADRs 0010/0011 and extends ADR 0013's barrier; none is superseded.
 Checkpoint 9C-1 was reviewed at `88051f6`; 9C-2 verification is authorized,
 with final owner visual/implementation acceptance pending. See the
 [printed evidence and decision record](../verification/intra-syllable-grouping/README.md).
+
+[Accepted ADR 0027: Model liquescence as an authored appearance of Podatus and Clivis](0027-neume-level-liquescence.md)
+records the owner-approved Stage 10B design (2026-11-15): optional neume-level
+liquescence, Roman/Solesmes epiphonus and cephalicus, and the explicitly
+sourced Dominican augmentative-descending Podatus, with native v10.
+No existing ADR is superseded. Implementation and foreground acceptance
+remain pending in PR #89. See the
+[research record](../verification/liquescent-notation/README.md) and the
+[approved Stage 10B plan](../plans/stage-10b-liquescent-podatus-clivis.md).

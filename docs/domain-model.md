@@ -459,3 +459,36 @@ lyric and structural anchors and ADR 0021 B ownership are preserved. A final
 mora is removed only with its own note. Every three-note kind allows a final
 mora and these kinds have no forms, so a surviving mark never forces a
 rejection. The deletion rules of all older kinds are unchanged.
+
+## Liquescent Podatus and Clivis (Stage 10B)
+
+Liquescence is an optional authored **neume-level appearance** of the existing
+two-note kinds ([ADR 0027](adrs/0027-neume-level-liquescence.md)):
+
+- `PodatusNeume.liquescence?: 'diminutive' | 'augmentative-descending'`;
+- `ClivisNeume.liquescence?: 'diminutive'`.
+
+Absence means ordinary. There is no `'none'` value, no new kind, no persisted
+name, width or path. Derived names (`domain/liquescence.ts`): Podatus +
+diminutive is the **epiphonus**, Podatus + augmentative-descending is the
+**augmentative pes (Dominican)**, Clivis + diminutive is the **cephalicus**.
+`liquescenceChoices` is the single kind/value table for validation, decoding,
+controls and insertion.
+
+`isValidNeume` (through `hasValidLiquescence` and the liquescence-aware mora
+matrix) enforces, for commands, paste and decoding alike: the key only on
+Podatus/Clivis with an allowed value; the unchanged strict contour at any
+interval; no authored form on the first note (no quilismatic liquescent pes);
+no mora, horizontal or vertical episema on the second note; mora scope None or
+First. These are product deferrals, not historical prohibitions. The first
+note keeps every existing mark.
+
+Deleting either constituent normalizes the survivor to an ordinary Punctum
+with the same neume ID, surviving note ID, pitch and compatible marks; the
+appearance belonged to the two-note figure and is not transferred, and no
+single-note liquescent is synthesized. Ordinary accidental reconciliation
+applies. Moves keep the appearance while the contour stays strict; clef
+translation and copy/paste preserve it through `mapNeumeNotes`, which spreads
+Podatus/Clivis. Its branches that rebuild `{ id, kind, notes }` (four-note,
+Scandicus, Climacus) carry no neume fields and must change before any
+extension of liquescence to those kinds.

@@ -130,8 +130,19 @@ kbd {
   }
 }
 @media (max-width: 22rem) {
+  /*
+   * Single buttons keep one third of the row; split family controls take half.
+   * Pairs of families then share a row (Stage 10B added the Clivis family), so
+   * the sticky toolbar stays compact without reordering visual or focus order.
+   */
   .neume-palette {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .neume-palette > button {
+    grid-column: span 2;
+  }
+  .neume-palette > .neume-family-menu {
+    grid-column: span 3;
   }
 }
 

@@ -8,6 +8,7 @@ export const paletteTools = [
   'podatus',
   'podatus-menu',
   'clivis',
+  'clivis-menu',
   'scandicus',
   'scandicus-menu',
   'torculus',

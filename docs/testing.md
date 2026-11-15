@@ -266,6 +266,10 @@ and consult the owning record for feature-specific assertions and manual checks.
 
 - [Musical passage clipboard](verification/musical-passage-clipboard/README.md):
   copy/paste commands, session guards and the native clipboard driver.
+- [Liquescent notation](verification/liquescent-notation/README.md):
+  `liquescence.test.ts` (domain/commands/clipboard/session),
+  `persistence/liquescence.test.ts` (v10 and the owner's v9 WIP) and
+  `liquescent-geometry.test.ts`; runner driver `liquescent-notation`.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 

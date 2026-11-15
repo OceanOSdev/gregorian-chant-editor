@@ -1,4 +1,5 @@
 import type { Neume } from './chant-document';
+import { neumeLiquescence, type NeumeLiquescence } from './liquescence';
 
 export type MoraScope =
   'none' | 'sole' | 'first' | 'second' | 'both' | 'final' | 'final-two';
@@ -14,8 +15,13 @@ export interface MoraChoice {
 export function moraChoices(
   kind: Neume['kind'],
   noteCount: number,
+  liquescence?: NeumeLiquescence,
 ): readonly MoraChoice[] {
   const none: MoraChoice = { value: 'none', label: 'None' };
+  // Accepted ADR 0027 (D7): every liquescent pair allows none or the first
+  // note; the liquescent second note carries no mora in this product scope.
+  if (liquescence && (kind === 'podatus' || kind === 'clivis'))
+    return [none, { value: 'first', label: 'First note' }];
   switch (kind) {
     case 'bistropha':
     case 'tristropha':
@@ -80,11 +86,12 @@ export function moraIndexes(
 export function resolveMoraScope(
   kind: Neume['kind'],
   values: readonly unknown[],
+  liquescence?: NeumeLiquescence,
 ): MoraScope | null {
   if (values.some((value) => value !== undefined && value !== 1)) return null;
   const marked = values.flatMap((value, index) => (value === 1 ? [index] : []));
   return (
-    moraChoices(kind, values.length).find((choice) => {
+    moraChoices(kind, values.length, liquescence).find((choice) => {
       const indexes = moraIndexes(choice.value, values.length);
       return (
         indexes.length === marked.length &&
@@ -99,5 +106,6 @@ export function getMoraScope(neume: Neume): MoraScope | null {
   return resolveMoraScope(
     neume.kind,
     neume.notes.map((note) => note.mora),
+    neumeLiquescence(neume),
   );
 }

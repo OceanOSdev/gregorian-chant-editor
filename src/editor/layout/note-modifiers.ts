@@ -1,11 +1,12 @@
 import {
   isCompoundDirectionalKind,
-  type Neume,
   type NoteModifiers,
 } from '../domain/chant-document';
 import {
   getInkBounds,
   interNeumeInkGap,
+  semanticGeometryKind,
+  type GeometryKind,
   type InkShape,
   type LayoutBounds,
   type NeumeGeometry,
@@ -27,10 +28,13 @@ export function addNoteModifiers(
   geometry: NeumeGeometry,
   modifiers: readonly NoteModifiers[],
   bottomStaffY: number,
-  kind: Neume['kind'],
+  geometryKind: GeometryKind,
 ): NeumeGeometry {
   if (!modifiers.some((n) => n.mora || n.episema || n.verticalEpisema))
     return geometry;
+  // Liquescent figures (ADR 0027) mark only their first note and follow their
+  // semantic kind's mora rules; their vertical obstacles are figure-specific.
+  const kind = semanticGeometryKind(geometryKind);
   const ink = [...geometry.ink];
   const signs: InkShape[] = [];
   const noteSigns: InkShape[][] = geometry.notes.map(() => []);
@@ -158,7 +162,7 @@ export function addNoteModifiers(
   // Resolve vertical signs last so horizontal episemata and mora retain their
   // established geometry. Compound occupied boxes include empty apertures;
   // use the same head regions and the recipes' narrow shafts for this pass.
-  const obstacles = verticalObstacles(geometry, kind);
+  const obstacles = verticalObstacles(geometry, geometryKind);
   const verticalClear = (bounds: LayoutBounds, leftOfInk = false) =>
     (leftOfInk || bounds.x >= geometry.bounds.x) &&
     ![...obstacles, ...signs.map((sign) => sign.bounds)].some((part) =>
@@ -237,7 +241,7 @@ export function addNoteModifiers(
 /** Conservative head/shaft partitions of the existing contour recipes. */
 function verticalObstacles(
   geometry: NeumeGeometry,
-  kind: Neume['kind'],
+  kind: GeometryKind,
 ): LayoutBounds[] {
   const heads = geometry.notes.map((note) => note.head.bounds);
   const obstacles = [...heads];
@@ -247,7 +251,14 @@ function verticalObstacles(
   };
   const first = geometry.notes[0];
   const bottom = geometry.bounds.y + geometry.bounds.height;
-  if (kind === 'punctum') {
+  if (kind === 'epiphonus') {
+    // The constituent regions already include the right stroke and terminal.
+  } else if (kind === 'cephalicus') {
+    // Left stem below the head; the right stroke lies inside the terminal region.
+    addShaft(first.x, first.anchorY, bottom);
+  } else if (kind === 'augmentative-pes') {
+    // The upper region already includes its tail and left connector.
+  } else if (kind === 'punctum') {
     // An authored virga alone adds a descending right queue.
     if (bottom > first.head.bounds.y + first.head.bounds.height)
       addShaft(first.x + first.width - 1.5, first.anchorY, bottom);

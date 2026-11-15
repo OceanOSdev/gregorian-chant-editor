@@ -22,6 +22,7 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
   const clef = layout.systems[0]?.clef;
   const changes = layout.systems.flatMap((system) => system.clefChanges);
   const divisions = layout.systems.flatMap((system) => system.divisions);
+  const liquescent = neumes.filter((n) => n.liquescentFigure).length;
   const accidentalCount = neumes.reduce(
     (count, n) => count + (n.accidentals?.length ?? 0),
     0,
@@ -39,6 +40,9 @@ export function getScoreAccessibleDescription(layout: ChantLayout) {
     )}.${marked ? ' ' + countLabel(marked, 'note with rhythmic modifiers', 'notes with rhythmic modifiers') + '.' : ''}${clef ? ` Initial ${clefName(clef)} clef on staff line ${clef.staffLine} from bottom${changes.length ? '. System openings use their effective clef' : ', repeated on every system'}.` : ''}${changes.length ? ` ${countLabel(changes.length, 'authored clef change', 'authored clef changes')}: ${changes.map((c) => `${clefName(c)} on staff line ${c.staffLine}`).join(', ')}.` : ''}${divisions.length ? ` ${countLabel(divisions.length, 'division', 'divisions')}: ${divisions.map((d) => d.kind).join(', ')}.` : ''}` +
     (accidentalCount
       ? ` ${countLabel(accidentalCount, 'written B accidental', 'written B accidentals')}.`
+      : '') +
+    (liquescent
+      ? ` ${countLabel(liquescent, 'liquescent neume', 'liquescent neumes')}.`
       : '')
   );
 }

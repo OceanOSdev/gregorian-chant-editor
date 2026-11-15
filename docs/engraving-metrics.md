@@ -605,3 +605,27 @@ These original procedural contours were compared with Greciliae 6.0.0 at a
 They are project contours, not a font facsimile. Staff lines remain visible,
 as in Gregorio's default `hidealtlines=false` policy. See the retained
 [printed/compiled/editor comparison](verification/b-accidentals/implementation.md).
+
+## Liquescent figures (Stage 10B)
+
+Units as for the ordinary recipes (12-unit head and staff step; y downward,
+relative to the constituent's pitch centre). Constants live in
+`liquescentMetrics`. Proportions were measured from Gregorio 6.0.0 renders at
+1 unit ≈ 2.79 px (staff space 67 px) and checked qualitatively against the
+_Liber Usualis_ p. xxij table and the _Completorium O.P._ 1949 p. 119 print
+([research record](verification/liquescent-notation/README.md)).
+
+| Constant                             | Value                                   | Source                                          |
+| ------------------------------------ | --------------------------------------- | ----------------------------------------------- |
+| Epiphonus horn top / body top / base | −10 / −5 / +9.4                         | Gregorio `PesOneDeminutus` −10 / −4.8 / +9.3    |
+| Diminutive terminal extent           | −5.2 to +3.8 around its pitch, x 5.6–12 | Gregorio −5.2…+3.8 (Δ1 and Δ3), ≈5.7 units wide |
+| Cephalicus terminal                  | −3.2 to +6.1 around the lower pitch     | Gregorio `FlexusOneDeminutus` −3.2…+6.1         |
+| Cephalicus left stem                 | `clivisStemLength`                      | Gregorio ≈ 25.6 at Δ1 (project 27)              |
+| Connecting stroke                    | x 10.5–12                               | ordinary Podatus/Clivis stroke                  |
+| Augmentative head offset             | 10.5 (all intervals)                    | ordinary wider Clivis; Gregorio op heads abut   |
+| Augmentative tail                    | 1.2 wide; bottom = upper pitch + 18     | Gregorio op ≈ +18 at Δ1 and Δ3 (constant)       |
+
+Observed evidence covers seconds (print) and seconds to fifths (Gregorio,
+both fonts, line and space starts). Wider valid intervals use the same
+constructions: stems and strokes lengthen, terminals and tail stay
+pitch-anchored (documented extrapolation, not historical evidence).

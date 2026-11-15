@@ -491,7 +491,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 9);
+      assert.equal(JSON.parse(await raw()).version, 10);
       assert.equal(await family(), kind);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -515,6 +515,13 @@ try {
     assert.equal(await focusedTool(), 'podatus-menu');
     await key('Enter');
     await key('End');
+    // Stage 10B appended Epiphonus and Augmentative pes (Dominican).
+    assert.equal(
+      await ev('document.activeElement.textContent.trim()'),
+      'Augmentative pes (Dominican)',
+    );
+    await key('ArrowUp');
+    await key('ArrowUp');
     assert.equal(
       await ev('document.activeElement.textContent.trim()'),
       'Pes subtripunctis',
@@ -544,7 +551,7 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 9);
+    assert.equal(JSON.parse(exported).version, 10);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
     // Intentional legacy check: a v6 file containing the kind (introduced in
@@ -727,7 +734,7 @@ try {
       ],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 9);
+    assert.equal(JSON.parse(markedBytes).version, 10);
     await navigate();
     assert.equal(await raw(), markedBytes, 'reload keeps marked current bytes');
     assert.deepEqual(await score(), kyrieMarked);

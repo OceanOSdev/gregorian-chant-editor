@@ -69,6 +69,21 @@
 .note-context-toolbar select:disabled {
   opacity: 0.7;
 }
+/* ADR 0027 Clivis Liquescent toggle: pressed state is visible, not colour-only. */
+.note-context-toolbar__toggle {
+  width: 100%;
+  margin: 0.25rem 0 0;
+  text-align: left;
+}
+.note-context-toolbar__toggle[aria-pressed='true'] {
+  border-width: 2px;
+  border-color: #28231e;
+  background: #eee6d8;
+  font-weight: bold;
+}
+.note-context-toolbar__toggle[aria-pressed='true']::before {
+  content: '✓ ';
+}
 
 @media print {
   .accidental-context-toolbar {

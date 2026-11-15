@@ -1,0 +1,14 @@
+% Stage 10B interval comparison: ordinary / diminutive / augmentative-descending
+% at seconds to fifths from line and space starts. Gregorio 6.0.0 / GregorioTeX.
+\documentclass[11pt]{article}
+\usepackage[paperwidth=19cm,paperheight=15cm,margin=0.6cm]{geometry}
+\usepackage[autocompile]{gregoriotex}
+\pagestyle{empty}\setlength{\parindent}{0pt}
+\begin{document}
+\grechangestaffsize{22}\gresetinitiallines{0}
+\textbf{A. Default Greciliae}\par\smallskip
+\gregorioscore{intervals}\par\medskip
+\gresetgregoriofont[op]{greciliae}
+\textbf{B. Greciliae [op] (Dominican)}\par\smallskip
+\gregorioscore{intervals}
+\end{document}

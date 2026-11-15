@@ -1,0 +1,15 @@
+% Stage 10A liquescent research comparison. Gregorio 6.0.0 / GregorioTeX.
+\documentclass[11pt]{article}
+\usepackage[paperwidth=19cm,paperheight=27cm,margin=0.8cm]{geometry}
+\usepackage[autocompile]{gregoriotex}
+\pagestyle{empty}\setlength{\parindent}{0pt}
+\begin{document}
+\grechangestaffsize{24}\gresetinitiallines{0}
+\textbf{A. Default Greciliae (Gregorio Roman/Solesmes-style font)}\par\smallskip
+\gregorioscore{pairs}\par\medskip
+\gregorioscore{salve-excerpt}\par\bigskip
+\gresetgregoriofont[op]{greciliae}
+\textbf{B. Greciliae [op] (Gregorio Dominican font/rule set)}\par\smallskip
+\gregorioscore{pairs}\par\medskip
+\gregorioscore{salve-excerpt}
+\end{document}

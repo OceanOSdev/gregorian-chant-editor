@@ -3,6 +3,7 @@ import {
   type Neume,
   type StaffPosition,
 } from './domain/chant-document';
+import type { LiquescentFigure, NeumeLiquescence } from './domain/liquescence';
 
 /**
  * Exact entry-tool variants. Most map one-to-one to a semantic kind; the two
@@ -10,6 +11,7 @@ import {
  * the four-/five-note Scandicus and Climacus entries map to the ordinary kinds.
  */
 export type GraphicalNeumeKind =
+  | LiquescentFigure
   | 'pes-subbipunctis'
   | 'pes-subtripunctis'
   | 'scandicus-4'
@@ -141,6 +143,18 @@ export type NeumeEntryPitches =
       staffPositions: readonly [StaffPosition, StaffPosition];
     }
   | {
+      kind: 'epiphonus';
+      staffPositions: readonly [StaffPosition, StaffPosition];
+    }
+  | {
+      kind: 'augmentative-pes';
+      staffPositions: readonly [StaffPosition, StaffPosition];
+    }
+  | {
+      kind: 'cephalicus';
+      staffPositions: readonly [StaffPosition, StaffPosition];
+    }
+  | {
       kind: 'clivis';
       staffPositions: readonly [StaffPosition, StaffPosition];
     }
@@ -166,6 +180,11 @@ export type GraphicalStaffPositions = NeumeEntryPitches['staffPositions'];
 /** The semantic family an entry variant creates; never stored as tool state. */
 export function semanticNeumeKind(kind: GraphicalNeumeKind): Neume['kind'] {
   switch (kind) {
+    case 'epiphonus':
+    case 'augmentative-pes':
+      return 'podatus';
+    case 'cephalicus':
+      return 'clivis';
     case 'pes-subbipunctis':
     case 'pes-subtripunctis':
       return 'pes-subpunctis';
@@ -180,11 +199,37 @@ export function semanticNeumeKind(kind: GraphicalNeumeKind): Neume['kind'] {
   }
 }
 
+/**
+ * The engraving an entry variant previews and inserts: its liquescent figure,
+ * or the semantic kind it creates. Shared by ghosts, icons and committed layout.
+ */
+export function entryGeometryKind(
+  kind: GraphicalNeumeKind,
+): Neume['kind'] | LiquescentFigure {
+  return kind === 'epiphonus' ||
+    kind === 'cephalicus' ||
+    kind === 'augmentative-pes'
+    ? kind
+    : semanticNeumeKind(kind);
+}
+
+/** The liquescent appearance an entry variant inserts (ADR 0027), if any. */
+export function entryLiquescence(
+  kind: GraphicalNeumeKind,
+): NeumeLiquescence | undefined {
+  if (kind === 'epiphonus' || kind === 'cephalicus') return 'diminutive';
+  return kind === 'augmentative-pes' ? 'augmentative-descending' : undefined;
+}
+
 /** The exact entry variant that would create a neume of this kind and size. */
 export function entryNeumeKind(
   kind: Neume['kind'],
   noteCount: number,
+  liquescence?: NeumeLiquescence,
 ): GraphicalNeumeKind {
+  if (kind === 'podatus' && liquescence)
+    return liquescence === 'diminutive' ? 'epiphonus' : 'augmentative-pes';
+  if (kind === 'clivis' && liquescence) return 'cephalicus';
   if (kind === 'pes-subpunctis')
     return noteCount === 5 ? 'pes-subtripunctis' : 'pes-subbipunctis';
   if ((kind === 'scandicus' || kind === 'climacus') && noteCount > 3)
@@ -273,6 +318,8 @@ export function createNeumeEntryPitches(
         staffPositions: [firstStaffPosition],
       };
     case 'podatus':
+    case 'epiphonus':
+    case 'augmentative-pes':
       return {
         kind,
         staffPositions: [
@@ -281,6 +328,7 @@ export function createNeumeEntryPitches(
         ],
       };
     case 'clivis':
+    case 'cephalicus':
       return {
         kind,
         staffPositions: [

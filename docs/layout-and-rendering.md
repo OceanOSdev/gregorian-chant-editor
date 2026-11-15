@@ -877,3 +877,32 @@ The band stops before the lyric row and does not extend to unused staff or
 system-edge guides. It is behind notation, aria-hidden and pointer-inert. It
 adds no engraving fields or layout input. Semantic membership and gestures are
 owned by [editor interactions](editor-interactions.md#active-syllable-and-selection).
+
+## Liquescent figures (Stage 10B)
+
+`neumes/liquescent.ts` draws the [ADR 0027](adrs/0027-neume-level-liquescence.md)
+figures from original measured paths, selected by the derived
+`GeometryKind` (`geometryKindFor(neume)`: the semantic kind or `epiphonus`,
+`cephalicus`, `augmentative-pes`). The same discriminator drives committed
+layout, ghost previews (`entryGeometryKind`) and palette icons, so preview and
+committed ink are identical; ordinary kinds keep their recipes byte-for-byte
+(194,830 enumerated cases hash-identical to master).
+
+- **Epiphonus:** one Podatus-width column; a lower body with a concave top
+  rising to a left horn and a deeper rounded base; a right stroke lengthening
+  with the interval; a reduced, left-pointing terminal at the upper pitch.
+- **Cephalicus:** the Clivis upper head and left stem (`clivisStemLength`);
+  a right stroke down to a reduced terminal at the lower pitch. One head wide,
+  narrower than the Clivis.
+- **Augmentative pes (Dominican):** two full heads, the upper offset 10.5
+  units and joined down its left edge to the lower base, with a thin tail of
+  constant length descending from the upper head's right edge. Wider than the
+  Podatus.
+
+Each constituent keeps its own pitch anchor and an ordinary-size hit/focus
+target (a reduced terminal is padded like a head); stacked targets split at
+the pitch midpoint and the augmentative second splits at its anchor midpoint.
+Lyric anchors: the column figures centre on the head; the augmentative pes on
+the midpoint of its anchors. Marks use the semantic kind's single-sign rules
+with figure-specific vertical-episema obstacles. Measured constants are in
+[engraving metrics](engraving-metrics.md#liquescent-figures-stage-10b).

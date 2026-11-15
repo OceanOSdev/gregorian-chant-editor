@@ -443,11 +443,11 @@ describe('editing and normalization', () => {
 
 describe('native v9 persistence', () => {
   it.each(kinds)(
-    '%s round trips in v9 and is rejected by every exact v1–v8 reader without touching cache bytes',
+    '%s round trips in v9+ (written as v10) and is rejected by every exact v1–v8 reader without touching cache bytes',
     (kind) => {
       const doc = updateMoraScope(fixture(kind, defaults[kind]), 'g', 'final');
       const text = encodeDocument(doc);
-      expect(JSON.parse(text).version).toBe(9);
+      expect(JSON.parse(text).version).toBe(10);
       expect(decodeDocument(text)).toEqual(doc);
       for (const version of [1, 2, 3, 4, 5, 6, 7, 8]) {
         const payload = JSON.parse(text);
@@ -501,7 +501,7 @@ describe('native v9 persistence', () => {
         },
         (p) => (p.document.neumes[0].variant = 'flexus'),
         (p) => (p.document.neumes[0].kind = `${kind}-4`),
-        (p) => (p.version = 10),
+        (p) => (p.version = 11),
       ];
       for (const change of mutations) {
         const value = structuredClone(good);
@@ -513,7 +513,7 @@ describe('native v9 persistence', () => {
 });
 
 describe('entry', () => {
-  it('exposes six neume split families and the division menu', () => {
+  it('exposes the neume split families (seven since Stage 10B) and the division menu', () => {
     expect(torculusFamily).toEqual(['torculus', 'torculus-resupinus']);
     expect(porrectusFamily).toEqual(['porrectus', 'porrectus-flexus']);
     expect(scandicusFamily.at(-1)).toBe('scandicus-flexus');
@@ -521,6 +521,7 @@ describe('entry', () => {
     expect(paletteTools.filter((t) => t.endsWith('-menu'))).toEqual([
       'punctum-menu',
       'podatus-menu',
+      'clivis-menu',
       'scandicus-menu',
       'torculus-menu',
       'climacus-menu',
