@@ -318,3 +318,61 @@ owner's foreground comparison against the print remains required.
   current-write version 9 → 10 assertions; "unknown future version" probes
   10 → 11; the palette menu list (seven families, `clivis-menu`); the Podatus
   menu End item; the runner's runnable-pair count (40 → 42).
+
+### Verification results (revision `dfa5a63`)
+
+Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
+
+- `npm run format:check`, `npm run lint`, `npm run build`, `git diff --check`:
+  passed. `npm test`: 99 files, 2282 tests passed (new: `liquescence.test.ts`,
+  `persistence/liquescence.test.ts`, `liquescent-geometry.test.ts`).
+  `npm run test:verify-runner`: 28 passed.
+- Ordinary geometry: `existing-geometry-baseline.mjs aea861d` — 194,830 cases,
+  identical hashes, no exceptions.
+- Browser runner, `--browser both -j 3`, 33 passed and 1 unsupported
+  (`vowel-alignment` Firefox), 307.7 s, cleanup ok: `liquescent-notation`,
+  `compound-directional-neumes`, `pes-subpunctis`, `repeated-note-neumes`,
+  `extended-scandicus-climacus`, `note-shapes`, `note-modifiers`,
+  `vertical-episemata`, `vertical-episemata-context`, `b-accidentals`,
+  `b-accidentals-acceptance`, `local-persistence`,
+  `musical-passage-clipboard`, `contiguous-selection`, `bundled-example`,
+  `divisions` (both browsers) and `vowel-alignment` (Chromium).
+- `liquescent-notation` covers, at 1440 px and 320 px in both browsers:
+  - **Palette:** the families and the owner's v9 WIP hydrated without a write.
+  - **Ad te continuation:** added after the final division through the real
+    contextual Insert, remembered-variant I insertion, pitch moves and lyric
+    entry. "Ad" is on the punctum, the epiphonus carries no syllable, and "te"
+    is on the following punctum. The save is v10 and the 35 WIP neumes are
+    unchanged.
+  - **Inventory figures:** all six engraved with labels, and the score
+    description counts them.
+  - **Appearance editing:** Podatus Appearance transitions with stable IDs;
+    second-note marks are disabled with an explanation; the Clivis toggle
+    works; a rejection is visible and announced with no autosave; the
+    whole-neume toolbar works, with undo.
+  - **D5 deletion:** announcement, and undo restores the bytes exactly.
+  - **Clipboard:** copy/paste of the augmentative pes.
+  - **Persistence:** v10 reload, export and import; the same file tagged v9
+    is rejected.
+  - **Placement:** one-click graphical placement of all three variants, with
+    ghosts.
+  - **Layout:** no horizontal overflow.
+- **Not run:** the full historical matrix. `word-composition`, `lyric-spacing`
+  and `lyric-spacing-selection-cue` were not re-run; they are unrelated to
+  this change.
+- **Intermittent:** one intermediate Chromium `note-modifiers` run failed
+  reading the captured export (`__download` null) and passed on every rerun,
+  including the final run. Recorded as unexplained.
+
+### Remaining foreground owner acceptance
+
+- Compare the editor figures with the print (`regenerate.sh` →
+  `print-vs-editor.png`), especially the epiphonus terminal, the Eia tail
+  length and the cephalicus width. Do this at normal zoom and on a real
+  screen.
+- Continue the WIP at Ad te in a foreground browser using pointer and
+  keyboard, and check the sticky toolbar and focus visibility at a narrow
+  width.
+- Use a screen reader to check the appearance labels, the toggle's pressed
+  state and the rejection and deletion announcements. Headless runs cannot
+  verify spoken output.
