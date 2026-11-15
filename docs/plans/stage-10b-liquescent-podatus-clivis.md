@@ -11,20 +11,20 @@ master. No merge until implementation review and foreground owner acceptance.
 All D1–D12 were approved on 2026-11-15. D2 explicitly selects the Dominican
 construction rather than the research author's initial deferral recommendation.
 
-| #   | Accepted decision |
-| --- | --- |
-| D1  | Optional neume-level liquescence on Podatus and Clivis. |
-| D2  | Include Dominican augmentative-descending Podatus (Eia): offset full heads and thin descending terminal, not standard rounded auctus. |
-| D3  | Roman/Solesmes diminutive silhouettes (Liber Usualis p. xxij). |
-| D4  | Two-note Podatus/Clivis only. |
+| #   | Accepted decision                                                                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | Optional neume-level liquescence on Podatus and Clivis.                                                                                                            |
+| D2  | Include Dominican augmentative-descending Podatus (Eia): offset full heads and thin descending terminal, not standard rounded auctus.                              |
+| D3  | Roman/Solesmes diminutive silhouettes (Liber Usualis p. xxij).                                                                                                     |
+| D4  | Two-note Podatus/Clivis only.                                                                                                                                      |
 | D5  | Deletion of either constituent normalizes to ordinary Punctum, retaining surviving note, neume identity and compatible marks; one undoable edit with announcement. |
-| D6  | All otherwise valid intervals; distinguish observed and extrapolated geometry. |
-| D7  | Existing first-note marks only; no second-note mora, horizontal or vertical episema on any approved liquescent pair. |
-| D8  | No quilisma combined with liquescence. |
-| D9  | Direct insertion via Podatus and Clivis split families; same two-pitch placement. |
-| D10 | Podatus explicit appearance selector: Ordinary / Epiphonus / Augmentative pes (Dominican); Clivis binary Liquescent toggle. |
-| D11 | Native v10; strict v1–v9 readers and existing save boundaries. |
-| D12 | Single-note Dominican liquescents (osténde, Virgo) deferred. |
+| D6  | All otherwise valid intervals; distinguish observed and extrapolated geometry.                                                                                     |
+| D7  | Existing first-note marks only; no second-note mora, horizontal or vertical episema on any approved liquescent pair.                                               |
+| D8  | No quilisma combined with liquescence.                                                                                                                             |
+| D9  | Direct insertion via Podatus and Clivis split families; same two-pitch placement.                                                                                  |
+| D10 | Podatus explicit appearance selector: Ordinary / Epiphonus / Augmentative pes (Dominican); Clivis binary Liquescent toggle.                                        |
+| D11 | Native v10; strict v1–v9 readers and existing save boundaries.                                                                                                     |
+| D12 | Single-note Dominican liquescents (osténde, Virgo) deferred.                                                                                                       |
 
 ## Scope
 
@@ -155,13 +155,14 @@ not force a migration write. Keep the original v9 fixture untouched. Update
   the key rejected, legacy fixtures decode unchanged. Confirm actual v10
   bytes on import/edit/export and no forced migration on cache hydration.
 - Appearance: all valid transitions among Podatus variants, Clivis on/off,
-  preserve IDs, pitches, anchors and accidentals; it is a
-  no-op when unchanged; rejected with marks/quilisma; one history entry;
+  preserve IDs, pitches, anchors and accidentals; unchanged is a no-op;
+  rejected with marks/quilisma; one history entry;
   undo/redo.
 - Moves: up/down keep liquescence; inversion/unison rejected; whole-neume move.
 - Clef change translation and written B signs preserved.
 - Deletion of each constituent of each of the three variants under D5,
-  including surviving marks, owner/anchor accidental behavior, undo; whole-neume deletion.
+  including surviving marks, owner/anchor accidental behavior, undo;
+  whole-neume deletion.
 - Clipboard: copy a liquescent figure between documents and clefs, keeping
   the field with fresh IDs and effective pitch; conflicts unchanged.
 - Insertion via all three entry variants; graphical and keyboard placement,
@@ -197,14 +198,14 @@ From the owner's v9 fixture (positions: d=0 … j=6, C4):
    [2, 3] with the sourced Dominican thin descending tail, compare p. 119
    system 4. Verify all three Podatus appearance choices without changing IDs.
 4. _miseri-cór-_: closing Cephalicus [4, 3]. _dul-cis_: Cephalicus [3, 2].
-5. Change each figure to ordinary and back; IDs and anchors are unchanged. Delete
-   the terminal of an epiphonus and check the D5 behaviour, then undo.
+5. Change each figure to ordinary and back; IDs and anchors are unchanged.
+   Delete the terminal of an epiphonus and check D5, then undo.
 
 ## Stop conditions
 
 Stop and report if the shared geometry cannot express the reduced terminal
-without per-renderer state, if the cephalicus or augmentative pes width breaks accepted spacing
-contracts (ADR 0010/0011/0026), or if any reconstruction path drops the field
+without per-renderer state, if the cephalicus or augmentative pes width breaks
+accepted spacing contracts (ADR 0010/0011/0026), or if any reconstruction path drops the field
 in a way the tests cannot cover locally.
 
 Do not reopen settled D1–D12 unless evidence reveals a genuine conflict.
