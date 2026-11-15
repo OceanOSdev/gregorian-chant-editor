@@ -272,7 +272,9 @@ for its transaction boundary.
 The [native v1 codec](persistence.md#native-version-1) validates complete runtime
 objects before they enter the semantic model, preserving valid IDs and order.
 The semantic model itself still contains no schema, history or browser fields;
-the version belongs to the external envelope. Future schema evolution follows
+the version belongs to the external envelope. The musical passage clipboard is
+transient editor-session state, not part of `ChantDocument` or any schema; its
+snapshot stores relative degrees, not source IDs or staff positions. Future schema evolution follows
 Accepted ADR 0016 and the persistence guide.
 
 ## Authored note forms (Stage 8B)

@@ -80,6 +80,11 @@ import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import { allocateInsertionIds } from '../interaction/allocate-insertion-ids';
 import {
+  allocatePasteIds,
+  getClipboardShortcut,
+} from '../interaction/clipboard-shortcuts';
+import { copyableNeumeIndexes } from '../commands/musical-passage-clipboard';
+import {
   getNotationShortcut,
   nextPaletteTool,
   paletteTools,
@@ -94,6 +99,7 @@ import {
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import { focusAndReveal } from '../rendering/focus-visibility';
 import {
+  clipboardBlocked,
   entryName,
   neumeName,
   lyricMoveTargets,
@@ -150,6 +156,29 @@ function isEditableTarget(target: EventTarget | null) {
     target instanceof HTMLElement &&
     (target.isContentEditable ||
       ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+  );
+}
+
+/**
+ * Clipboard shortcuts act anywhere in the editor, or with nothing focused (after
+ * New, Escape or a background click), unlike the narrower I/T notation scope.
+ * Editable targets are excluded earlier and keep native clipboard behaviour.
+ */
+function isClipboardScope(target: EventTarget | null) {
+  if (
+    target === globalThis.document ||
+    target === globalThis.document.body ||
+    target === globalThis.document.documentElement
+  )
+    return true;
+  return target instanceof Element && Boolean(target.closest('.chant-editor'));
+}
+
+/** A real, non-empty native text selection keeps native copy. */
+function hasNativeTextSelection() {
+  const selection = globalThis.getSelection?.();
+  return Boolean(
+    selection && !selection.isCollapsed && selection.toString().trim(),
   );
 }
 
@@ -488,6 +517,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     });
   }
 
+  const clipboard = session.clipboard;
+  const pasteClipboard = useCallback(
+    () => dispatch({ type: 'paste-passage', ids: allocatePasteIds(clipboard) }),
+    [dispatch, clipboard],
+  );
+  const clipboardUnavailable = clipboardBlocked(session);
+  const canCopy =
+    !clipboardUnavailable &&
+    copyableNeumeIndexes(history.present, selection) !== null;
+  const canPaste =
+    !clipboardUnavailable &&
+    clipboard !== null &&
+    (selection.kind === 'none' ||
+      selection.kind === 'note' ||
+      selection.kind === 'neume' ||
+      selection.kind === 'neume-range');
+
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       if (event.defaultPrevented || event.isComposing) return;
@@ -495,6 +541,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       const notationFocused =
         event.target instanceof Element &&
         !!event.target.closest('[data-notation-shortcuts], .score');
+      const clipboardShortcut = getClipboardShortcut(
+        event,
+        isClipboardScope(event.target),
+        hasNativeTextSelection(),
+      );
+      if (clipboardShortcut) {
+        // Claim the in-app command once; held-key repeats never paste again.
+        event.preventDefault();
+        if (event.repeat) return;
+        if (clipboardShortcut === 'copy') dispatch({ type: 'copy-passage' });
+        else pasteClipboard();
+        return;
+      }
       if (
         isLyricEntryShortcut(
           event,
@@ -638,6 +697,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     history.present,
     selectedNeume,
     selection.kind,
+    pasteClipboard,
   ]);
 
   return (
@@ -1036,6 +1096,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </select>
         </label>
         <div className="editor-actions">
+          {session.clipboardFeedback ? (
+            // Visible copy of the live announcement; not itself live, so the
+            // explanation is spoken once.
+            <p id="clipboard-feedback" className="editor-clipboard-feedback">
+              {session.clipboardFeedback}
+            </p>
+          ) : null}
           {range ? (
             <span id="range-selection-status">
               {range.neumes.length} neumes selected · Escape clears. Select one
@@ -1074,6 +1141,42 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onClick={() => insertRememberedNeume()}
           >
             Insert {rememberedName} <kbd aria-hidden="true">I</kbd>
+          </button>
+          <button
+            type="button"
+            className="editor-clipboard"
+            data-notation-shortcuts
+            aria-label="Copy selected music"
+            aria-keyshortcuts="Control+C Meta+C"
+            title="Copy the selected whole neume or passage (Ctrl/⌘+C)"
+            disabled={!canCopy}
+            onClick={() => dispatch({ type: 'copy-passage' })}
+          >
+            Copy
+          </button>
+          <button
+            type="button"
+            className="editor-clipboard"
+            data-notation-shortcuts
+            aria-label={
+              clipboard
+                ? `Paste ${clipboard.neumeCount} copied neume${clipboard.neumeCount === 1 ? '' : 's'}`
+                : 'Paste (clipboard empty)'
+            }
+            aria-keyshortcuts="Control+V Meta+V"
+            title="Paste copied music after the selection, or at the end (Ctrl/⌘+V)"
+            aria-describedby={
+              session.clipboardFeedback ? 'clipboard-feedback' : undefined
+            }
+            disabled={!canPaste}
+            onClick={pasteClipboard}
+          >
+            Paste
+            {clipboard ? (
+              <span className="editor-clipboard__count" aria-hidden="true">
+                {clipboard.neumeCount}
+              </span>
+            ) : null}
           </button>
           <button
             type="button"

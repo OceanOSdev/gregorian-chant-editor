@@ -48,8 +48,9 @@ otherwise selection clears. Interior insertion joins the interval and removal
 contracts it. Undo/redo never restores selection from history. Document replacement
 clears it. Selection gestures preserve exact document/history identity and redo.
 
-Ranges are selection only: no clipboard, deletion, movement, transposition or
-non-contiguous selection. Visual membership never enables single-note/neume
+Ranges and whole neumes can be copied and pasted as music (see
+[musical passage clipboard](#musical-passage-clipboard)); there is still no
+range deletion, movement, transposition, cut or non-contiguous selection. Visual membership never enables single-note/neume
 editing. Insert and global Lyrics are disabled with a visible explanation;
 I also rejects before focused clef/division retargeting, and insertion resolvers
 return null. Explicit L on a note/lyric enters that single lyric target and leaves
@@ -478,6 +479,7 @@ edits; focus alone does not authorize every operation.
 | Contextual Insert / I                      | Selection-based insertion, with the existing end-of-document fallback.                                                           |
 | T / palette activation                     | Navigate to the remembered tool / activate the focused palette button.                                                           |
 | Undo / Redo                                | Document history, resolving dirty drafts first.                                                                                  |
+| Ctrl/Cmd+C, Ctrl/Cmd+V in the editor       | Copy the selected whole neume/passage; paste after the selection or at the end. Native text targets keep the browser clipboard.  |
 
 Unmodified L is reserved for Lyrics activation on score controls, including a
 selected engraved lyric. Shift+L can still begin uppercase replacement; native
@@ -1021,3 +1023,71 @@ resupinus") and disables Form. Mora scope offers exactly None and Final note.
 A rejected single-note move announces that the figure must keep its contour.
 A rejected deletion uses the existing "no supported neume, such as two equal
 adjacent pitches" announcement.
+
+## Musical passage clipboard
+
+Copy and Paste reuse music inside the running application. The
+[plan](plans/musical-passage-clipboard.md) records the eight owner-approved
+policies; this section is the interaction contract.
+
+**Copy** requires ordinary Select with a whole-neume or contiguous-range
+selection (Shift selects a whole neume; a note-only selection does not copy a
+partial neume). It captures a detached snapshot of the complete neumes in
+canonical order: kind, tuple, forms, mora, episemata, and each note's effective
+relative degree and B alteration resolved from the whole source document.
+Divisions strictly between the first and last copied neume are kept in exact
+order; leading/trailing divisions and every source clef change are omitted.
+Written signs are copied by owner. An above-note anchor inside the copy is
+retained; one outside the copy falls back to default placement (announced).
+Signs owned outside the copy are not copied. Lyrics, syllable anchors, layout
+and source IDs are not captured. Copy changes only the clipboard and
+announcement: no selection, focus, history, redo or saved bytes. A rejected copy
+keeps the previous clipboard.
+
+**Paste** inserts after the selected note's neume, the selected whole neume, or
+the last canonical neume of a range, before any division or clef run that
+follows it. With no selection it appends after every trailing event, including
+a final division or clef. Syllable, division, clef, clef-change and accidental
+selections reject explicitly; there is no focus-based retargeting. Pasted notes
+keep their copied degrees under the effective destination clef (the last clef
+strictly before the insertion point). Every pasted neume, note, division and
+sign receives a fresh ID. Existing syllables, text and alignment are unchanged;
+pasted music joins the preceding syllable by ordinary anchor semantics.
+
+The complete candidate is validated before commit. Paste rejects, with a short
+reason, when a copied or existing note's effective pitch would change (for
+example, a missing word reset or an inherited flat), when an existing or copied
+above-note placement would become invalid, or when positions are not
+representable. It never adds compensating signs, relocates existing signs or
+creates lyric anchors. A rejection leaves the document, history, redo,
+selection, focus and clipboard unchanged and saves nothing.
+
+Success records one history entry, remains in Select, selects the pasted
+passage (whole-neume selection for one neume), and focuses the first note of
+its final neume through the usual reveal path. Repeated Paste inserts after the
+new selection with fresh IDs. Undo removes the whole insertion and clears a
+selection whose endpoints disappear; Redo restores the exact document without
+resurrecting selection.
+
+The clipboard lives in the editor session outside history. It survives edits,
+Undo/Redo, New, Import, bundled example loading and cache reload/replacement,
+but a browser refresh or new tab starts empty. It is never saved, exported or
+read from or written to the operating-system clipboard.
+
+**Controls.** Copy and Paste buttons sit beside Undo/Redo. Paste shows the
+copied neume count. Copy is disabled without an eligible selection; Paste is
+disabled with an empty clipboard or a non-musical selection. Both are disabled
+outside ordinary Select or during lyric entry/move, pending history choices,
+clef transactions and accidental anchor placement; the reducer applies the same
+guards and leaves those modes untouched. A failed copy or paste shows its
+explanation as one visible line above the action buttons (also describing
+**Paste**), spoken once through the existing live announcement rather than a
+second live region. Successful copy/paste, any later document or selection
+change, and document replacement clear it; the clipboard itself is kept. Ctrl/Cmd+C and Ctrl/Cmd+V (without
+Alt/Shift, not during composition) act anywhere inside the editor or when nothing
+is focused, which is the state after New, Escape or a score-background click. This
+clipboard scope is deliberately wider than the I/T notation scope, which is
+unchanged, so that Ctrl/Cmd+V can append with no selection, including into a
+new empty chant. Focus outside the editor is never claimed. The app prevents the browser default once per
+press and ignores key repeat. Inputs, textareas, selects, contenteditable
+regions and an actual native text selection keep native copy/paste.

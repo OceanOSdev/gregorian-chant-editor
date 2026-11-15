@@ -30,6 +30,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'musical-passage-clipboard',
+    script: 'musical-passage-clipboard/browser-check.mjs',
+    server: 'dev',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'continuous-lyrics',
     script: 'continuous-lyrics/browser-check.mjs',
     server: 'dev',
