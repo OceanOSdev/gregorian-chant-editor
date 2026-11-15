@@ -4,21 +4,21 @@ Date: 2026-11-15
 
 ## Status
 
-**Proposed — not accepted.** Drafted at the Stage 10A research gate
-(branch `research/liquescent-notation`). Nothing here is implemented or
-authorized. It would extend, not amend, Accepted ADRs
+**Accepted — owner-approved 2026-11-15.** Stage 10B implementation is
+authorized by the owner decisions on PR #89. Implementation and foreground
+acceptance remain pending. This extends, not amends, Accepted ADRs
 [0004](0004-use-explicit-neume-types-and-ordered-tuples.md),
 [0017](0017-model-rhythmic-modifiers-on-notes.md)–[0021](0021-author-b-accidentals-at-neume-boundaries.md)
 and [0007](0007-share-derived-neume-engraving-geometry.md). ADR 0019's scope
 boundary already lists liquescence as excluded; acceptance of this record
-would supply that separate decision without editing ADR 0019.
+supplies that separate decision without editing ADR 0019.
 
 ## Context
 
 The owner's repertoire target, the Dominican _Salve Regina_ (GregoBase
 #4577, _Completorium O.P._ 1949, pp. 119–120), cannot continue at _Ad te_
 without liquescent neumes. The [research record](../verification/liquescent-notation/README.md)
-inventories six two-note liquescences: four epiphonus, two cephalicus, one
+inventories six two-note liquescences: three epiphonus, two cephalicus, one
 augmentative pes (Eia). All are independent two-note neumes at a second.
 
 Evidence that shapes the model:
@@ -46,9 +46,9 @@ Evidence that shapes the model:
    it on every note except a Podatus/Clivis terminal. Deletion and moves then
    leave a "surviving liquescent note" that has no figure. It collides with
    `form` (a NoteForm variant cannot coexist with the quilisma on the same
-   tuple), and it duplicates information that the kind plus a terminal
-   index already imply.
-2. **Neume-level appearance on the existing kinds** (recommended). One
+   tuple without a separate compatibility rule). A validated note-level field
+   is possible, but the whole-figure property avoids a terminal-index whitelist.
+2. **Neume-level appearance on the existing kinds** (accepted). One
    optional field on `PodatusNeume` and `ClivisNeume`. Kind, tuple, contour
    validation, IDs and anchors are unchanged. The name is derived:
    Podatus + diminutive = epiphonus, Clivis + diminutive = cephalicus.
@@ -65,32 +65,34 @@ Evidence that shapes the model:
    compile-time switching, can be recovered with exhaustive validity tables
    and tests.
 
-## Proposed decision
+## Decision
 
 1. Add an optional, authored, neume-level field:
 
    ```ts
    /** Authored liquescent construction of a two-note neume (ADR 0027). */
-   export type Liquescence = 'diminutive';
+   export type PodatusLiquescence = 'diminutive' | 'augmentative-descending';
+   export type ClivisLiquescence = 'diminutive';
 
    export interface PodatusNeume {
      id: string;
      kind: 'podatus';
      notes: [ChantNote, ChantNote];
-     liquescence?: Liquescence;
+     liquescence?: PodatusLiquescence;
    }
 
    export interface ClivisNeume {
      id: string;
      kind: 'clivis';
      notes: [ChantNote, ChantNote];
-     liquescence?: Liquescence;
+     liquescence?: ClivisLiquescence;
    }
    ```
 
    Omission means ordinary. No `'none'` value and no derived name, width or
-   path is persisted. If the owner approves the augmentative option (gate D2),
-   the union gains `'augmentative-descending'` for Podatus only. No other kind
+   path is persisted. The owner approved `'augmentative-descending'` on Podatus only (D2).
+   This value selects the sourced Dominican offset pes with a thin descending
+   terminal stroke, not the standard rounded Greciliae ending. No other kind
    carries the field.
 
 2. **Validity** (enforced in `isValidNeume`, shared by commands, paste and
@@ -113,13 +115,13 @@ Evidence that shapes the model:
    anchors are unchanged. Copy/paste preserves the field with fresh IDs
    under the existing pitch-conflict policy.
 
-4. **Deletion** of either constituent (gate D5). The recommended policy is
+4. **Deletion** of either constituent (gate D5). The accepted policy is
    that the figure ceases to exist, so the survivor becomes an **ordinary
    Punctum**. This is a documented normalization in the same undoable
    transaction, with a status announcement. It is not a transfer of a
    note property, because the property belonged to the deleted two-note
-   figure. The alternative, consistent with ADR 0019's quilisma deletion
-   behaviour, is to reject deletion until liquescence is toggled off.
+   figure. Preserve the surviving note ID, pitch, compatible marks, neume ID
+   and lyric anchor; ordinary accidental reconciliation applies to deletion.
    Three-to-two-note reductions never create liquescence.
 
 5. **Engraving**. Use the Roman/Solesmes profile from the _Liber Usualis_
@@ -129,13 +131,21 @@ Evidence that shapes the model:
    layout, as ADR 0007 requires. Each constituent keeps its own anchor,
    focus and hit target, and a reduced terminal gets an ordinary-sized
    target. The cephalicus is narrower than the clivis, and its advance,
-   compaction, lyric centring and wrapping derive from measured ink.
+   compaction, lyric centring and wrapping derive from measured ink. The
+   augmentative Podatus is an offset pair of full heads with a thin descending
+   terminal on the upper head, based on the Dominican print (Eia, p. 119) and
+   Gregorio's op font as secondary evidence. Its wider ink and separate anchors
+   are derived by the same shared geometry. This is a bounded exception to the
+   Roman/Solesmes profile, not a document profile or a claim of universal
+   augmentative notation.
 
 6. **Persistence**. Native **v10** adds the optional key on Podatus/Clivis
    only. v1–v9 readers are unchanged and continue to reject the key under
    their own version tags. v10 writes it, so v9 documents (including the
    owner's fixture) load unchanged. Version handling otherwise follows the
-   existing [persistence contract](../persistence.md).
+   existing [persistence contract](../persistence.md), including automatic
+   saving at accepted document replacement/import and committed semantic edits;
+   cache hydration alone does not force a migration write.
 
 7. There is no automatic liquescence from text, no playback or duration
    semantics, no GABC interchange, and no per-document notation profile.
@@ -151,5 +161,5 @@ Evidence that shapes the model:
   `mapNeumeNotes` to stop rebuilding those kinds as `{ id, kind, notes }`.
   The cephalicus's new width touches spacing regression baselines.
 - Out of scope: single-note Dominican liquescents (_osténde_, _Virgo_),
-  augmentative forms unless approved, liquescent three-plus-note neumes,
+  other augmentative forms, liquescent three-plus-note neumes,
   initio debilis, Scandicus subpunctis, compound grouping and Dominican bars.
