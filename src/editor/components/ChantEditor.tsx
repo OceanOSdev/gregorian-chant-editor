@@ -20,12 +20,14 @@ import {
 } from '../commands/update-accidental';
 import { noteFormLabels } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
+import { updateNeumeLiquescence } from '../commands/update-neume-liquescence';
 import {
   entryAppearance,
   climacusFamily,
   porrectusFamily,
   torculusFamily,
   podatusFamily,
+  clivisFamily,
   punctumFamily,
   scandicusFamily,
   isPunctumFamilyKind,
@@ -53,7 +55,14 @@ import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import { isDivisionKind } from '../domain/divisions';
-import type { DivisionKind, NoteForm } from '../domain/chant-document';
+import type { DivisionKind, Neume, NoteForm } from '../domain/chant-document';
+import {
+  liquescenceRejection,
+  liquescentFigureFor,
+  liquescentFigureNames,
+  liquescentNoteRestriction,
+  type NeumeLiquescence,
+} from '../domain/liquescence';
 import { useLyricMeasurement } from '../rendering/use-lyric-measurement';
 import {
   updateLyricLanguage,
@@ -62,7 +71,7 @@ import {
 import { lyricLanguage } from '../domain/lyric-alignment';
 import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
 import type { LyricAction } from '../state/lyric-entry';
-import { findNeume, findNote } from '../domain/neume';
+import { allowsNotePatch, findNeume, findNote } from '../domain/neume';
 import {
   useCallback,
   useEffect,
@@ -137,6 +146,7 @@ const neumeTools = [
 const neumeFamilies = {
   punctum: { variants: punctumFamily, tool: placePunctumTool },
   podatus: { variants: podatusFamily, tool: placePodatusTool },
+  clivis: { variants: clivisFamily, tool: placeClivisTool },
   scandicus: { variants: scandicusFamily, tool: placeScandicusTool },
   torculus: { variants: torculusFamily, tool: placeTorculusTool },
   climacus: { variants: climacusFamily, tool: placeClimacusTool },
@@ -284,6 +294,33 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         : null,
     [selectedNoteId],
   );
+  // ADR 0027 D10: a whole Podatus/Clivis selection edits its appearance.
+  const selectedWholeNeume =
+    selection.kind === 'neume' &&
+    (selectedNeume?.kind === 'podatus' || selectedNeume?.kind === 'clivis')
+      ? selectedNeume
+      : null;
+  const selectedWholeNeumeId = selectedWholeNeume?.id;
+  const getSelectedNeumeElement = useCallback(() => {
+    if (!selectedWholeNeumeId) return null;
+    const group = scoreWorkspace.current?.querySelector<SVGGElement>(
+      `[data-neume-id="${CSS.escape(selectedWholeNeumeId)}"]`,
+    );
+    const active = document.activeElement;
+    return active instanceof SVGGElement &&
+      active.dataset.noteId &&
+      group?.contains(active)
+      ? active
+      : (group?.querySelector<SVGGElement>('[data-note-id]') ?? null);
+  }, [selectedWholeNeumeId]);
+  const neumeToolbarAvailable = Boolean(
+    selectedWholeNeume &&
+    activeTool.kind === 'select' &&
+    !session.lyrics &&
+    !session.pendingHistory &&
+    !session.lyricMove &&
+    !session.clefTransaction,
+  );
   const noteToolbarAvailable = Boolean(
     selectedNote &&
     activeTool.kind === 'select' &&
@@ -306,6 +343,20 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       edit: (document) => updateNoteForm(document, selectedNote.id, form),
     });
   }
+  function changeLiquescence(
+    neume: Neume,
+    liquescence: NeumeLiquescence | undefined,
+  ) {
+    const rejection = liquescenceRejection(neume, liquescence);
+    const figure = liquescentFigureFor(neume.kind, liquescence);
+    dispatch({
+      type: 'engraving-edit',
+      edit: (document) =>
+        updateNeumeLiquescence(document, neume.id, liquescence),
+      rejection: rejection ?? undefined,
+      announcement: `Appearance changed to ${figure ? liquescentFigureNames[figure] : `ordinary ${neume.kind}`}.`,
+    });
+  }
   function changeMoraScope(scope: MoraScope) {
     if (!selectedNoteLocation) return;
     dispatch({
@@ -315,11 +366,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     });
   }
   function changeEpisema(kind: 'episema' | 'verticalEpisema', value: boolean) {
-    if (!selectedNote) return;
+    if (!selectedNote || !selectedNoteLocation) return;
+    const { neume, noteIndex } = selectedNoteLocation;
+    const restriction =
+      value && !allowsNotePatch(neume, noteIndex, { [kind]: true })
+        ? liquescentNoteRestriction(neume, noteIndex)
+        : null;
     dispatch({
       type: 'engraving-edit',
       edit: (document) =>
         updateNoteModifiers(document, selectedNote.id, { kind, value }),
+      rejection: restriction ? `Edit rejected: ${restriction}` : undefined,
     });
   }
   const selectedDivision =
@@ -905,6 +962,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             tool === 'division-menu' ||
             tool === 'punctum-menu' ||
             tool === 'podatus-menu' ||
+            tool === 'clivis-menu' ||
             tool === 'scandicus-menu' ||
             tool === 'torculus-menu' ||
             tool === 'climacus-menu' ||
@@ -937,6 +995,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               />
             ) : tool === 'punctum' ||
               tool === 'podatus' ||
+              tool === 'clivis' ||
               tool === 'scandicus' ||
               tool === 'torculus' ||
               tool === 'climacus' ||
@@ -1390,7 +1449,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               dispatch({ type: 'delete-accidental', id })
             }
             onFocusNoteModifiers={
-              noteToolbarAvailable
+              noteToolbarAvailable || neumeToolbarAvailable
                 ? () => noteToolbar.current?.focus() ?? false
                 : undefined
             }
@@ -1609,6 +1668,26 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoraChange={changeMoraScope}
             onEpisemaChange={changeEpisema}
             onHistory={navigateHistory}
+            onLiquescenceChange={(liquescence) =>
+              changeLiquescence(selectedNoteLocation.neume, liquescence)
+            }
+          />
+        ) : neumeToolbarAvailable && selectedWholeNeume ? (
+          <NoteContextToolbar
+            key={`neume-${selectedWholeNeume.id}`}
+            ref={noteToolbar}
+            note={null}
+            neume={selectedWholeNeume}
+            layout={layout}
+            getNoteElement={getSelectedNeumeElement}
+            onFormChange={() => undefined}
+            formError={session.noteFormError}
+            onMoraChange={() => undefined}
+            onEpisemaChange={() => undefined}
+            onHistory={navigateHistory}
+            onLiquescenceChange={(liquescence) =>
+              changeLiquescence(selectedWholeNeume, liquescence)
+            }
           />
         ) : null}
         {selectedAccidental &&

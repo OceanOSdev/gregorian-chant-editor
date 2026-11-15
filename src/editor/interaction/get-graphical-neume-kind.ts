@@ -27,6 +27,12 @@ export function getGraphicalNeumeKind(
       return 'podatus';
     case 'place-clivis':
       return 'clivis';
+    case 'place-epiphonus':
+      return 'epiphonus';
+    case 'place-augmentative-pes':
+      return 'augmentative-pes';
+    case 'place-cephalicus':
+      return 'cephalicus';
     case 'place-scandicus':
       return 'scandicus';
     case 'place-scandicus-4':

@@ -1,6 +1,11 @@
 import { hasValidNoteForms } from './note-forms';
 import { getMoraScope } from './mora';
 import {
+  hasValidLiquescence,
+  liquescentFigure,
+  liquescentFigureNames,
+} from './liquescence';
+import {
   compoundDirectionalContours,
   fourNotes,
   isCompoundDirectionalKind,
@@ -73,6 +78,7 @@ export function isValidNeume(neume: Neume): boolean {
   )
     return false;
   if (!hasValidNoteForms(neume)) return false;
+  if (!hasValidLiquescence(neume)) return false;
   if (getMoraScope(neume) === null) return false;
   switch (neume.kind) {
     case 'torculus-resupinus':
@@ -343,6 +349,10 @@ export function normalizeNeumeAfterNoteDeletion(
     return hasValidNoteForms(clivis) ? clivis : neume;
   }
 
+  // Accepted ADR 0027 D5: a liquescent pair's appearance belongs to the
+  // two-note figure, so its survivor becomes an ordinary Punctum. It keeps its
+  // ID, pitch and compatible marks; the neume field is not transferred, and no
+  // single-note liquescent is synthesized.
   const [firstNote, secondNote] = neume.notes;
   const survivingNote = noteIndex === 0 ? secondNote : firstNote;
   const punctum: PunctumNeume = {
@@ -398,9 +408,25 @@ export function neumeDisplayName(
 }
 
 /**
+ * The derived appearance name for labels and announcements: the liquescent
+ * figure when present (ADR 0027), otherwise the count-aware family name.
+ */
+export function neumeAppearanceName(neume: Neume): string {
+  const figure = liquescentFigure(neume);
+  return figure
+    ? liquescentFigureNames[figure]
+    : neumeDisplayName(neume.kind, neume.notes.length);
+}
+
+/**
  * Rebuilds a neume's own correlated tuple from mapped notes, so commands never
  * widen the Neume union or silently truncate a bounded family. Validation of
  * the mapped result remains the caller's responsibility.
+ *
+ * Neume-level fields (ADR 0027 liquescence) survive only where the branch
+ * spreads `...neume`. Branches that rebuild `{ id, kind, notes }` carry no
+ * neume field today; extending liquescence to those kinds must change them
+ * first (guarded by liquescence tests).
  */
 export function mapNeumeNotes(
   neume: Neume,
@@ -411,6 +437,7 @@ export function mapNeumeNotes(
     case 'porrectus-flexus':
     case 'scandicus-flexus':
     case 'climacus-resupinus': {
+      // Rebuilt without neume fields: none exist on these kinds (ADR 0027).
       const notes = fourNotes(neume.notes.map(map));
       return notes ? { id: neume.id, kind: neume.kind, notes } : null;
     }
@@ -420,6 +447,7 @@ export function mapNeumeNotes(
     }
     case 'scandicus':
     case 'climacus': {
+      // Rebuilt without neume fields: none exist on these kinds (ADR 0027).
       const notes = monotonicNotes(neume.notes.map(map));
       return notes ? { id: neume.id, kind: neume.kind, notes } : null;
     }
@@ -428,6 +456,7 @@ export function mapNeumeNotes(
     case 'bistropha':
     case 'podatus':
     case 'clivis': {
+      // Spread keeps a Podatus/Clivis liquescence (ADR 0027).
       const [a, b] = neume.notes;
       return { ...neume, notes: [map(a, 0), map(b, 1)] };
     }
@@ -438,4 +467,20 @@ export function mapNeumeNotes(
       return { ...neume, notes: [map(a, 0), map(b, 1), map(c, 2)] };
     }
   }
+}
+
+/**
+ * Whether one constituent could take this note-level patch under the shared
+ * validity rules, so controls derive availability from the same source as
+ * commands, paste and decoding (ADR 0027 D7/D8).
+ */
+export function allowsNotePatch(
+  neume: Neume,
+  noteIndex: number,
+  patch: Partial<Omit<ChantNote, 'id' | 'staffPosition'>>,
+): boolean {
+  const candidate = mapNeumeNotes(neume, (note, index) =>
+    index === noteIndex ? { ...note, ...patch } : note,
+  );
+  return Boolean(candidate && isValidNeume(candidate));
 }

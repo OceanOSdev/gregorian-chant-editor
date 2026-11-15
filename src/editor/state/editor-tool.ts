@@ -10,6 +10,9 @@ export type EditorTool =
   | { kind: 'select' }
   | { kind: 'place-punctum'; form?: 'virga' | 'inclinatum' }
   | { kind: 'place-podatus'; form?: 'quilisma' }
+  | { kind: 'place-epiphonus' }
+  | { kind: 'place-augmentative-pes' }
+  | { kind: 'place-cephalicus' }
   | { kind: 'place-pes-subbipunctis' }
   | { kind: 'place-pes-subtripunctis' }
   | { kind: 'place-bistropha' }
@@ -35,8 +38,13 @@ export const podatusFamily = [
   'podatus',
   'pes-subbipunctis',
   'pes-subtripunctis',
+  'epiphonus',
+  'augmentative-pes',
 ] as const;
 export type PodatusFamilyKind = (typeof podatusFamily)[number];
+/** Ordinary Clivis and its liquescent entry variant (ADR 0027). */
+export const clivisFamily = ['clivis', 'cephalicus'] as const;
+export type ClivisFamilyKind = (typeof clivisFamily)[number];
 export const scandicusFamily = [
   'scandicus',
   'scandicus-4',
@@ -56,10 +64,11 @@ export type ClimacusFamilyKind = (typeof climacusFamily)[number];
 export const porrectusFamily = ['porrectus', 'porrectus-flexus'] as const;
 export type PorrectusFamilyKind = (typeof porrectusFamily)[number];
 
-/** The six split-control families, keyed by their ordinary member. */
+/** The seven split-control families, keyed by their ordinary member. */
 export const neumeFamilyMembers = {
   punctum: punctumFamily,
   podatus: podatusFamily,
+  clivis: clivisFamily,
   scandicus: scandicusFamily,
   torculus: torculusFamily,
   climacus: climacusFamily,
@@ -125,7 +134,10 @@ export function isPlacementTool(tool: EditorTool): boolean {
     tool.kind === 'place-tristropha' ||
     tool.kind === 'place-punctum' ||
     tool.kind === 'place-podatus' ||
+    tool.kind === 'place-epiphonus' ||
+    tool.kind === 'place-augmentative-pes' ||
     tool.kind === 'place-clivis' ||
+    tool.kind === 'place-cephalicus' ||
     tool.kind === 'place-scandicus' ||
     tool.kind === 'place-scandicus-4' ||
     tool.kind === 'place-scandicus-5' ||

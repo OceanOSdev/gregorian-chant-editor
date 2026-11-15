@@ -6,6 +6,7 @@ import {
   type MoraScope,
 } from '../domain/mora';
 import { isValidNeume, findNote, mapNeumeNotes } from '../domain/neume';
+import { neumeLiquescence } from '../domain/liquescence';
 
 export type NoteModifierEdit =
   | { kind: 'mora'; value: 0 | 1 }
@@ -51,7 +52,7 @@ export function updateMoraScope(
   const neume = document.neumes.find((n) => n.id === neumeId);
   if (
     !neume ||
-    !moraChoices(neume.kind, neume.notes.length).some(
+    !moraChoices(neume.kind, neume.notes.length, neumeLiquescence(neume)).some(
       (c) => c.value === scope,
     ) ||
     getMoraScope(neume) === scope

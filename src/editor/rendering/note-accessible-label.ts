@@ -5,6 +5,10 @@ import {
   type Neume,
 } from '../domain/chant-document';
 import { neumeDisplayName } from '../domain/neume';
+import {
+  liquescentFigureNames,
+  type LiquescentFigure,
+} from '../domain/liquescence';
 
 const ordinals = ['first', 'second', 'third', 'fourth', 'fifth'] as const;
 
@@ -12,7 +16,19 @@ export function getNoteAccessibleLabel(
   kind: Neume['kind'],
   noteIndex: number,
   noteCount = 0,
+  figure?: LiquescentFigure,
 ): string {
+  if (figure) {
+    // ADR 0027: name the actual appearance and each constituent's order.
+    const name = liquescentFigureNames[figure];
+    if (figure === 'cephalicus')
+      return noteIndex === 0
+        ? `Select upper note of ${name}`
+        : `Select lower liquescent note of ${name}`;
+    return noteIndex === 0
+      ? `Select lower note of ${name}`
+      : `Select upper ${figure === 'epiphonus' ? 'liquescent ' : ''}note of ${name}`;
+  }
   if (
     isCompoundDirectionalKind(kind) ||
     kind === 'pes-subpunctis' ||
@@ -84,12 +100,13 @@ export function getSelectedNeumeDescription(
   kind: Neume['kind'],
   isSelected: boolean,
   noteCount = 0,
+  figure?: LiquescentFigure,
 ): string | null {
   if (!isSelected) {
     return null;
   }
 
-  return `Whole ${neumeDisplayName(kind, noteCount)} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
+  return `Whole ${figure ? liquescentFigureNames[figure] : neumeDisplayName(kind, noteCount)} selected. Arrow Up or Arrow Down moves it. Delete or Backspace removes it.`;
 }
 
 export function getNoteModifierDescription(

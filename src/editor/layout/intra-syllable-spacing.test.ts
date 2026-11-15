@@ -617,12 +617,12 @@ it.each([
   ...spacingSpecimens,
   { id: 'all-fourteen', document: ownershipSpecimen },
 ])(
-  'keeps the $id browser specimen valid and exactly readable as native v9',
+  'keeps the $id browser specimen valid and exactly readable as the current native version (v10)',
   ({ document }) => {
     expect(document.neumes.every(isValidNeume)).toBe(true);
     expect(hasValidAccidentals(document)).toBe(true);
     const encoded = encodeDocument(document);
-    expect(JSON.parse(encoded).version).toBe(9);
+    expect(JSON.parse(encoded).version).toBe(10);
     expect(decodeDocument(encoded)).toEqual(document);
   },
 );

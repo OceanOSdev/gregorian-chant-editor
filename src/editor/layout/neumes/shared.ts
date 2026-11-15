@@ -1,5 +1,9 @@
 import type { AccidentalGeometry } from '../accidental-geometry';
 import type { Neume, StaffPosition } from '../../domain/chant-document';
+import {
+  liquescentFigure,
+  type LiquescentFigure,
+} from '../../domain/liquescence';
 
 export interface LayoutBounds {
   x: number;
@@ -43,11 +47,37 @@ export interface NeumeGeometry {
   advanceX: number;
 }
 
+/**
+ * The derived engraving discriminator: a semantic kind, or a liquescent figure
+ * derived from a Podatus/Clivis appearance (ADR 0027). Never persisted.
+ */
+export type GeometryKind = Neume['kind'] | LiquescentFigure;
+
+export function geometryKindFor(neume: Neume): GeometryKind {
+  return liquescentFigure(neume) ?? neume.kind;
+}
+
+/** The semantic kind whose ordinary rules an engraving discriminator follows. */
+export function semanticGeometryKind(kind: GeometryKind): Neume['kind'] {
+  switch (kind) {
+    case 'epiphonus':
+    case 'augmentative-pes':
+      return 'podatus';
+    case 'cephalicus':
+      return 'clivis';
+    default:
+      return kind;
+  }
+}
+
 export const engravingStaffStep = 12;
 export const interNeumeInkGap = 33;
 
-export function firstHeadHalfWidth(kind: Neume['kind']): number {
+export function firstHeadHalfWidth(kind: GeometryKind): number {
   switch (kind) {
+    case 'epiphonus':
+    case 'cephalicus':
+    case 'augmentative-pes':
     case 'torculus-resupinus':
     case 'porrectus-flexus':
     case 'scandicus-flexus':

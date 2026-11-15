@@ -24,6 +24,13 @@ export const entryPitchCases = {
   punctum: { kind: 'punctum', offsets: [0], fallback: 2 },
   podatus: { kind: 'podatus', offsets: [0, 1], fallback: 2 },
   clivis: { kind: 'clivis', offsets: [0, -1], fallback: 3 },
+  epiphonus: { kind: 'epiphonus', offsets: [0, 1], fallback: 2 },
+  'augmentative-pes': {
+    kind: 'augmentative-pes',
+    offsets: [0, 1],
+    fallback: 2,
+  },
+  cephalicus: { kind: 'cephalicus', offsets: [0, -1], fallback: 3 },
   scandicus: { kind: 'scandicus', offsets: [0, 1, 2], fallback: 2 },
   torculus: { kind: 'torculus', offsets: [0, 2, 1], fallback: 2 },
   climacus: { kind: 'climacus', offsets: [0, -1, -2], fallback: 3 },

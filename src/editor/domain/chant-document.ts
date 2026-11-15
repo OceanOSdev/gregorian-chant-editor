@@ -64,11 +64,22 @@ export interface PunctumNeume {
   notes: [ChantNote];
 }
 
+/**
+ * Authored liquescent construction of a whole Podatus (ADR 0027). Diminutive
+ * is the epiphonus; augmentative-descending is the bounded Dominican offset pes
+ * with a thin descending terminal. Omission means ordinary.
+ */
+export type PodatusLiquescence = 'diminutive' | 'augmentative-descending';
+
+/** Authored liquescent construction of a whole Clivis: the cephalicus. */
+export type ClivisLiquescence = 'diminutive';
+
 /** Two notes in semantic order from lower to strictly higher. */
 export interface PodatusNeume {
   id: string;
   kind: 'podatus';
   notes: [ChantNote, ChantNote];
+  liquescence?: PodatusLiquescence;
 }
 
 /** Two notes in semantic order from higher to strictly lower. */
@@ -76,6 +87,7 @@ export interface ClivisNeume {
   id: string;
   kind: 'clivis';
   notes: [ChantNote, ChantNote];
+  liquescence?: ClivisLiquescence;
 }
 
 /**

@@ -11,7 +11,12 @@ import type {
   Neume,
   StaffPosition,
 } from '../domain/chant-document';
-import type { NeumeGeometry } from './neumes/shared';
+import {
+  semanticGeometryKind,
+  type GeometryKind,
+  type NeumeGeometry,
+} from './neumes/shared';
+import { buildLiquescent } from './neumes/liquescent';
 import { buildRepeatedNotes } from './neumes/repeated-notes';
 import { buildPunctum } from './neumes/punctum';
 import { buildPodatusOrClivis } from './neumes/podatus-clivis';
@@ -27,8 +32,11 @@ export {
   interNeumeInkGap,
   getInkBounds,
   firstHeadHalfWidth,
+  geometryKindFor,
+  semanticGeometryKind,
 } from './neumes/shared';
 export type {
+  GeometryKind,
   LayoutBounds,
   InkShape,
   NoteGeometry,
@@ -41,7 +49,7 @@ export type {
  * Positions are valid semantic input, in musical order; coordinates are absolute.
  */
 export function buildNeumeGeometry(
-  kind: Neume['kind'],
+  kind: GeometryKind,
   positions: readonly StaffPosition[],
   leftX: number,
   bottomStaffY: number,
@@ -54,18 +62,23 @@ export function buildNeumeGeometry(
       groupX +
       accidentals.filter((a) => a.noteIndex === null).length *
         accidentalPrefixAdvance;
-    const base = addNoteModifiers(
-      buildAuthoredGeometry(
-        kind,
-        positions,
-        shiftedX,
-        bottomStaffY,
-        modifiers,
-      ) ?? buildUnmodifiedGeometry(kind, positions, shiftedX, bottomStaffY),
-      modifiers,
-      bottomStaffY,
-      kind,
-    );
+    const semantic = semanticGeometryKind(kind);
+    // Liquescent figures exclude authored forms (ADR 0027 D8), so they never
+    // reach the authored recipes.
+    const body =
+      kind === 'epiphonus' ||
+      kind === 'cephalicus' ||
+      kind === 'augmentative-pes'
+        ? buildLiquescent(kind, positions, shiftedX, bottomStaffY)
+        : (buildAuthoredGeometry(
+            semantic,
+            positions,
+            shiftedX,
+            bottomStaffY,
+            modifiers,
+          ) ??
+          buildUnmodifiedGeometry(semantic, positions, shiftedX, bottomStaffY));
+    const base = addNoteModifiers(body, modifiers, bottomStaffY, kind);
     return addAccidentalGeometry(
       base,
       accidentals,

@@ -1,4 +1,9 @@
 import type { AccidentalEditResult } from '../domain/accidentals';
+import {
+  liquescentFigure,
+  liquescentFigureLabels,
+  liquescentFigureNames,
+} from '../domain/liquescence';
 import { deleteAccidental } from '../commands/update-accidental';
 import { reconcileAccidentals } from '../domain/accidentals';
 import {
@@ -237,7 +242,14 @@ export type EditorAction =
     }
   | { type: 'change-division'; id: string; kind: DivisionKind }
   | { type: 'delete-division'; id: string }
-  | { type: 'engraving-edit'; edit: DocumentEdit }
+  | {
+      type: 'engraving-edit';
+      edit: DocumentEdit;
+      /** Visible, announced reason when the edit leaves the document unchanged. */
+      rejection?: string;
+      /** Announced when the edit changes the document. */
+      announcement?: string;
+    }
   | { type: 'lyric-move'; action: LyricMoveAction }
   | {
       type: 'start-lyrics-at-focus';
@@ -318,6 +330,12 @@ export function createEditorSession(
 }
 
 export function neumeName(kind: GraphicalNeumeKind | DivisionKind): string {
+  if (
+    kind === 'epiphonus' ||
+    kind === 'cephalicus' ||
+    kind === 'augmentative-pes'
+  )
+    return liquescentFigureLabels[kind];
   // Extended Scandicus/Climacus entries name their actual note count.
   const extended = /^(scandicus|climacus)-([45])$/.exec(kind);
   if (extended)
@@ -661,7 +679,15 @@ function reduceSessionAction(
     case 'engraving-edit': {
       if (state.pendingHistory || state.lyricMove) return state;
       const history = applyDocumentEdit(state.history, action.edit);
-      return history === state.history ? state : { ...state, history };
+      if (history === state.history)
+        return action.rejection
+          ? announce(
+              { ...state, noteFormError: action.rejection },
+              action.rejection,
+            )
+          : state;
+      const next = { ...state, history, noteFormError: null };
+      return action.announcement ? announce(next, action.announcement) : next;
     }
     case 'edit': {
       if (
@@ -772,6 +798,17 @@ function reduceSessionAction(
             ? { kind: 'note', noteId: action.focusNoteId }
             : null,
       });
+      // ADR 0027 D5: deleting a constituent of a liquescent pair leaves an
+      // ordinary Punctum in the same undoable edit; say so explicitly.
+      const deletedFrom = action.formDeletionNoteId
+        ? findNote(state.history.present, action.formDeletionNoteId)?.neume
+        : undefined;
+      const figure = deletedFrom && liquescentFigure(deletedFrom);
+      if (deletedFrom && figure && findNeume(history.present, deletedFrom.id))
+        return announce(
+          next,
+          `Note deleted from the ${liquescentFigureNames[figure]}. The remaining note is now an ordinary punctum. Undo restores the ${liquescentFigureNames[figure]}.`,
+        );
       return next;
     }
     case 'history': {
