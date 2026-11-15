@@ -212,10 +212,16 @@ Compact neighbors receive derived horizontal `hitClip` ownership intervals split
 at their ink-gap midpoint. SVG clips padded note targets, lyric-move
 destination targets, and placement/move rectangle decorations (including their
 strokes) to these intervals. The whole-neume selection outline is instead fitted
-inside its interval and never clipped: its ordinary 5-unit padding shrinks, to
-no less than the ink extent, so the stroke's outer half stays within ownership
-(`neume-selection-bounds.ts`). All four dashed sides therefore stay visible at
-compact boundaries. Captions are not clipped. Every ink edge remains inside its owner's
+inside its interval and never clipped (`neume-selection-bounds.ts`). Its
+dashed stroke scales with the notation (2 user units, about 2.5 px at the usual
+wide scale), so the geometry holds at every viewport width. The ordinary 5-unit
+padding shrinks so the stroke's outer edge stays within ownership. Where
+clearance is less than half the stroke, the stroke narrows on all sides to no
+less than 1 unit. Clearance below 0.5 unit cannot satisfy both ink enclosure and
+ownership; there the outline's edge moves inside the selected neume's own ink,
+with its outer stroke edge at the ink edge. That stroke then overlaps the
+neume's own ink, which paints over it, but never neighbouring ink. All four dashed
+sides stay visible. Captions are not clipped. Every ink edge remains inside its owner's
 interval; existing internal rectangular/polygonal note partitions are preserved.
 At the exact shared split line, SVG paint order gives a hit to the following
 target when both contain that point. Selection and focus are independent

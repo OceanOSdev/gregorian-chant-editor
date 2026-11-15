@@ -293,18 +293,25 @@ try {
       const r=document.querySelector('.score__neume-selection');
       if(!r)throw Error('No whole-neume outline');
       const g=r.closest('[data-neume-id]'),sys=g.closest('g[data-system-index]');
-      const half=parseFloat(getComputedStyle(r).strokeWidth)/2;
-      // Rect geometry from attributes: Firefox's client rect includes the stroke, Chromium's does not.
+      // Geometry from attributes and the rendered scale: Firefox's client rect
+      // includes the stroke, Chromium's does not. The stroke scales with the
+      // score, so its displayed half-width is the user-unit width times scale.
       const m=r.getScreenCTM(),x=r.x.baseVal.value,y=r.y.baseVal.value;
+      const style=getComputedStyle(r);
+      if(style.vectorEffect==='non-scaling-stroke')throw Error('Outline stroke must scale with the score');
+      const half=Number(r.getAttribute('stroke-width'))*m.a/2;
       const b={left:m.a*x+m.e,right:m.a*(x+r.width.baseVal.value)+m.e,top:m.d*y+m.f,bottom:m.d*(y+r.height.baseVal.value)+m.f};
       const own=g.querySelector(':scope > .score__ink').getBoundingClientRect();
       const neighbours=[...sys.querySelectorAll('[data-neume-id]')].filter(n=>n!==g).map(n=>n.querySelector(':scope > .score__ink')?.getBoundingClientRect()).filter(n=>n&&n.bottom>b.top-half&&n.top<b.bottom+half);
       return {
         id:g.dataset.neumeId,
         clipped:r.hasAttribute('clip-path'),
-        encloses:b.left<=own.left+0.05&&b.right>=own.right-0.05&&b.top<=own.top+0.05&&b.bottom>=own.bottom-0.05,
+        // Outer stroke edges enclose the ink (the documented scarce-room fallback
+        // may move the centreline inside it).
+        encloses:b.left-half<=own.left+0.05&&b.right+half>=own.right-0.05&&b.top-half<=own.top+0.05&&b.bottom+half>=own.bottom-0.05,
         overlaps:neighbours.filter(n=>n.left<b.right+half-0.01&&n.right>b.left-half+0.01).length,
         leftPad:own.left-b.left,rightPad:b.right-own.right,
+        scale:m.a,strokePx:half*2,
       };
     })()`);
   // Visual review: drop the focus ring (selection is unchanged) and centre
@@ -645,8 +652,37 @@ try {
   await count(29);
   await shot('kyrie-narrow');
   assert.equal(await bytes(), saved);
+  // Genuinely narrow: the score renders below the 0.625 scale at which the
+  // former 2.5px non-scaling stroke could overrun a two-unit compact gap.
+  let narrowScale = 0;
+  for (const id of ids) {
+    const o = await selectWhole(id);
+    assert.ok(o.scale < 0.625, `score scale ${o.scale} is not narrow`);
+    narrowScale = o.scale;
+  }
+  // Several Kyrie pairs tie at zero padding; review the wide pass's tightest.
+  const narrowTight = await selectWhole(tightest.noteId);
+  await outlineShot('kyrie-narrow-compact-whole-neume');
+  if (!firefox) {
+    // Magnified review crop around the narrow outline (CDP clip scaling;
+    // clip is in document coordinates).
+    const clip = await ev(
+      `(()=>{const b=document.querySelector('.score__neume-selection').getBoundingClientRect();return {x:b.x+scrollX-30,y:b.y+scrollY-20,width:b.width+60,height:b.height+40}})()`,
+    );
+    const { data } = await send('Page.captureScreenshot', {
+      format: 'png',
+      clip: { ...clip, scale: 8 },
+    });
+    await writeFile(
+      join(screenshotDirectory, 'kyrie-narrow-compact-zoom.png'),
+      Buffer.from(data, 'base64'),
+    );
+  }
   console.log(
-    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes, lyric-deletion repartitioning with Undo/Redo, complete compact whole-neume outlines, and Kyrie XI at wide/narrow widths.',
+    `Narrow outline: scale ${narrowScale.toFixed(3)}, ${tightest.id} stroke ${narrowTight.strokePx.toFixed(2)}px, right padding ${narrowTight.rightPad.toFixed(2)}px`,
+  );
+  console.log(
+    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes, lyric-deletion repartitioning with Undo/Redo, complete compact whole-neume outlines, and Kyrie XI at wide/narrow widths (including whole-neume outlines at 320px).',
   );
 } finally {
   if (ownsSession) await rawSend('session.end').catch(() => {});

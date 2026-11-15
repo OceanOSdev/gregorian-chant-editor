@@ -87,8 +87,8 @@ edge on compact neighbours (predating this PR). The 5-unit padded rectangle was
 clipped to the neume's `hitClip` ownership interval, which on compact pairs lies
 only a few units from the ink, so the clip removed the right stroke and the
 ends of the top and bottom strokes. The outline is now fitted inside that
-interval, inset by half its 2.5 px stroke, and is not clipped. Padding stays 5
-units where there is room and never shrinks inside the ink. Note targets,
+interval and is not clipped. Padding stays 5 units where there is room. Note
+targets,
 ownership intervals, placement/move decorations, spacing and range overlays are
 unchanged. The range overlay reuses the same padded-extent helper with
 identical output.
@@ -112,6 +112,34 @@ dashed outlines on all four sides.
 Standard gate passed: format:check, lint, 94 Vitest files / 2,042 tests, build
 (existing large-chunk warning) and git diff --check. Ranges driver run
 `07-10-31-929Z-hpYWBu`: Chromium and Firefox passed (31.3 s wall clock).
+
+### Narrow-viewport stroke (follow-up)
+
+The first fix inset the outline by half of a 2.5 px non-scaling stroke,
+expressed in user units. Below a 0.625 score scale, that displayed stroke
+exceeds a two-unit compact gap. The outline stroke now scales with the score:
+2 user units, which keeps its wide-viewport appearance with the dash pattern
+rescaled to match. Where ownership clearance is under 1 unit per side, the
+stroke narrows to as little as 1 unit; below 0.5 unit the outline moves inside
+the neume's own ink (see the
+[rendering guide](../../layout-and-rendering.md)). The range overlay, note
+targets, spacing and placement/lyric-move decorations are unchanged; the
+latter two still clip a non-scaling stroke and are left for follow-up.
+
+Pure tests add explicit narrowing and fallback cases. The driver now reads the
+displayed stroke as its user-unit width times the rendered CTM scale, rejects
+a non-scaling stroke, and checks that the stroke's outer edges enclose the ink
+and avoid neighbouring ink. After the 320 px range check it selects every
+Kyrie XI neume again, asserting a genuinely narrow scale (< 0.625; measured
+0.381 in Chromium, 0.376 in Firefox, displayed stroke about 0.76 px). All pass.
+An 8× Chromium clip of the tightest wide-pass pair at 320 px
+(`kyrie-narrow-compact-zoom.png`) shows a complete four-sided outline whose
+stroke stays clear of the neighbouring clivis. `kyrie-flat-whole-neume.png`
+at 1440 px matches the earlier appearance.
+
+Standard gate passed: format:check, lint, 94 Vitest files / 2,043 tests, build
+(existing large-chunk warning) and git diff --check. Ranges driver run
+`07-21-34-660Z-n8f7ky`: Chromium and Firefox passed (47.9 s wall clock).
 
 ## Baseline failures, not waived
 

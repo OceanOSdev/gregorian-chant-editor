@@ -5,7 +5,8 @@ import type { MeasureLyricText } from '../layout/lyric-text-metrics';
 import {
   neumeSelectionBounds,
   neumeSelectionGap,
-  neumeSelectionStrokeInset,
+  minimumNeumeSelectionStrokeWidth,
+  neumeSelectionStrokeWidth,
 } from './neume-selection-bounds';
 
 const measure: MeasureLyricText = (text) => ({
@@ -58,8 +59,10 @@ describe('whole-neume selection outline', () => {
       neumes: readonly NeumeLayout[],
     ) => {
       const r = neumeSelectionBounds(neume);
-      const strokeLeft = r.x - neumeSelectionStrokeInset;
-      const strokeRight = r.x + r.width + neumeSelectionStrokeInset;
+      const strokeLeft = r.x - r.strokeWidth / 2;
+      const strokeRight = r.x + r.width + r.strokeWidth / 2;
+      // Ordinary 6-unit compact gaps leave room for the full stroke.
+      expect(r.strokeWidth).toBe(neumeSelectionStrokeWidth);
       // The outline encloses all ink, with unchanged vertical padding.
       expect(r.x).toBeLessThanOrEqual(neume.bounds.x);
       expect(r.x + r.width).toBeGreaterThanOrEqual(inkRight(neume));
@@ -116,6 +119,41 @@ describe('whole-neume selection outline', () => {
       y: neume.bounds.y - 5,
       width: neume.bounds.width + 10,
       height: neume.bounds.height + 10,
+      strokeWidth: neumeSelectionStrokeWidth,
     });
+  });
+
+  it('narrows the stroke, then moves inside its own ink, when clearance is scarce', () => {
+    const [neume] = layoutChant(melismas(), measure).systems[0].neumes;
+    const inkLeft = neume.bounds.x;
+    const inkRight = inkLeft + neume.bounds.width;
+    const squeezed = (left: number, right: number) => {
+      const fitted = {
+        ...neume,
+        hitClip: { left: inkLeft - left, right: inkRight + right },
+      };
+      const r = neumeSelectionBounds(fitted);
+      const outerLeft = r.x - r.strokeWidth / 2;
+      const outerRight = r.x + r.width + r.strokeWidth / 2;
+      // The stroke's outer edge never crosses ownership and always encloses ink.
+      expect(outerLeft).toBeGreaterThanOrEqual(fitted.hitClip.left - 1e-9);
+      expect(outerRight).toBeLessThanOrEqual(fitted.hitClip.right + 1e-9);
+      expect(outerLeft).toBeLessThanOrEqual(inkLeft + 1e-9);
+      expect(outerRight).toBeGreaterThanOrEqual(inkRight - 1e-9);
+      return r;
+    };
+    // Two-unit Kyrie-like ink gap on one side: one unit of room, full stroke.
+    const oneUnit = squeezed(10, 1);
+    expect(oneUnit.strokeWidth).toBe(neumeSelectionStrokeWidth);
+    expect(oneUnit.x + oneUnit.width).toBe(inkRight);
+    // Less room narrows the stroke on all sides, keeping the outline on the ink edge.
+    const narrow = squeezed(0.7, 10);
+    expect(narrow.strokeWidth).toBeCloseTo(1.4);
+    expect(narrow.x).toBeCloseTo(inkLeft);
+    // Below half the minimum, the minimum stroke moves inward over own ink.
+    const fallback = squeezed(0.2, 0.1);
+    expect(fallback.strokeWidth).toBe(minimumNeumeSelectionStrokeWidth);
+    expect(fallback.x).toBeGreaterThan(inkLeft);
+    expect(fallback.x + fallback.width).toBeLessThan(inkRight);
   });
 });
