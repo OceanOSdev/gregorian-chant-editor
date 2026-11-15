@@ -1,6 +1,9 @@
 # Stage 10B — Liquescent Podatus and Clivis
 
-Status: **Owner-approved 2026-11-15; implementation authorized.**
+Status: **Owner-approved 2026-11-15; implemented on PR #89, awaiting review
+and foreground owner acceptance.** Implementation, verification and
+deviations are recorded in the
+[research record](../verification/liquescent-notation/README.md#stage-10b-implementation-and-verification).
 Stage 10A research is complete. Evidence: [research record](../verification/liquescent-notation/README.md).
 Decision: [Accepted ADR 0027](../adrs/0027-neume-level-liquescence.md).
 Continue on `research/liquescent-notation`, existing draft PR #89 against

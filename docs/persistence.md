@@ -316,3 +316,24 @@ No count, variant or grouping field exists. Hydration does not rewrite. The
 cache key, legacy draft-v2 recovery, original-source protection and
 cross-tab guard are unchanged. Older builds cannot read v9 files, including
 v9 files that contain only older kinds.
+
+## Native v10 liquescent appearance (Stage 10B)
+
+Version 10 adds the optional neume-level `liquescence` key on `podatus`
+(`"diminutive"` or `"augmentative-descending"`) and `clivis` (`"diminutive"`)
+([ADR 0027](adrs/0027-neume-level-liquescence.md)).
+
+- **Exact v1–v9 readers** (including the legacy draft-v2 pre-check) reject the
+  key with "Unsupported neume appearance for this schema version". The same
+  file without it reads exactly as before.
+- **v10** rejects the key on every other kind ("Only a Podatus or Clivis may
+  be liquescent"), unknown, `null` or `"none"` values and augmentative Clivis
+  ("Unknown liquescent appearance for this neume"), then applies the shared
+  D7/D8 validity (no first-note form, no second-note marks).
+
+Writes are v10. Hydration does not rewrite: a v9 cache (for example the
+owner's [Salve Regina WIP](verification/liquescent-notation/fixtures/salve-regina-dominican-wip.chant.json))
+decodes with no semantic change and stays byte-identical until a committed
+edit, import or replacement saves v10 in the same key. Export writes v10. The
+cache key, legacy draft-v2 recovery, original-source protection and cross-tab
+guard are unchanged. Older builds cannot read v10 files.

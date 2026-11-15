@@ -118,3 +118,25 @@ neume's melodic contour. Stage 8B supports standalone Virga (square head with
 right queue), neutral Punctum inclinatum (upright diamond), and Quilisma (a
 pitched jagged head in an approved ascending Podatus or Scandicus). Omission
 retains the context-derived default. See [the domain contract](domain-model.md#authored-note-forms-stage-8b).
+
+## Liquescence
+
+A liquescent neume marks a vocal transition (diphthongs, certain consonants)
+by a modified final construction. In this editor it is a neume-level
+appearance of a Podatus or Clivis ([ADR 0027](adrs/0027-neume-level-liquescence.md)),
+not a duration or playback instruction.
+
+### Epiphonus
+
+A diminutive (liquescent) Podatus: one column whose second note is a reduced
+terminal.
+
+### Cephalicus
+
+A diminutive (liquescent) Clivis: an upper head whose second note is a reduced
+terminal, narrower than the Clivis.
+
+### Augmentative pes (Dominican)
+
+An augmentative-descending Podatus drawn as two offset full heads with a thin
+descending tail, after the 1949 Dominican _Completorium_ (Eia).

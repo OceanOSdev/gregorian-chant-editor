@@ -1091,3 +1091,32 @@ unchanged, so that Ctrl/Cmd+V can append with no selection, including into a
 new empty chant. Focus outside the editor is never claimed. The app prevents the browser default once per
 press and ignores key repeat. Inputs, textareas, selects, contenteditable
 regions and an actual native text selection keep native copy/paste.
+
+## Liquescent entry and appearance (Stage 10B)
+
+The Podatus family menu keeps Podatus, Pes subbipunctis and Pes subtripunctis
+and adds **Epiphonus** and **Augmentative pes (Dominican)**. Clivis is now a
+split family (primary **Clivis**, chevron menu Clivis and **Cephalicus**),
+with the same arming, remembered-variant, I/contextual Insert, T, roving focus
+and dismissal behaviour as the other families. One staff click inserts the
+complete two-note figure, previewed with its liquescent geometry. At the
+narrowest widths (≤ 22rem) the palette uses six columns: single buttons take
+a third of a row and split families half, keeping DOM, visual and focus order
+identical and the sticky toolbar under half the viewport height.
+
+The note context toolbar adds a neume-level control after the per-note
+controls: a Podatus **Appearance** selector (Ordinary, Epiphonus,
+Augmentative pes (Dominican)) or a Clivis **Liquescent (Cephalicus)** toggle
+with `aria-pressed`. Selecting a whole Podatus or Clivis (Shift+Enter) and
+pressing Tab opens the same toolbar in whole-neume mode ("Selected neume
+properties", "Whole epiphonus") containing only that control. Changes keep
+selection, focus and all IDs; there is no range-wide appearance edit. A
+rejected change keeps the previous appearance and shows a visible
+`role="alert"` reason that is also announced. On a liquescent pair the
+second note's horizontal and vertical episema selects are disabled with an
+explanation, the mora scope offers None or First note, and the first note of
+a liquescent pes offers no quilisma.
+
+Accessible labels name the appearance and constituent order, for example
+"Select upper liquescent note of epiphonus", "Whole cephalicus selected" and a
+score description count of liquescent neumes.

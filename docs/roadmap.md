@@ -376,8 +376,9 @@ visible.
 
 Not started. Other subpunctis families (for
 example Porrectus or Scandicus subpunctis), longer flexus/resupinus
-extensions, graphical intra-syllable fusion, liquescence, and the complete
-Kyrie XI each need their own plan and owner review. Stage 9C spacing is complete;
+extensions, graphical intra-syllable fusion and the complete Kyrie XI each
+need their own plan and owner review. Two-note liquescence is Stage 10B
+(below); other liquescent forms remain separate. Stage 9C spacing is complete;
 future fusion remains a separate deferred design question.
 
 ## Contiguous passage selection
@@ -400,3 +401,14 @@ range deletion/movement, transposition, copied lyrics, system clipboard
 interchange, a graphical paste tool and automatic accidental compensation are
 deferred. Foreground acceptance of Kyrie XI duplication, focus at real zoom and
 narrow widths remains an owner check.
+
+## Liquescent Podatus and Clivis (Stage 10B)
+
+Epiphonus, cephalicus and the Dominican augmentative pes are implemented as
+neume-level appearances of Podatus/Clivis with native v10
+([ADR 0027](adrs/0027-neume-level-liquescence.md),
+[plan](plans/stage-10b-liquescent-podatus-clivis.md),
+[record](verification/liquescent-notation/README.md)). Implementation review
+and foreground owner acceptance are pending. Deferred: single-note Dominican
+liquescents (_osténde_, _Virgo_), liquescence on other kinds, other
+augmentative forms, initio debilis, compound grouping and Dominican bars.
