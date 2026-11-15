@@ -24,6 +24,12 @@ export const TRANSPORTS = {
 
 export const DRIVERS = [
   {
+    id: 'contiguous-selection',
+    script: 'contiguous-selection/browser-check.mjs',
+    server: 'dev',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'continuous-lyrics',
     script: 'continuous-lyrics/browser-check.mjs',
     server: 'dev',

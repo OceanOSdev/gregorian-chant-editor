@@ -78,7 +78,7 @@ export function getNoteAccessibleLabel(
 }
 
 export const wholeNeumeSelectionInstruction =
-  'Shift plus Enter or Space selects the whole neume.';
+  'Shift plus Enter or Space selects a whole neume or extends the musical selection. Shift plus Left or Right extends by neume.';
 
 export function getSelectedNeumeDescription(
   kind: Neume['kind'],

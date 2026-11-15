@@ -266,3 +266,12 @@ and consult the owning record for feature-specific assertions and manual checks.
 
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
+
+## Contiguous selection
+
+`range-selection.test.ts` covers directional membership, contraction/reversal,
+stable reconciliation/history and operation guards. `range-selection-bounds.test.ts`
+covers per-system overlays and ownership. The runner's `contiguous-selection`
+driver exercises real pointer/keyboard inputs in Chromium and Firefox with a
+multi-system fixture and bundled Kyrie XI. See [verification](verification/contiguous-selection/README.md)
+for actual results and remaining foreground acceptance.

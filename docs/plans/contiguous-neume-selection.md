@@ -3,7 +3,9 @@
 Branch: `feat/contiguous-neume-selection`
 Target: `master`
 
-Status: Owner-approved design; implementation pending.
+Status: Implemented; automated verification recorded in
+[contiguous selection verification](../verification/contiguous-selection/README.md).
+Owner foreground acceptance and PR review pending.
 
 ## Goal and scope
 

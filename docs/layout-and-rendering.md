@@ -858,3 +858,12 @@ Neume ledger lines remain absent for every kind. See the
 The subsequent [five-note Scandicus repair](verification/extended-scandicus-climacus/README.md#crowded-five-note-scandicus-repair)
 resolves previously throwing cases while preserving successful geometry in
 the focused comparison.
+
+## Passage selection overlay
+
+`rendering/range-selection-bounds.ts` derives one decorative rectangle per affected
+system from selected neume bounds, existing ownership clips and staff lines.
+The band stops before the lyric row and does not extend to unused staff or
+system-edge guides. It is behind notation, aria-hidden and pointer-inert. It
+adds no engraving fields or layout input. Semantic membership and gestures are
+owned by [editor interactions](editor-interactions.md#active-syllable-and-selection).

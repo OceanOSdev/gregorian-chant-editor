@@ -648,7 +648,8 @@ try {
     await undo();
     assert.deepEqual(await score(), marked);
     // Whole-neume transposition.
-    await ev(`document.querySelector('[data-note-id="pf-0"]').focus()`);
+    // Different-neume Shift activation now extends; explicitly select this target first.
+    await select('pf-0');
     await key('Enter', 'Enter', true);
     await key('ArrowDown');
     assert.deepEqual(

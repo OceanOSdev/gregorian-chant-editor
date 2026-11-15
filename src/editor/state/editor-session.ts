@@ -86,6 +86,9 @@ import {
   selectNeume,
   selectSyllable,
   type EditorSelection,
+  extendSelection,
+  stepSelection,
+  resolveNeumeRange,
 } from './selection';
 
 const noteFormRejection =
@@ -254,9 +257,11 @@ export type EditorAction =
       divisionSide?: { divisionId: string; side: 'before' | 'after' };
     }
   | { type: 'select-tool' }
+  | { type: 'extend-selection'; noteId: string; direction?: -1 | 1 }
   | { type: 'select'; selection: EditorSelection; focusNoteId?: string }
   | {
       type: 'edit';
+      musicalSelectionEdit?: boolean;
       formDeletionNoteId?: string;
       edit: (document: ChantDocument) => ChantDocument | AccidentalEditResult;
       focusNoteId?: string;
@@ -350,6 +355,14 @@ export function getSelectFocusRequest(
     document.divisions.some((d) => d.id === selection.divisionId)
   )
     return { kind: 'division', divisionId: selection.divisionId };
+  if (selection.kind === 'neume-range') {
+    const endpoint = resolveNeumeRange(document, selection)
+      ? findNeume(document, selection.endpointNeumeId)?.neume
+      : null;
+    return endpoint
+      ? { kind: 'note', noteId: endpoint.notes[0].id }
+      : { kind: 'palette', tool: 'select' };
+  }
   const note =
     state.selection.kind === 'note'
       ? findNote(document, state.selection.noteId)
@@ -408,6 +421,10 @@ function reduceSessionAction(
         {
           ...state,
           noteFormError: null,
+          selection:
+            state.selection.kind === 'neume-range'
+              ? clearSelection()
+              : state.selection,
           activeTool: action.tool,
           keyboardClefPlacement: null,
           rememberedKind: kind ?? state.rememberedKind,
@@ -461,16 +478,22 @@ function reduceSessionAction(
             },
             'Select tool.',
           );
+    case 'extend-selection':
+      return state;
     case 'select': {
       if (placing) return state;
-      return {
+      const next: EditorSession = {
         ...state,
         noteFormError: null,
-        selection: action.selection,
+        selection: reconcileSelection(state.history.present, action.selection),
         focusRequest: action.focusNoteId
           ? { kind: 'note', noteId: action.focusNoteId }
           : null,
       };
+      return state.selection.kind === 'neume-range' &&
+        next.selection.kind !== 'neume-range'
+        ? announce(next, 'Passage selection cleared.')
+        : next;
     }
     case 'insert':
     case 'place': {
@@ -621,6 +644,13 @@ function reduceSessionAction(
       return history === state.history ? state : { ...state, history };
     }
     case 'edit': {
+      if (
+        state.selection.kind === 'neume-range' &&
+        (action.musicalSelectionEdit ||
+          action.noteMoveId ||
+          action.formDeletionNoteId)
+      )
+        return state;
       const edited = action.edit(state.history.present);
       const result =
         'document' in edited ? edited : { document: edited, rejection: null };
@@ -798,11 +828,15 @@ function applyLyrics(
   const next = transitionLyrics(document, entry, action, newId);
   const target = lyricTargetId(next.document, next.entry);
   const selection =
-    next.entry?.kind === 'selected'
-      ? selectSyllable(next.entry.syllableId)
-      : target
-        ? selectNeume(target)
-        : state.selection;
+    state.selection.kind === 'neume-range' &&
+    !state.lyrics &&
+    action.type === 'delete'
+      ? reconcileSelection(next.document, state.selection)
+      : next.entry?.kind === 'selected'
+        ? selectSyllable(next.entry.syllableId)
+        : target
+          ? selectNeume(target)
+          : state.selection;
   const updated: EditorSession = {
     ...state,
     history: applyDocumentEdit(state.history, () => next.document),
@@ -831,6 +865,51 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  if (action.type === 'extend-selection') {
+    if (
+      state.activeTool.kind !== 'select' ||
+      state.lyrics ||
+      state.lyricMove ||
+      state.pendingHistory ||
+      state.clefTransaction ||
+      state.accidentalTargetId
+    )
+      return state;
+    const document = state.history.present;
+    if (!findNote(document, action.noteId)) return state;
+    const result = action.direction
+      ? stepSelection(
+          document,
+          state.selection,
+          action.noteId,
+          action.direction,
+        )
+      : {
+          selection: extendSelection(document, state.selection, action.noteId),
+          focusNoteId: action.noteId,
+        };
+    if (!result) return state;
+    const range = resolveNeumeRange(document, result.selection);
+    return announce(
+      {
+        ...state,
+        selection: result.selection,
+        noteFormError: null,
+        focusRequest: result.focusNoteId
+          ? { kind: 'note', noteId: result.focusNoteId }
+          : null,
+      },
+      range
+        ? `${range.neumes.length} neumes selected. Escape clears selection.`
+        : 'Whole neume selected.',
+    );
+  }
+  if (state.selection.kind === 'neume-range') {
+    if (action.type === 'insert')
+      return announce(state, 'Select one insertion target first.');
+    if (action.type === 'lyrics' && action.action.type === 'start')
+      return announce(state, 'Select one lyric target first.');
+  }
   if (action.type === 'delete-accidental') {
     // Like note and division edits, this leaves any lyric entry and its draft
     // intact; it cannot change the syllables or neumes that the entry targets.
@@ -871,6 +950,10 @@ export function reduceEditorSession(
       ? announce(
           {
             ...state,
+            selection:
+              state.selection.kind === 'neume-range'
+                ? { kind: 'accidental', accidentalId: action.id }
+                : state.selection,
             accidentalTargetId: action.id,
             focusRequest: { kind: 'note', noteId: ids[0] },
           },
@@ -1042,6 +1125,10 @@ function transitionEditorSession(
       activeTool: selectTool(),
       hoveredPoint: null,
       focusRequest: null,
+      selection:
+        state.selection.kind === 'neume-range'
+          ? { kind: 'clef-change', clefChangeId: action.id }
+          : state.selection,
       clefTransaction: {
         keepScoreFocus: action.keepScoreFocus,
         original: document,
@@ -1529,7 +1616,10 @@ function transitionEditorSession(
     // Mode activation uses focus as context, not as an implicit selection command.
     return {
       ...next,
-      selection: reconcileSelection(next.history.present, state.selection),
+      selection:
+        state.selection.kind === 'neume-range' && next.lyrics
+          ? next.selection
+          : reconcileSelection(next.history.present, state.selection),
     };
   }
   if (action.type === 'lyrics')

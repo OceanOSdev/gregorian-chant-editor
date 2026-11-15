@@ -107,7 +107,11 @@ import {
   placeScandicusTool,
   placeTorculusTool,
 } from '../state/editor-tool';
-import { clearSelection, selectNeume, selectNote } from '../state/selection';
+import {
+  clearSelection,
+  resolveNeumeRange,
+  selectNote,
+} from '../state/selection';
 
 interface ChantEditorProps {
   document: ChantDocument;
@@ -293,9 +297,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     selection.kind === 'division'
       ? history.present.divisions.find((d) => d.id === selection.divisionId)
       : null;
+  const range = resolveNeumeRange(history.present, selection);
   const divisionTarget =
-    history.present.divisions.find((d) => d.id === focusedDivisionId) ??
-    selectedDivision;
+    selection.kind === 'neume-range'
+      ? null
+      : (history.present.divisions.find((d) => d.id === focusedDivisionId) ??
+        selectedDivision);
   const placing = isPlacementTool(activeTool);
   const divisionSlot =
     activeTool.kind === 'place-division' && session.hoveredPoint
@@ -531,7 +538,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           const clefChangeId = target
             ?.closest('[data-clef-change-id]')
             ?.getAttribute('data-clef-change-id');
-          if (divisionId || clefChangeId)
+          if (selection.kind !== 'neume-range' && (divisionId || clefChangeId))
             dispatch({
               type: 'select',
               selection: clefChangeId
@@ -630,6 +637,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     session.accidentalTargetId,
     history.present,
     selectedNeume,
+    selection.kind,
   ]);
 
   return (
@@ -1028,10 +1036,18 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </select>
         </label>
         <div className="editor-actions">
+          {range ? (
+            <span id="range-selection-status">
+              {range.neumes.length} neumes selected · Escape clears. Select one
+              target for insertion or lyrics.
+            </span>
+          ) : null}
           <button
             type="button"
             aria-pressed={Boolean(session.lyrics)}
+            aria-describedby={range ? 'range-selection-status' : undefined}
             disabled={Boolean(
+              selection.kind === 'neume-range' ||
               session.lyricMove ||
               session.pendingHistory ||
               session.clefTransaction,
@@ -1044,7 +1060,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             Lyrics <kbd aria-hidden="true">L</kbd>
           </button>
           <button
+            aria-describedby={range ? 'range-selection-status' : undefined}
             disabled={Boolean(
+              selection.kind === 'neume-range' ||
               session.lyricMove ||
               session.pendingHistory ||
               session.clefTransaction,
@@ -1220,8 +1238,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           <kbd>Esc</kbd> Select. In the palette, arrows browse and Enter/Space
           activates; the Punctum and Podatus menus (▾) choose a variant, and I/T
           then recall that exact variant. In Select, Enter/Space selects a
-          focused note, ↑/↓ changes pitch, and Shift+Enter/Space selects its
-          neume. I/T apply only in notation controls. On the initial clef,
+          focused note, ↑/↓ changes pitch, and Shift+Enter/Space selects or
+          extends a passage. Shift+Left/Right extends by neume. Escape clears
+          selection. I/T apply only in notation controls. On the initial clef,
           Enter/Space selects and ↑/↓ moves one staff line while preserving
           melody. On an authored clef, ↑/↓ moves its draft one staff line per
           press, starting the draft on the first press and keeping focus in the
@@ -1392,6 +1411,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 lyricAction({ type: 'navigate', neumeId: note.neume.id });
               else dispatch({ type: 'select', selection: selectNote(noteId) });
             }}
+            rangeIds={range?.ids}
+            onExtendSelection={
+              session.lyrics
+                ? undefined
+                : (noteId, direction) =>
+                    dispatch({ type: 'extend-selection', noteId, direction })
+            }
             onSelectNeumeForNote={(noteId) => {
               const note = findNote(history.present, noteId);
               if (
@@ -1404,9 +1430,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               }
               if (note)
                 dispatch({
-                  type: 'select',
-                  selection: selectNeume(note.neume.id),
-                  focusNoteId: noteId,
+                  type: 'extend-selection',
+                  noteId,
                 });
             }}
             onPlacementPointerMove={(point) =>
@@ -1419,6 +1444,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoveNote={(noteId, delta) =>
               dispatch({
                 type: 'edit',
+                musicalSelectionEdit: true,
                 edit: (document) =>
                   moveNoteVerticallyResult(document, noteId, delta),
                 focusNoteId: noteId,
@@ -1428,6 +1454,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onMoveNeume={(neumeId, delta, invokingNoteId) =>
               dispatch({
                 type: 'edit',
+                musicalSelectionEdit: true,
                 edit: (document) =>
                   moveNeumeVerticallyResult(document, neumeId, delta),
                 focusNoteId: invokingNoteId,
@@ -1437,6 +1464,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               noteToolbar.current?.show();
               dispatch({
                 type: 'edit',
+                musicalSelectionEdit: true,
                 formDeletionNoteId: noteId,
                 edit: (document) => deleteNoteResult(document, noteId),
                 clearSelection: true,
@@ -1445,6 +1473,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onDeleteNeume={(neumeId) =>
               dispatch({
                 type: 'edit',
+                musicalSelectionEdit: true,
                 edit: (document) => deleteNeumeResult(document, neumeId),
                 clearSelection: true,
               })
