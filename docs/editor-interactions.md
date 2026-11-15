@@ -74,7 +74,10 @@ Automatic focus uses `focus({ preventScroll: true })`, without refocusing an
 already focused destination. Separately, clipped notation is minimally revealed
 in nested scroll containers and the window with an 8 px margin. An oversized
 neume uses its first-note anchor. The SVG/system is never centered. Document
-shrinkage can still cause native scroll-range clamping.
+shrinkage can still cause native scroll-range clamping. Native score focus
+(including Tab/Shift+Tab) also performs this minimal reveal after browser
+traversal settles, accounting for the sticky tools without changing selection
+or intercepting traversal.
 
 Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
 while armed), never a disabled constituent note. Its concise accessible name is
@@ -107,7 +110,8 @@ pointer ownership are described in
 
 ## Palette and contextual keyboard insertion
 
-The single toolbar contains Select and seven neume tools. Only one palette
+The palette contains Select, neume families and note forms, clef tools and
+the Division split control. Only one palette
 button is in the Tab order. Arrow Left/Right/Up/Down browse sequentially and wrap;
 Home/End focus the first/last tool. Focus browsing changes only the roving Tab
 stop. Native Enter/Space or click activates the focused button. `aria-pressed`
@@ -127,7 +131,7 @@ already handled events, modifier chords and autorepeat. Native Enter/Space and
 pitch arrows retain their existing meanings. Collapsed Keyboard help and the
 visible I hint make the shortcuts discoverable without a permanent help panel.
 
-The ordinary Tab order follows the DOM: palette, Lyrics, Insert, enabled Undo/Redo, Keyboard help, score note/lyric controls, then lyric input/actions and one strip stop. Native traversal is preserved.
+The ordinary Tab order follows the DOM: document controls, initial clef and lyric language, palette, Quilisma figure, Lyrics, Insert, enabled Undo/Redo, Keyboard help, score note/lyric controls, then lyric input/actions and one strip stop. Native traversal is preserved.
 After insertion, note focus supports pitch arrows then I directly. T → arrows →
 Enter → I switches kind and inserts.
 
@@ -549,10 +553,24 @@ there is no second word-spacing authority in event handlers. See the
 [layout guide](layout-and-rendering.md#stage-4c-word-composition)
 for geometry, reservation and fallback policy.
 
+## Sticky editing tools
+
+Document controls, initial clef and lyric language scroll normally. The notation
+palette, Quilisma figure and Lyrics/Insert/Undo/Redo remain in one opaque CSS
+sticky region in the page scroll. At viewport heights of 600px or less it
+returns to normal flow; it also does so when its measured height exceeds half
+the viewport (including wrapped or zoomed tools). Measured occupied toolbar bounds constrain score reveal
+and note/accidental contextual panels; no engraving or semantic state changes.
+Pitch handling and selected division/clef editing remain outside this region.
+
 ## Stage 5B division controls
 
-The Divisions group chooses Minima, Minor, Maior or Finalis and arms persistent
-Place division. Changing its placement kind while armed changes the ghost.
+The palette Division split button follows the clef tools. Its primary arms
+Minima; its menu immediately arms Minima, Minor, Maior or Finalis using the
+shared family menu keyboard, focus and dismissal lifecycle. Both primary and
+menu activation remember the armed division for the next menu opening; this
+does not change the remembered neume. Changing the
+variant while armed changes the ghost.
 Hover shows a semantic-slot caret and shared division ink; click inserts one
 atomic edit and leaves placement armed. Escape returns to Select. Division tools
 do not change the remembered neume kind or add an unmodified shortcut. I/T and

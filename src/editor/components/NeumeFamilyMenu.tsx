@@ -58,11 +58,11 @@ export function EntryIcon({ kind }: { kind: GraphicalNeumeKind }) {
 }
 
 /**
- * Split control for one neume family: the primary button always arms the
+ * Split control for one notation family: the primary button always arms the
  * ordinary family member; the chevron menu arms an exact variant without
- * inserting music. Shared by the Punctum and Podatus families.
+ * inserting music. Shared by neume families and divisions.
  */
-export function NeumeFamilyMenu<K extends GraphicalNeumeKind>({
+export function NeumeFamilyMenu<K extends string>({
   family,
   familyClassName,
   variants,

@@ -105,8 +105,12 @@ const focus = async (selector) => {
   await pause();
 };
 const click = async (selector) => {
+  await ev(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)}),toolbar=el.closest('.editor-sticky-toolbar');if(!toolbar || getComputedStyle(toolbar).position!=='sticky')el.scrollIntoView({block:'center'})})()`,
+  );
+  await pause();
   const point = await ev(
-    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'center'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+    `(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
   for (const type of ['mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {

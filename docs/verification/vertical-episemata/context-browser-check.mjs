@@ -221,7 +221,13 @@ async function pointer(selector) {
   const p = await ev(
     `(()=>{const e=document.querySelector(${JSON.stringify(selector)});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
-  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+  await send('Input.dispatchMouseEvent', {
+    type: 'mouseMoved',
+    ...p,
+    button: 'none',
+  });
+  await pause();
+  for (const type of ['mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
       type,
       ...p,
@@ -523,8 +529,9 @@ try {
         deviceScaleFactor: 1,
         mobile: false,
       });
+    await pause();
     await ev(
-      `(()=>{const e=document.querySelector(${JSON.stringify(selector(id))});scrollTo(0,e.getBoundingClientRect().top+scrollY-24)})()`,
+      `(()=>{const e=document.querySelector(${JSON.stringify(selector(id))});scrollTo(0,e.getBoundingClientRect().top+scrollY-(getComputedStyle(document.querySelector('.editor-sticky-toolbar')).position==='sticky'?document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().height:0)-24)})()`,
     );
     await pause();
     metrics = await contextMetrics(id);

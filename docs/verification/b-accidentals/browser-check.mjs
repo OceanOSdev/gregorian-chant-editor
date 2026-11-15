@@ -312,11 +312,11 @@ const button = async (text) => {
 const glyph = (id) => `[data-accidental-id="${id}"]`;
 async function pointer(selector) {
   await ev(
-    `(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect();window.scrollBy({top:r.top+r.height/2-innerHeight/2,behavior:'instant'});})()`,
+    `(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect();window.scrollBy({top:r.top+r.height/2-(document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().height+80),behavior:'instant'});})()`,
   );
   await pause();
   const p = await ev(
-    `(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=(e.querySelector('.score__note-hit-target')??e).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+    `(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=(e.querySelector('.score__note-hit-target')??e).getBoundingClientRect();return{x:e.hasAttribute('data-note-id')?r.x+2:r.x+r.width/2,y:r.y+r.height/2}})()`,
   );
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
@@ -631,7 +631,7 @@ try {
     );
   }
   await hydrate(reference);
-  await button('Place division');
+  await button('Division');
   const point = await ev(
     `(()=>{const svg=document.querySelector('.score'),previous=document.querySelector('[data-neume-id="ga"] .score__ink').getBBox(),next=document.querySelector('[data-neume-id="b"] .score__ink').getBBox();const point=new DOMPoint((previous.x+previous.width+next.x)/2,(previous.y+next.y+next.height)/2).matrixTransform(svg.getScreenCTM());window.scrollBy({top:point.y-innerHeight/2,behavior:'instant'});return true})()`,
   );

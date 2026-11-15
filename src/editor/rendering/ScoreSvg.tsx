@@ -170,7 +170,9 @@ export function ScoreSvg({
     element: Element;
   } | null>(null);
   useLayoutEffect(() => {
+    let revealFrame = 0;
     const track = (event: FocusEvent) => {
+      cancelAnimationFrame(revealFrame);
       const target = event.target;
       if (
         !(target instanceof Element) ||
@@ -178,6 +180,14 @@ export function ScoreSvg({
       ) {
         focusedEntity.current = null;
         return;
+      }
+      if (target instanceof SVGElement && target !== scoreElement.current) {
+        // Native Tab/Shift+Tab may leave focus under sticky chrome. Let browser
+        // traversal settle, then reveal only the still-focused mounted control.
+        revealFrame = requestAnimationFrame(() => {
+          if (target.isConnected && document.activeElement === target)
+            focusAndReveal(target);
+        });
       }
       const clefChangeId = target.getAttribute('data-clef-change-id');
       const divisionId = target.getAttribute('data-division-id');
@@ -197,7 +207,10 @@ export function ScoreSvg({
                 : null;
     };
     document.addEventListener('focusin', track);
-    return () => document.removeEventListener('focusin', track);
+    return () => {
+      cancelAnimationFrame(revealFrame);
+      document.removeEventListener('focusin', track);
+    };
   }, []);
   useLayoutEffect(() => {
     const target = focusedEntity.current;

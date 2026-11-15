@@ -544,3 +544,24 @@ kbd {
     transform: translateX(var(--vertical-episema-shift, 0px));
   }
 }
+
+.editor-sticky-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 0.5rem 0;
+  background: #faf8f4;
+  border-bottom: 1px solid #d9d3c9;
+}
+.editor-sticky-toolbar .editor-actions {
+  margin-bottom: 0;
+}
+@media (max-height: 600px) {
+  .editor-sticky-toolbar {
+    position: static;
+  }
+}
+
+.editor-sticky-toolbar[data-too-tall='true'] {
+  position: static;
+}

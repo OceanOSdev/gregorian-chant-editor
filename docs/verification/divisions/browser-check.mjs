@@ -184,7 +184,7 @@ try {
   );
   const nativeClick = async (selector) => {
     const p = await ev(
-      `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing '+${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const v=document.querySelector('.score-viewport');let b=e.getBoundingClientRect();if(v&&e.closest('.score')){const vb=v.getBoundingClientRect();v.scrollLeft+=b.x+b.width/2-vb.x-vb.width/2;b=e.getBoundingClientRect();}return {x:b.x+b.width/2,y:b.y+b.height/2}})()`,
+      `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing '+${JSON.stringify(selector)});if(!e.closest('.editor-sticky-toolbar') || getComputedStyle(e.closest('.editor-sticky-toolbar')).position!=='sticky')e.scrollIntoView({block:'center'});const v=document.querySelector('.score-viewport');let b=e.getBoundingClientRect();if(v&&e.closest('.score')){const vb=v.getBoundingClientRect();v.scrollLeft+=b.x+b.width/2-vb.x-vb.width/2;b=e.getBoundingClientRect();}return {x:b.x+b.width/2,y:b.y+b.height/2}})()`,
     );
     await clickPoint(p);
   };
@@ -198,13 +198,22 @@ try {
       });
     await pause();
   };
-  const scorePoint = async (x, y) =>
-    ev(
-      `(()=>{document.querySelector('.score').scrollIntoView({block:'center'});const p=new DOMPoint(${x},${y}).matrixTransform(document.querySelector('.score').getScreenCTM());return {x:p.x,y:p.y}})()`,
+  const scorePoint = async (x, y) => {
+    await ev(
+      `document.querySelector('.score').scrollIntoView({block:'center'})`,
     );
+    await pause();
+    await ev(
+      `(()=>{const p=new DOMPoint(${x},${y}).matrixTransform(document.querySelector('.score').getScreenCTM());const t=document.querySelector('.editor-sticky-toolbar').getBoundingClientRect();if(p.y<t.bottom+8)window.scrollBy(0,p.y-t.bottom-16)})()`,
+    );
+    await pause();
+    return ev(
+      `(()=>{const p=new DOMPoint(${x},${y}).matrixTransform(document.querySelector('.score').getScreenCTM());return {x:p.x,y:p.y}})()`,
+    );
+  };
   const clickText = async (text) => {
     const p = await ev(
-      `(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!e)throw Error(${JSON.stringify(text)});e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2}})()`,
+      `(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!e)throw Error(${JSON.stringify(text)});if(!e.closest('.editor-sticky-toolbar') || getComputedStyle(e.closest('.editor-sticky-toolbar')).position!=='sticky')e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2}})()`,
     );
     await clickPoint(p);
   };
@@ -214,10 +223,12 @@ try {
     );
     await pause();
   };
-  const key = async (name) => {
+  const key = async (name, shift = false) => {
     if (firefox) {
       const value =
         {
+          End: '\uE010',
+          Home: '\uE011',
           Escape: '\uE00C',
           Enter: '\uE007',
           Delete: '\uE017',
@@ -231,8 +242,10 @@ try {
             type: 'key',
             id: 'keyboard',
             actions: [
+              ...(shift ? [{ type: 'keyDown', value: '\uE008' }] : []),
               { type: 'keyDown', value },
               { type: 'keyUp', value },
+              ...(shift ? [{ type: 'keyUp', value: '\uE008' }] : []),
             ],
           },
         ],
@@ -241,6 +254,7 @@ try {
       for (const type of ['keyDown', 'keyUp'])
         await send('Input.dispatchKeyEvent', {
           type,
+          modifiers: shift ? 8 : 0,
           key: name,
           code: name,
           ...(name === 'Enter' && type === 'keyDown' ? { text: '\r' } : {}),
@@ -272,6 +286,11 @@ try {
         `divisionLayout(${JSON.stringify(d)}).systems[0].slots[${side === 'before' ? 1 : 2}]`,
       );
       const p = await scorePoint(slot.x, 100);
+      await send('Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        x: p.x + 2,
+        y: p.y + 2,
+      });
       await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p });
       await pause();
       assert.equal(
@@ -389,9 +408,16 @@ try {
     assert.deepEqual(await order(), ['n0', 'n1']);
     await mount(fixture());
     for (const kind of ['minima', 'minor', 'maior', 'finalis']) {
-      await choose('Division placement kind', kind);
-      await clickText('Place division');
+      await ev(`document.querySelector('[data-tool="division-menu"]').click()`);
+      await pause();
+      await ev(`document.querySelector('[data-variant="${kind}"]').click()`);
+      await pause();
       const p = await scorePoint(450, 100);
+      await send('Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        x: p.x + 2,
+        y: p.y + 2,
+      });
       await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p });
       await pause();
       assert.equal(
@@ -535,6 +561,11 @@ try {
       const p = await ev(
         `(()=>{const svg=document.querySelector('.score'),v=document.querySelector('.score-viewport');let p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());const r=v.getBoundingClientRect();v.scrollLeft+=p.x-r.x-r.width/2;p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());window.scrollBy(0,p.y-innerHeight/2);p=new DOMPoint(${target.x},${target.y}).matrixTransform(svg.getScreenCTM());return {x:p.x,y:p.y}})()`,
       );
+      await send('Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        x: p.x + 2,
+        y: p.y + 2,
+      });
       await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...p });
       await pause();
       assert.equal(
@@ -548,6 +579,100 @@ try {
       await shot(`review-clearance-${width}-${side}`);
     }
   }
+  await viewport(1440);
+  await mount(fixture(100));
+  await nativeClick('[data-tool="minima"]');
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-tool="minima"]').getAttribute('aria-pressed')`,
+    ),
+    'true',
+  );
+  await focus('[data-tool="division-menu"]');
+  await key('Enter');
+  await key('End');
+  await key('Enter');
+  assert.equal(
+    await ev(`document.activeElement.dataset.tool`),
+    'division-menu',
+  );
+  assert.equal(
+    await ev(`document.activeElement.dataset.activeVariant`),
+    'finalis',
+  );
+  await key('Enter');
+  await key('Escape');
+  assert.equal(
+    await ev(`document.activeElement.dataset.tool`),
+    'division-menu',
+  );
+  await key('Escape');
+  await nativeClick('[data-tool="minima"]');
+  await key('Escape');
+  await focus('[data-tool="division-menu"]');
+  await key('Enter');
+  assert.equal(
+    await ev(`document.activeElement.dataset.variant`),
+    'minima',
+    'primary remembers Minima after Finalis',
+  );
+  await key('Escape');
+  assert.equal(
+    await ev(
+      `document.querySelector('.editor-insert').textContent.includes('Punctum')`,
+    ),
+    true,
+  );
+  assert.equal(
+    await ev(`document.querySelector('.division-controls') === null`),
+    true,
+    'no empty division fieldset',
+  );
+  // Native traversal must reveal focus without selecting or editing notation.
+  for (const reverse of [false, true]) {
+    await ev(
+      `document.querySelector('[data-note-id="note${reverse ? 51 : 49}"]').focus({preventScroll:true})`,
+    );
+    await pause();
+    await ev(
+      `(()=>{const n=document.querySelector('[data-note-id="note50"]');window.scrollTo(0,n.getBoundingClientRect().top+scrollY-80)})()`,
+    );
+    await pause();
+    const selected = await ev(
+      `document.querySelector('[aria-pressed="true"][data-note-id]')?.dataset.noteId ?? null`,
+    );
+    await key('Tab', reverse);
+    assert.equal(await ev(`document.activeElement.dataset.noteId`), 'note50');
+    assert.equal(
+      await ev(
+        `document.activeElement.getBoundingClientRect().top >= document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom+7`,
+      ),
+      true,
+      'native Tab reveals covered focus',
+    );
+    assert.equal(
+      await ev(
+        `document.querySelector('[aria-pressed="true"][data-note-id]')?.dataset.noteId ?? null`,
+      ),
+      selected,
+    );
+  }
+  await ev(
+    `document.querySelector('[data-note-id="note49"]').focus({preventScroll:true})`,
+  );
+  await pause();
+  await ev(
+    `(()=>{const n=document.querySelector('[data-note-id="note50"]');window.scrollTo(0,n.getBoundingClientRect().top+scrollY-innerHeight/2)})()`,
+  );
+  await pause();
+  const visibleScroll = await ev('scrollY');
+  await key('Tab');
+  assert.equal(await ev(`document.activeElement.dataset.noteId`), 'note50');
+  assert.equal(
+    await ev('scrollY'),
+    visibleScroll,
+    'visible native focus does not scroll',
+  );
   console.log(
     firefox
       ? 'PASS: native Tab reaches both explicit insertion-side buttons. NOT RUN: Firefox headless HTML Enter activation; owner foreground check pending.'
