@@ -422,6 +422,108 @@ try {
     0,
   );
   await key('Escape');
+
+  // Repartitioning: deleting a wrapping-affecting lyric through its focused
+  // control moves selected neumes between systems. Membership is semantic, so
+  // the count must hold while each system's overlay follows the new layout.
+  const wide = 'eleisoneleison';
+  const reflow = {
+    title: 'Range repartitioning',
+    lyricLanguage: 'la',
+    clef: { type: 'c', staffLine: 3 },
+    neumes: Array.from({ length: 48 }, (_, i) => ({
+      id: `r${i}`,
+      kind: 'punctum',
+      notes: [{ id: `r${i}-a`, staffPosition: [2, 4, 3, 5][i % 4] }],
+    })),
+    syllables: [
+      { id: 'k', text: 'Ky', startsAtNeumeId: 'r0', boundaryBefore: 'word' },
+      ...[2, 5, 8].map((n, i) => ({
+        id: `wide${i}`,
+        text: wide,
+        startsAtNeumeId: `r${n}`,
+        boundaryBefore: 'word',
+      })),
+    ],
+    divisions: [],
+    clefChanges: [],
+    accidentals: [],
+  };
+  await mount(reflow);
+  await nativeClick(note('r1-a'));
+  await shiftClick(note('r44-a'));
+  await count(44);
+  const snapshot = () =>
+    ev(`(()=>{
+      const systems=[...document.querySelectorAll('.score g[data-system-index]')];
+      const center=(e)=>{const b=e.getBoundingClientRect();return b.x+b.width/2};
+      return {
+        systemOf:Object.fromEntries([...document.querySelectorAll('.score [data-neume-id]')].map(e=>[e.dataset.neumeId,Number(e.closest('g[data-system-index]').dataset.systemIndex)])),
+        overlays:systems.flatMap(s=>{
+          const r=s.querySelectorAll(':scope > .score__range-selection');
+          if(r.length>1)throw Error('Multiple overlays in one system');
+          if(!r.length)return [];
+          const b=r[0].getBoundingClientRect();
+          const inside=(e)=>{const c=center(e);return c>=b.left&&c<=b.right};
+          const neumes=[...s.querySelectorAll('[data-neume-id]')];
+          return [{
+            system:Number(s.dataset.systemIndex),
+            x:r[0].getAttribute('x'),
+            width:r[0].getAttribute('width'),
+            covered:neumes.filter(inside).map(e=>e.dataset.neumeId),
+          }];
+        }),
+      };
+    })()`);
+  const members = Array.from({ length: 44 }, (_, i) => `r${i + 1}`);
+  const expectSegmentation = (s) => {
+    const systems = [...new Set(members.map((id) => s.systemOf[id]))];
+    assert.deepEqual(
+      s.overlays.map((o) => o.system),
+      systems,
+    );
+    for (const o of s.overlays)
+      assert.deepEqual(
+        o.covered,
+        members.filter((id) => s.systemOf[id] === o.system),
+      );
+  };
+  const before = await snapshot();
+  expectSegmentation(before);
+  assert.ok(before.overlays.length > 1);
+  await focus('[data-syllable-id="wide0"]');
+  await key('Delete');
+  assert.equal(
+    await ev(`document.querySelector('[data-syllable-id="wide0"]')`),
+    null,
+  );
+  // Mounting does not persist; the deletion is the first saved edit.
+  const deletedBytes = await bytes();
+  assert.ok(!deletedBytes.includes('"wide0"'));
+  await count(44);
+  const after = await snapshot();
+  expectSegmentation(after);
+  const moved = members.filter(
+    (id) => after.systemOf[id] < before.systemOf[id],
+  );
+  assert.ok(moved.length > 0, 'deleting the lyric moved no selected neume');
+  assert.notDeepEqual(
+    after.overlays.map((o) => o.covered),
+    before.overlays.map((o) => o.covered),
+  );
+  await shot('repartitioned');
+  await nativeClick('[aria-label="Undo last edit"]');
+  await count(44);
+  assert.ok((await bytes()).includes('"wide0"'));
+  const undone = await snapshot();
+  assert.deepEqual(undone.systemOf, before.systemOf);
+  assert.deepEqual(undone.overlays, before.overlays);
+  await nativeClick('[aria-label="Redo last undone edit"]');
+  await count(44);
+  assert.equal(await bytes(), deletedBytes);
+  assert.deepEqual((await snapshot()).overlays, after.overlays);
+  await key('Escape');
+
   await send('Page.navigate', { url: editorUrl + '/' });
   await pause();
   await pause();
@@ -453,7 +555,7 @@ try {
   await shot('kyrie-narrow');
   assert.equal(await bytes(), saved);
   console.log(
-    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes and Kyrie XI at wide/narrow widths.',
+    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes, lyric-deletion repartitioning with Undo/Redo, and Kyrie XI at wide/narrow widths.',
   );
 } finally {
   if (ownsSession) await rawSend('session.end').catch(() => {});

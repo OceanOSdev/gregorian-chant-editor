@@ -43,6 +43,43 @@ preserved. Compound directional and Pes subpunctis pass in both browsers.
 Extended Scandicus/Climacus passes the revised movement assertions and reaches
 an unrelated placement failure also present on baseline.
 
+## Review follow-up (2026-11-15 UTC)
+
+Addresses the four PR #87 review findings at `1105cec`; same environment as above.
+
+- Lyric recovery: Shift activation again selects one whole neume (replacing,
+  never extending) as the **Retry** target; Shift+Left/Right stays inert there.
+  A pure test retries the preserved draft at that explicit target.
+- Repartitioning: the driver mounts a 48-punctum fixture with three wide lyrics,
+  selects `r1`–`r44`, then deletes `wide0` through its focused engraved lyric
+  (Delete). At least one selected neume moves to an earlier system; the count
+  stays 44; each system has at most one band, covering exactly the selected
+  neumes it contains. Undo restores the original system membership and band
+  geometry exactly; Redo restores the repartitioned bands and saved bytes.
+  `repartitioned.png` is saved with the other screenshots.
+- Overlay bounds test now uses lyric-bearing three-neume melismas with
+  podatus ink descending into the lyric row and endpoints mid-melisma. It asserts
+  member coverage, no overlap with unselected ink, bands within the compact
+  `hitClip` midpoint shared with a dense neighbour, and lyric clearance. Mutating
+  the padding past the clip or dropping the lyric clamp fails the test.
+- Announcements: a document change that clears a range (for example Undo/Redo
+  removing an endpoint) announces "Passage selection cleared."; a
+  reconciliation count change announces the new count; arming a placement tool
+  appends the clearing notice. Transitions that already announce are not
+  overridden, and focus changes remain silent.
+
+Standard gate passed: format:check, lint, 93 Vitest files / 2,040 tests, build
+(existing large-chunk warning) and git diff --check. Browser runs:
+
+| Run suffix             | Coverage                                     | Result           |
+| ---------------------- | -------------------------------------------- | ---------------- |
+| `06-52-46-243Z-f8n8mx` | Ranges, Chromium and Firefox                 | 2 passed; 12.7 s |
+| `06-53-58-100Z-W0CP3f` | Continuous lyrics (recovery Retry), Chromium | 1 passed; 45.6 s |
+
+The full matrix was not rerun; the changes are confined to range reducer
+paths and the new driver scenario, and the baseline failures below are unchanged
+in scope.
+
 ## Baseline failures, not waived
 
 The following eight failures reproduce on an untouched detached worktree at

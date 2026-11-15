@@ -57,13 +57,17 @@ the range only on successful entry. Division contextual controls are suppressed
 while a range exists. Explicit entity selection replaces it. Successful placement
 tool arming clears ranges; rejected transitions retain them. All range gestures
 are confined to ordinary Select outside lyric drafts/moves, pending history,
-clef transactions and accidental placement.
+clef transactions and accidental placement. During lyric recovery, Shift+click
+and Shift+Enter/Space keep their earlier meaning: they select one whole neume as
+the **Retry** target and never start or extend a range.
 
 Connected pale-purple, pointer-inert bands mark each affected system, behind
 notation and outside the lyric row. Stable membership drives these decorations;
 individual-note red selection, dashed whole-neume selection and keyboard focus
 remain distinct. A compact count/Escape hint and live announcements describe
-range changes; members have an accessible description without individual
+range changes, including clearing by explicit selection, placement-tool arming
+or a document change (such as Undo/Redo removing an endpoint) and a count change
+caused by reconciliation. Focus movement alone is not announced. Members have an accessible description without individual
 `aria-pressed` selection. Clicking the score background in Select mode clears
 selection. Escape also clears selection when no placement tool is active.
 

@@ -8,9 +8,16 @@ import {
   resolveSelectionSyllableId,
   type EditorSelection,
 } from './selection';
-import { createEditorSession, reduceEditorSession } from './editor-session';
+import {
+  createEditorSession,
+  reduceEditorSession,
+  type EditorAction,
+  type EditorSession,
+} from './editor-session';
+import { type LyricAction } from './lyric-entry';
 import { resolveToolbarNeumeInsertion } from '../commands/resolve-toolbar-neume-insertion';
 import { resolveEditorToolbarInsertion } from '../interaction/insert-editor-neume';
+import { createLyricSyllable } from '../commands/create-lyric-syllable';
 
 const document: ChantDocument = {
   title: 'Range',
@@ -267,5 +274,112 @@ describe('contiguous musical selection', () => {
         { type: 'extend-selection', noteId: 'a4' },
       ).selection,
     ).toBe(range);
+  });
+  it('keeps recovery Shift activation as a single whole-neume Retry target', () => {
+    const lyric = (state: EditorSession, action: LyricAction) =>
+      reduceEditorSession(state, { type: 'lyrics', action, newId: 'draft' });
+    let state = lyric(createEditorSession(document), {
+      type: 'start',
+      neumeId: 'n0',
+    });
+    state = lyric(state, { type: 'text', text: 'Ky' });
+    state = reduceEditorSession(state, {
+      type: 'edit',
+      edit: (d) =>
+        createLyricSyllable(d, {
+          id: 'occupier',
+          text: 'other',
+          startsAtNeumeId: 'n0',
+          boundaryBefore: 'word',
+        }),
+    });
+    expect(state.lyrics?.kind).toBe('recovery');
+    const history = state.history;
+    state = reduceEditorSession(state, {
+      type: 'extend-selection',
+      noteId: 'b2',
+    });
+    expect(state.selection).toEqual({ kind: 'neume', neumeId: 'n2' });
+    expect(state.focusRequest).toEqual({ kind: 'note', noteId: 'b2' });
+    // A second Shift activation replaces the target rather than extending.
+    state = reduceEditorSession(state, {
+      type: 'extend-selection',
+      noteId: 'a3',
+    });
+    expect(state.selection).toEqual({ kind: 'neume', neumeId: 'n3' });
+    expect(
+      reduceEditorSession(state, {
+        type: 'extend-selection',
+        noteId: 'a3',
+        direction: 1,
+      }),
+    ).toBe(state);
+    expect(state.history).toBe(history);
+    expect(state.lyrics?.kind).toBe('recovery');
+    const selected =
+      state.selection.kind === 'neume' ? state.selection.neumeId : '';
+    state = lyric(state, { type: 'retry', neumeId: selected });
+    expect(state.lyrics).toMatchObject({
+      kind: 'draft',
+      neumeId: 'n3',
+      text: 'Ky',
+    });
+  });
+  it('announces passage clearing or resizing caused by history reconciliation', () => {
+    const undo: EditorAction = {
+      type: 'history',
+      direction: 'undo',
+      focusedNoteId: null,
+    };
+    const redo: EditorAction = { ...undo, direction: 'redo' };
+    let state = createEditorSession(document);
+    state = reduceEditorSession(state, {
+      type: 'edit',
+      edit: (d) => ({
+        ...d,
+        neumes: [
+          ...d.neumes.slice(0, 2),
+          {
+            id: 'inner',
+            kind: 'punctum',
+            notes: [{ id: 'i', staffPosition: staffPosition(2) }],
+          },
+          ...d.neumes.slice(2),
+        ],
+      }),
+    });
+    state = reduceEditorSession(state, { type: 'select', selection: range });
+    state = reduceEditorSession(state, undo);
+    expect(state.selection).toBe(range);
+    expect(state.announcement.text).toBe('3 neumes selected.');
+    const sequence = state.announcement.sequence;
+    state = reduceEditorSession(state, redo);
+    expect(state.announcement).toEqual({
+      sequence: sequence + 1,
+      text: '4 neumes selected.',
+    });
+    state = reduceEditorSession(state, {
+      type: 'edit',
+      edit: (d) => ({ ...d, title: 'Unrelated' }),
+    });
+    expect(state.announcement.sequence).toBe(sequence + 1);
+    state = reduceEditorSession(state, {
+      type: 'edit',
+      edit: (d) => ({ ...d, neumes: d.neumes.filter((n) => n.id !== 'n1') }),
+    });
+    state = reduceEditorSession(state, undo);
+    state = reduceEditorSession(state, { type: 'select', selection: range });
+    state = reduceEditorSession(state, redo);
+    expect(state.selection.kind).toBe('none');
+    expect(state.announcement.text).toBe('Passage selection cleared.');
+    state = reduceEditorSession(state, undo);
+    expect(state.selection.kind).toBe('none');
+    state = reduceEditorSession(state, { type: 'select', selection: range });
+    expect(
+      reduceEditorSession(state, {
+        type: 'arm',
+        tool: { kind: 'place-division', divisionKind: 'minor' },
+      }).announcement.text,
+    ).toBe('Placing minor division. Passage selection cleared.');
   });
 });

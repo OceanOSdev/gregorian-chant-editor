@@ -440,7 +440,7 @@ function reduceSessionAction(
           hoveredPoint: null,
           focusRequest: null,
         },
-        `Placing ${kind ? entryName(kind, toolNoteForm(action.tool)) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.`,
+        `Placing ${kind ? entryName(kind, toolNoteForm(action.tool)) : action.tool.kind === 'place-division' ? action.tool.divisionKind + ' division' : action.tool.kind === 'place-clef' ? action.tool.clefType.toUpperCase() + ' clef' : ''}.${state.selection.kind === 'neume-range' ? ' Passage selection cleared.' : ''}`,
       );
     }
     case 'focus-palette':
@@ -865,7 +865,55 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  return announceRangeReconciliation(
+    state,
+    reduceEditorSessionAction(state, action),
+  );
+}
+
+/**
+ * A document change (an undo/redo or edit) can clear or resize a passage
+ * through reconciliation; announce that unless the transition already spoke.
+ */
+function announceRangeReconciliation(
+  previous: EditorSession,
+  next: EditorSession,
+): EditorSession {
+  if (
+    previous.selection.kind !== 'neume-range' ||
+    next.history.present === previous.history.present ||
+    next.announcement.sequence !== previous.announcement.sequence
+  )
+    return next;
+  const before = resolveNeumeRange(
+    previous.history.present,
+    previous.selection,
+  );
+  const after = resolveNeumeRange(next.history.present, next.selection);
+  if (!before) return next;
+  if (!after) return announce(next, 'Passage selection cleared.');
+  return after.neumes.length === before.neumes.length
+    ? next
+    : announce(next, `${after.neumes.length} neumes selected.`);
+}
+
+function reduceEditorSessionAction(
+  state: EditorSession,
+  action: EditorAction,
+): EditorSession {
   if (action.type === 'extend-selection') {
+    // Recovery keeps its established Shift activation: one whole-neume Retry
+    // target, never a range.
+    if (state.lyrics?.kind === 'recovery' && !action.direction) {
+      const note = findNote(state.history.present, action.noteId);
+      return note
+        ? reduceEditorSessionAction(state, {
+            type: 'select',
+            selection: selectNeume(note.neume.id),
+            focusNoteId: action.noteId,
+          })
+        : state;
+    }
     if (
       state.activeTool.kind !== 'select' ||
       state.lyrics ||
