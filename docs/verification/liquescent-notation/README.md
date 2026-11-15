@@ -3,10 +3,10 @@
 2026-11-15. Branch `research/liquescent-notation`, target `master` (base
 `aea861d`, research plan `260dfe5`). This is a research-and-design gate under
 [the Stage 10A plan](../../plans/stage-10a-liquescent-notation.md). It changes
-no production code, schema or accepted ADR. The proposed design is in
-[the Stage 10B proposal](../../plans/stage-10b-liquescent-podatus-clivis.md)
-and [Proposed ADR 0027](../../adrs/0027-neume-level-liquescence.md), both
-**not accepted**.
+no production code or schema. The research gate was completed at `88e15fe`;
+the owner subsequently approved [the Stage 10B plan](../../plans/stage-10b-liquescent-podatus-clivis.md)
+and [Accepted ADR 0027](../../adrs/0027-neume-level-liquescence.md) on
+2026-11-15. Implementation remains pending.
 
 Evidence labels used throughout:
 
@@ -197,11 +197,12 @@ Checked on base `aea861d` (+ fixture/plan commits only).
   application run is claimed: no application code changed.
 - Fixture unchanged: `git diff aea861d -- docs/verification/liquescent-notation/fixtures` shows only its original addition.
 
-## 6. Unresolved historical questions
+## 6. Unresolved historical questions and owner resolution
 
 1. **Eia (L3)**: a Roman/Solesmes printed counterpart for an augmentative pes
-   was not located (L1 has none). Whether to engrave it with the Dominican thin
-   tail, a Solesmes-style auctus head, or defer is an owner decision.
+   was not located (L1 has none). The owner selected the sourced Dominican thin descending tail for Stage
+   10B (D2). The absence of a located Roman witness remains a research limit,
+   not evidence that no such witness exists.
 2. **Single-note liquescents** at _osténde_/_Virgo_: confirmed as Dominican
    liquescents by rubric (via R3), but out of scope and unencoded in GABC.
 3. Fine curvature of the Dominican epiphonus vs Solesmes cannot be resolved
@@ -209,3 +210,19 @@ Checked on base `aea861d` (+ fixture/plan commits only).
    needed before claiming a Dominican-specific epiphonus silhouette.
 4. Direct inspection of Cormier 1913 and Harrison (D1) is pending host
    availability; their wording is quoted here only through R3.
+
+## 7. Owner gate and review corrections (2026-11-15)
+
+The owner approved D1–D12; see the accepted plan and ADR above. Include all
+six two-note occurrences (three epiphonus, two cephalicus, one Dominican
+augmentative pes). The single-note forms remain deferred. Keep the original
+v9 WIP unchanged. This approval does not claim new historical evidence or
+completed implementation.
+
+Interval evidence correction: the committed pairs.gabc samples seconds and
+fourths (Δ1 and Δ3 in staff steps), not every Δ1–Δ4. Stage 10B must extend the
+comparison to thirds/fifths and explicitly document extrapolation for wider
+valid intervals. Existing renderer and scan evidence remains as recorded.
+The native v10 plan preserves existing save boundaries: accepted import or
+replacement and committed semantic edits autosave; cache hydration alone does
+not force a migration. Export writes the current version.
