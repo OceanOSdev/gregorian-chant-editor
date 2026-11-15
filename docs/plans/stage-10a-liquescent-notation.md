@@ -1,6 +1,6 @@
 # Stage 10A — Liquescent notation: research and design gate
 
-Status: research authorized by owner, 2026-11-15. No semantic or engraving implementation authorized yet. Base: master after merged PR #88 (musical clipboard, merge aea861d4d9787b3b278a5b35ad7901635a780dae). Work on `research/liquescent-notation`; open a draft PR for the research record and proposed design. Do not merge or proceed past owner gate.
+Status: Stage 10A research complete; owner gate accepted 2026-11-15. The historical research instructions below describe the pre-approval gate. Implementation is now authorized only by the [approved Stage 10B plan](stage-10b-liquescent-podatus-clivis.md) and [Accepted ADR 0027](../adrs/0027-neume-level-liquescence.md). Continue on `research/liquescent-notation`, draft PR #89 against master (base after PR #88). Do not merge before final implementation acceptance.
 
 ## Motivation and repertoire fixture
 
@@ -67,11 +67,13 @@ Scandicus subpunctis, arbitrary compound grouping/fusion (gf{gh}), other regiona
 
 ## Research checkpoint (2026-11-15)
 
-Research deliverables are complete and awaiting the owner gate; no
-application code, schema or accepted ADR changed.
+Research deliverables were completed at `88e15fe`, before the owner gate.
+No application code or schema changed during research. The owner approved
+D1–D12 on 2026-11-15, including the sourced Dominican augmentative pes.
 
 - Research record: [`docs/verification/liquescent-notation/README.md`](../verification/liquescent-notation/README.md)
-- Proposed plan and owner decision table: [`stage-10b-liquescent-podatus-clivis.md`](stage-10b-liquescent-podatus-clivis.md)
-- Proposed (not accepted) ADR: [`0027-neume-level-liquescence.md`](../adrs/0027-neume-level-liquescence.md)
+- Approved implementation plan and decision table: [`stage-10b-liquescent-podatus-clivis.md`](stage-10b-liquescent-podatus-clivis.md)
+- Accepted ADR: [`0027-neume-level-liquescence.md`](../adrs/0027-neume-level-liquescence.md)
 
-Fixture `salve-regina-dominican-wip.chant.json` is unchanged.
+Fixture `salve-regina-dominican-wip.chant.json` is unchanged. Stage 10B is
+now authorized; this historical plan does not constrain that approval.
