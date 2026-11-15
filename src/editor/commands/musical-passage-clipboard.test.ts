@@ -152,6 +152,81 @@ const variants: Neume[] = [
     kind: 'tristropha',
     notes: [note('r0', 5), note('r1', 5), note('r2', 5)],
   },
+  // The remaining supported kinds and cardinalities (after 'tri', so the
+  // snapshot test above keeps its six-neume range).
+  punctum('pu', 4, { mora: 1, verticalEpisema: true }),
+  punctum('inc', 3, { form: 'inclinatum' }),
+  {
+    id: 'cl',
+    kind: 'clivis',
+    notes: [note('c0', 5, { mora: 1 }), note('c1', 4, { mora: 1 })],
+  },
+  {
+    id: 'bi',
+    kind: 'bistropha',
+    notes: [note('b0', 4), note('b1', 4, { episema: true })],
+  },
+  {
+    id: 'sc3',
+    kind: 'scandicus',
+    notes: [note('x0', 2), note('x1', 3, { form: 'quilisma' }), note('x2', 4)],
+  },
+  {
+    id: 'sc4',
+    kind: 'scandicus',
+    notes: [note('y0', 1), note('y1', 2), note('y2', 3), note('y3', 4)],
+  },
+  {
+    id: 'cm3',
+    kind: 'climacus',
+    notes: [note('z0', 6), note('z1', 5), note('z2', 4, { mora: 1 })],
+  },
+  {
+    id: 'cm4',
+    kind: 'climacus',
+    notes: [note('w0', 6), note('w1', 5), note('w2', 4), note('w3', 3)],
+  },
+  {
+    id: 'cm5',
+    kind: 'climacus',
+    notes: [
+      note('v0', 7),
+      note('v1', 6),
+      note('v2', 5),
+      note('v3', 4),
+      note('v4', 3, { mora: 1 }),
+    ],
+  },
+  {
+    id: 'to',
+    kind: 'torculus',
+    notes: [note('o0', 2), note('o1', 4), note('o2', 3, { mora: 1 })],
+  },
+  {
+    id: 'po',
+    kind: 'porrectus',
+    notes: [note('k0', 5), note('k1', 3), note('k2', 4, { episema: true })],
+  },
+  {
+    id: 'pes4',
+    kind: 'pes-subpunctis',
+    notes: [note('j0', 2), note('j1', 5), note('j2', 4), note('j3', 3)],
+  },
+  {
+    id: 'pf',
+    kind: 'porrectus-flexus',
+    notes: [note('h0', 5), note('h1', 3), note('h2', 6), note('h3', 4)],
+  },
+  {
+    id: 'sf',
+    kind: 'scandicus-flexus',
+    notes: [note('g0', 2), note('g1', 3), note('g2', 5), note('g3', 4)],
+  },
+  {
+    id: 'cr',
+    kind: 'climacus-resupinus',
+    notes: [note('e0', 6), note('e1', 5), note('e2', 3), note('e3', 4)],
+  },
 ];
 
 describe('copying a musical passage', () => {
@@ -282,15 +357,43 @@ describe('copying a musical passage', () => {
 });
 
 describe('pasting a musical passage', () => {
-  it('reproduces every neume variant, cardinality, form and modifier with fresh IDs', () => {
+  it('reproduces every supported neume kind and cardinality with its forms and marks, with fresh IDs', () => {
+    // Guard: the fixture covers the whole supported vocabulary.
+    expect(new Set(variants.map((n) => `${n.kind}:${n.notes.length}`))).toEqual(
+      new Set([
+        'punctum:1',
+        'podatus:2',
+        'clivis:2',
+        'bistropha:2',
+        'tristropha:3',
+        'torculus:3',
+        'porrectus:3',
+        'scandicus:3',
+        'scandicus:4',
+        'scandicus:5',
+        'climacus:3',
+        'climacus:4',
+        'climacus:5',
+        'pes-subpunctis:4',
+        'pes-subpunctis:5',
+        'torculus-resupinus:4',
+        'porrectus-flexus:4',
+        'scandicus-flexus:4',
+        'climacus-resupinus:4',
+      ]),
+    );
+    const forms = variants.flatMap((n) => n.notes.map((x) => x.form));
+    for (const form of ['virga', 'inclinatum', 'quilisma'])
+      expect(forms).toContain(form);
     const source = doc(variants);
-    const clip = copy(source, range('ps', 'tri'));
+    const clip = copy(source, range('ps', 'cr'));
     const first = paste(source, none, clip);
     const second = paste(first.document, none, clip);
-    expect(first.document.neumes.slice(6).map(stripIds)).toEqual(
+    const n = variants.length;
+    expect(first.document.neumes.slice(n).map(stripIds)).toEqual(
       variants.map(stripIds),
     );
-    expect(second.document.neumes.slice(12).map(stripIds)).toEqual(
+    expect(second.document.neumes.slice(2 * n).map(stripIds)).toEqual(
       variants.map(stripIds),
     );
     const ids = [

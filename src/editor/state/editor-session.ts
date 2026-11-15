@@ -132,6 +132,8 @@ export interface EditorSession {
   accidentalTargetId: string | null;
   /** Transient app-session music snapshot; never in history or persistence. */
   clipboard: MusicalClipboard | null;
+  /** Visible explanation of the last failed copy/paste; spoken once via announcement. */
+  clipboardFeedback: string | null;
   noteFormError: string | null;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
@@ -295,6 +297,7 @@ export function createEditorSession(
   return {
     accidentalTargetId: null,
     clipboard,
+    clipboardFeedback: null,
     noteFormError: null,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
@@ -882,10 +885,18 @@ export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
-  return announceRangeReconciliation(
+  const next = announceRangeReconciliation(
     state,
     reduceEditorSessionAction(state, action),
   );
+  // A failed copy/paste explanation goes stale once music or selection moves on.
+  return next.clipboardFeedback !== null &&
+    action.type !== 'copy-passage' &&
+    action.type !== 'paste-passage' &&
+    (next.history.present !== state.history.present ||
+      next.selection !== state.selection)
+    ? { ...next, clipboardFeedback: null }
+    : next;
 }
 
 /**
@@ -936,15 +947,20 @@ function placementNotice(count: number): string {
     : '';
 }
 
+/** Speaks once (live region) and shows the same text beside the controls. */
+function rejectClipboard(state: EditorSession, text: string): EditorSession {
+  return announce({ ...state, clipboardFeedback: text }, text);
+}
+
 function copyPassage(state: EditorSession): EditorSession {
   if (clipboardBlocked(state))
-    return announce(
+    return rejectClipboard(
       state,
       'Copy unavailable. Return to Select and finish the current lyric, clef, accidental or history action first.',
     );
   const result = copyMusicalPassage(state.history.present, state.selection);
   if (!result.clipboard)
-    return announce(
+    return rejectClipboard(
       state,
       result.rejection === 'invalid-target'
         ? 'Nothing copied. Select a whole neume (Shift) or a passage to copy.'
@@ -955,7 +971,7 @@ function copyPassage(state: EditorSession): EditorSession {
     ? ` and ${plural(clipboard.divisionCount, 'division')}`
     : '';
   return announce(
-    { ...state, clipboard },
+    { ...state, clipboard, clipboardFeedback: null },
     `Copied ${plural(clipboard.neumeCount, 'neume')}${divisions}.${placementNotice(clipboard.restoredPlacementCount)}`,
   );
 }
@@ -965,7 +981,7 @@ function pastePassage(
   ids: readonly string[],
 ): EditorSession {
   if (clipboardBlocked(state))
-    return announce(
+    return rejectClipboard(
       state,
       'Paste unavailable. Return to Select and finish the current lyric, clef, accidental or history action first.',
     );
@@ -977,7 +993,7 @@ function pastePassage(
     ids,
   );
   if (!result.document)
-    return announce(state, pasteRejectionMessage(result.rejection));
+    return rejectClipboard(state, pasteRejectionMessage(result.rejection));
   const pasted = result.document;
   const [first] = result.pastedNeumeIds;
   const last = result.pastedNeumeIds.at(-1) ?? first;
@@ -996,6 +1012,7 @@ function pastePassage(
               endpointNeumeId: last,
             },
       noteFormError: null,
+      clipboardFeedback: null,
       hoveredPoint: null,
       focusRequest: focusNoteId ? { kind: 'note', noteId: focusNoteId } : null,
     },

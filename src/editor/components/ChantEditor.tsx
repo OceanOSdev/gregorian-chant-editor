@@ -1081,6 +1081,13 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           </select>
         </label>
         <div className="editor-actions">
+          {session.clipboardFeedback ? (
+            // Visible copy of the live announcement; not itself live, so the
+            // explanation is spoken once.
+            <p id="clipboard-feedback" className="editor-clipboard-feedback">
+              {session.clipboardFeedback}
+            </p>
+          ) : null}
           {range ? (
             <span id="range-selection-status">
               {range.neumes.length} neumes selected · Escape clears. Select one
@@ -1143,6 +1150,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             }
             aria-keyshortcuts="Control+V Meta+V"
             title="Paste copied music after the selection, or at the end (Ctrl/⌘+V)"
+            aria-describedby={
+              session.clipboardFeedback ? 'clipboard-feedback' : undefined
+            }
             disabled={!canPaste}
             onClick={pasteClipboard}
           >

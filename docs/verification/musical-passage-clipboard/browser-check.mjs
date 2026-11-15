@@ -287,6 +287,21 @@ try {
   const saved = () =>
     ev(`localStorage.getItem('gregorian-chant-editor:active-document:v1')`);
   const savedDoc = async () => JSON.parse(await saved()).document;
+  // Sighted feedback: rendered, unclipped, inside the viewport, topmost at its
+  // centre, and not itself a live region (the hidden announcer speaks once).
+  const visibleFeedback = () =>
+    ev(`(()=>{
+      const e=document.querySelector('#clipboard-feedback');
+      if(!e)return null;
+      const r=e.getBoundingClientRect(),s=getComputedStyle(e);
+      const top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+      return {
+        text:e.textContent,
+        visible:r.width>20&&r.height>8&&r.top>=0&&r.bottom<=innerHeight&&s.visibility==='visible'&&s.clipPath==='none'&&Number(s.opacity)>0.9&&e.contains(top),
+        live:e.closest('[aria-live]')!==null,
+        describesPaste:[...document.querySelectorAll('.editor-actions button')].some(b=>b.getAttribute('aria-describedby')==='clipboard-feedback'),
+      };
+    })()`);
   const announcement = () =>
     ev(`document.querySelector('.editor-announcement')?.textContent ?? ''`);
   const rangeStatus = () =>
@@ -379,12 +394,16 @@ try {
     await chord('c');
     assert.equal((await lastKey()).prevented, true);
     assert.match(await announcement(), /^Nothing copied/);
+    const copyFeedback = await visibleFeedback();
+    assert.match(copyFeedback?.text ?? '', /^Nothing copied/);
+    assert.ok(copyFeedback.visible, `${width}px copy feedback not visible`);
     // Keyboard range n1..n3, entirely before the minima at n4.
     await focus(note('n1-0'));
     await shiftKey('Enter');
     await shiftKey('ArrowRight');
     await shiftKey('ArrowRight');
     assert.match(await rangeStatus(), /^3 neumes selected/);
+    assert.equal(await visibleFeedback(), null, 'stale feedback after select');
     await chord('c');
     assert.equal(await announcement(), 'Copied 3 neumes.');
     assert.equal(await saved(), null, 'copy saved the document');
@@ -525,10 +544,16 @@ try {
   const undoBefore = (await button('Undo')).disabled;
   const redoBefore = (await button('Redo')).disabled;
   await chord('v');
-  assert.match(
-    await announcement(),
-    /^Cannot paste: the copied music would change existing note 1 after the insertion point from B-natural to B-flat\.$/,
-  );
+  const conflict =
+    /^Cannot paste: the copied music would change existing note 1 after the insertion point from B-natural to B-flat\.$/;
+  assert.match(await announcement(), conflict);
+  const feedback = await visibleFeedback();
+  assert.match(feedback?.text ?? '', conflict, 'conflict feedback missing');
+  assert.ok(feedback.visible, 'conflict explanation is not visible');
+  assert.equal(feedback.live, false, 'feedback would be spoken twice');
+  assert.ok(feedback.describesPaste, 'Paste not described by feedback');
+  assert.ok((await focusVisible()).visible, 'feedback hid focused note');
+  await shot('conflict-feedback');
   assert.equal(await saved(), good, 'rejected paste changed saved bytes');
   assert.equal((await button('Undo')).disabled, undoBefore);
   assert.equal((await button('Redo')).disabled, redoBefore);
@@ -541,6 +566,7 @@ try {
   );
   await chord('z');
   assert.equal((await savedDoc()).neumes.length, 4, 'one paste, one undo');
+  assert.equal(await visibleFeedback(), null, 'feedback survived undo');
 
   // ---------------------------------------------------------------------
   // Bundled Kyrie XI through the application: eleison passage 3..8, with a

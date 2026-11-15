@@ -17,7 +17,7 @@ and git diff --check. All 28 verification-runner tests passed.
   and paste, as indexed in the [testing guide](../../testing.md#musical-passage-clipboard).
   It includes every bundled example copied in full (lyrics removed) and pasted
   into an empty score with identical effective degrees and alterations.
-- `src/editor/state/passage-clipboard.test.ts` (9 tests): reducer atomicity,
+- `src/editor/state/passage-clipboard.test.ts` (9 tests; 10 after review): reducer atomicity,
   rejection identity (history, redo, selection, focus request, clipboard),
   one-entry success, repeat paste, Undo/Redo identity, survival across a new
   session, guards in all six exclusive modes, and the shortcut predicate.
@@ -62,6 +62,32 @@ The continuous-lyrics driver is Chromium-only (CDP). Every run cleaned up its
 processes. The full historical matrix was not rerun. The eight known baseline
 failures recorded in the [contiguous selection record](../contiguous-selection/README.md)
 remain separate and were not reproduced or changed here.
+
+## Review follow-up (2026-11-15 UTC)
+
+Addresses the two PR #88 review findings at `830b409`; same environment.
+
+- Visible feedback: failed copy/paste explanations were only in the visually
+  hidden live region. `EditorSession.clipboardFeedback` now holds the last
+  failure text, rendered as one non-live line above the action buttons and
+  referenced by Paste's `aria-describedby`. The live announcement still speaks
+  it once. Success, a later document or selection change, and document
+  replacement clear it (the clipboard survives). Rejections still change no
+  document, history, redo, selection, focus or clipboard. The line occupies
+  sticky-toolbar height only while shown.
+- The driver now asserts that the accidental-conflict explanation (and the
+  partial-copy explanation at 1440/390px) is rendered: inside the viewport,
+  unclipped, opaque, topmost at its centre, not inside a live region, and
+  describing Paste. It also asserts the focused note stays visible and the
+  line clears after selection change and Undo, alongside the existing
+  unchanged-bytes/history/selection checks (`conflict-feedback.png`).
+- The variant fixture now covers every supported kind and cardinality (19
+  kind/length pairs, guarded by an explicit set assertion), all three authored
+  forms, mora, horizontal and vertical episemata.
+
+Gate: format:check, lint, 96 files / 2,071 tests, build, git diff --check, and
+28 runner tests passed. Run `08-07-20-184Z-visAY0`: clipboard and
+contiguous-selection drivers in Chromium and Firefox, 4 passed, cleanup clean.
 
 ## Limitations
 

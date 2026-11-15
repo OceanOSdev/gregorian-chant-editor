@@ -1079,7 +1079,11 @@ copied neume count. Copy is disabled without an eligible selection; Paste is
 disabled with an empty clipboard or a non-musical selection. Both are disabled
 outside ordinary Select or during lyric entry/move, pending history choices,
 clef transactions and accidental anchor placement; the reducer applies the same
-guards and leaves those modes untouched. Ctrl/Cmd+C and Ctrl/Cmd+V (without
+guards and leaves those modes untouched. A failed copy or paste shows its
+explanation as one visible line above the action buttons (also describing
+**Paste**), spoken once through the existing live announcement rather than a
+second live region. Successful copy/paste, any later document or selection
+change, and document replacement clear it; the clipboard itself is kept. Ctrl/Cmd+C and Ctrl/Cmd+V (without
 Alt/Shift, not during composition) act only in notation scope (score and
 notation-shortcut controls). The app prevents the browser default once per
 press and ignores key repeat. Inputs, textareas, selects, contenteditable

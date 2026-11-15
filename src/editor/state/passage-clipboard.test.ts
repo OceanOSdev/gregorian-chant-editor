@@ -102,6 +102,7 @@ describe('session clipboard', () => {
       );
       expect(next.clipboard).toBe(clip);
       expect(next.announcement.text).toMatch(/^Nothing copied/);
+      expect(next.clipboardFeedback).toBe(next.announcement.text);
     }
     const replaced = run(
       state,
@@ -218,6 +219,7 @@ describe('session clipboard', () => {
       expect(next.focusRequest).toBe(invalid.focusRequest);
       expect(next.clipboard).toBe(invalid.clipboard);
       expect(next.announcement.text).toMatch(/^Cannot paste/);
+      expect(next.clipboardFeedback).toBe(next.announcement.text);
     }
     const empty = reduceEditorSession(createEditorSession(document), {
       type: 'paste-passage',
@@ -226,6 +228,45 @@ describe('session clipboard', () => {
     expect(empty.announcement.text).toBe(
       'Nothing to paste. Copy a whole neume or passage first.',
     );
+  });
+
+  it('shows failure feedback until success, a document or selection change, or replacement', () => {
+    const state = run(copied(), {
+      type: 'select',
+      selection: { kind: 'syllable', syllableId: 's0' },
+    });
+    const failed = reduceEditorSession(state, paste(state));
+    expect(failed.clipboardFeedback).toMatch(/^Cannot paste here/);
+    // Feedback changes nothing else.
+    expect(failed.history).toBe(state.history);
+    expect(failed.selection).toBe(state.selection);
+    expect(failed.focusRequest).toBe(state.focusRequest);
+    expect(failed.clipboard).toBe(state.clipboard);
+    // Successful copy and paste clear it.
+    const recopied = run(failed, { type: 'copy-passage' });
+    expect(recopied.clipboardFeedback).toMatch(/^Nothing copied/);
+    const fixed = run(recopied, {
+      type: 'select',
+      selection: { kind: 'neume', neumeId: 'n0' },
+    });
+    expect(fixed.clipboardFeedback).toBeNull();
+    const failedAgain = { ...fixed, clipboardFeedback: 'stale' };
+    expect(
+      reduceEditorSession(failedAgain, { type: 'copy-passage' })
+        .clipboardFeedback,
+    ).toBeNull();
+    expect(
+      reduceEditorSession(failedAgain, paste(failedAgain)).clipboardFeedback,
+    ).toBeNull();
+    // Unrelated transitions that change neither music nor selection keep it.
+    expect(
+      reduceEditorSession(failedAgain, { type: 'hover', point: null })
+        .clipboardFeedback,
+    ).toBe('stale');
+    // Document replacement clears feedback but keeps the clipboard.
+    const replaced = createEditorSession(document, failedAgain.clipboard);
+    expect(replaced.clipboardFeedback).toBeNull();
+    expect(replaced.clipboard).toBe(failedAgain.clipboard);
   });
 
   it('survives document replacement as a new session but is never persisted', () => {

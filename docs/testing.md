@@ -290,6 +290,7 @@ copying/anchor fallback, pitch-conflict rejections in both directions, existing
 anchor invalidation, lyric preservation in encoded bytes and every bundled
 example round trip. `passage-clipboard.test.ts` covers session atomicity,
 history/selection/focus, repeat paste, Undo/Redo identity, replacement
-survival, exclusive-mode guards and the shortcut predicate. The runner's
+survival, exclusive-mode guards, visible failure-feedback lifecycle and the
+shortcut predicate. The runner's
 `musical-passage-clipboard` driver uses native input in Chromium and Firefox; see
 [verification](verification/musical-passage-clipboard/README.md).
