@@ -18,6 +18,8 @@ export const paletteTools = [
   'porrectus-menu',
   'c-clef',
   'f-clef',
+  'minima',
+  'division-menu',
 ] as const;
 export type PaletteTool = (typeof paletteTools)[number];
 

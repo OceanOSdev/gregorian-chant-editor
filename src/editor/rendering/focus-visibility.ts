@@ -1,3 +1,4 @@
+import { scoreViewportTop } from './sticky-visibility';
 export interface VisibleBounds {
   left: number;
   right: number;
@@ -81,7 +82,7 @@ export function focusAndReveal(
       {
         left: left + 8,
         right: right - 8,
-        top: top + 8,
+        top: (container ? top : scoreViewportTop(target, top)) + 8,
         bottom: bottom - 8,
       },
       anchor.getBoundingClientRect(),

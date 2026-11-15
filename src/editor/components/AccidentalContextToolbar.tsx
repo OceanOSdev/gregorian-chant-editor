@@ -1,3 +1,4 @@
+import { scoreViewportTop } from '../rendering/sticky-visibility';
 import { focusAndReveal } from '../rendering/focus-visibility';
 import {
   useImperativeHandle,
@@ -82,7 +83,7 @@ export function AccidentalContextToolbar({
       const clip = glyph.closest('.score-viewport')?.getBoundingClientRect();
       const viewport = {
         left: v?.offsetLeft ?? 0,
-        top: v?.offsetTop ?? 0,
+        top: scoreViewportTop(glyph, v?.offsetTop ?? 0),
         right: (v?.offsetLeft ?? 0) + (v?.width ?? innerWidth),
         bottom: (v?.offsetTop ?? 0) + (v?.height ?? innerHeight),
       };
@@ -107,6 +108,11 @@ export function AccidentalContextToolbar({
     refreshPosition.current = update;
     update();
     const observer = new ResizeObserver(update);
+    const stickyToolbar = document
+      .querySelector(`[data-accidental-id="${CSS.escape(id)}"]`)
+      ?.closest('.chant-editor')
+      ?.querySelector('.editor-sticky-toolbar');
+    if (stickyToolbar) observer.observe(stickyToolbar);
     if (panel.current) observer.observe(panel.current);
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);

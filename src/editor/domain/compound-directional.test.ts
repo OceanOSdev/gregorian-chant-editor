@@ -513,7 +513,7 @@ describe('native v9 persistence', () => {
 });
 
 describe('entry', () => {
-  it('exposes six split families with exact named variants', () => {
+  it('exposes six neume split families and the division menu', () => {
     expect(torculusFamily).toEqual(['torculus', 'torculus-resupinus']);
     expect(porrectusFamily).toEqual(['porrectus', 'porrectus-flexus']);
     expect(scandicusFamily.at(-1)).toBe('scandicus-flexus');
@@ -525,6 +525,7 @@ describe('entry', () => {
       'torculus-menu',
       'climacus-menu',
       'porrectus-menu',
+      'division-menu',
     ]);
     expect(nextPaletteTool('torculus', 'ArrowRight')).toBe('torculus-menu');
     expect(nextPaletteTool('porrectus-menu', 'ArrowRight')).toBe('c-clef');

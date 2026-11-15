@@ -1,3 +1,4 @@
+import { scoreViewportTop } from '../rendering/sticky-visibility';
 import { createPortal } from 'react-dom';
 import {
   useId,
@@ -125,7 +126,7 @@ export function NoteContextToolbar({
       const visual = window.visualViewport;
       const viewport = {
         left: visual?.offsetLeft ?? 0,
-        top: visual?.offsetTop ?? 0,
+        top: scoreViewportTop(element, visual?.offsetTop ?? 0),
         right:
           (visual?.offsetLeft ?? 0) +
           (visual?.width ?? document.documentElement.clientWidth),
@@ -166,6 +167,10 @@ export function NoteContextToolbar({
     refreshPosition.current = update;
     update();
     const observer = new ResizeObserver(schedule);
+    const stickyToolbar = getNoteElement()
+      ?.closest('.chant-editor')
+      ?.querySelector('.editor-sticky-toolbar');
+    if (stickyToolbar) observer.observe(stickyToolbar);
     if (panel.current) observer.observe(panel.current);
     const element = getNoteElement();
     if (element) {

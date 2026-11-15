@@ -214,7 +214,7 @@ const key = async (key, code = key, modifiers = 0) => {
 };
 const click = async (selector) => {
   const p = await ev(
-    `(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};})()`,
+    `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e.closest('.editor-sticky-toolbar') || getComputedStyle(e.closest('.editor-sticky-toolbar')).position!=='sticky')e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};})()`,
   );
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
@@ -861,6 +861,12 @@ try {
     await mount(fixture(3));
     await ev(`document.querySelector('[data-tool="select"]').focus()`);
     await key('End');
+    assert.equal(
+      await ev(`document.activeElement.dataset.tool`),
+      'division-menu',
+    );
+    await key('ArrowLeft');
+    await key('ArrowLeft');
     assert.equal(await ev(`document.activeElement.dataset.tool`), 'f-clef');
     await key('ArrowLeft');
     assert.equal(await ev(`document.activeElement.dataset.tool`), 'c-clef');

@@ -263,3 +263,6 @@ and consult the owning record for feature-specific assertions and manual checks.
 - [Persistence, note modifiers and authored note forms](verification/testing-history.md#local-persistence-verification-stage-7a), [episemata and accidentals](verification/testing-history.md#authored-vertical-episemata-stage-8c), and [repeated and extended neumes](verification/testing-history.md#repeated-note-neumes-stage-9a).
 - [Stage 9C intra-syllable grouping](verification/intra-syllable-grouping/README.md), including checkpoint-specific evidence and acceptance status.
 - [Browser verification runner](verification/runner/README.md) for commands, selection, isolation and outputs; [verification index](verification/README.md) for evidence policy.
+
+- [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
+  division split menu, focus visibility and contextual-toolbar regression evidence.

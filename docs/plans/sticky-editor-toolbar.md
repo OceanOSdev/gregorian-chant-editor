@@ -3,6 +3,10 @@
 Branch: `feat/sticky-editor-toolbar`
 Target: `master`
 
+Status: Implemented; owner acceptance and merge pending. See the
+[verification record](../verification/sticky-editor-toolbar.md) for actual checks
+and remaining manual acceptance.
+
 ## Goal
 
 Keep frequently used notation and editing tools accessible while authoring a

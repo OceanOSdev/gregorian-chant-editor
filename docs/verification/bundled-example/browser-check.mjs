@@ -287,6 +287,79 @@ try {
   assert.match(await status(), /Not saved/i);
   await button('Replace cache with this score / Retry save');
   assert.deepEqual(JSON.parse(await raw()).document, doc);
+  // Long-document toolbar regression on the bundled Kyrie XI.
+  await ev(
+    `window.confirm=()=>true;(()=>{const e=document.querySelector('[aria-label="Load example"]');const o=[...e.options].find(o=>/Kyrie XI/i.test(o.textContent));if(!o)throw Error('Missing Kyrie XI');e.value=o.value;e.dispatchEvent(new Event('change',{bubbles:true}));})()`,
+  );
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await ev(`window.scrollTo(0,document.body.scrollHeight/2)`);
+    await pause();
+    assert.equal(
+      await ev(
+        `(()=>{const t=document.querySelector('.editor-sticky-toolbar').getBoundingClientRect();return Math.abs(t.top)<2 && t.bottom<innerHeight && document.querySelector('.document-header').getBoundingClientRect().bottom<0})()`,
+      ),
+      true,
+    );
+    const before = await ev('scrollY');
+    await ev(`document.querySelector('[data-tool="minima"]').click()`);
+    await pause();
+    assert.equal(await ev('scrollY'), before);
+    assert.equal(
+      await ev(
+        `document.querySelector('[data-tool="minima"]').getAttribute('aria-pressed')`,
+      ),
+      'true',
+    );
+    const neumeCount = () =>
+      ev(`document.querySelectorAll('[data-neume-id]').length`);
+    const originalCount = await neumeCount();
+    await ev(`document.querySelector('[data-tool="punctum"]').click()`);
+    const point = await ev(
+      `(()=>{const top=document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom;const line=[...document.querySelectorAll('.score__staff-line')].find(e=>{const r=e.getBoundingClientRect();return r.top>top+30 && r.top<innerHeight-50});if(!line)throw Error('No lower staff visible');const r=line.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top}})()`,
+    );
+    for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+      await send('Input.dispatchMouseEvent', {
+        type,
+        ...point,
+        button: 'left',
+        clickCount: 1,
+      });
+    await pause();
+    assert.equal(await neumeCount(), originalCount + 1);
+    assert.ok((await ev('scrollY')) > 0, 'placement stays in the lower score');
+    await ev(`document.querySelector('[aria-label="Undo last edit"]').click()`);
+    await pause();
+    assert.equal(await neumeCount(), originalCount);
+    await ev(
+      `document.querySelector('[aria-label="Redo last undone edit"]').click()`,
+    );
+    await pause();
+    assert.equal(await neumeCount(), originalCount + 1);
+    const { data } = await send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(
+      join(output, `sticky-${width}.png`),
+      Buffer.from(data, 'base64'),
+    );
+  }
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 500,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  assert.equal(
+    await ev(
+      `getComputedStyle(document.querySelector('.editor-sticky-toolbar')).position`,
+    ),
+    'static',
+  );
   console.log(
     JSON.stringify({
       browser: firefox ? 'Firefox' : 'Chromium',
