@@ -89,6 +89,34 @@ Gate: format:check, lint, 96 files / 2,071 tests, build, git diff --check, and
 28 runner tests passed. Run `08-07-20-184Z-visAY0`: clipboard and
 contiguous-selection drivers in Chromium and Firefox, 4 passed, cleanup clean.
 
+## Acceptance follow-up: keyboard paste with no selection (2026-11-15 UTC)
+
+Owner acceptance found that Ctrl/Cmd+V often did nothing with no selection,
+while the Paste button worked. Cause: clipboard shortcuts shared the I/T
+notation scope (`.score` or `[data-notation-shortcuts]`). After New, focus
+stays on the New button in Document controls; after a score-background click,
+focus is `<body>` in Chromium. Neither was in scope, so the key was ignored.
+Clipboard shortcuts now have their own scope: any target inside `.chant-editor`,
+or nothing focused. Editable targets and a native text selection still keep
+the browser clipboard. I/T scope, guards, destination rules and validation are
+unchanged.
+
+The driver previously used the Paste button for these cases. It now uses Ctrl+V
+for the following, at 1440 and 390px:
+
+- after a score-background click with nothing focused. Chromium focuses
+  `<body>`; Firefox keeps focus on the previously focused note, so the driver
+  then blurs explicitly to cover the nothing-focused state in both browsers;
+- after Escape, with focus left on a note;
+- immediately after **New** in Kyrie XI, with focus still on the New button,
+  into the empty chant.
+
+The Paste button path is kept. With the scope change temporarily reverted,
+the driver failed in both browsers at the first keyboard append (default not
+prevented); with the fix, runs `17-50-00-597Z-LDeSo5` and final `17-52-00-737Z-x6eeaD`
+passed both. Gate: format:check, lint, 96 files / 2,071 tests, build, git diff
+--check and 28 runner tests passed.
+
 ## Limitations
 
 - Clipboard content is per running tab. It is not shared with the operating

@@ -159,6 +159,21 @@ function isEditableTarget(target: EventTarget | null) {
   );
 }
 
+/**
+ * Clipboard shortcuts act anywhere in the editor, or with nothing focused (after
+ * New, Escape or a background click), unlike the narrower I/T notation scope.
+ * Editable targets are excluded earlier and keep native clipboard behaviour.
+ */
+function isClipboardScope(target: EventTarget | null) {
+  if (
+    target === globalThis.document ||
+    target === globalThis.document.body ||
+    target === globalThis.document.documentElement
+  )
+    return true;
+  return target instanceof Element && Boolean(target.closest('.chant-editor'));
+}
+
 /** A real, non-empty native text selection keeps native copy. */
 function hasNativeTextSelection() {
   const selection = globalThis.getSelection?.();
@@ -528,7 +543,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         !!event.target.closest('[data-notation-shortcuts], .score');
       const clipboardShortcut = getClipboardShortcut(
         event,
-        notationFocused,
+        isClipboardScope(event.target),
         hasNativeTextSelection(),
       );
       if (clipboardShortcut) {

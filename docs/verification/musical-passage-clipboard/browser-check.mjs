@@ -335,6 +335,27 @@ try {
     ev(
       `(window.__keys=[],window.__watching||(window.addEventListener('keydown',e=>window.__keys.push({key:e.key,prevented:e.defaultPrevented})),window.__watching=true),true)`,
     );
+  const backgroundFocus = new Set();
+  const activeKind = () =>
+    ev(
+      `document.activeElement===document.body||!document.activeElement?'body':document.activeElement.closest('[data-note-id]')?'note':document.activeElement.tagName`,
+    );
+  // Plain click on empty score surface (left margin, below the staff).
+  const clickBackground = async () => {
+    const p = await ev(
+      `(()=>{const s=document.querySelector('svg.score')??document.querySelector('.score');s.scrollIntoView({block:'center'});const v=document.querySelector('.score-viewport');v.scrollLeft=0;const r=s.getBoundingClientRect(),vb=v.getBoundingClientRect();return {x:Math.max(r.left,vb.left)+4,y:Math.min(r.bottom,innerHeight)-4}})()`,
+    );
+    await pause();
+    for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+      await send('Input.dispatchMouseEvent', {
+        type,
+        ...p,
+        button: type === 'mouseMoved' ? 'none' : 'left',
+        clickCount: 1,
+      });
+    await pause();
+    await pause();
+  };
   const lastKey = () => ev(`window.__keys.at(-1) ?? null`);
   const shiftKey = async (name) => key(name, true);
   const strip = (n) => ({
@@ -465,16 +486,39 @@ try {
     await clickButton('Redo');
     await clickButton('Redo');
     assert.equal(await saved(), afterTwo, 'redo bytes differ');
-    // Button path with no selection appends at the true end.
+    // Keyboard paste with no selection after clicking the score background:
+    // nothing is focused, and Ctrl+V appends at the true end.
     await key('Escape');
-    await clickButton('Paste');
+    await clickBackground();
+    assert.equal(await rangeStatus(), '', 'background click kept range');
+    // Chromium moves focus to <body>; Firefox keeps the previously focused
+    // note. Blur explicitly so "nothing focused" is exercised in both.
+    backgroundFocus.add(await activeKind());
+    await ev(`(document.activeElement?.blur(),true)`);
+    assert.equal(await activeKind(), 'body');
+    await chord('v');
+    assert.equal((await lastKey()).prevented, true);
     doc = await savedDoc();
-    assert.equal(doc.neumes.length, 37);
+    assert.equal(doc.neumes.length, 37, 'keyboard append after background');
     assert.equal(doc.neumes.at(-4).id, 'n27');
     f = await focusVisible();
     assert.equal(f.noteId, doc.neumes.at(-1).notes[0].id);
     assert.ok(f.visible, `${width}px focus hidden after append`);
     await shot(`paste-append-${width}`);
+    // Escape clears the pasted range; focus stays on a note; Ctrl+V appends.
+    await key('Escape');
+    assert.equal(await rangeStatus(), '');
+    await chord('v');
+    doc = await savedDoc();
+    assert.equal(doc.neumes.length, 40, 'keyboard append after Escape');
+    assert.equal(doc.neumes.at(-7).id, 'n27');
+    // Button path with no selection also appends at the true end.
+    await key('Escape');
+    await clickButton('Paste');
+    doc = await savedDoc();
+    assert.equal(doc.neumes.length, 43, 'button append');
+    f = await focusVisible();
+    assert.equal(f.noteId, doc.neumes.at(-1).notes[0].id);
   }
 
   // Text editing keeps native clipboard: no prevention, clipboard unchanged.
@@ -640,7 +684,9 @@ try {
   assert.equal((await savedDoc()).neumes.length, 0);
   assert.equal((await button('Paste')).label, 'Paste 6 copied neumes');
   assert.ok(!(await saved()).includes('clipboard'));
-  await clickButton('Paste');
+  // Immediately press Ctrl+V (focus is still on New, outside the score).
+  assert.equal(await ev(`document.activeElement?.textContent?.trim()`), 'New');
+  await chord('v');
   const blank = await savedDoc();
   assert.equal(blank.neumes.length, 6);
   assert.equal(blank.accidentals.length, 1);
@@ -654,6 +700,9 @@ try {
   assert.ok(f.visible, 'narrow Kyrie focus hidden');
   await shot('kyrie-paste-390');
 
+  console.log(
+    `Focus after score-background click: ${[...backgroundFocus].join(', ')}`,
+  );
   console.log(
     `Native text clipboard round trip in title input: ${nativeTextRoundTrip ? 'yes' : 'not observable in this headless browser'}`,
   );

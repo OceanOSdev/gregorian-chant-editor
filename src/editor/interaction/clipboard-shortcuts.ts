@@ -14,18 +14,18 @@ interface ClipboardShortcutKey {
 }
 
 /**
- * Ctrl/Cmd+C and Ctrl/Cmd+V inside notation scope only. Native text targets
+ * Ctrl/Cmd+C and Ctrl/Cmd+V inside the editor's clipboard scope only. Native text targets
  * are excluded by the caller; an actual browser text selection keeps native
  * copy. Key repeat is still claimed (so it cannot reach the browser) but the
  * caller dispatches only the first press.
  */
 export function getClipboardShortcut(
   event: ClipboardShortcutKey,
-  notationFocused: boolean,
+  inClipboardScope: boolean,
   hasTextSelection: boolean,
 ): 'copy' | 'paste' | null {
   if (
-    !notationFocused ||
+    !inClipboardScope ||
     event.defaultPrevented ||
     event.isComposing ||
     !(event.ctrlKey || event.metaKey) ||

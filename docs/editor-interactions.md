@@ -479,7 +479,7 @@ edits; focus alone does not authorize every operation.
 | Contextual Insert / I                      | Selection-based insertion, with the existing end-of-document fallback.                                                           |
 | T / palette activation                     | Navigate to the remembered tool / activate the focused palette button.                                                           |
 | Undo / Redo                                | Document history, resolving dirty drafts first.                                                                                  |
-| Ctrl/Cmd+C, Ctrl/Cmd+V in notation scope   | Copy the selected whole neume/passage; paste after the selection or at the end. Native text targets keep the browser clipboard.  |
+| Ctrl/Cmd+C, Ctrl/Cmd+V in the editor       | Copy the selected whole neume/passage; paste after the selection or at the end. Native text targets keep the browser clipboard.  |
 
 Unmodified L is reserved for Lyrics activation on score controls, including a
 selected engraved lyric. Shift+L can still begin uppercase replacement; native
@@ -1084,7 +1084,10 @@ explanation as one visible line above the action buttons (also describing
 **Paste**), spoken once through the existing live announcement rather than a
 second live region. Successful copy/paste, any later document or selection
 change, and document replacement clear it; the clipboard itself is kept. Ctrl/Cmd+C and Ctrl/Cmd+V (without
-Alt/Shift, not during composition) act only in notation scope (score and
-notation-shortcut controls). The app prevents the browser default once per
+Alt/Shift, not during composition) act anywhere inside the editor or when nothing
+is focused, which is the state after New, Escape or a score-background click. This
+clipboard scope is deliberately wider than the I/T notation scope, which is
+unchanged, so that Ctrl/Cmd+V can append with no selection, including into a
+new empty chant. Focus outside the editor is never claimed. The app prevents the browser default once per
 press and ignores key repeat. Inputs, textareas, selects, contenteditable
 regions and an actual native text selection keep native copy/paste.
