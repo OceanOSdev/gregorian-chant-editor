@@ -274,10 +274,13 @@ ownership authority or persistent field exists. Both-null lyricless membership
 is ineligible. Complete text/hyphen measurement readiness is required; missing,
 partial or invalid snapshots retain ordinary music-only placement.
 
-A division or explicit clef between the pair blocks this new compaction. So does
-written accidental ink on either neighbor: geometry is grouped by the sign's
-actual written location, including an earlier-note placement, rather than its
-later B owner. Carried effective alteration without written ink is not a barrier.
+A division or explicit clef between the pair blocks this new compaction. Written
+accidentals do not categorically block it: they remain owned and placed according
+to ADR 0021, while their complete measured ink participates in the same 6-unit
+clearance. This includes an earlier-note placement rather than the later B
+owner. Carried effective alteration without written ink has no spacing effect.
+The bundled Kyrie XI motivates the refinement: its four _eleison_ melismas each
+contain independently authored Scandicus and Climacus groups with written flats.
 Existing same-word distinct-syllable eligibility is unchanged. In particular,
 a melisma's last unanchored neume followed by the next syllable retains the
 ordinary musical minimum, not the consecutive-anchor exception.

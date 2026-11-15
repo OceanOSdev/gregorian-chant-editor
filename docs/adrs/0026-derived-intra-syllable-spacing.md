@@ -23,8 +23,10 @@ of independent neumes in that span, not a syllable domain model.
 
 The [research record](../verification/intra-syllable-grouping/README.md)
 includes actual Solesmes print crops, matched Gregorio excerpts, editing
-walkthroughs, limitations and owner recommendations. Requiem's `et(hh)` is two
-independent puncta with first-note lyric alignment and a clear gap around
+walkthroughs, limitations and owner recommendations. The bundled Kyrie XI is
+the motivating repertoire example: all four _eleison_ melismas contain
+independent Scandicus and Climacus groups around written flats. Requiem's
+`et(hh)` is two independent puncta with first-note lyric alignment and a clear gap around
 0.33–0.46 head widths in print/reference evidence. Kyrie XI's Christe and last
 Kyrie have independent dotted figures around an existing Pes subtripunctis.
 Requiem's pé melisma contains a division without a new syllable. These examples
@@ -42,10 +44,12 @@ They do not establish one universal historical gap or exhaust authored cuts.
   This engineering starting metric remains subject to visual acceptance,
   not an assertion that all printed pairs share its spacing. Complete
   modifier/sign/text clearance remains mandatory.
-- Block this new compaction across divisions, explicit clefs and boundaries
-  touching a neume with written accidental ink, including an earlier-note
-  placement. Carried effective alteration alone is not written ink. Preserve
-  independent score slots and ADR 0021 ownership, placement and scope.
+- Block this new compaction across divisions and explicit clefs. Written
+  accidentals do not categorically block it; their complete measured ink remains
+  part of the 6-unit clearance, including when placed at an earlier note than
+  their owner. Preserve independent score slots and ADR 0021 ownership,
+  placement and effective-pitch semantics. Carried effective alteration alone
+  has no spacing effect.
 - Keep ordinary gaps at new words and lyricless music. Keep ADR 0011's
   separate consecutive-syllable compaction and conditional hyphens intact.
   Require its complete measurement readiness; otherwise retain ordinary
@@ -93,7 +97,8 @@ rendering and interaction.
 
 Systems will repartition. Tight pointer targets and modifier clearance need
 integrated verification. A single conservative gap will not reproduce every
-editorial neumatic cut; accidentals deliberately limit initial eligibility.
+editorial neumatic cut; complete ink clearance can still make some accidental
+boundaries wider than six units.
 The small raster corpus cannot settle all-kind proportions or fusion rules.
 
 ## Approval and follow-through
