@@ -468,8 +468,9 @@ same document for unknown targets, unchanged values and invalid results, so
 history and autosave skip them; IDs, pitches, marks, lyric anchors and
 accidentals are untouched. The editor dispatches it as an `engraving-edit`
 with a derived rejection (`liquescenceRejection`) that, only when the
-document is unchanged, is shown in the note toolbar and announced; a valid
-change is one history entry with an announcement.
+document is unchanged, becomes the toolbar's single `role="alert"` reason
+(`noteFormError`, keyed by `noteFormErrorSequence`) without a live-region
+copy; a valid change is one history entry with an announcement.
 
 Insertion of the entry variants `epiphonus`, `augmentative-pes` and
 `cephalicus` creates the semantic kind plus its appearance in one atomic

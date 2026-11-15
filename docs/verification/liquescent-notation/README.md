@@ -376,3 +376,26 @@ Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0.
 - Use a screen reader to check the appearance labels, the toggle's pressed
   state and the rejection and deletion announcements. Headless runs cannot
   verify spoken output.
+
+### Review follow-up (PR #89 at `087f6c1`)
+
+Two interaction findings were fixed in `5d8c1c5`; no representation,
+engraving, marks, persistence or clipboard rule changed (geometry untouched).
+
+1. **Duplicate rejection feedback.** Appearance and second-note mark
+   rejections set only the toolbar's `role="alert"` reason (keyed so repeats
+   are re-announced) instead of also writing the polite live region, and the
+   bottom fallback alert is suppressed while the whole-neume toolbar is
+   available. The existing note-form deletion rejection path is unchanged.
+2. **Focus return.** The whole-neume toolbar remembers the constituent it was
+   entered from; Escape and Shift+Tab return there with whole-neume selection
+   and visible focus retained.
+
+Verification at `5d8c1c5`: format, lint, build, `git diff --check`, 2283 unit
+tests (new whole-neume rejection regression) and 28 runner tests passed;
+`liquescent-notation` and `note-shapes` passed in Chromium and Firefox. The
+new driver checks (one visible alert with no live duplicate for note and
+whole-neume rejection; focus return from the second constituent on Escape and
+Shift+Tab) were confirmed to fail with each fix reverted individually. Other
+drivers were not re-run: the change is limited to these feedback and focus
+paths.

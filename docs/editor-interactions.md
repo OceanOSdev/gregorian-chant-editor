@@ -1111,8 +1111,13 @@ with `aria-pressed`. Selecting a whole Podatus or Clivis (Shift+Enter) and
 pressing Tab opens the same toolbar in whole-neume mode ("Selected neume
 properties", "Whole epiphonus") containing only that control. Changes keep
 selection, focus and all IDs; there is no range-wide appearance edit. A
-rejected change keeps the previous appearance and shows a visible
-`role="alert"` reason that is also announced. On a liquescent pair the
+rejected change keeps the previous appearance and shows one visible
+`role="alert"` reason in the contextual toolbar; that alert is the only
+announcement (no polite live-region copy, no bottom fallback while either
+toolbar is open), and a repeated identical rejection remounts it so it is
+announced again. Escape or Shift+Tab from the whole-neume toolbar returns
+focus to the constituent from which it was entered, keeping whole-neume
+selection. On a liquescent pair the
 second note's horizontal and vertical episema selects are disabled with an
 explanation, the mora scope offers None or First note, and the first note of
 a liquescent pes offers no quilisma.
