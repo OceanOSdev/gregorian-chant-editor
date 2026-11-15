@@ -43,13 +43,36 @@ montage L5-*.png L6-*.png S1-*.png S2-*.png -tile 4x1 -geometry +6+6 descending.
 convert issue1-op-render.png -crop 80x80+570+190 +repage -resize 400% op-render-ad.png
 convert issue1-op-render.png -crop 70x70+1155+355 +repage -resize 500% op-render-eia.png
 
+# Stage 10B: print (top) above the editor's own engraving (bottom), from the
+# committed browser screenshot crop editor-in-score-1440.png.
+pc() { convert "$1" -resize x300 -bordercolor white -border 6 "$2"; }
+pc L1-ad-1-p119.png P-ad.png
+pc L3-eia-p119.png P-eia.png
+pc L4-ergo-p119.png P-ergo.png
+convert L5-misericor-p119.png -crop 230x300+330+0 +repage -resize x300 P-cor.png
+convert L6-dulcis-p120.png -crop 230x300+120+0 +repage -resize x300 P-dul.png
+ec() { convert "$here/editor-in-score-1440.png" -crop "$1" +repage -filter Lanczos -resize 400% -bordercolor white -border 6 "$2"; }
+ec 70x90+100+40 E-ad.png
+ec 70x90+360+40 E-eia.png
+ec 60x90+460+40 E-ergo.png
+ec 60x90+545+40 E-cor.png
+ec 60x90+645+40 E-dul.png
+montage -label '%t' P-ad.png P-eia.png P-ergo.png P-cor.png P-dul.png \
+  E-ad.png E-eia.png E-ergo.png E-cor.png E-dul.png \
+  -tile 5x2 -geometry 300x300+8+8 print-vs-editor.png
+
 # Gregorio comparison.
-cp "$here/pairs.gabc" "$here/salve-excerpt.gabc" "$here/comparison.tex" .
+cp "$here/pairs.gabc" "$here/salve-excerpt.gabc" "$here/comparison.tex" \
+  "$here/intervals.gabc" "$here/intervals.tex" .
 if command -v lualatex >/dev/null 2>&1; then
-  lualatex --interaction=nonstopmode --shell-escape comparison.tex >/dev/null
-  lualatex --interaction=nonstopmode --shell-escape comparison.tex >/dev/null
+  for tex in comparison intervals; do
+    lualatex --interaction=nonstopmode --shell-escape $tex.tex >/dev/null
+    lualatex --interaction=nonstopmode --shell-escape $tex.tex >/dev/null
+  done
   pdftoppm -r 170 -png -singlefile comparison.pdf gregorio-roman-vs-op
   convert gregorio-roman-vs-op.png -trim +repage gregorio-roman-vs-op.png
+  pdftoppm -r 150 -png -singlefile intervals.pdf gregorio-intervals
+  convert gregorio-intervals.png -trim +repage gregorio-intervals.png
 fi
 
 if [ "${2:-}" ]; then

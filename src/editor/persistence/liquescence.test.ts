@@ -13,6 +13,8 @@ import { BrowserDocument } from './browser-document';
 import { insertNeume } from '../commands/insert-neume';
 import { updateNeumeLiquescence } from '../commands/update-neume-liquescence';
 import wip from '../../../docs/verification/liquescent-notation/fixtures/salve-regina-dominican-wip.chant.json?raw';
+import acceptance from '../../../docs/verification/liquescent-notation/fixtures/salve-regina-liquescent-acceptance.chant.json?raw';
+import { liquescentFigure } from '../domain/liquescence';
 
 const p = staffPosition;
 const envelope = (document: unknown, version: number) =>
@@ -284,5 +286,32 @@ describe("owner's Dominican Salve Regina WIP (GregoBase #4577)", () => {
       { id: 'te', kind: 'punctum', notes: [{ id: 'te-a', staffPosition: 4 }] },
     ]);
     expect(decodeDocument(state.bytes ?? '')).toEqual(next);
+  });
+});
+
+describe('Salve Regina liquescent acceptance fixture (research record §2)', () => {
+  it('is canonical v10 and holds the exact six inventory figures', () => {
+    const document = decodeDocument(acceptance);
+    expect(encodeDocument(document)).toBe(acceptance.replace(/\n$/, ''));
+    const figures = document.neumes.flatMap((n) => {
+      const figure = liquescentFigure(n);
+      return figure
+        ? [[n.id, figure, n.notes.map((x) => x.staffPosition)] as const]
+        : [];
+    });
+    // Ad(d/fg~) ×2, E(fg>), er(gh~), cór(…hg~), dul(gf~) under C4, d = 0.
+    expect(figures).toEqual([
+      ['ad1e', 'epiphonus', [2, 3]],
+      ['ad2e', 'epiphonus', [2, 3]],
+      ['eia', 'augmentative-pes', [2, 3]],
+      ['er', 'epiphonus', [3, 4]],
+      ['cor', 'cephalicus', [4, 3]],
+      ['dul', 'cephalicus', [3, 2]],
+    ]);
+    // Each Ad epiphonus continues its syllable; no syllable starts on it.
+    for (const id of ['ad1e', 'ad2e'])
+      expect(document.syllables.some((s) => s.startsAtNeumeId === id)).toBe(
+        false,
+      );
   });
 });

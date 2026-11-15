@@ -519,7 +519,7 @@ try {
         new Set(added.flatMap((n) => [n.id, ...n.notes.map((x) => x.id)])).size,
         2 + 2 * count,
       );
-      assert.equal(JSON.parse(await raw()).version, 9);
+      assert.equal(JSON.parse(await raw()).version, 10);
       assert.equal(await activeVariant(family), variant);
       await pointer('[data-tool="select"]');
       await ev(`document.querySelector('[data-note-id]').focus()`);
@@ -597,7 +597,7 @@ try {
     await pause();
     const exported = await ev('window.__download.text()');
     assert.deepEqual(JSON.parse(exported), JSON.parse(bytes));
-    assert.equal(JSON.parse(exported).version, 9);
+    assert.equal(JSON.parse(exported).version, 10);
     await importText(exported);
     assert.deepEqual(await score(), JSON.parse(bytes).document);
     const before7 = await raw();
@@ -825,7 +825,7 @@ try {
       [0, 0, 0, 1],
     );
     const markedBytes = await raw();
-    assert.equal(JSON.parse(markedBytes).version, 9);
+    assert.equal(JSON.parse(markedBytes).version, 10);
     await navigate();
     assert.equal(await raw(), markedBytes, 'reload keeps marked current bytes');
     assert.deepEqual(await score(), scandicusMarked);
@@ -868,7 +868,7 @@ try {
     await redo();
     assert.deepEqual(await score(), crowded);
     await navigate();
-    assert.deepEqual(await score(), crowded, 'crowded native v9 reload');
+    assert.deepEqual(await score(), crowded, 'crowded current native reload');
     await snapshot('crowded-five-note-' + width);
     // ADR 0023 amendment: Pes subtripunctis deletion that leaves four
     // strictly descending notes normalizes to a four-note Climacus.
@@ -920,7 +920,7 @@ try {
       /fourth note of four-note climacus/,
     );
     const normalizedBytes = await raw();
-    assert.equal(JSON.parse(normalizedBytes).version, 9);
+    assert.equal(JSON.parse(normalizedBytes).version, 10);
     await navigate();
     assert.equal(await raw(), normalizedBytes, 'normalized group reloads');
     await undo();

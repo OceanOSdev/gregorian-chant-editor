@@ -693,11 +693,11 @@ try {
     await key('Delete');
     assert.deepEqual(await score(), marked);
     assert.match(await announcement(), /two equal adjacent pitches/);
-    // Native v9 reload, export and import; a v8 file is rejected.
+    // Native current-version (v10) reload, export and import; a v8 file is rejected.
     const bytes = await raw();
-    assert.equal(JSON.parse(bytes).version, 9);
+    assert.equal(JSON.parse(bytes).version, 10);
     await navigate();
-    assert.equal(await raw(), bytes, 'reload keeps v9 bytes');
+    assert.equal(await raw(), bytes, 'reload keeps current-version bytes');
     await ev(
       `window.__download=null;URL.createObjectURL=blob=>{window.__download=blob;return 'blob:captured'};HTMLAnchorElement.prototype.click=function(){}`,
     );
@@ -763,7 +763,7 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       checks:
-        'six split families (keyboard browse to each named figure, Escape/Tab, viewport, cross-menu with at most one open, one Tab stop), dismiss-only score click then I/T recall, exact ghosts and repeated one-click placement of all four kinds with distinct IDs, centre-point hit ownership of all 16 constituents, pointer selection of both stroke ends, labels, None/Final mora only and disabled form, episemata, B ownership, move rejection announcement, valid move, whole-neume transpose, contour normalization with marks/B/lyric kept and exact undo/redo, mark/B removed with owner, equal-survivor rejection, v9 reload/export/import and v8 rejection, wrapping, at 1440px and 320px',
+        'six split families (keyboard browse to each named figure, Escape/Tab, viewport, cross-menu with at most one open, one Tab stop), dismiss-only score click then I/T recall, exact ghosts and repeated one-click placement of all four kinds with distinct IDs, centre-point hit ownership of all 16 constituents, pointer selection of both stroke ends, labels, None/Final mora only and disabled form, episemata, B ownership, move rejection announcement, valid move, whole-neume transpose, contour normalization with marks/B/lyric kept and exact undo/redo, mark/B removed with owner, equal-survivor rejection, current-version (v10) reload/export/import and v8 rejection, wrapping, at 1440px and 320px',
     }),
   );
 } finally {

@@ -281,8 +281,8 @@ const fixture = {
     ],
   },
 };
-// Saves, imports and exports write the current native version (v9).
-const current = { ...fixture, version: 9 };
+// Saves, imports and exports write the current native version (v10).
+const current = { ...fixture, version: 10 };
 try {
   if (firefox) {
     await rawSend('session.new', { capabilities: {} });
@@ -470,7 +470,7 @@ try {
   const original = await raw();
   for (const bad of [
     '{broken',
-    JSON.stringify({ ...fixture, version: 10 }),
+    JSON.stringify({ ...fixture, version: 11 }),
     JSON.stringify({
       ...fixture,
       document: { ...fixture.document, neumes: null },

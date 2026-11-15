@@ -1,0 +1,269 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 10,
+  "document": {
+    "accidentals": [],
+    "title": "Salve Regina OP liquescent acceptance (GregoBase 4577)",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 4
+    },
+    "neumes": [
+      {
+        "id": "ad1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ad1-0",
+            "staffPosition": 0
+          }
+        ]
+      },
+      {
+        "id": "ad1e",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "ad1e-0",
+            "staffPosition": 2
+          },
+          {
+            "id": "ad1e-1",
+            "staffPosition": 3
+          }
+        ],
+        "liquescence": "diminutive"
+      },
+      {
+        "id": "te1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "te1-0",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "ad2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ad2-0",
+            "staffPosition": 0
+          }
+        ]
+      },
+      {
+        "id": "ad2e",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "ad2e-0",
+            "staffPosition": 2
+          },
+          {
+            "id": "ad2e-1",
+            "staffPosition": 3
+          }
+        ],
+        "liquescence": "diminutive"
+      },
+      {
+        "id": "te2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "te2-0",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "eia",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "eia-0",
+            "staffPosition": 2
+          },
+          {
+            "id": "eia-1",
+            "staffPosition": 3
+          }
+        ],
+        "liquescence": "augmentative-descending"
+      },
+      {
+        "id": "ia",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "ia-0",
+            "staffPosition": 2
+          }
+        ]
+      },
+      {
+        "id": "er",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "er-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "er-1",
+            "staffPosition": 4
+          }
+        ],
+        "liquescence": "diminutive"
+      },
+      {
+        "id": "go",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "go-0",
+            "staffPosition": 4
+          }
+        ]
+      },
+      {
+        "id": "cor",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "cor-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "cor-1",
+            "staffPosition": 3
+          }
+        ],
+        "liquescence": "diminutive"
+      },
+      {
+        "id": "des",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "des-0",
+            "staffPosition": 4
+          },
+          {
+            "id": "des-1",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "dul",
+        "kind": "clivis",
+        "notes": [
+          {
+            "id": "dul-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "dul-1",
+            "staffPosition": 2
+          }
+        ],
+        "liquescence": "diminutive"
+      },
+      {
+        "id": "cis",
+        "kind": "podatus",
+        "notes": [
+          {
+            "id": "cis-0",
+            "staffPosition": 3
+          },
+          {
+            "id": "cis-1",
+            "staffPosition": 4
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "s0",
+        "text": "Ad",
+        "startsAtNeumeId": "ad1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s1",
+        "text": "te",
+        "startsAtNeumeId": "te1",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s2",
+        "text": "Ad",
+        "startsAtNeumeId": "ad2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s3",
+        "text": "te",
+        "startsAtNeumeId": "te2",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s4",
+        "text": "E",
+        "startsAtNeumeId": "eia",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s5",
+        "text": "ia,",
+        "startsAtNeumeId": "ia",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "s6",
+        "text": "er",
+        "startsAtNeumeId": "er",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s7",
+        "text": "go,",
+        "startsAtNeumeId": "go",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "s8",
+        "text": "cór",
+        "startsAtNeumeId": "cor",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s9",
+        "text": "des",
+        "startsAtNeumeId": "des",
+        "boundaryBefore": "continuation"
+      },
+      {
+        "id": "s10",
+        "text": "dul",
+        "startsAtNeumeId": "dul",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s11",
+        "text": "cis",
+        "startsAtNeumeId": "cis",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [],
+    "clefChanges": []
+  }
+}
