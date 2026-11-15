@@ -1,4 +1,5 @@
 import type { ChantSystemLayout } from '../layout/layout-chant';
+import { paddedOwnedExtent } from './neume-selection-bounds';
 
 /** Decorative overlay only; never participates in engraving or hit testing. */
 export function rangeSelectionBounds(
@@ -9,11 +10,8 @@ export function rangeSelectionBounds(
   const first = members[0];
   const last = members.at(-1);
   if (!first || !last) return null;
-  const x = Math.max(first.bounds.x - 3, first.hitClip?.left ?? -Infinity);
-  const right = Math.min(
-    last.bounds.x + last.bounds.width + 3,
-    last.hitClip?.right ?? Infinity,
-  );
+  const x = paddedOwnedExtent(first, 3).left;
+  const right = paddedOwnedExtent(last, 3).right;
   const y =
     Math.min(
       ...members.map((n) => n.bounds.y),

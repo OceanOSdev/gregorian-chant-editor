@@ -284,6 +284,47 @@ try {
     await pause();
   };
   const note = (id) => `[data-note-id="${id}"]`;
+
+  // Whole-neume outline at compact boundaries: fitted inside ownership and
+  // never clipped, so all four dashed sides render; with its rendered stroke
+  // it encloses its own ink and never reaches neighbouring ink.
+  const outline = () =>
+    ev(`(()=>{
+      const r=document.querySelector('.score__neume-selection');
+      if(!r)throw Error('No whole-neume outline');
+      const g=r.closest('[data-neume-id]'),sys=g.closest('g[data-system-index]');
+      const half=parseFloat(getComputedStyle(r).strokeWidth)/2;
+      // Rect geometry from attributes: Firefox's client rect includes the stroke, Chromium's does not.
+      const m=r.getScreenCTM(),x=r.x.baseVal.value,y=r.y.baseVal.value;
+      const b={left:m.a*x+m.e,right:m.a*(x+r.width.baseVal.value)+m.e,top:m.d*y+m.f,bottom:m.d*(y+r.height.baseVal.value)+m.f};
+      const own=g.querySelector(':scope > .score__ink').getBoundingClientRect();
+      const neighbours=[...sys.querySelectorAll('[data-neume-id]')].filter(n=>n!==g).map(n=>n.querySelector(':scope > .score__ink')?.getBoundingClientRect()).filter(n=>n&&n.bottom>b.top-half&&n.top<b.bottom+half);
+      return {
+        id:g.dataset.neumeId,
+        clipped:r.hasAttribute('clip-path'),
+        encloses:b.left<=own.left+0.05&&b.right>=own.right-0.05&&b.top<=own.top+0.05&&b.bottom>=own.bottom-0.05,
+        overlaps:neighbours.filter(n=>n.left<b.right+half-0.01&&n.right>b.left-half+0.01).length,
+        leftPad:own.left-b.left,rightPad:b.right-own.right,
+      };
+    })()`);
+  // Visual review: drop the focus ring (selection is unchanged) and centre
+  // the outline below the sticky tools.
+  const outlineShot = async (name) => {
+    await ev(
+      `(document.activeElement.blur(),document.querySelector('.score__neume-selection').scrollIntoView({block:'center',inline:'center'}),true)`,
+    );
+    await shot(name);
+  };
+  const selectWhole = async (noteId) => {
+    await key('Escape');
+    await focus(note(noteId));
+    await key('Enter', true);
+    const o = await outline();
+    assert.equal(o.clipped, false, `${o.id} outline is clipped`);
+    assert.ok(o.encloses, `${o.id} outline does not enclose its ink`);
+    assert.equal(o.overlaps, 0, `${o.id} outline reaches neighbouring ink`);
+    return o;
+  };
   const focus = async (selector) => {
     await ev(`document.querySelector(${JSON.stringify(selector)}).focus()`);
     await pause();
@@ -524,6 +565,39 @@ try {
   assert.deepEqual((await snapshot()).overlays, after.overlays);
   await key('Escape');
 
+  const melismas = {
+    ...reflow,
+    title: 'Compact whole-neume outline',
+    neumes: Array.from({ length: 12 }, (_, i) => ({
+      id: `m${i}`,
+      kind: i % 3 === 1 ? 'podatus' : 'punctum',
+      notes:
+        i % 3 === 1
+          ? [
+              { id: `m${i}-a`, staffPosition: 1 },
+              { id: `m${i}-b`, staffPosition: 4 },
+            ]
+          : [{ id: `m${i}-a`, staffPosition: i % 7 }],
+    })),
+    syllables: Array.from({ length: 4 }, (_, i) => ({
+      id: `e${i}`,
+      text: 'e',
+      startsAtNeumeId: `m${i * 3}`,
+      boundaryBefore: 'word',
+    })),
+  };
+  await mount(melismas);
+  // First, middle and last melisma members: restricted right, both, left.
+  const [firstOfMelisma, middle, lastOfMelisma] = [
+    await selectWhole('m3-a'),
+    await selectWhole('m4-a'),
+    await selectWhole('m5-a'),
+  ];
+  assert.ok(middle.leftPad < 5 && middle.rightPad < 5);
+  assert.ok(firstOfMelisma.rightPad < 5 && lastOfMelisma.leftPad < 5);
+  await outlineShot('compact-whole-neume');
+  await key('Escape');
+
   await send('Page.navigate', { url: editorUrl + '/' });
   await pause();
   await pause();
@@ -536,6 +610,23 @@ try {
     `[...document.querySelectorAll('[data-neume-id]')].map(e=>e.querySelector('[data-note-id]')?.dataset.noteId).filter(Boolean)`,
   );
   assert.ok(ids.length === 40);
+  let tightest = null;
+  for (const id of ids) {
+    const o = await selectWhole(id);
+    if (!tightest || o.rightPad < tightest.rightPad)
+      tightest = { ...o, noteId: id };
+  }
+  assert.ok(tightest.rightPad < 5, 'Kyrie XI has no compact right boundary');
+  await selectWhole(tightest.noteId);
+  await outlineShot('kyrie-compact-whole-neume');
+  const flatted = await ev(
+    `[...document.querySelectorAll('.score [data-neume-id]')].find(g=>g.querySelector('[data-accidental-id]'))?.querySelector('[data-note-id]')?.dataset.noteId ?? null`,
+  );
+  if (flatted) {
+    await selectWhole(flatted);
+    await outlineShot('kyrie-flat-whole-neume');
+  }
+  await key('Escape');
   await nativeClick(note(ids[3]));
   await shiftClick(note(ids[30]));
   await count(28);
@@ -555,7 +646,7 @@ try {
   await shot('kyrie-narrow');
   assert.equal(await bytes(), saved);
   console.log(
-    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes, lyric-deletion repartitioning with Undo/Redo, and Kyrie XI at wide/narrow widths.',
+    'PASS: native pointer and keyboard ranges, contraction/reversal, cross-system focus, Tab, safety guards, explicit L, persisted bytes, lyric-deletion repartitioning with Undo/Redo, complete compact whole-neume outlines, and Kyrie XI at wide/narrow widths.',
   );
 } finally {
   if (ownsSession) await rawSend('session.end').catch(() => {});

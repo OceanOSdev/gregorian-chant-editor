@@ -80,6 +80,39 @@ The full matrix was not rerun; the changes are confined to range reducer
 paths and the new driver scenario, and the baseline failures below are unchanged
 in scope.
 
+## Compact whole-neume outline (2026-11-15 UTC)
+
+Foreground acceptance found the whole-neume dashed outline losing its right
+edge on compact neighbours (predating this PR). The 5-unit padded rectangle was
+clipped to the neume's `hitClip` ownership interval, which on compact pairs lies
+only a few units from the ink, so the clip removed the right stroke and the
+ends of the top and bottom strokes. The outline is now fitted inside that
+interval, inset by half its 2.5 px stroke, and is not clipped. Padding stays 5
+units where there is room and never shrinks inside the ink. Note targets,
+ownership intervals, placement/move decorations, spacing and range overlays are
+unchanged. The range overlay reuses the same padded-extent helper with
+identical output.
+
+`neume-selection-bounds.test.ts` covers compact three-neume melismas with
+restriction on the left, right and both sides, plus an isolated neume. It checks
+ink enclosure, the stroke inside ownership, clearance from neighbouring ink and
+preserved padding. Restoring the old unclipped geometry or removing the stroke
+inset fails it. The driver selects three melisma members and every Kyrie XI
+neume with Shift+Enter. For each one it asserts that the outline has no
+`clip-path`, encloses its ink and keeps its rendered stroke off neighbouring
+ink. The rectangle is measured from its attributes through the screen CTM,
+because Firefox's client rect includes the stroke and Chromium's does not. The
+tightest Kyrie pair has about 2 units between the inks, so its outline falls
+back to zero padding and the stroke still clears the neighbour by about 1.2 px
+in both browsers. Visual inspection of
+`kyrie-flat-whole-neume.png`, `kyrie-compact-whole-neume.png` and
+`compact-whole-neume.png` (focus ring removed for review) confirms complete
+dashed outlines on all four sides.
+
+Standard gate passed: format:check, lint, 94 Vitest files / 2,042 tests, build
+(existing large-chunk warning) and git diff --check. Ranges driver run
+`07-10-31-929Z-hpYWBu`: Chromium and Firefox passed (31.3 s wall clock).
+
 ## Baseline failures, not waived
 
 The following eight failures reproduce on an untouched detached worktree at

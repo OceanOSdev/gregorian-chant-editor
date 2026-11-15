@@ -1,4 +1,5 @@
 import { rangeSelectionBounds } from './range-selection-bounds';
+import { neumeSelectionBounds } from './neume-selection-bounds';
 import { getAccidentalAccessibleLabel } from './accidental-accessible-label';
 import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
 import { getNoteModifierDescription } from './note-accessible-label';
@@ -733,7 +734,6 @@ export function ScoreSvg({
                 neume.notes.length,
               );
               const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
-              const selectionGap = 5;
               const ownershipClip = neume.hitClip
                 ? `url(#hit-clip-${neume.neumeId})`
                 : undefined;
@@ -770,14 +770,12 @@ export function ScoreSvg({
                     </desc>
                   ) : null}
                   {isNeumeSelected ? (
+                    // Fitted inside ownership rather than clipped, so the
+                    // dashed outline stays complete at compact boundaries.
                     <rect
                       className="score__neume-selection"
-                      clipPath={ownershipClip}
                       data-selected-neume-id={neume.neumeId}
-                      x={neume.bounds.x - selectionGap}
-                      y={neume.bounds.y - selectionGap}
-                      width={neume.bounds.width + selectionGap * 2}
-                      height={neume.bounds.height + selectionGap * 2}
+                      {...neumeSelectionBounds(neume)}
                       rx="4"
                       pointerEvents="none"
                       aria-hidden="true"
