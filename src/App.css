@@ -106,6 +106,14 @@ kbd {
   color: #675f55;
   font-size: 0.75rem;
 }
+.editor-clipboard__count {
+  margin-left: 0.3rem;
+  padding: 0 0.3rem;
+  color: #675f55;
+  font-size: 0.75rem;
+  border: 1px solid #c9c0b3;
+  border-radius: 0.6rem;
+}
 @media (max-width: 48rem) {
   .neume-palette {
     grid-template-columns: repeat(4, minmax(0, 1fr));

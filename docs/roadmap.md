@@ -386,6 +386,17 @@ Contiguous selection uses stable directional endpoints, context-sensitive Shift
 activation and Shift+Left/Right, with connected per-system highlighting. See the
 [interaction contract](editor-interactions.md#active-syllable-and-selection) and
 [verification record](verification/contiguous-selection/README.md).
-Clipboard semantics, range deletion/transposition/movement, non-contiguous and
-marquee selection remain deferred. Foreground visual and keyboard acceptance
+Range deletion/transposition/movement, non-contiguous and marquee selection
+remain deferred; copy/paste is covered below. Foreground visual and keyboard acceptance
 of dense Kyrie XI passages remains an owner check.
+
+## Musical passage clipboard
+
+Whole neumes and contiguous ranges can be copied and pasted as music within the
+running application session, as one validated history entry, following the
+[interaction contract](editor-interactions.md#musical-passage-clipboard) and the
+[verification record](verification/musical-passage-clipboard/README.md). Cut,
+range deletion/movement, transposition, copied lyrics, system clipboard
+interchange, a graphical paste tool and automatic accidental compensation are
+deferred. Foreground acceptance of Kyrie XI duplication, focus at real zoom and
+narrow widths remains an owner check.

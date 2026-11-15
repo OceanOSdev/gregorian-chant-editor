@@ -7,6 +7,12 @@ import {
 } from '../commands/update-accidental';
 import { noteFormLabels } from '../domain/note-forms';
 import {
+  copyMusicalPassage,
+  pasteMusicalPassage,
+  pasteRejectionMessage,
+  type MusicalClipboard,
+} from '../commands/musical-passage-clipboard';
+import {
   resolveGraphicalClefPlacement,
   resolveKeyboardClefPlacement,
   type ClefPlacementCursor,
@@ -124,6 +130,8 @@ export interface ClefTransaction {
 
 export interface EditorSession {
   accidentalTargetId: string | null;
+  /** Transient app-session music snapshot; never in history or persistence. */
+  clipboard: MusicalClipboard | null;
   noteFormError: string | null;
   clefInsertionPolicy: 'melody' | 'noteheads';
   clefInsertionError: string | null;
@@ -191,6 +199,8 @@ export type ClefKeyboardCommand =
   'start' | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last';
 
 export type EditorAction =
+  | { type: 'copy-passage' }
+  | { type: 'paste-passage'; ids: readonly string[] }
   | { type: 'delete-accidental'; id: string }
   | { type: 'start-accidental-placement'; id: string }
   | { type: 'cancel-accidental-placement' }
@@ -277,9 +287,14 @@ export type EditorAction =
     }
   | { type: 'focus-handled'; request: EditorFocusRequest };
 
-export function createEditorSession(document: ChantDocument): EditorSession {
+/** Document replacement starts a new session but may keep the app clipboard. */
+export function createEditorSession(
+  document: ChantDocument,
+  clipboard: MusicalClipboard | null = null,
+): EditorSession {
   return {
     accidentalTargetId: null,
+    clipboard,
     noteFormError: null,
     clefInsertionPolicy: 'melody',
     clefInsertionError: null,
@@ -385,6 +400,8 @@ function reduceSessionAction(
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
+    case 'copy-passage':
+    case 'paste-passage':
     case 'delete-accidental':
     case 'start-accidental-placement':
     case 'cancel-accidental-placement':
@@ -897,10 +914,101 @@ function announceRangeReconciliation(
     : announce(next, `${after.neumes.length} neumes selected.`);
 }
 
+/** Ordinary Select only: no lyric entry, move, prompt, clef or sign placement. */
+export function clipboardBlocked(state: EditorSession): boolean {
+  return Boolean(
+    state.activeTool.kind !== 'select' ||
+    state.lyrics ||
+    state.lyricMove ||
+    state.pendingHistory ||
+    state.clefTransaction ||
+    state.accidentalTargetId,
+  );
+}
+
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+function placementNotice(count: number): string {
+  return count
+    ? ` ${plural(count, 'copied accidental')} anchored outside the passage ${count === 1 ? 'uses' : 'use'} default placement.`
+    : '';
+}
+
+function copyPassage(state: EditorSession): EditorSession {
+  if (clipboardBlocked(state))
+    return announce(
+      state,
+      'Copy unavailable. Return to Select and finish the current lyric, clef, accidental or history action first.',
+    );
+  const result = copyMusicalPassage(state.history.present, state.selection);
+  if (!result.clipboard)
+    return announce(
+      state,
+      result.rejection === 'invalid-target'
+        ? 'Nothing copied. Select a whole neume (Shift) or a passage to copy.'
+        : 'Nothing copied: the selected music cannot be read.',
+    );
+  const { clipboard } = result;
+  const divisions = clipboard.divisionCount
+    ? ` and ${plural(clipboard.divisionCount, 'division')}`
+    : '';
+  return announce(
+    { ...state, clipboard },
+    `Copied ${plural(clipboard.neumeCount, 'neume')}${divisions}.${placementNotice(clipboard.restoredPlacementCount)}`,
+  );
+}
+
+function pastePassage(
+  state: EditorSession,
+  ids: readonly string[],
+): EditorSession {
+  if (clipboardBlocked(state))
+    return announce(
+      state,
+      'Paste unavailable. Return to Select and finish the current lyric, clef, accidental or history action first.',
+    );
+  const document = state.history.present;
+  const result = pasteMusicalPassage(
+    document,
+    state.selection,
+    state.clipboard,
+    ids,
+  );
+  if (!result.document)
+    return announce(state, pasteRejectionMessage(result.rejection));
+  const pasted = result.document;
+  const [first] = result.pastedNeumeIds;
+  const last = result.pastedNeumeIds.at(-1) ?? first;
+  const focusNoteId = pasted.neumes.find((n) => n.id === last)?.notes[0].id;
+  const clipboard = state.clipboard;
+  return announce(
+    {
+      ...state,
+      history: applyDocumentEdit(state.history, () => pasted),
+      selection:
+        first === last
+          ? selectNeume(first)
+          : {
+              kind: 'neume-range',
+              anchorNeumeId: first,
+              endpointNeumeId: last,
+            },
+      noteFormError: null,
+      hoveredPoint: null,
+      focusRequest: focusNoteId ? { kind: 'note', noteId: focusNoteId } : null,
+    },
+    `Pasted ${plural(result.pastedNeumeIds.length, 'neume')}.${placementNotice(clipboard?.restoredPlacementCount ?? 0)}`,
+  );
+}
+
 function reduceEditorSessionAction(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
+  if (action.type === 'copy-passage') return copyPassage(state);
+  if (action.type === 'paste-passage') return pastePassage(state, action.ids);
   if (action.type === 'extend-selection') {
     // Recovery keeps its established Shift activation: one whole-neume Retry
     // target, never a range.

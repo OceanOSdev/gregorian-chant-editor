@@ -51,7 +51,8 @@ export function usePersistedSession(initialDocument: ChantDocument) {
     };
   }, [persistence]);
   const replace = (document: ChantDocument) => {
-    const next = createEditorSession(document);
+    // The app-session clipboard survives document replacement (never saved).
+    const next = createEditorSession(document, current.current.clipboard);
     // Replacement, including an equal document, is a new history root and save boundary.
     persistence.save(document);
     current.current = next;
@@ -61,7 +62,7 @@ export function usePersistedSession(initialDocument: ChantDocument) {
   const reload = () => {
     const document = persistence.load(current.current.history.present);
     if (!persistence.needsRecovery) {
-      const next = createEditorSession(document);
+      const next = createEditorSession(document, current.current.clipboard);
       current.current = next;
       setSession(next);
     }

@@ -264,6 +264,8 @@ and consult the owning record for feature-specific assertions and manual checks.
 - [Stage 9C intra-syllable grouping](verification/intra-syllable-grouping/README.md), including checkpoint-specific evidence and acceptance status.
 - [Browser verification runner](verification/runner/README.md) for commands, selection, isolation and outputs; [verification index](verification/README.md) for evidence policy.
 
+- [Musical passage clipboard](verification/musical-passage-clipboard/README.md):
+  copy/paste commands, session guards and the native clipboard driver.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 
@@ -278,3 +280,16 @@ neighbour ownership boundaries and lyric clearance. The runner's
 and Firefox with a multi-system fixture, lyric-deletion system repartitioning
 with Undo/Redo, and bundled Kyrie XI. See [verification](verification/contiguous-selection/README.md)
 for actual results and remaining foreground acceptance.
+
+## Musical passage clipboard
+
+`musical-passage-clipboard.test.ts` covers snapshot independence, canonical
+range order, every neume variant/modifier, internal division capture, clef
+omission and destination clef slots, paste boundaries, ID validation, sign
+copying/anchor fallback, pitch-conflict rejections in both directions, existing
+anchor invalidation, lyric preservation in encoded bytes and every bundled
+example round trip. `passage-clipboard.test.ts` covers session atomicity,
+history/selection/focus, repeat paste, Undo/Redo identity, replacement
+survival, exclusive-mode guards and the shortcut predicate. The runner's
+`musical-passage-clipboard` driver uses native input in Chromium and Firefox; see
+[verification](verification/musical-passage-clipboard/README.md).

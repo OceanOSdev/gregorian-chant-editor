@@ -110,7 +110,8 @@ excludes:
 - preview geometry;
 - layout coordinates or system assignment;
 - browser focus and pending focus;
-- lyric draft state.
+- lyric draft state;
+- the musical passage clipboard.
 
 Those values are transient and are reconciled with the restored semantic
 document. Keeping them out of history makes undo and redo musical actions
@@ -429,5 +430,31 @@ Directional range endpoints remain transient selection, excluded from history
 and persistence. Selection reconciliation keeps the original range object only
 when both endpoints survive. Toolbar insertion resolvers return null for a
 range, and the session rejects range insertion and selection-based music edits.
-No range command is introduced; [interaction rules](editor-interactions.md#active-syllable-and-selection)
+Copy/paste (below) is the only range-aware command; [interaction rules](editor-interactions.md#active-syllable-and-selection)
 own gestures and explicit single-target transitions.
+
+## Musical passage copy and paste
+
+`commands/musical-passage-clipboard.ts` is pure. `copyMusicalPassage` reads a
+whole-neume or range selection and returns a detached `MusicalClipboard` (or a
+rejection) holding typed neume templates with blank IDs, captured effective
+degree/alteration per note, internal division kinds, and copied signs by local
+note reference. `pasteMusicalPassage` receives the latest document, selection,
+clipboard and a flat list of fresh IDs allocated once at the interaction
+boundary (`allocatePasteIds`; the reducer never generates IDs). It validates the
+exact ID count, non-empty uniqueness and collisions with every existing
+semantic ID, resolves the [paste boundary](editor-interactions.md#musical-passage-clipboard)
+with `scoreBoundaryAt`/`resolveScoreBoundary`, maps degrees through the
+destination clef, splices all neumes and divisions into one derived score order
+and rebuilds anchors with `reanchorScoreOrder`.
+
+It does not loop single insertions and does not call `reconcileAccidentals`.
+The exact candidate must pass division/clef, lyric-anchor, neume and
+accidental validation, and `resolveEffectivePitches` must match the captured
+degree and alteration of every pasted note and the prior degree and alteration
+of every existing note (by stable ID). Otherwise it returns a typed rejection
+that the session turns into a short message; the session keeps state identity.
+Success is one `applyDocumentEdit`. The clipboard is session state outside
+`DocumentHistory`; `usePersistedSession` passes it to the new session on
+document replacement and reload, so it never enters history, the native
+encoding, autosave or exports.
