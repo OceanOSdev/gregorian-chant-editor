@@ -496,9 +496,7 @@ function placeNeumeSequence(
         previous &&
         input.syllableId !== undefined &&
         input.syllableId === inputs[inputIndex - 1]?.syllableId &&
-        !followingEvents.get(inputIndex - 1)?.length &&
-        !previous.accidentals?.length &&
-        !input.accidentals?.length;
+        !followingEvents.get(inputIndex - 1)?.length;
       const minimumGap = compactSyllables
         ? compactNeumeInkGap
         : compactMelisma

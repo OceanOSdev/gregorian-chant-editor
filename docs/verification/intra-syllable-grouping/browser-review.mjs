@@ -20,7 +20,8 @@ export async function runIntraSyllableReview({
     const c=await import('/src/editor/persistence/native-document.ts');
     window.intraPlacement=p.resolveGraphicalNeumePlacement;
     window.intraDecode=c.decodeDocument;
-    return {specimens:f.spacingSpecimens,ownership:f.ownershipSpecimen};
+    const bundled=await import('/src/editor/examples/Kyrie-XI.chant.json?raw');
+    return {specimens:f.spacingSpecimens,ownership:f.ownershipSpecimen,bundled:c.decodeDocument(bundled.default)};
   })()`);
   const results = [];
   const cache = () =>
@@ -76,6 +77,20 @@ export async function runIntraSyllableReview({
     );
     return client;
   };
+  const selectAccidental = async (id) => {
+    const client = await ev(
+      `(()=>{const e=document.querySelector('[data-accidental-id="${id}"] .score__accidental-target');if(!e)throw Error('Missing accidental target ${id}');const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2}})()`,
+    );
+    await click(client);
+    assert.equal(
+      await ev(
+        `document.querySelector('[data-accidental-id="${id}"]').getAttribute('aria-pressed')`,
+      ),
+      'true',
+      `native accidental selection ${id}`,
+    );
+    return client;
+  };
   const inspect = async (doc) =>
     ev(`(()=>{
     const doc=${JSON.stringify(doc)},l=compositionLayout(doc),owners=new Map();
@@ -90,7 +105,7 @@ export async function runIntraSyllableReview({
       if(Number(el.closest('[data-system-index]').dataset.systemIndex)!==s.index)errors.push('system '+n.neumeId);
       const prev=s.neumes[i-1];if(!prev)continue;
       const a=prev.bounds.x+prev.bounds.width,gap=n.bounds.x-a;
-      const blocked=doc.divisions.some(e=>e.beforeNeumeId===n.neumeId)||doc.clefChanges.some(e=>e.beforeNeumeId===n.neumeId)||!!prev.accidentals?.length||!!n.accidentals?.length;
+      const blocked=doc.divisions.some(e=>e.beforeNeumeId===n.neumeId)||doc.clefChanges.some(e=>e.beforeNeumeId===n.neumeId);
       const eligible=owners.has(n.neumeId)&&owners.get(n.neumeId)===owners.get(prev.neumeId)&&!blocked;
       if(eligible&&Math.abs(gap-6)>1e-7)errors.push('eligible gap '+n.neumeId+': '+gap);
       if(owners.get(n.neumeId)===owners.get(prev.neumeId)&&blocked&&gap<33-1e-7)errors.push('barrier '+n.neumeId);
@@ -104,10 +119,75 @@ export async function runIntraSyllableReview({
   })()`);
   for (const width of [1440, 320]) {
     await viewport(width);
-    for (const sample of data.specimens) {
+    const samples = [
+      ...data.specimens,
+      { id: 'kyrie-xi-bundled', document: data.bundled },
+    ];
+    for (const sample of samples) {
       await mount(sample.document);
       const result = await inspect(sample.document);
       assert.deepEqual(result.errors, [], `${sample.id} at ${width}`);
+      if (sample.id === 'kyrie-xi-bundled') {
+        const original = JSON.stringify(sample.document);
+        const spans = sample.document.syllables.flatMap((syllable, i) => {
+          if (syllable.text !== 'e') return [];
+          const start = sample.document.neumes.findIndex(
+            (n) => n.id === syllable.startsAtNeumeId,
+          );
+          const end =
+            i + 1 < sample.document.syllables.length
+              ? sample.document.neumes.findIndex(
+                  (n) =>
+                    n.id === sample.document.syllables[i + 1].startsAtNeumeId,
+                )
+              : sample.document.neumes.length;
+          const neumes = sample.document.neumes.slice(start, end);
+          return neumes.length === 3 && neumes[0]?.kind === 'scandicus'
+            ? [{ syllable, neumes }]
+            : [];
+        });
+        assert.equal(spans.length, 4, 'four bundled eleison melismas');
+        for (const { syllable, neumes } of spans) {
+          assert.equal(neumes.length, 3, `${syllable.id} independent groups`);
+          for (let i = 1; i < neumes.length; i++) {
+            const boundary = result.gaps.find(
+              (g) => g.before === neumes[i - 1].id && g.after === neumes[i].id,
+            );
+            assert(boundary?.eligible, `${syllable.id} eligible boundary ${i}`);
+            assert.equal(
+              boundary.gap,
+              6,
+              `${syllable.id} complete ink gap ${i}`,
+            );
+          }
+        }
+        assert.equal(
+          JSON.stringify(sample.document),
+          original,
+          'bundled document remains unchanged',
+        );
+        const firstFlat = sample.document.accidentals.find(
+          (a) => a.placement?.noteId === spans[0].neumes[0].notes[0].id,
+        );
+        assert(firstFlat, 'first melisma flat is written at the earlier neume');
+        await selectAccidental(firstFlat.id);
+        const adjacentNote = spans[0].neumes[1].notes[0].id;
+        await selectNote(adjacentNote);
+        assert.equal(
+          await ev(
+            `document.querySelector('[data-note-id="${adjacentNote}"]').getAttribute('aria-pressed')`,
+          ),
+          'true',
+          'adjacent compacted note retains independent selection',
+        );
+        assert.equal(
+          await ev(
+            `document.querySelector('[data-accidental-id="${firstFlat.id}"]').getAttribute('aria-pressed')`,
+          ),
+          'false',
+          'note selection does not transfer to accidental',
+        );
+      }
       if (sample.id === 'long-boundaries') {
         assert(result.systems >= 4, 'long melisma spans systems');
         assert.deepEqual(

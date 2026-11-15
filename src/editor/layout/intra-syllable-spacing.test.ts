@@ -26,6 +26,7 @@ import {
 } from './layout-chant';
 import { buildNeumeGeometry, getInkBounds } from './neume-geometry';
 import type { MeasureLyricText } from './lyric-text-metrics';
+import kyrieXI from '../examples/Kyrie-XI.chant.json?raw';
 
 const measure: MeasureLyricText = (text) => ({
   width: text.length * 10,
@@ -133,24 +134,60 @@ describe('independent boundary eligibility', () => {
       expect(s.hyphens).toEqual([]);
     },
   );
-  it.each(['flat', 'natural'] as const)(
-    'blocks both sides of a written %s prefix, but not carried alteration',
-    (kind) => {
+  it.each([
+    ['flat', 'default'],
+    ['natural', 'default'],
+    ['flat', 'earlier-note'],
+    ['natural', 'earlier-note'],
+  ] as const)(
+    'compacts across a %s written at its %s location, preserving carried alteration',
+    (kind, placement) => {
       const d = fixture(5);
-      d.neumes = d.neumes.map((n) => punctum(n.id, 5));
-      d.accidentals = [{ id: 'sign', kind, ownerNoteId: 'n1-note' }];
+      d.neumes = d.neumes.map((n, i) =>
+        punctum(
+          n.id,
+          placement === 'earlier-note'
+            ? i >= 3
+              ? 5
+              : 3
+            : i === 1 || i >= 3
+              ? 5
+              : 3,
+        ),
+      );
+      const ownerIndex = placement === 'earlier-note' ? 3 : 1;
+      const writtenIndex = 1;
+      d.accidentals = [
+        {
+          id: 'sign',
+          kind,
+          ownerNoteId: `n${ownerIndex}-note`,
+          ...(placement === 'earlier-note'
+            ? { placement: { kind: 'above-note' as const, noteId: 'n1-note' } }
+            : {}),
+        },
+      ];
       expect(hasValidAccidentals(d)).toBe(true);
       const s = layoutChant(d, measure).systems[0];
-      expect(gap(s.neumes[0], s.neumes[1])).toBeGreaterThanOrEqual(33);
-      expect(gap(s.neumes[1], s.neumes[2])).toBe(33);
+      expect(s.neumes[writtenIndex].accidentals?.[0].owner.noteId).toBe(
+        `n${ownerIndex}-note`,
+      );
+      expect(s.neumes[writtenIndex].accidentals?.[0].placement?.noteId).toBe(
+        placement === 'earlier-note' ? 'n1-note' : undefined,
+      );
+      expect(gap(s.neumes[0], s.neumes[1])).toBe(6);
+      expect(gap(s.neumes[1], s.neumes[2])).toBe(6);
       expect(gap(s.neumes[2], s.neumes[3])).toBe(6);
       expect(gap(s.neumes[3], s.neumes[4])).toBe(6);
+      expect(getInkBounds(s.neumes[writtenIndex].ink)).toEqual(
+        s.neumes[writtenIndex].bounds,
+      );
       expect(
         resolveEffectivePitches(d)?.get('n4-note')?.sourceAccidentalId,
       ).toBe('sign');
     },
   );
-  it('uses the earlier written location, leaving the later B owner eligible when it has no ink', () => {
+  it('uses the earlier written location and compacts both neighboring boundaries while preserving the later B owner', () => {
     const d = fixture(5);
     d.neumes[3] = punctum('n3', 5);
     d.neumes[4] = punctum('n4', 5);
@@ -167,8 +204,8 @@ describe('independent boundary eligibility', () => {
     expect(s.neumes.map((n) => n.accidentals?.length ?? 0)).toEqual([
       0, 1, 0, 0, 0,
     ]);
-    expect(gap(s.neumes[0], s.neumes[1])).toBeGreaterThanOrEqual(33);
-    expect(gap(s.neumes[1], s.neumes[2])).toBe(33);
+    expect(gap(s.neumes[0], s.neumes[1])).toBe(6);
+    expect(gap(s.neumes[1], s.neumes[2])).toBe(6);
     expect(gap(s.neumes[2], s.neumes[3])).toBe(6);
     expect(gap(s.neumes[3], s.neumes[4])).toBe(6);
     expect(resolveEffectivePitches(d)?.get('n4-note')?.alteration).toBe(-1);
@@ -540,10 +577,40 @@ it('keeps the Kyrie XI nine-note eleison in existing kinds and places its flat a
   const s = layoutChant(d, measure).systems[0];
   expect(s.neumes[0].accidentals?.[0].owner.noteId).toBe('i');
   expect(s.neumes[0].accidentals?.[0].placement?.noteId).toBe('f');
-  expect(gap(s.neumes[0], s.neumes[1])).toBe(33);
+  expect(gap(s.neumes[0], s.neumes[1])).toBe(6);
   expect(gap(s.neumes[1], s.neumes[2])).toBe(6);
   expect(s.lyrics[0].anchorX).toBe(s.neumes[0].notes[0].anchorX);
   expect(s.hyphens).toEqual([]);
+});
+
+it('compacts all four bundled Kyrie XI eleison melismas without changing the document', () => {
+  const d = decodeDocument(kyrieXI);
+  const original = JSON.stringify(d);
+  const layout = layoutChant(d, measure);
+  const syllables = d.syllables.filter((s, i) => {
+    const start = d.neumes.findIndex((n) => n.id === s.startsAtNeumeId);
+    const end =
+      i + 1 < d.syllables.length
+        ? d.neumes.findIndex((n) => n.id === d.syllables[i + 1].startsAtNeumeId)
+        : d.neumes.length;
+    return (
+      s.text === 'e' &&
+      end - start === 3 &&
+      d.neumes[start]?.kind === 'scandicus'
+    );
+  });
+  expect(syllables).toHaveLength(4);
+  for (const syllable of syllables) {
+    const members = layout.systems
+      .flatMap((system) => system.neumes)
+      .filter((n) => findSyllableForNeume(d, n.neumeId)?.id === syllable.id);
+    expect(members).toHaveLength(3);
+    expect(gap(members[0], members[1])).toBe(6);
+    expect(gap(members[1], members[2])).toBe(6);
+    expect(getInkBounds(members[0].ink)).toEqual(members[0].bounds);
+    expect(getInkBounds(members[1].ink)).toEqual(members[1].bounds);
+  }
+  expect(JSON.stringify(d)).toBe(original);
 });
 
 it.each([
