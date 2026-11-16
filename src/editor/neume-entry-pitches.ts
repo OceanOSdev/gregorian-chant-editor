@@ -34,146 +34,146 @@ export type GraphicalNeumeKind =
 
 export type NeumeEntryPitches =
   | {
-      kind: 'torculus-resupinus';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'torculus-resupinus';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'porrectus-flexus';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'porrectus-flexus';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'scandicus-flexus';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'scandicus-flexus';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'climacus-resupinus';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'climacus-resupinus';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'scandicus-4';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'scandicus-4';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'scandicus-5';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'scandicus-5';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'climacus-4';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'climacus-4';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'climacus-5';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'climacus-5';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'pes-subbipunctis';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'pes-subbipunctis';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'pes-subtripunctis';
-      staffPositions: readonly [
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-        StaffPosition,
-      ];
-    }
+    kind: 'pes-subtripunctis';
+    staffPositions: readonly [
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+      StaffPosition,
+    ];
+  }
   | {
-      kind: 'bistropha';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'bistropha';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'tristropha';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    }
+    kind: 'tristropha';
+    staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'punctum';
-      staffPositions: readonly [StaffPosition];
-    }
+    kind: 'punctum';
+    staffPositions: readonly [StaffPosition];
+  }
   | {
-      kind: 'podatus';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'podatus';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'epiphonus';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'epiphonus';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'augmentative-pes';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'augmentative-pes';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'cephalicus';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'cephalicus';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'clivis';
-      staffPositions: readonly [StaffPosition, StaffPosition];
-    }
+    kind: 'clivis';
+    staffPositions: readonly [StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'scandicus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    }
+    kind: 'scandicus';
+    staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'torculus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    }
+    kind: 'torculus';
+    staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'climacus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    }
+    kind: 'climacus';
+    staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+  }
   | {
-      kind: 'porrectus';
-      staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
-    };
+    kind: 'porrectus';
+    staffPositions: readonly [StaffPosition, StaffPosition, StaffPosition];
+  };
 
 export type GraphicalStaffPositions = NeumeEntryPitches['staffPositions'];
 
@@ -268,17 +268,17 @@ export function createNeumeEntryPitches(
     case 'pes-subbipunctis':
       return {
         kind,
-        staffPositions: [firstStaffPosition, at(2), at(1), firstStaffPosition],
+        staffPositions: [firstStaffPosition, at(1), firstStaffPosition, at(-1)],
       };
     case 'pes-subtripunctis':
       return {
         kind,
         staffPositions: [
           firstStaffPosition,
-          at(3),
-          at(2),
           at(1),
           firstStaffPosition,
+          at(-1),
+          at(-2),
         ],
       };
     case 'scandicus-4':
@@ -350,8 +350,8 @@ export function createNeumeEntryPitches(
         kind,
         staffPositions: [
           firstStaffPosition,
-          staffPosition(firstStaffPosition + 2),
           staffPosition(firstStaffPosition + 1),
+          staffPosition(firstStaffPosition),
         ],
       };
     case 'climacus':
