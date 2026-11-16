@@ -165,11 +165,11 @@ describe('pes subpunctis semantic family', () => {
     expect(
       createNeumeEntryPitches('pes-subbipunctis', staffPosition(2))
         .staffPositions,
-    ).toEqual([2, 4, 3, 2]);
+    ).toEqual([2, 3, 2, 1]);
     expect(
       createNeumeEntryPitches('pes-subtripunctis', staffPosition(2))
         .staffPositions,
-    ).toEqual([2, 5, 4, 3, 2]);
+    ).toEqual([2, 3, 2, 1, 0]);
   });
 
   it('allows exactly none or a final-note mora, derived from the actual tuple length', () => {

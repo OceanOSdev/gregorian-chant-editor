@@ -183,7 +183,7 @@ describe('insertTorculus', () => {
     const redone = redoDocumentEdit(undone);
 
     expect(candidate.notes.map((note) => note.staffPosition)).toEqual([
-      2, 4, 3,
+      2, 3, 2,
     ]);
     expect(placement.insertionIndex).toBe(2);
     expect(inserted.neumes[placement.insertionIndex]).toBe(candidate);

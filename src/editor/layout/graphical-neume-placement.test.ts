@@ -69,7 +69,7 @@ describe('system graphical neume placement', () => {
     ['podatus', [2, 3]],
     ['clivis', [2, 1]],
     ['scandicus', [2, 3, 4]],
-    ['torculus', [2, 4, 3]],
+    ['torculus', [2, 3, 2]],
     ['climacus', [2, 1, 0]],
     ['porrectus', [2, 0, 1]],
   ] as const)('keeps the %s tuple cardinality', (kind, positions) => {

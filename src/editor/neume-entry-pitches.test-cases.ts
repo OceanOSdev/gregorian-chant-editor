@@ -3,12 +3,12 @@ import type { GraphicalNeumeKind } from './neume-entry-pitches';
 export const entryPitchCases = {
   'pes-subbipunctis': {
     kind: 'pes-subbipunctis',
-    offsets: [0, 2, 1, 0],
+    offsets: [0, 1, 0, -1],
     fallback: 2,
   },
   'pes-subtripunctis': {
     kind: 'pes-subtripunctis',
-    offsets: [0, 3, 2, 1, 0],
+    offsets: [0, 1, 0, -1, -2],
     fallback: 2,
   },
   'scandicus-4': { kind: 'scandicus-4', offsets: [0, 1, 2, 3], fallback: 2 },
@@ -32,7 +32,7 @@ export const entryPitchCases = {
   },
   cephalicus: { kind: 'cephalicus', offsets: [0, -1], fallback: 3 },
   scandicus: { kind: 'scandicus', offsets: [0, 1, 2], fallback: 2 },
-  torculus: { kind: 'torculus', offsets: [0, 2, 1], fallback: 2 },
+  torculus: { kind: 'torculus', offsets: [0, 1, 0], fallback: 2 },
   climacus: { kind: 'climacus', offsets: [0, -1, -2], fallback: 3 },
   porrectus: { kind: 'porrectus', offsets: [0, -2, -1], fallback: 3 },
   'torculus-resupinus': {
