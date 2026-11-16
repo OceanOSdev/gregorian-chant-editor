@@ -240,7 +240,59 @@ fail identically there. They are not fixed or waived here.
 
 ## Results
 
-See the PR for the final revision; filled in after the final regression run.
+Implementation revision `f1b144b` (clean tree; later commits change only
+this record and its screenshot). Linux x64, Node 24.12.0, Chromium
+157.0.8103.38 (snap), Firefox 146.0.
+
+Standard gate on `f1b144b` bytes: `format:check`, `lint` (no warnings),
+`npm test` 103 files / 2,390 tests, `build`, `git diff --check`, and
+`test:verify-runner` 28/28 passed.
+
+Full regression: `npm run verify:browser -- --preset full --browser both -j 4`
+(`.verification-runs/run-2026-11-16T07-50-25-353Z-mIrZCz/`, ignored):
+**40 passed, 6 failed, 6 unsupported**, one 0.3 s build, 346.8 s wall clock,
+cleanup with no errors.
+
+| Driver                      | Chromium     | Firefox      |
+| --------------------------- | ------------ | ------------ |
+| contiguous-selection        | passed       | passed       |
+| musical-passage-clipboard   | passed       | passed       |
+| continuous-lyrics           | passed       | unsupported  |
+| lyric-move                  | failed (pre) | unsupported  |
+| vowel-alignment             | passed       | unsupported  |
+| lyric-spacing               | failed (pre) | unsupported  |
+| lyric-spacing-selection-cue | unsupported  | failed (pre) |
+| word-composition            | failed (pre) | failed (pre) |
+| clefs                       | passed       | unsupported  |
+| mid-score-clefs             | passed       | passed       |
+| divisions                   | passed       | passed       |
+| liquescent-notation         | passed       | passed       |
+| neume-ledger-lines          | passed       | passed       |
+| dynamic-vertical-layout     | passed       | passed       |
+| compound-directional-neumes | passed       | passed       |
+| extended-scandicus-climacus | passed       | passed       |
+| pes-subpunctis              | passed       | passed       |
+| repeated-note-neumes        | passed       | passed       |
+| note-modifiers              | failed (int) | passed       |
+| note-shapes                 | passed       | passed       |
+| b-accidentals               | passed       | passed       |
+| b-accidentals-acceptance    | passed       | passed       |
+| local-persistence           | passed       | passed       |
+| bundled-example             | passed       | passed       |
+| vertical-episemata          | passed       | passed       |
+| vertical-episemata-context  | passed       | passed       |
+
+(pre) fails identically on clean `3d5a93f` (see below). (int)
+`note-modifiers` Chromium is intermittent at `browser-check.mjs:719`
+(`window.exported` still null when reading the downloaded cached source): on
+the branch it failed 2 of 3 standalone reruns; on clean `3d5a93f` it failed
+4 of 6 at the same line. Not fixed or waived here.
+
+`dynamic-vertical-layout` recorded, in both browsers: lyric font ascent 19
+(accented capitals) and descent 5 (descenders); Je's system baseline 2,385
+score units at 1440 and 320 px; all checks (`lyric-font-band, et-jesum,
+whole-score, later-system-edit-undo-resize, later-system-placement,
+export-import, print, zoom-150-reveal-pointer-keyboard`).
 
 ## Not verified / remaining owner acceptance
 
