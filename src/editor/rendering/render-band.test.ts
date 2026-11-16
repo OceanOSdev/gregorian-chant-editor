@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { clampToBand, renderBandFor } from './render-band';
 
 describe('render band', () => {
-  const band = renderBandFor({ y: -1200, height: 2620 });
+  // A system's musical band (canonical -1200..1420 at the first system).
+  const band = renderBandFor({ top: -1200, bottom: 1420 });
 
-  it('extends the canvas by one ledger space', () => {
+  it('extends the musical band by one ledger space', () => {
     expect(band).toEqual({ top: -1224, bottom: 1444 });
   });
 

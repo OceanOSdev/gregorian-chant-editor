@@ -2,24 +2,24 @@ import { ledgerSpacing } from '../layout/ledger-lines';
 import type { LayoutBounds } from '../layout/neume-geometry';
 
 /**
- * The vertical window in which rendered score elements may paint: the outer
- * canvas plus one ledger space (Stage 11A rendering safeguard). Anything
- * beyond it is outside the viewBox and therefore invisible, so limiting the
- * painted element there changes no visible pixel while keeping a distant but
- * valid pitch from asking a browser to draw a 10^17-unit shape.
+ * The vertical window in which a system's rendered musical elements may
+ * paint: its musical render band plus one ledger space (Stage 11A/11B
+ * rendering safeguard). The system clips musical ink at the band itself, so
+ * limiting the painted element there changes no visible pixel while keeping a
+ * distant but valid pitch from asking a browser to draw a 10^17-unit shape.
  */
 export interface RenderBand {
   top: number;
   bottom: number;
 }
 
-export function renderBandFor(canvas: {
-  y: number;
-  height: number;
+export function renderBandFor(musicBand: {
+  top: number;
+  bottom: number;
 }): RenderBand {
   return {
-    top: canvas.y - ledgerSpacing,
-    bottom: canvas.y + canvas.height + ledgerSpacing,
+    top: musicBand.top - ledgerSpacing,
+    bottom: musicBand.bottom + ledgerSpacing,
   };
 }
 

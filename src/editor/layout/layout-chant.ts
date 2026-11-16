@@ -48,6 +48,16 @@ import {
   type MeasureLyricText,
 } from './lyric-text-metrics';
 import {
+  canonicalLyricBaselineY,
+  measureSystemVertical,
+  offStaffCanvasMargin,
+  stackSystems,
+  systemGap,
+  systemHeight,
+  type SystemFrame,
+  type VerticalBand,
+} from './system-vertical-layout';
+import {
   buildNeumeGeometry,
   firstHeadHalfWidth,
   geometryKindFor,
@@ -153,7 +163,18 @@ export interface ChantSystemLayout {
   x: number;
   y: number;
   width: number;
+  /** Measured height (Stage 11B); at least `systemHeight`. */
   height: number;
+  /** Authoritative bottom staff line: the pitch origin for this system. */
+  bottomStaffY: number;
+  /** Shared baseline of every lyric and hyphen on this system. */
+  lyricBaselineY: number;
+  /**
+   * Musical render band: ink, ledger runs, outlines and pointer regions are
+   * clipped to it. It translates with the system, and the system's measured
+   * extent reserves everything inside it.
+   */
+  musicBand: VerticalBand;
   staffLines: readonly StaffLineLayout[];
   clef: ClefLayout;
   leadingClefChangeId: string | null;
@@ -188,8 +209,16 @@ export interface ChantLayout {
 
 export const scoreWidth = 720;
 export const systemWidth = scoreWidth;
-export const systemHeight = 220;
-export const systemGap = 24;
+export {
+  systemHeight,
+  systemGap,
+  offStaffCanvasMargin,
+} from './system-vertical-layout';
+/**
+ * Ordinary (unexpanded) system advance. Systems are stacked from measured
+ * heights (Stage 11B), so this equals the actual advance only when every
+ * earlier system kept the minimum height.
+ */
 export const systemVerticalAdvance = systemHeight + systemGap;
 export const svgTopPadding = 0;
 export const svgBottomPadding = 0;
@@ -206,12 +235,8 @@ const clefRight = Math.max(
 );
 const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
-export const firstSystemLyricBaselineY = 180;
-/**
- * How far musical ink may grow the outer canvas beyond its system (Stage 11A
- * rendering safeguard; Stage 11B vertical extents must respect it too).
- */
-export const offStaffCanvasMargin = 50 * engravingStaffStep * 2;
+/** The ordinary local lyric baseline; see `ChantSystemLayout.lyricBaselineY`. */
+export const firstSystemLyricBaselineY = canonicalLyricBaselineY;
 
 function staffLineY(line: StaffLine, bottomStaffY: number) {
   return bottomStaffY - (line - 1) * staffLineSpacing;
@@ -263,40 +288,6 @@ export const lyricJoinThreshold = lyricFontSize / 10;
 export const lyricJoinClearance = lyricFontSize / 20;
 const hyphenClearance = lyricFontSize / 10;
 
-/** The same measured low-sign exclusions drive reservation and final placement. */
-function lyricBandAccidentals(
-  groups: readonly Pick<NeumeGeometry, 'accidentals'>[],
-  baseline: number,
-): LayoutBounds[] {
-  return groups.flatMap((g) =>
-    (g.accidentals ?? [])
-      .map((a) => a.ink.bounds)
-      .filter(
-        (b) =>
-          b.y < baseline + lyricFontSize / 4 + 3 &&
-          b.y + b.height > baseline - lyricFontSize - 3,
-      ),
-  );
-}
-
-/** Prefer the rightmost clear interval. Reservation guarantees a fitting gap. */
-function continuationHyphenLeft(
-  start: number,
-  end: number,
-  obstacles: readonly LayoutBounds[],
-  width: number,
-): number {
-  for (const b of obstacles
-    .filter((b) => b.x < end && b.x + b.width > start)
-    .sort((a, b) => b.x - a.x)) {
-    const right = Math.max(start, b.x + b.width);
-    if (end - right >= width + 2 * hyphenClearance)
-      return right + (end - right - width) / 2;
-    end = Math.min(end, b.x);
-  }
-  return start + (end - start - width) / 2;
-}
-
 /** One walker owns music minima, lyric clearance, wrapping and oversized progress. */
 function placeNeumeSequence(
   inputs: readonly GeometryInput[],
@@ -316,8 +307,9 @@ function placeNeumeSequence(
   let custodes: CustosGeometry[] = [];
   const hasItems = () =>
     geometries.length || divisions.length || clefChanges.length;
-  const bottomY = () =>
-    firstSystemBottomStaffY + systems.length * systemVerticalAdvance;
+  // Every system composes in the canonical local frame (ADR 0028); layoutChant
+  // measures, stacks and then translates each system by rebuilding it.
+  const bottomY = () => firstSystemBottomStaffY;
   const guidePosition = (index: number) =>
     inputs[index].staffPositions[0] +
     clefOffset(noteClefs[index]) -
@@ -483,17 +475,6 @@ function placeNeumeSequence(
   for (const [inputIndex, input] of inputs.entries()) {
     const lyric = lyrics.get(inputIndex);
     const extents = lyric ? lyricTextExtents(lyric.alignment) : null;
-    const accidentalLyricBox = extents
-      ? {
-          ...extents,
-          top:
-            firstSystemLyricBaselineY - firstSystemBottomStaffY - lyricFontSize,
-          bottom:
-            firstSystemLyricBaselineY -
-            firstSystemBottomStaffY +
-            lyricFontSize / 4,
-        }
-      : undefined;
     const build = () => {
       const previous = geometries.at(-1);
       const compactSyllables =
@@ -513,7 +494,7 @@ function placeNeumeSequence(
         : compactMelisma
           ? intraSyllableInkGap
           : interNeumeInkGap;
-      let initial = buildNeumeGeometry(
+      const initial = buildNeumeGeometry(
         input.kind,
         input.staffPositions,
         hasItems()
@@ -526,47 +507,10 @@ function placeNeumeSequence(
               )
             : nextLeftX
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
-        firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+        bottomY(),
         input.modifiers,
         input.accidentals,
-        accidentalLyricBox,
       );
-      if (previousLyricRight !== null && initial.accidentals?.length) {
-        const textRight = previousLyricRight;
-        const textTop =
-          firstSystemLyricBaselineY +
-          systems.length * systemVerticalAdvance -
-          lyricFontSize;
-        const textBottom = textTop + lyricFontSize * 1.25;
-        const previousExtents = activeLyric
-          ? lyricTextExtents(activeLyric.alignment)
-          : null;
-        const previousLeft = previousExtents
-          ? textRight - (previousExtents.right - previousExtents.left)
-          : -Infinity;
-        const shift = Math.max(
-          0,
-          ...initial.accidentals.map((a) => {
-            const b = a.ink.bounds;
-            return b.y < textBottom + 3 &&
-              b.y + b.height > textTop - 3 &&
-              b.x < textRight + 4 &&
-              b.x + b.width > previousLeft - 3
-              ? textRight + 4 - b.x
-              : 0;
-          }),
-        );
-        if (shift)
-          initial = buildNeumeGeometry(
-            input.kind,
-            input.staffPositions,
-            initial.bounds.x + shift,
-            firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
-            input.modifiers,
-            input.accidentals,
-            accidentalLyricBox,
-          );
-      }
       if (!extents || !lyric) return initial;
       const left = initial.lyricAnchorX + extents.left;
       // Word clearance is a deterministic quarter-em minimum (5 score units).
@@ -577,15 +521,12 @@ function placeNeumeSequence(
             (lyric.boundaryBefore === 'word'
               ? lyricFontSize / 4
               : lyricJoinClearance);
-      const baseline =
-        firstSystemLyricBaselineY + systems.length * systemVerticalAdvance;
-      const previousSigns = lyricBandAccidentals(geometries, baseline);
-      const currentSigns = lyricBandAccidentals([initial], baseline);
-      // Genuine music, lyric and sign clearance decides whether a continuation
+      // Genuine music and lyric clearance decides whether a continuation
       // must separate; hyphen space is reserved only after that decision.
-      const clearance = Math.max(
+      // Musical signs never enter the lyric row (ADR 0028): it clears them
+      // vertically, so they impose no lyric or hyphen exclusion here.
+      const minimum = Math.max(
         lyricMinimum,
-        ...previousSigns.map((b) => b.x + b.width + 4),
         lastBoundaryEventRight === null
           ? -Infinity
           : lastBoundaryEventRight + divisionGap,
@@ -595,40 +536,14 @@ function placeNeumeSequence(
       const separated =
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
-        Math.max(left, clearance) - previousLyricRight > lyricJoinThreshold;
-      // A hyphen starts after the previous lyric, so only signs ending beyond
-      // that edge can intersect its interval.
-      const hyphenStart = previousLyricRight;
-      const minimum =
-        separated && hyphenStart !== null
-          ? Math.max(
-              clearance,
-              ...previousSigns
-                .filter((b) => b.x + b.width > hyphenStart)
-                .map(
-                  (b) => b.x + b.width + 4 + hyphenWidth + 2 * hyphenClearance,
-                ),
-            )
-          : clearance;
-      // Current signs translate with their lyric: reserve before their leading
-      // ink, rather than attempting to enlarge the fixed sign-to-lyric gap.
+        Math.max(left, minimum) - previousLyricRight > lyricJoinThreshold;
       const shift = Math.max(
         0,
         (separated && previousLyricRight !== null
-          ? Math.max(
-              previousLyricRight,
-              lastBoundaryEventRight ?? -Infinity,
-              ...previousSigns.map((b) => b.x + b.width),
-            ) +
+          ? Math.max(previousLyricRight, lastBoundaryEventRight ?? -Infinity) +
             hyphenWidth +
             2 * hyphenClearance
-          : minimum) -
-          (separated
-            ? Math.min(
-                left,
-                ...currentSigns.filter((b) => b.x < left).map((b) => b.x),
-              )
-            : left),
+          : minimum) - left,
         minimum - left,
       );
       const shifted = () =>
@@ -636,10 +551,9 @@ function placeNeumeSequence(
           input.kind,
           input.staffPositions,
           initial.bounds.x + shift,
-          firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+          bottomY(),
           input.modifiers,
           input.accidentals,
-          accidentalLyricBox,
         );
       // If an empty system cannot contain this anchored unit, retain its normal
       // musical anchor. Canvas expansion exposes both overhangs without scaling.
@@ -726,10 +640,9 @@ function placeNeumeSequence(
           input.kind,
           input.staffPositions,
           geometry.bounds.x - missing,
-          firstSystemBottomStaffY + systems.length * systemVerticalAdvance,
+          bottomY(),
           input.modifiers,
           input.accidentals,
-          accidentalLyricBox,
         );
     }
     geometries.push(geometry);
@@ -835,6 +748,89 @@ function layoutCommittedNeume(
   };
 }
 
+/**
+ * Complete renderable musical ink of a composed system: staff, leading clef,
+ * clef changes, divisions, custodes and every neume's complete bounds (body,
+ * ledger runs, rhythmic signs and accidentals). Pointer padding, outlines and
+ * ghosts are not ink and never trigger vertical expansion.
+ */
+function positionedMusicInk(
+  system: PositionedSystem,
+  bottomStaffY: number,
+): LayoutBounds[] {
+  const staffTop = staffLineY(4, bottomStaffY);
+  return [
+    {
+      x: staffStartX,
+      y: staffTop,
+      width: staffEndX - staffStartX,
+      height: bottomStaffY - staffTop,
+    },
+    buildClefGeometry(
+      system.leadingClef,
+      clefX,
+      staffLineY(system.leadingClef.staffLine, bottomStaffY),
+    ).bounds,
+    ...system.clefChanges.map((c) => c.bounds),
+    ...system.divisions.map((d) => d.bounds),
+    ...system.custodes.map((c) => c.bounds),
+    ...system.geometries.map((g) => g.bounds),
+  ];
+}
+
+/**
+ * Translates one composed system to its resolved pitch origin by rebuilding
+ * each element through its own builder at its composed left edge (the
+ * documented rebuild-at-`bounds.x` contract). No horizontal decision is
+ * revisited, so nothing here can change system membership.
+ */
+function positionComposedSystem(
+  system: PositionedSystem,
+  bottomStaffY: number,
+  inputFor: (offset: number) => GeometryInput,
+): PositionedSystem {
+  if (bottomStaffY === firstSystemBottomStaffY) return system;
+  return {
+    ...system,
+    geometries: system.geometries.map((geometry, offset) => {
+      const input = inputFor(offset);
+      return buildNeumeGeometry(
+        input.kind,
+        input.staffPositions,
+        geometry.bounds.x,
+        bottomStaffY,
+        input.modifiers,
+        input.accidentals,
+      );
+    }),
+    divisions: system.divisions.map((d) =>
+      buildDivisionGeometry(
+        { id: d.divisionId, kind: d.kind, beforeNeumeId: null },
+        d.bounds.x,
+        bottomStaffY,
+        staffLineSpacing,
+      ),
+    ),
+    clefChanges: system.clefChanges.map((c) => ({
+      ...buildClefGeometry(
+        { type: c.type, staffLine: c.staffLine },
+        c.x,
+        staffLineY(c.staffLine, bottomStaffY),
+      ),
+      clefChangeId: c.clefChangeId,
+    })),
+    custodes: system.custodes.map((c) =>
+      buildCustosGeometry(
+        c.staffPosition,
+        c.bounds.x,
+        bottomStaffY,
+        c.nextNeumeIndex,
+        c.outgoing,
+      ),
+    ),
+  };
+}
+
 export function layoutChant(
   document: ChantDocument,
   measure?: MeasureLyricText,
@@ -928,7 +924,10 @@ export function layoutChant(
       })),
     };
   });
-  const wrappedSystems = placeNeumeSequence(
+  // Stage 11B (ADR 0028): compose once in the canonical local frame (every
+  // system at firstSystemBottomStaffY), measure each system's vertical
+  // requirements, stack, then translate each system by rebuilding it.
+  const local = placeNeumeSequence(
     inputs,
     staffEndX,
     requirements,
@@ -936,6 +935,33 @@ export function layoutChant(
     followingEvents,
     document.clef,
     noteClefs,
+  );
+  const anchoredNeumeIds = new Set(
+    document.syllables.map((syllable) => syllable.startsAtNeumeId),
+  );
+  const frames = stackSystems(
+    local.map((system) =>
+      measureSystemVertical(
+        positionedMusicInk(system, firstSystemBottomStaffY),
+        system.geometries.some(
+          (geometry, offset) =>
+            anchoredNeumeIds.has(
+              document.neumes[system.startNeumeIndex + offset].id,
+            ) && getNeumeLyricAlignmentX(geometry) !== null,
+        ),
+      ),
+    ),
+    firstSystemTopY,
+  );
+  // Each composed system is rebuilt independently at its resolved origin and
+  // the composed left edges; the walker never runs again, so membership,
+  // order and every placement decision are fixed by construction.
+  const wrappedSystems = local.map((system, index) =>
+    positionComposedSystem(system, frames[index].bottomStaffY, (offset) => {
+      const input = inputs[system.startNeumeIndex + offset];
+      if (!input) throw new Error('Composed neume without input');
+      return input;
+    }),
   );
   const systemsWithoutLyrics = wrappedSystems.map(
     (
@@ -950,15 +976,18 @@ export function layoutChant(
       },
       index,
     ): ChantSystemLayout => {
-      const y = firstSystemTopY + index * systemVerticalAdvance;
-      const bottomStaffY = firstSystemBottomStaffY + y;
+      const frame: SystemFrame = frames[index];
+      const { bottomStaffY } = frame;
 
       return {
         index,
         x: 0,
-        y,
+        y: frame.y,
         width: systemWidth,
-        height: systemHeight,
+        height: frame.height,
+        bottomStaffY,
+        lyricBaselineY: frame.lyricBaselineY,
+        musicBand: frame.musicBand,
         staffLines: ([1, 2, 3, 4] as const).map((line) => ({
           x1: staffStartX,
           x2: Math.max(
@@ -1045,7 +1074,7 @@ export function layoutChant(
       boundaryBefore: syllable.boundaryBefore,
       left: extents ? alignmentX + extents.left : null,
       right: extents ? alignmentX + extents.right : null,
-      y: firstSystemLyricBaselineY + first.systemIndex * systemVerticalAdvance,
+      y: frames[first.systemIndex].lyricBaselineY,
       fontSize: lyricFontSize,
     });
   }
@@ -1096,12 +1125,9 @@ export function layoutChant(
                 )
                 .map((d) => d.bounds.x + d.bounds.width),
             );
-            return continuationHyphenLeft(
-              start,
-              after.lyric.left,
-              lyricBandAccidentals(before.system.neumes, before.lyric.y),
-              hyphenWidth,
-            );
+            // Centered in the horizontal gap; musical signs never occupy
+            // the lyric row (ADR 0028), so they are not hyphen obstacles.
+            return start + (after.lyric.left - start - hyphenWidth) / 2;
           })();
       before.system.hyphens.push({
         x: left - hyphenExtents.left,
@@ -1198,11 +1224,11 @@ export function layoutChant(
 
   // Normal systems still wrap at staffEndX, irrespective of this canvas.
   const edges = ready ? systems.flatMap((system) => system.lyrics) : [];
-  let canvasTop = 0;
-  let canvasBottom =
-    firstSystemBottomY +
-    (systems.length - 1) * systemVerticalAdvance +
-    svgBottomPadding;
+  // Vertically the canvas is the stacked systems: each system's measured
+  // extent already reserves its (band-limited) musical ink and lyric row.
+  const lastSystem = systems[systems.length - 1];
+  const canvasTop = firstSystemTopY - svgTopPadding;
+  const canvasBottom = lastSystem.y + lastSystem.height + svgBottomPadding;
   let canvasLeft = 0;
   let canvasRight = scoreWidth;
   for (const lyric of edges) {
@@ -1211,14 +1237,14 @@ export function layoutChant(
   }
   // Rendering safeguard, not a pitch restriction (Stage 11A): musical ink
   // and continuation hyphens grow the canvas by at most offStaffCanvasMargin
-  // beyond its system's box vertically, and beyond the text-derived extent
-  // (the score width, widened by any oversized lyric, ADR 0010/0011)
-  // horizontally. That is far past any musical use (50 ledger levels) and
-  // keeps text overflow and the ink it displaces intact, while a valid but
-  // absurd safe-integer pitch, the interval-proportional ribbon of a
-  // Porrectus reaching one, or an outgoing hyphen displaced after that
-  // ribbon cannot turn the viewBox into an unusable 10^17-unit canvas. Ink
-  // beyond is clipped; derived positions are unchanged.
+  // beyond the text-derived extent (the score width, widened by any
+  // oversized lyric, ADR 0010/0011) horizontally; vertically, each system's
+  // musicBand bounds it (Stage 11B). That is far past any musical use (50
+  // ledger levels) and keeps text overflow and the ink it displaces intact,
+  // while a valid but absurd safe-integer pitch, the interval-proportional
+  // ribbon of a Porrectus reaching one, or an outgoing hyphen displaced after
+  // that ribbon cannot turn the viewBox into an unusable 10^17-unit canvas.
+  // Ink beyond is clipped; derived positions are unchanged.
   const left = canvasLeft - offStaffCanvasMargin;
   const right = canvasRight + offStaffCanvasMargin;
   const containX = (inkLeft: number, inkRight: number) => {
@@ -1226,25 +1252,8 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, Math.min(right, inkRight));
   };
   for (const system of systems) {
-    // Complete musical ink (neumes with their signs, authored forms and
-    // derived ledger runs, and custodes) grows the outer canvas so off-staff
-    // notation is not clipped. Ordinary in-staff scores keep their baseline
-    // canvas; system height, origins and lyric baselines stay fixed (dynamic
-    // vertical layout is Stage 11B, which must respect the same margin).
-    const top = system.y - offStaffCanvasMargin;
-    const bottom = system.y + system.height + offStaffCanvasMargin;
-    const contain = (bounds: LayoutBounds) => {
-      canvasTop = Math.min(canvasTop, Math.max(top, bounds.y - 12));
-      canvasBottom = Math.max(
-        canvasBottom,
-        Math.min(bottom, bounds.y + bounds.height + 12),
-      );
-    };
-    for (const neume of system.neumes) {
-      contain(neume.bounds);
+    for (const neume of system.neumes)
       containX(neume.bounds.x - 12, neume.bounds.x + neume.bounds.width + 12);
-    }
-    for (const guide of system.custodes) contain(guide.bounds);
     for (const c of [...system.clefChanges, ...system.custodes])
       containX(c.bounds.x, c.bounds.x + c.bounds.width + 12);
     if (system.staffLines[0].x2 > staffEndX)

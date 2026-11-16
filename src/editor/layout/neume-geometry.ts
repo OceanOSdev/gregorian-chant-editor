@@ -3,7 +3,6 @@ import {
   addAccidentalGeometry,
   accidentalPrefixAdvance,
   type AccidentalSpec,
-  type AccidentalLyricBox,
 } from './accidental-geometry';
 import { addNoteModifiers } from './note-modifiers';
 import { addLedgerLines } from './ledger-lines';
@@ -64,7 +63,6 @@ export function buildNeumeGeometry(
   bottomStaffY: number,
   modifiers: readonly NoteAppearance[] = [],
   accidentals: readonly AccidentalSpec[] = [],
-  lyricBox?: AccidentalLyricBox,
   options: NeumeGeometryOptions = {},
 ): NeumeGeometry {
   const buildAt = (groupX: number) => {
@@ -105,13 +103,7 @@ export function buildNeumeGeometry(
           )
         : staffed;
     const base = addNoteModifiers(ledgered, modifiers, bottomStaffY, kind);
-    return addAccidentalGeometry(
-      base,
-      accidentals,
-      groupX,
-      bottomStaffY,
-      lyricBox,
-    );
+    return addAccidentalGeometry(base, accidentals, groupX, bottomStaffY);
   };
   const result = buildAt(leftX);
   // `leftX` is the group's left ink edge for every layout consumer (spacing,
@@ -142,7 +134,6 @@ export function buildNeumeBodyGeometry(
     bottomStaffY,
     modifiers,
     [],
-    undefined,
     { staffless: true },
   );
 }

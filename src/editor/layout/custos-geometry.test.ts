@@ -5,6 +5,7 @@ import {
   measureCustosWidth,
 } from './custos-geometry';
 import { layoutChant } from './layout-chant';
+import { verticalLayoutViolations } from './vertical-clearance.testing';
 import { fixture, change, punctum } from '../clef-change.test-cases';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import { clefOffset } from '../domain/clef';
@@ -66,7 +67,7 @@ describe('custos ledger engraving', () => {
     expect(Number.isFinite(g.bounds.height)).toBe(true);
   });
   it.each([14, -10])(
-    'contains complete guide ink and ledgers at position %s in the canvas, without moving the staff',
+    'contains complete guide ink and ledgers at position %s in its system and the canvas',
     (position) => {
       const document = {
         ...fixture(),
@@ -76,8 +77,17 @@ describe('custos ledger engraving', () => {
       const l = layoutChant(document);
       const g = l.systems[0].custodes[0];
       expect(g.staffPosition).toBe(position);
-      expect(l.systems[0].staffLines[0].y).toBe(124);
-      expect(l.y).toBeLessThanOrEqual(g.bounds.y - 12);
+      // Stage 11B: a high guide adds room above the staff (moving it down)
+      // instead of a negative canvas origin; a low one keeps the staff.
+      const [system] = l.systems;
+      expect(system.staffLines[0].y).toBe(system.bottomStaffY);
+      expect(system.bottomStaffY > 124).toBe(position > 0);
+      expect(l.y).toBe(0);
+      expect(system.y).toBeLessThanOrEqual(g.bounds.y - 12);
+      expect(system.y + system.height).toBeGreaterThanOrEqual(
+        g.bounds.y + g.bounds.height + 12,
+      );
+      expect(verticalLayoutViolations(l)).toEqual([]);
       expect(l.y + l.height).toBeGreaterThanOrEqual(
         g.bounds.y + g.bounds.height + 12,
       );

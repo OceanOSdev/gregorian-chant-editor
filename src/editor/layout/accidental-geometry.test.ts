@@ -13,7 +13,16 @@ import {
 import { buildNeumeGeometry } from './neume-geometry';
 import { accidentalPrefixAdvance } from './accidental-geometry';
 import { blankDocument } from '../persistence/native-document';
-import { layoutChant, lyricJoinThreshold } from './layout-chant';
+import {
+  firstSystemBottomStaffY,
+  firstSystemLyricBaselineY,
+  intraSyllableInkGap,
+  layoutChant,
+  lyricJoinThreshold,
+  type ChantSystemLayout,
+} from './layout-chant';
+import { lyricAscent, musicToLyricClearance } from './system-vertical-layout';
+import { verticalLayoutViolations } from './vertical-clearance.testing';
 import {
   placeAccidental,
   updateAccidental,
@@ -36,7 +45,18 @@ function hyphenInk(hyphen: { x: number }): [number, number] {
   return [hyphen.x + hyphenExtents.left, hyphen.x + hyphenExtents.right];
 }
 const hyphenClearance = lyricFontSize / 10;
-it('reserves measured clearance for a low natural beside its own lyric without moving staff coordinates', () => {
+/** Stage 11B (ADR 0028): the shared lyric row clears every sign vertically. */
+function expectLyricRowClearsSigns(system: ChantSystemLayout) {
+  const rowTop = system.lyricBaselineY - lyricAscent - musicToLyricClearance;
+  for (const a of system.neumes.flatMap((n) => n.accidentals ?? []))
+    expect(a.ink.bounds.y + a.ink.bounds.height).toBeLessThanOrEqual(rowTop);
+  for (const text of [...system.lyrics, ...system.hyphens])
+    expect(text.y).toBe(system.lyricBaselineY);
+}
+// ADR 0028 changed these expectations: a low sign formerly moved away from,
+// or reserved horizontal room against, a lyric at the fixed baseline. Signs
+// now clear musical ink only and the shared lyric row moves below them.
+it('clears a low natural beside its own lyric vertically, keeping its music-only x and staff', () => {
   const d = blankDocument();
   d.clef = { type: 'c', staffLine: 4 };
   d.lyricLanguage = 'und';
@@ -56,18 +76,33 @@ it('reserves measured clearance for a low natural beside its own lyric without m
     },
   ];
   const signed = updateAccidental(d, 'note', 'natural', 'natural'),
-    system = layoutChant(signed, measure).systems[0];
+    layout = layoutChant(signed, measure),
+    system = layout.systems[0];
+  const musicOnly = layoutChant({ ...signed, syllables: [] }, measure)
+    .systems[0].neumes[0];
   const glyph = system.neumes[0].accidentals?.[0],
     lyric = system.lyrics[0];
   if (!glyph || lyric.left === null) throw Error('Expected measured geometry');
-  expect(glyph.ink.bounds.x + glyph.ink.bounds.width + 4).toBeLessThanOrEqual(
+  expect(system.neumes[0].bounds).toEqual(musicOnly.bounds);
+  expect(glyph.ink).toEqual(musicOnly.accidentals?.[0]?.ink);
+  // The natural now overlaps its lyric's columns; the baseline moves instead.
+  expect(glyph.ink.bounds.x + glyph.ink.bounds.width).toBeGreaterThan(
     lyric.left,
   );
+  expect(lyric.y).toBe(
+    glyph.ink.bounds.y +
+      glyph.ink.bounds.height +
+      musicToLyricClearance +
+      lyricAscent,
+  );
+  expect(lyric.y).toBeGreaterThan(firstSystemLyricBaselineY);
+  expectLyricRowClearsSigns(system);
+  expect(verticalLayoutViolations(layout)).toEqual([]);
   expect(lyric.anchorX).toBe(system.neumes[0].lyricAnchorX);
   expect(system.neumes[0].notes[0].anchorY).toBe(148);
 });
 it.each(['Sanctus', 'Benedictus', 'Sanctissimus'])(
-  'keeps a later low sign clear of the preceding %s lyric or wraps the complete group',
+  'places a later low sign by music alone after the preceding %s lyric; the lyric row clears it',
   (text) => {
     const d = blankDocument();
     d.clef = { type: 'c', staffLine: 4 };
@@ -92,14 +127,16 @@ it.each(['Sanctus', 'Benedictus', 'Sanctissimus'])(
     const system = layout.systems.find((s) =>
       s.neumes.some((n) => n.neumeId === 'b'),
     );
-    const glyph = system?.neumes.find((n) => n.neumeId === 'b')
-      ?.accidentals?.[0];
+    const [a, b] = system?.neumes ?? [];
+    const glyph = b?.accidentals?.[0];
     if (!system || !glyph) throw Error('Expected glyph');
-    if (system.index === 0) {
-      const right = system.lyrics[0].right;
-      if (right === null) throw Error('Expected lyric metrics');
-      expect(glyph.ink.bounds.x).toBeGreaterThanOrEqual(right + 4);
-    }
+    // Formerly shifted (or wrapped) past the lyric; now only the compact
+    // melisma minimum separates the groups, and the default prefix starts b.
+    expect(layout.systems).toHaveLength(1);
+    expect(b.bounds.x).toBe(a.bounds.x + a.bounds.width + intraSyllableInkGap);
+    expect(glyph.ink.bounds.x).toBe(b.bounds.x);
+    expectLyricRowClearsSigns(system);
+    expect(verticalLayoutViolations(layout)).toEqual([]);
     expect(layout.systems.flatMap((s) => s.neumes)).toHaveLength(2);
   },
 );
@@ -287,7 +324,7 @@ it('bounds signed oversized groups and retains every group once after wrapping',
 });
 
 it.each(['flat', 'natural'] as const)(
-  'expands SVG/print canvas for a high %s with default and explicit placement',
+  'adds room above a high %s with default and explicit placement, moving the staff and canvas together',
   (kind) => {
     for (const explicit of [false, true]) {
       const d = blankDocument();
@@ -309,11 +346,17 @@ it.each(['flat', 'natural'] as const)(
       const layout = layoutChant(signed);
       const groups = layout.systems.flatMap((s) => s.neumes);
       const sign = groups.flatMap((g) => g.accidentals ?? [])[0];
-      expect(layout.y).toBeLessThan(0);
-      expect(sign.ink.bounds.y).toBeGreaterThanOrEqual(layout.y);
+      // Stage 11B: the system grows above the staff instead of the canvas
+      // origin becoming negative; the staff, sign and canvas move together.
+      const [system] = layout.systems;
+      expect(layout.y).toBe(0);
+      expect(system.bottomStaffY).toBeGreaterThan(firstSystemBottomStaffY);
+      expect(system.staffLines[0].y).toBe(system.bottomStaffY);
+      expect(sign.ink.bounds.y).toBeGreaterThanOrEqual(system.y + 12);
       expect(sign.ink.bounds.y + sign.ink.bounds.height).toBeLessThanOrEqual(
         layout.y + layout.height,
       );
+      expect(verticalLayoutViolations(layout)).toEqual([]);
       const group = groups.find((g) => g.accidentals?.length);
       expect(group?.ink).toContainEqual(sign.ink);
       expect(group?.bodyInk).not.toContainEqual(sign.ink);
@@ -329,7 +372,7 @@ it.each([
   [5, 1],
   [12, 2],
 ])(
-  'clears a later centered lyric against earlier low accidental ink with %s fillers on %s systems',
+  'clears a later centered lyric below earlier low accidental ink with %s fillers on %s systems',
   (fillers, systems) => {
     const d = blankDocument();
     d.clef = { type: 'c', staffLine: 4 };
@@ -374,11 +417,14 @@ it.each([
       expect.arrayContaining(['low', 'text']),
     );
     const lyric = system.lyrics[0];
-    for (const glyph of system.neumes.flatMap((n) => n.accidentals ?? [])) {
-      expect(lyric.left).toBeGreaterThanOrEqual(
-        glyph.ink.bounds.x + glyph.ink.bounds.width + 4,
-      );
-    }
+    // Formerly the lyric was pushed right of the sign; it now keeps its
+    // music/lyric-derived x and passes beneath the sign.
+    const glyph = system.neumes.find((n) => n.neumeId === 'low')
+      ?.accidentals?.[0]?.ink.bounds;
+    if (!glyph || lyric.left === null) throw Error('Expected measured sign');
+    expect(lyric.left).toBeLessThan(glyph.x + glyph.width + 4);
+    expectLyricRowClearsSigns(system);
+    expect(verticalLayoutViolations(layout)).toEqual([]);
     expect(lyric.anchorX).toBe(
       system.neumes.find((n) => n.neumeId === 'text')?.lyricAnchorX,
     );
@@ -386,7 +432,7 @@ it.each([
   },
 );
 
-it('keeps continuation hyphen ink clear of an intervening low natural', () => {
+it('keeps text positions and the join unchanged by an intervening low natural below which the lyric row passes', () => {
   const d = blankDocument();
   d.clef = { type: 'c', staffLine: 4 };
   d.lyricLanguage = 'und';
@@ -404,29 +450,27 @@ it('keeps continuation hyphen ink clear of an intervening low natural', () => {
       boundaryBefore: 'continuation',
     },
   ];
+  const unsigned = layoutChant(d, measure).systems[0];
   const layout = layoutChant(
     updateAccidental(d, 'n1', 'natural', 'sign'),
     measure,
   );
   expect(layout.systems).toHaveLength(1);
   const [system] = layout.systems;
-  const [before, after] = system.lyrics;
   const glyph = system.neumes[1].accidentals?.[0]?.ink.bounds;
-  if (!glyph || before.right === null || after.left === null)
-    throw Error('Expected measured lyrics and sign');
-  // The natural genuinely intervenes between the two syllables.
-  expect(glyph.x + glyph.width).toBeGreaterThan(before.right);
-  expect(glyph.x).toBeLessThan(after.left);
-  expect(system.hyphens).toHaveLength(1);
-  const [left, right] = hyphenInk(system.hyphens[0]);
-  expect(right - left).toBe(20);
-  expect(left).toBeGreaterThanOrEqual(before.right + hyphenClearance);
-  expect(
-    right <= glyph.x - hyphenClearance ||
-      left >= glyph.x + glyph.width + hyphenClearance,
-    JSON.stringify({ hyphen: [left, right], glyph }),
-  ).toBe(true);
-  expect(right).toBeLessThanOrEqual(after.left - hyphenClearance);
+  if (!glyph) throw Error('Expected sign');
+  // Formerly the natural forced a separated, hyphenated continuation. It is
+  // not a lyric-row obstacle (ADR 0028): Benedictus keeps the position and
+  // compact join derived from the text and following music alone.
+  const textEdges = (s: ChantSystemLayout) =>
+    s.lyrics.map((l) => [l.left, l.right]);
+  expect(textEdges(system)).toEqual(textEdges(unsigned));
+  expect(system.neumes[2].bounds).toEqual(unsigned.neumes[2].bounds);
+  expect(system.hyphens).toEqual([]);
+  expect(glyph.x + glyph.width).toBeGreaterThan(system.lyrics[1].left ?? 0);
+  expect(system.lyricBaselineY).toBeGreaterThan(unsigned.lyricBaselineY);
+  expectLyricRowClearsSigns(system);
+  expect(verticalLayoutViolations(layout)).toEqual([]);
 });
 
 it.each([
@@ -461,9 +505,10 @@ it.each([
     const sign = system.neumes[0].accidentals?.[0]?.ink.bounds;
     if (!sign || before.right === null || after.left === null)
       throw Error('Expected measured lyrics and sign');
-    // The default flat sits wholly before its own lyric, so no hyphen interval
-    // between the syllables can intersect it.
-    expect(sign.x + sign.width + 4).toBeLessThanOrEqual(before.left ?? 0);
+    // The default flat keeps its music-only prefix position (formerly moved
+    // left of its own lyric); the lyric row passes beneath it.
+    expect(sign.x).toBe(system.neumes[0].bounds.x);
+    expectLyricRowClearsSigns(system);
     expect(system.hyphens).toEqual([]);
     expect(unsigned.hyphens).toEqual([]);
     expect(after.left - before.right).toBe(
@@ -483,7 +528,7 @@ it.each([
 );
 
 it.each(['earlier-anchor', 'default-prefix'] as const)(
-  'reserves an unobstructed continuation hyphen before the current %s group',
+  'derives the continuation join or hyphen from text gaps alone before the current %s group',
   (placement) => {
     const d = blankDocument();
     d.clef = { type: 'c', staffLine: 3 };
@@ -508,43 +553,46 @@ it.each(['earlier-anchor', 'default-prefix'] as const)(
     const layout = layoutChant(signed, measure);
     const system = layout.systems[0];
     expect(layout.systems).toHaveLength(1);
-    expect(system.hyphens).toHaveLength(1);
     const sign = system.neumes.flatMap((n) => n.accidentals ?? [])[0].ink
       .bounds;
-    const hyphen = system.hyphens[0];
     const before = system.lyrics[0],
       after = system.lyrics[1];
     const metrics = {
       before: [before.left, before.right],
       natural: [sign.x, sign.x + sign.width],
       after: [after.left, after.right],
-      hyphen: hyphenInk(hyphen),
+      hyphens: system.hyphens.map(hyphenInk),
     };
+    // Before ADR 0028 the natural forced a hyphen at [162, 182] with men at
+    // [196, 256] (earlier anchor), and pushed men to [219, 279] with a hyphen
+    // at [173.5, 193.5] (default prefix). Now the earlier-anchor case keeps
+    // the compact join and the default-prefix hyphen is centred in the text
+    // gap; the natural is cleared vertically by the lyric row.
     expect(metrics).toEqual(
       placement === 'earlier-anchor'
         ? {
             before: [140, 160],
-            natural: [184, 192],
-            after: [196, 256],
-            hyphen: [162, 182],
+            natural: [186, 194],
+            after: [161, 221],
+            hyphens: [],
           }
         : {
             before: [140, 160],
             natural: [207, 215],
-            after: [219, 279],
-            hyphen: [173.5, 193.5],
+            after: [206, 266],
+            hyphens: [[173, 193]],
           },
     );
-    const [hyphenLeft, hyphenRight] = hyphenInk(hyphen);
-    expect(hyphenLeft, JSON.stringify(metrics)).toBeGreaterThanOrEqual(
-      (before.right ?? 0) + hyphenClearance,
-    );
-    expect(hyphenRight, JSON.stringify(metrics)).toBeLessThanOrEqual(
-      sign.x - hyphenClearance,
-    );
-    expect(hyphenRight).toBeLessThanOrEqual(
-      (after.left ?? 0) - hyphenClearance,
-    );
+    for (const [hyphenLeft, hyphenRight] of metrics.hyphens) {
+      expect(hyphenLeft).toBeGreaterThanOrEqual(
+        (before.right ?? 0) + hyphenClearance,
+      );
+      expect(hyphenRight).toBeLessThanOrEqual(
+        (after.left ?? 0) - hyphenClearance,
+      );
+    }
+    expectLyricRowClearsSigns(system);
+    expect(verticalLayoutViolations(layout)).toEqual([]);
     expect(after.anchorX).toBe(
       system.neumes.find(
         (n) => n.neumeId === (placement === 'earlier-anchor' ? 'g1' : 'g2'),
@@ -557,11 +605,14 @@ it.each(['earlier-anchor', 'default-prefix'] as const)(
 
 it.each([
   [0, 'one system', [0, 0, 0, 0]],
-  [8, 'a continuation split across systems', [0, 0, 1, 1]],
+  // Signs no longer enlarge the lyric reservation (ADR 0028), so the split
+  // continuation now first occurs with 9 fillers (formerly 8).
+  [8, 'one system', [0, 0, 0, 0]],
+  [9, 'a continuation split across systems', [0, 0, 1, 1]],
   [10, 'the whole sequence wrapped', [1, 1, 1, 1]],
   [12, 'the whole sequence wrapped', [1, 1, 1, 1]],
 ] as const)(
-  'keeps hyphens clear of both preceding and current low signs with %s fillers (%s)',
+  'keeps the lyric row and hyphens below both preceding and current low signs with %s fillers (%s)',
   (fillers, _case, groupSystems) => {
     const d = blankDocument();
     d.clef = { type: 'c', staffLine: 3 };
@@ -608,17 +659,9 @@ it.each([
     const hyphens = layout.systems.flatMap((s) => s.hyphens);
     expect(hyphens).toHaveLength(1);
     expect(hyphens[0].outgoing).toBe(groupSystems[1] !== groupSystems[2]);
+    expect(verticalLayoutViolations(layout)).toEqual([]);
     for (const system of layout.systems) {
-      for (const h of system.hyphens) {
-        for (const a of system.neumes.flatMap((n) => n.accidentals ?? [])) {
-          const b = a.ink.bounds;
-          const [left, right] = hyphenInk(h);
-          expect(
-            right <= b.x - hyphenClearance ||
-              left >= b.x + b.width + hyphenClearance,
-          ).toBe(true);
-        }
-      }
+      expectLyricRowClearsSigns(system);
       for (const lyric of system.lyrics) {
         const anchor = signed.syllables.find(
           (s) => s.id === lyric.syllableId,

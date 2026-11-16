@@ -214,7 +214,10 @@ const key = async (key, code = key, modifiers = 0) => {
 };
 const click = async (selector) => {
   const p = await ev(
-    `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e.closest('.editor-sticky-toolbar') || getComputedStyle(e.closest('.editor-sticky-toolbar')).position!=='sticky')e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};})()`,
+    // Firefox's native scrollIntoView can mis-scroll an SVG <g> whose system
+    // holds safe-integer ink (Stage 11B record); finish with a page scroll
+    // from the element's correct client rect, as the 11A driver does.
+    `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e.closest('.editor-sticky-toolbar') || getComputedStyle(e.closest('.editor-sticky-toolbar')).position!=='sticky'){e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)scrollBy(0,r.top+r.height/2-innerHeight/2)}const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};})()`,
   );
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', {
@@ -287,7 +290,10 @@ const clefIds = () =>
   );
 const ink = () =>
   ev(
-    `[...document.querySelectorAll('[data-note-id]')].map(e=>({id:e.dataset.noteId,y:Number(e.querySelector('.score__note-hit-target').getAttribute('y')) - Number(e.closest('[data-system-index]').dataset.systemIndex)*244}))`,
+    // Relative to the note's own system staff origin (Stage 11B systems have
+    // measured heights; this equals the former fixed systemIndex*244 offset
+    // for ordinary systems).
+    `[...document.querySelectorAll('[data-note-id]')].map(e=>({id:e.dataset.noteId,y:Number(e.querySelector('.score__note-hit-target').getAttribute('y')) - (Math.max(...[...e.closest('[data-system-index]').querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1'))) - 124)}))`,
   );
 const offset = (type, line) => (type === 'c' ? 0 : 3) - 2 * (line - 1);
 const layoutFor = (d) => ev(`clefLayout(${JSON.stringify(d)})`);

@@ -162,9 +162,11 @@ export function ScoreSvg({
   onDeleteSyllable,
 }: ScoreSvgProps) {
   const ledgerId = useId();
-  // Distant but valid pitches: painted elements stop just outside the canvas
-  // (Stage 11A rendering safeguard); derived layout geometry is unchanged.
-  const band = renderBandFor(layout);
+  // Distant but valid pitches: painted elements stop just outside each
+  // system's musical render band (Stage 11A/11B rendering safeguard), whose
+  // clip also bounds musical ink and pointer regions; geometry is unchanged.
+  const bandFor = (system: ChantSystemLayout) =>
+    renderBandFor(system.musicBand);
   const clefPreviewElement = useRef<SVGGElement>(null);
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
@@ -560,725 +562,779 @@ export function ScoreSvg({
         the note.
       </desc>
 
-      {layout.systems.map((system) => (
-        <g key={system.index} data-system-index={system.index}>
-          {(() => {
-            const range = rangeSelectionBounds(system, rangeIds);
-            if (!range) return null;
-            const bounds = clampToBand(range, band);
-            return (
-              <rect
-                className="score__range-selection"
-                {...bounds}
-                rx={3}
-                fill="#e9ddf7"
-                pointerEvents="none"
-                aria-hidden="true"
-              />
-            );
-          })()}
-          <SystemStaff system={system} />
-          {system.index === 0 ? (
-            <ClefControl
-              clef={system.clef}
-              selected={selection.kind === 'clef'}
-              disabled={
-                placementActive || Boolean(lyricMove) || transactionBlocked
-              }
-              onSelect={onSelectClef}
-              onChange={onChangeClef}
-              registerElement={(element) => {
-                clefElement.current = element;
-              }}
-            />
-          ) : !system.leadingClefChangeId ? (
-            <path
-              className="score__clef-ink"
-              d={system.clef.path}
+      {layout.systems.map((system) => {
+        const band = bandFor(system);
+        const musicClipId = `${ledgerId}-music-${system.index}`;
+        return (
+          <g
+            key={system.index}
+            data-system-index={system.index}
+            data-system-top={system.y}
+            data-system-height={system.height}
+            data-lyric-baseline={system.lyricBaselineY}
+            data-music-top={system.musicBand.top}
+            data-music-bottom={system.musicBand.bottom}
+          >
+            <defs>
+              <clipPath id={musicClipId}>
+                <rect
+                  x={layout.x}
+                  y={system.musicBand.top}
+                  width={layout.width}
+                  height={system.musicBand.bottom - system.musicBand.top}
+                />
+              </clipPath>
+            </defs>
+            {(() => {
+              const range = rangeSelectionBounds(system, rangeIds);
+              if (!range) return null;
+              const bounds = clampToBand(range, band);
+              return (
+                <rect
+                  className="score__range-selection"
+                  {...bounds}
+                  rx={3}
+                  fill="#e9ddf7"
+                  pointerEvents="none"
+                  aria-hidden="true"
+                />
+              );
+            })()}
+            {/* Musical ink and its pointer regions stay inside the band its
+              system reserves; lyrics and hyphens are outside the clip. */}
+            <g
+              className="score__system-music"
+              clipPath={`url(#${musicClipId})`}
+            >
+              <SystemStaff system={system} />
+              {system.index === 0 ? (
+                <ClefControl
+                  clef={system.clef}
+                  selected={selection.kind === 'clef'}
+                  disabled={
+                    placementActive || Boolean(lyricMove) || transactionBlocked
+                  }
+                  onSelect={onSelectClef}
+                  onChange={onChangeClef}
+                  registerElement={(element) => {
+                    clefElement.current = element;
+                  }}
+                />
+              ) : !system.leadingClefChangeId ? (
+                <path
+                  className="score__clef-ink"
+                  d={system.clef.path}
+                  aria-hidden="true"
+                  pointerEvents="none"
+                />
+              ) : null}
+              {system.custodes.map((guide, i) => {
+                const run =
+                  guide.ledgerLines &&
+                  visibleLedgerRun(guide.ledgerLines, band.top, band.bottom);
+                return (
+                  <g key={i} aria-hidden="true" pointerEvents="none">
+                    {guide.ledgerLines && run ? (
+                      <>
+                        <defs>
+                          {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
+                          <pattern
+                            id={`${ledgerId}-${system.index}-${i}`}
+                            patternUnits="userSpaceOnUse"
+                            viewBox={`0 0 ${run.x2 - run.x1} ${custosLedgerSpacing}`}
+                            x={run.x1}
+                            y={run.topY - custosLedgerThickness / 2}
+                            width={run.x2 - run.x1}
+                            height={custosLedgerSpacing}
+                          >
+                            <rect
+                              width={run.x2 - run.x1}
+                              height={custosLedgerThickness}
+                              fill="currentColor"
+                            />
+                          </pattern>
+                        </defs>
+                        <rect
+                          className="score__custos-ledgers"
+                          data-ledger-count={guide.ledgerLines.count}
+                          data-painted-ledger-count={
+                            run.count === guide.ledgerLines.count
+                              ? undefined
+                              : run.count
+                          }
+                          x={run.x1}
+                          y={run.topY - custosLedgerThickness / 2}
+                          width={run.x2 - run.x1}
+                          height={
+                            run.bottomY - run.topY + custosLedgerThickness
+                          }
+                          fill={`url(#${ledgerId}-${system.index}-${i})`}
+                        />
+                      </>
+                    ) : null}
+                    <path
+                      className="score__custos"
+                      d={guide.path}
+                      data-custos-position={guide.staffPosition}
+                      data-outgoing={guide.outgoing}
+                    />
+                  </g>
+                );
+              })}
+
+              {[
+                ...system.clefChanges.map((clef) => ({
+                  type: 'clef' as const,
+                  clef,
+                  x: clef.bounds.x,
+                })),
+                ...system.neumes.map((neume) => ({
+                  type: 'neume' as const,
+                  neume,
+                  x: neume.bounds.x,
+                })),
+                ...system.divisions.map((division) => ({
+                  type: 'division' as const,
+                  division,
+                  x: division.bounds.x,
+                })),
+              ]
+                .sort((a, b) => a.x - b.x)
+                .map((item) => {
+                  if (item.type === 'clef') {
+                    const id = item.clef.clefChangeId;
+                    return (
+                      <ClefControl
+                        key={id}
+                        draft={clefDraftPreview?.id === id}
+                        clef={item.clef}
+                        editingClef={
+                          clefEdit?.id === id ? clefEdit.clef : undefined
+                        }
+                        changeId={id}
+                        selected={
+                          selection.kind === 'clef-change' &&
+                          selection.clefChangeId === id
+                        }
+                        disabled={
+                          placementActive ||
+                          !!lyricMove ||
+                          (transactionBlocked && clefEdit?.id !== id)
+                        }
+                        onSelect={() => onSelectClefChange(id)}
+                        onStep={(direction) => onStepClefChange(id, direction)}
+                        onDelete={() => onDeleteClefChange(id)}
+                        registerElement={(element) => {
+                          if (element)
+                            clefChangeElements.current.set(id, element);
+                          else clefChangeElements.current.delete(id);
+                        }}
+                      />
+                    );
+                  }
+                  if (item.type === 'division') {
+                    const division = item.division;
+                    const selected =
+                      selection.kind === 'division' &&
+                      selection.divisionId === division.divisionId;
+                    return (
+                      <DivisionControl
+                        key={division.divisionId}
+                        division={division}
+                        selected={selected}
+                        disabled={
+                          placementActive ||
+                          Boolean(lyricMove) ||
+                          transactionBlocked
+                        }
+                        ordinal={
+                          layout.systems
+                            .flatMap((s) => s.divisions)
+                            .findIndex(
+                              (d) => d.divisionId === division.divisionId,
+                            ) + 1
+                        }
+                        systemIndex={system.index}
+                        registerElement={(element) => {
+                          if (element)
+                            divisionElements.current.set(
+                              division.divisionId,
+                              element,
+                            );
+                          else
+                            divisionElements.current.delete(
+                              division.divisionId,
+                            );
+                        }}
+                        onSelectDivision={onSelectDivision}
+                        onDeleteDivision={onDeleteDivision}
+                      />
+                    );
+                  }
+                  const neume = item.neume;
+                  const isNeumeSelected =
+                    selection.kind === 'neume' &&
+                    selection.neumeId === neume.neumeId;
+                  const selectedDescription = getSelectedNeumeDescription(
+                    neume.kind,
+                    isNeumeSelected,
+                    neume.notes.length,
+                    neume.liquescentFigure,
+                  );
+                  const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
+                  const ownershipClip = neume.hitClip
+                    ? `url(#hit-clip-${neume.neumeId})`
+                    : undefined;
+                  // Ordinary padding is clipped to layout's ownership interval at
+                  // compact boundaries, including lyric reassignment destinations.
+                  // Bounds-derived overlays are limited to the painted band too.
+                  const moveBounds = clampToBand(
+                    {
+                      x: neume.bounds.x - 7,
+                      y: neume.bounds.y - 7,
+                      width: neume.bounds.width + 14,
+                      height: neume.bounds.height + 14,
+                    },
+                    band,
+                  );
+
+                  return (
+                    <g
+                      key={neume.neumeId}
+                      data-neume-id={neume.neumeId}
+                      data-neume-kind={neume.kind}
+                      data-liquescent-figure={neume.liquescentFigure}
+                    >
+                      {neume.hitClip ? (
+                        <defs>
+                          <clipPath id={`hit-clip-${neume.neumeId}`}>
+                            <rect
+                              {...clampToBand(
+                                {
+                                  x: neume.hitClip.left,
+                                  y: neume.bounds.y - 20,
+                                  width:
+                                    neume.hitClip.right - neume.hitClip.left,
+                                  height: neume.bounds.height + 40,
+                                },
+                                band,
+                              )}
+                            />
+                          </clipPath>
+                        </defs>
+                      ) : null}
+                      {selectedDescription ? (
+                        <desc id={selectedDescriptionId}>
+                          {selectedDescription}
+                        </desc>
+                      ) : null}
+                      {isNeumeSelected ? (
+                        // Fitted inside ownership rather than clipped, so the
+                        // dashed outline stays complete at compact boundaries.
+                        <rect
+                          className="score__neume-selection"
+                          data-selected-neume-id={neume.neumeId}
+                          {...clampToBand(neumeSelectionBounds(neume), band)}
+                          rx="4"
+                          pointerEvents="none"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      {placementActive &&
+                      (isNeumeSelected ||
+                        (selection.kind === 'note' &&
+                          neume.notes.some(
+                            (note) => note.noteId === selection.noteId,
+                          ))) ? (
+                        <rect
+                          className="score__placement-context"
+                          clipPath={ownershipClip}
+                          {...moveBounds}
+                          rx="3"
+                          pointerEvents="none"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      {lyricMove &&
+                      (lyricMove.legalIds.includes(neume.neumeId) ||
+                        lyricMove.anchorId === neume.neumeId) ? (
+                        <g pointerEvents="none" aria-hidden="true">
+                          <rect
+                            clipPath={ownershipClip}
+                            className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
+                            {...moveBounds}
+                            rx="3"
+                          />
+                          <text
+                            className="score__move-caption"
+                            x={neume.bounds.x}
+                            y={neume.bounds.y - 14}
+                          >
+                            {lyricMove.anchorId === neume.neumeId
+                              ? 'Current anchor'
+                              : lyricMove.candidateId === neume.neumeId
+                                ? 'Preview'
+                                : 'Legal'}
+                          </text>
+                        </g>
+                      ) : null}
+                      <NeumeInk
+                        ink={neume.bodyInk ?? neume.ink}
+                        ledgers={neume.ledgers}
+                        band={band}
+                      />
+                      {neume.notes.map((note, noteIndex) => {
+                        const isNoteSelected =
+                          selection.kind === 'note' &&
+                          selection.noteId === note.noteId;
+                        const accessibleLabel =
+                          getNoteAccessibleLabel(
+                            neume.kind,
+                            noteIndex,
+                            neume.notes.length,
+                            neume.liquescentFigure,
+                          ) +
+                          getNoteModifierDescription(
+                            note,
+                            neume.notes.filter((n) => n.mora).length === 2,
+                          );
+
+                        return (
+                          <g
+                            className="score__note"
+                            key={note.noteId}
+                            ref={(element) => {
+                              if (element) {
+                                noteElements.current.set(note.noteId, element);
+                              } else {
+                                // Remember actual SVG focus before React detaches
+                                // a reparented note. Firefox may not have emitted
+                                // the bubbling focus event used by the listener.
+                                const previous = noteElements.current.get(
+                                  note.noteId,
+                                );
+                                if (
+                                  previous &&
+                                  document.activeElement === previous
+                                )
+                                  focusedEntity.current = {
+                                    kind: 'note',
+                                    id: note.noteId,
+                                    element: previous,
+                                  };
+                                noteElements.current.delete(note.noteId);
+                              }
+                            }}
+                            data-note-id={note.noteId}
+                            role="button"
+                            tabIndex={
+                              placementActive ||
+                              transactionBlocked ||
+                              (accidentalTargetIds &&
+                                !accidentalTargetIds.includes(note.noteId))
+                                ? -1
+                                : 0
+                            }
+                            pointerEvents={
+                              placementActive || lyricMove || transactionBlocked
+                                ? 'none'
+                                : 'all'
+                            }
+                            aria-label={
+                              lyricMove
+                                ? `${accessibleLabel}. Neume ${system.startNeumeIndex + system.neumes.indexOf(neume) + 1}. ${lyricMove.anchorId === neume.neumeId ? 'Current anchor' : lyricMove.legalIds.includes(neume.neumeId) ? 'Legal destination' : 'Unavailable: occupied or crosses another anchor'}.${lyricMove.candidateId === neume.neumeId ? ' Previewed destination.' : ''}`
+                                : accessibleLabel
+                            }
+                            aria-describedby={
+                              lyricMove
+                                ? 'lyric-move-help'
+                                : `whole-neume-selection-instruction${rangeIds?.has(neume.neumeId) ? ' range-member-description' : ''}${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
+                            }
+                            aria-pressed={isNoteSelected}
+                            aria-disabled={
+                              placementActive ||
+                              transactionBlocked ||
+                              (!!accidentalTargetIds &&
+                                !accidentalTargetIds.includes(note.noteId))
+                            }
+                            onMouseDown={(event) => {
+                              if (
+                                onExtendSelection &&
+                                event.shiftKey &&
+                                !event.ctrlKey &&
+                                !event.metaKey &&
+                                !event.altKey &&
+                                !placementActive &&
+                                !transactionBlocked &&
+                                !lyricMove &&
+                                !accidentalTargetIds
+                              )
+                                event.preventDefault();
+                            }}
+                            onClick={(event) =>
+                              handleNoteClick(event, note.noteId)
+                            }
+                            onKeyDown={(event) => {
+                              if (accidentalTargetIds) {
+                                if (event.nativeEvent.isComposing) return;
+                                if (
+                                  event.key === 'Enter' ||
+                                  event.key === ' '
+                                ) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  onAccidentalTarget(note.noteId);
+                                } else if (
+                                  [
+                                    'ArrowLeft',
+                                    'ArrowRight',
+                                    'ArrowUp',
+                                    'ArrowDown',
+                                  ].includes(event.key)
+                                ) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  const current = accidentalTargetIds.indexOf(
+                                    note.noteId,
+                                  );
+                                  const delta =
+                                    event.key === 'ArrowLeft' ||
+                                    event.key === 'ArrowUp'
+                                      ? -1
+                                      : 1;
+                                  const id =
+                                    accidentalTargetIds[
+                                      (current +
+                                        delta +
+                                        accidentalTargetIds.length) %
+                                        accidentalTargetIds.length
+                                    ];
+                                  const element = noteElements.current.get(id);
+                                  if (element) focusAndReveal(element);
+                                }
+                                return;
+                              }
+                              handleNoteKeyDown(
+                                event,
+                                note.noteId,
+                                neume.neumeId,
+                                isNoteSelected,
+                                isNeumeSelected,
+                              );
+                            }}
+                          >
+                            {accidentalTargetIds?.includes(note.noteId) ? (
+                              <rect
+                                className="score__accidental-placement-target"
+                                {...note.hitBounds}
+                                fill="none"
+                                stroke="#a33"
+                                strokeWidth="2"
+                                pointerEvents="none"
+                                aria-hidden="true"
+                              />
+                            ) : null}
+                            <g
+                              aria-hidden="true"
+                              clipPath={
+                                neume.hitClip
+                                  ? `url(#hit-clip-${neume.neumeId})`
+                                  : undefined
+                              }
+                              pointerEvents={
+                                placementActive || lyricMove
+                                  ? 'none'
+                                  : neume.kind === 'climacus' ||
+                                      neume.kind === 'climacus-resupinus' ||
+                                      neume.kind === 'porrectus' ||
+                                      neume.kind === 'porrectus-flexus' ||
+                                      neume.kind === 'torculus-resupinus' ||
+                                      neume.kind === 'pes-subpunctis'
+                                    ? 'fill'
+                                    : undefined
+                              }
+                            >
+                              <InkShapeView
+                                className="score__note-hit-target"
+                                shape={
+                                  note.hitShape ?? {
+                                    kind: 'rect',
+                                    bounds: note.hitBounds,
+                                    radius: 0,
+                                  }
+                                }
+                              />
+                            </g>
+                            {note.modifierBounds ? (
+                              <rect
+                                {...note.modifierBounds}
+                                fill="none"
+                                pointerEvents="none"
+                                aria-hidden="true"
+                              />
+                            ) : null}
+                            {isNoteSelected ? (
+                              <g pointerEvents="none" aria-hidden="true">
+                                <InkShapeView
+                                  shape={note.head}
+                                  className="score__note-selection"
+                                />
+                              </g>
+                            ) : null}
+                          </g>
+                        );
+                      })}
+                      {neume.accidentals?.map((a) => {
+                        const id = a.accidentalId;
+                        return id ? (
+                          <g
+                            className="score__accidental"
+                            pointerEvents={
+                              activeTool.kind === 'select' &&
+                              !transactionBlocked &&
+                              !accidentalTargetIds
+                                ? 'all'
+                                : 'none'
+                            }
+                            aria-disabled={
+                              activeTool.kind !== 'select' ||
+                              transactionBlocked ||
+                              !!accidentalTargetIds
+                            }
+                            key={id}
+                            data-accidental-id={id}
+                            tabIndex={
+                              activeTool.kind === 'select' &&
+                              !transactionBlocked &&
+                              !accidentalTargetIds
+                                ? 0
+                                : -1
+                            }
+                            role="button"
+                            aria-label={getAccidentalAccessibleLabel(a)}
+                            aria-pressed={
+                              selection.kind === 'accidental' &&
+                              selection.accidentalId === id
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!transactionBlocked) onSelectAccidental(id);
+                            }}
+                            onKeyDown={(e) => {
+                              if (transactionBlocked) return;
+                              if (
+                                e.key === 'Tab' &&
+                                !e.shiftKey &&
+                                selection.kind === 'accidental' &&
+                                selection.accidentalId === id &&
+                                onFocusAccidentalProperties()
+                              ) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return;
+                              }
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onSelectAccidental(id);
+                              }
+                              if (e.key === 'Delete' || e.key === 'Backspace') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onDeleteAccidental(id);
+                              }
+                            }}
+                          >
+                            <InkShapeView
+                              shape={a.ink}
+                              className="score__accidental-ink"
+                            />
+                            <rect
+                              className="score__accidental-target"
+                              clipPath={
+                                neume.hitClip
+                                  ? `url(#hit-clip-${neume.neumeId})`
+                                  : undefined
+                              }
+                              {...a.hitBounds}
+                              fill="transparent"
+                              stroke={
+                                selection.kind === 'accidental' &&
+                                selection.accidentalId === id
+                                  ? 'var(--accent, #a33)'
+                                  : 'none'
+                              }
+                              strokeWidth="2"
+                            />
+                          </g>
+                        ) : null;
+                      })}
+                      {lyricMove ? (
+                        <rect
+                          className="score__move-hit-target"
+                          {...moveBounds}
+                          rx="3"
+                          fill="transparent"
+                          stroke="transparent"
+                          strokeWidth={
+                            lyricMove.candidateId === neume.neumeId ? 3 : 2
+                          }
+                          pointerEvents="all"
+                          clipPath={
+                            neume.hitClip
+                              ? `url(#hit-clip-${neume.neumeId})`
+                              : undefined
+                          }
+                          aria-hidden="true"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onMoveDestination(neume.neumeId);
+                          }}
+                        />
+                      ) : null}
+                    </g>
+                  );
+                })}
+            </g>
+
+            <g
               aria-hidden="true"
               pointerEvents="none"
-            />
-          ) : null}
-          {system.custodes.map((guide, i) => {
-            const run =
-              guide.ledgerLines &&
-              visibleLedgerRun(guide.ledgerLines, band.top, band.bottom);
-            return (
-              <g key={i} aria-hidden="true" pointerEvents="none">
-                {guide.ledgerLines && run ? (
-                  <>
-                    <defs>
-                      {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
-                      <pattern
-                        id={`${ledgerId}-${system.index}-${i}`}
-                        patternUnits="userSpaceOnUse"
-                        viewBox={`0 0 ${run.x2 - run.x1} ${custosLedgerSpacing}`}
-                        x={run.x1}
-                        y={run.topY - custosLedgerThickness / 2}
-                        width={run.x2 - run.x1}
-                        height={custosLedgerSpacing}
-                      >
-                        <rect
-                          width={run.x2 - run.x1}
-                          height={custosLedgerThickness}
-                          fill="currentColor"
-                        />
-                      </pattern>
-                    </defs>
+              className="score__hyphens"
+            >
+              {system.hyphens.map((hyphen, index) => (
+                <text
+                  key={index}
+                  x={hyphen.x}
+                  y={hyphen.y}
+                  fontFamily={lyricFontFamily}
+                  fontSize={lyricFontSize}
+                  textAnchor="middle"
+                  textRendering="geometricPrecision"
+                  data-outgoing={hyphen.outgoing}
+                >
+                  -
+                </text>
+              ))}
+            </g>
+            {system.lyrics.map((lyric) => (
+              <g key={lyric.syllableId} className="score__lyric-control">
+                <g
+                  className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
+                >
+                  {selection.kind === 'syllable' &&
+                  selection.syllableId === lyric.syllableId &&
+                  lyric.left !== null &&
+                  lyric.right !== null ? (
                     <rect
-                      className="score__custos-ledgers"
-                      data-ledger-count={guide.ledgerLines.count}
-                      data-painted-ledger-count={
-                        run.count === guide.ledgerLines.count
-                          ? undefined
-                          : run.count
+                      className="score__lyric-selection"
+                      x={
+                        lyric.left + Math.min(2, (lyric.right - lyric.left) / 2)
                       }
-                      x={run.x1}
-                      y={run.topY - custosLedgerThickness / 2}
-                      width={run.x2 - run.x1}
-                      height={run.bottomY - run.topY + custosLedgerThickness}
-                      fill={`url(#${ledgerId}-${system.index}-${i})`}
+                      y={lyric.y - lyric.fontSize}
+                      width={Math.max(0, lyric.right - lyric.left - 4)}
+                      height={lyric.fontSize * 1.3}
+                      rx={1.5}
+                      aria-hidden="true"
+                      pointerEvents="none"
                     />
-                  </>
-                ) : null}
-                <path
-                  className="score__custos"
-                  d={guide.path}
-                  data-custos-position={guide.staffPosition}
-                  data-outgoing={guide.outgoing}
-                />
-              </g>
-            );
-          })}
-
-          {[
-            ...system.clefChanges.map((clef) => ({
-              type: 'clef' as const,
-              clef,
-              x: clef.bounds.x,
-            })),
-            ...system.neumes.map((neume) => ({
-              type: 'neume' as const,
-              neume,
-              x: neume.bounds.x,
-            })),
-            ...system.divisions.map((division) => ({
-              type: 'division' as const,
-              division,
-              x: division.bounds.x,
-            })),
-          ]
-            .sort((a, b) => a.x - b.x)
-            .map((item) => {
-              if (item.type === 'clef') {
-                const id = item.clef.clefChangeId;
-                return (
-                  <ClefControl
-                    key={id}
-                    draft={clefDraftPreview?.id === id}
-                    clef={item.clef}
-                    editingClef={
-                      clefEdit?.id === id ? clefEdit.clef : undefined
-                    }
-                    changeId={id}
-                    selected={
-                      selection.kind === 'clef-change' &&
-                      selection.clefChangeId === id
-                    }
-                    disabled={
-                      placementActive ||
-                      !!lyricMove ||
-                      (transactionBlocked && clefEdit?.id !== id)
-                    }
-                    onSelect={() => onSelectClefChange(id)}
-                    onStep={(direction) => onStepClefChange(id, direction)}
-                    onDelete={() => onDeleteClefChange(id)}
-                    registerElement={(element) => {
-                      if (element) clefChangeElements.current.set(id, element);
-                      else clefChangeElements.current.delete(id);
+                  ) : null}
+                  <text
+                    className="score__lyric"
+                    ref={(element) => {
+                      if (element)
+                        lyricElements.current.set(lyric.syllableId, element);
+                      else lyricElements.current.delete(lyric.syllableId);
                     }}
-                  />
-                );
-              }
-              if (item.type === 'division') {
-                const division = item.division;
-                const selected =
-                  selection.kind === 'division' &&
-                  selection.divisionId === division.divisionId;
-                return (
-                  <DivisionControl
-                    key={division.divisionId}
-                    division={division}
-                    selected={selected}
-                    disabled={
+                    role="button"
+                    aria-describedby="lyric-focus-help"
+                    tabIndex={
+                      placementActive || lyricMove || transactionBlocked
+                        ? -1
+                        : 0
+                    }
+                    aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
+                    aria-pressed={
+                      selection.kind === 'syllable' &&
+                      selection.syllableId === lyric.syllableId
+                    }
+                    aria-disabled={
                       placementActive ||
                       Boolean(lyricMove) ||
                       transactionBlocked
                     }
-                    ordinal={
-                      layout.systems
-                        .flatMap((s) => s.divisions)
-                        .findIndex(
-                          (d) => d.divisionId === division.divisionId,
-                        ) + 1
+                    pointerEvents={
+                      placementActive || lyricMove || transactionBlocked
+                        ? 'none'
+                        : 'all'
                     }
-                    systemIndex={system.index}
-                    registerElement={(element) => {
-                      if (element)
-                        divisionElements.current.set(
-                          division.divisionId,
-                          element,
-                        );
-                      else divisionElements.current.delete(division.divisionId);
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (!placementActive && !lyricMove && !transactionBlocked)
+                        onSelectSyllable(lyric.syllableId);
                     }}
-                    onSelectDivision={onSelectDivision}
-                    onDeleteDivision={onDeleteDivision}
-                  />
-                );
-              }
-              const neume = item.neume;
-              const isNeumeSelected =
-                selection.kind === 'neume' &&
-                selection.neumeId === neume.neumeId;
-              const selectedDescription = getSelectedNeumeDescription(
-                neume.kind,
-                isNeumeSelected,
-                neume.notes.length,
-                neume.liquescentFigure,
-              );
-              const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
-              const ownershipClip = neume.hitClip
-                ? `url(#hit-clip-${neume.neumeId})`
-                : undefined;
-              // Ordinary padding is clipped to layout's ownership interval at
-              // compact boundaries, including lyric reassignment destinations.
-              // Bounds-derived overlays are limited to the painted band too.
-              const moveBounds = clampToBand(
-                {
-                  x: neume.bounds.x - 7,
-                  y: neume.bounds.y - 7,
-                  width: neume.bounds.width + 14,
-                  height: neume.bounds.height + 14,
-                },
-                band,
-              );
-
-              return (
-                <g
-                  key={neume.neumeId}
-                  data-neume-id={neume.neumeId}
-                  data-neume-kind={neume.kind}
-                  data-liquescent-figure={neume.liquescentFigure}
-                >
-                  {neume.hitClip ? (
-                    <defs>
-                      <clipPath id={`hit-clip-${neume.neumeId}`}>
-                        <rect
-                          {...clampToBand(
-                            {
-                              x: neume.hitClip.left,
-                              y: neume.bounds.y - 20,
-                              width: neume.hitClip.right - neume.hitClip.left,
-                              height: neume.bounds.height + 40,
-                            },
-                            band,
-                          )}
-                        />
-                      </clipPath>
-                    </defs>
-                  ) : null}
-                  {selectedDescription ? (
-                    <desc id={selectedDescriptionId}>
-                      {selectedDescription}
-                    </desc>
-                  ) : null}
-                  {isNeumeSelected ? (
-                    // Fitted inside ownership rather than clipped, so the
-                    // dashed outline stays complete at compact boundaries.
-                    <rect
-                      className="score__neume-selection"
-                      data-selected-neume-id={neume.neumeId}
-                      {...clampToBand(neumeSelectionBounds(neume), band)}
-                      rx="4"
-                      pointerEvents="none"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  {placementActive &&
-                  (isNeumeSelected ||
-                    (selection.kind === 'note' &&
-                      neume.notes.some(
-                        (note) => note.noteId === selection.noteId,
-                      ))) ? (
-                    <rect
-                      className="score__placement-context"
-                      clipPath={ownershipClip}
-                      {...moveBounds}
-                      rx="3"
-                      pointerEvents="none"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  {lyricMove &&
-                  (lyricMove.legalIds.includes(neume.neumeId) ||
-                    lyricMove.anchorId === neume.neumeId) ? (
-                    <g pointerEvents="none" aria-hidden="true">
-                      <rect
-                        clipPath={ownershipClip}
-                        className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
-                        {...moveBounds}
-                        rx="3"
-                      />
-                      <text
-                        className="score__move-caption"
-                        x={neume.bounds.x}
-                        y={neume.bounds.y - 14}
-                      >
-                        {lyricMove.anchorId === neume.neumeId
-                          ? 'Current anchor'
-                          : lyricMove.candidateId === neume.neumeId
-                            ? 'Preview'
-                            : 'Legal'}
-                      </text>
-                    </g>
-                  ) : null}
-                  <NeumeInk
-                    ink={neume.bodyInk ?? neume.ink}
-                    ledgers={neume.ledgers}
-                    band={band}
-                  />
-                  {neume.notes.map((note, noteIndex) => {
-                    const isNoteSelected =
-                      selection.kind === 'note' &&
-                      selection.noteId === note.noteId;
-                    const accessibleLabel =
-                      getNoteAccessibleLabel(
-                        neume.kind,
-                        noteIndex,
-                        neume.notes.length,
-                        neume.liquescentFigure,
-                      ) +
-                      getNoteModifierDescription(
-                        note,
-                        neume.notes.filter((n) => n.mora).length === 2,
+                    onDoubleClick={(event) => {
+                      event.stopPropagation();
+                      if (!placementActive && !lyricMove && !transactionBlocked)
+                        onEditSyllable(lyric.syllableId);
+                    }}
+                    onKeyDown={(event) => {
+                      if (lyricMove || transactionBlocked) return;
+                      const action = getSyllableKeyAction(
+                        event.nativeEvent,
+                        selection.kind === 'syllable' &&
+                          selection.syllableId === lyric.syllableId,
+                        placementActive,
                       );
-
-                    return (
-                      <g
-                        className="score__note"
-                        key={note.noteId}
-                        ref={(element) => {
-                          if (element) {
-                            noteElements.current.set(note.noteId, element);
-                          } else {
-                            // Remember actual SVG focus before React detaches
-                            // a reparented note. Firefox may not have emitted
-                            // the bubbling focus event used by the listener.
-                            const previous = noteElements.current.get(
-                              note.noteId,
-                            );
-                            if (previous && document.activeElement === previous)
-                              focusedEntity.current = {
-                                kind: 'note',
-                                id: note.noteId,
-                                element: previous,
-                              };
-                            noteElements.current.delete(note.noteId);
-                          }
-                        }}
-                        data-note-id={note.noteId}
-                        role="button"
-                        tabIndex={
-                          placementActive ||
-                          transactionBlocked ||
-                          (accidentalTargetIds &&
-                            !accidentalTargetIds.includes(note.noteId))
-                            ? -1
-                            : 0
-                        }
-                        pointerEvents={
-                          placementActive || lyricMove || transactionBlocked
-                            ? 'none'
-                            : 'all'
-                        }
-                        aria-label={
-                          lyricMove
-                            ? `${accessibleLabel}. Neume ${system.startNeumeIndex + system.neumes.indexOf(neume) + 1}. ${lyricMove.anchorId === neume.neumeId ? 'Current anchor' : lyricMove.legalIds.includes(neume.neumeId) ? 'Legal destination' : 'Unavailable: occupied or crosses another anchor'}.${lyricMove.candidateId === neume.neumeId ? ' Previewed destination.' : ''}`
-                            : accessibleLabel
-                        }
-                        aria-describedby={
-                          lyricMove
-                            ? 'lyric-move-help'
-                            : `whole-neume-selection-instruction${rangeIds?.has(neume.neumeId) ? ' range-member-description' : ''}${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
-                        }
-                        aria-pressed={isNoteSelected}
-                        aria-disabled={
-                          placementActive ||
-                          transactionBlocked ||
-                          (!!accidentalTargetIds &&
-                            !accidentalTargetIds.includes(note.noteId))
-                        }
-                        onMouseDown={(event) => {
-                          if (
-                            onExtendSelection &&
-                            event.shiftKey &&
-                            !event.ctrlKey &&
-                            !event.metaKey &&
-                            !event.altKey &&
-                            !placementActive &&
-                            !transactionBlocked &&
-                            !lyricMove &&
-                            !accidentalTargetIds
-                          )
-                            event.preventDefault();
-                        }}
-                        onClick={(event) => handleNoteClick(event, note.noteId)}
-                        onKeyDown={(event) => {
-                          if (accidentalTargetIds) {
-                            if (event.nativeEvent.isComposing) return;
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              onAccidentalTarget(note.noteId);
-                            } else if (
-                              [
-                                'ArrowLeft',
-                                'ArrowRight',
-                                'ArrowUp',
-                                'ArrowDown',
-                              ].includes(event.key)
-                            ) {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              const current = accidentalTargetIds.indexOf(
-                                note.noteId,
-                              );
-                              const delta =
-                                event.key === 'ArrowLeft' ||
-                                event.key === 'ArrowUp'
-                                  ? -1
-                                  : 1;
-                              const id =
-                                accidentalTargetIds[
-                                  (current +
-                                    delta +
-                                    accidentalTargetIds.length) %
-                                    accidentalTargetIds.length
-                                ];
-                              const element = noteElements.current.get(id);
-                              if (element) focusAndReveal(element);
-                            }
-                            return;
-                          }
-                          handleNoteKeyDown(
-                            event,
-                            note.noteId,
-                            neume.neumeId,
-                            isNoteSelected,
-                            isNeumeSelected,
-                          );
-                        }}
-                      >
-                        {accidentalTargetIds?.includes(note.noteId) ? (
-                          <rect
-                            className="score__accidental-placement-target"
-                            {...note.hitBounds}
-                            fill="none"
-                            stroke="#a33"
-                            strokeWidth="2"
-                            pointerEvents="none"
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                        <g
-                          aria-hidden="true"
-                          clipPath={
-                            neume.hitClip
-                              ? `url(#hit-clip-${neume.neumeId})`
-                              : undefined
-                          }
-                          pointerEvents={
-                            placementActive || lyricMove
-                              ? 'none'
-                              : neume.kind === 'climacus' ||
-                                  neume.kind === 'climacus-resupinus' ||
-                                  neume.kind === 'porrectus' ||
-                                  neume.kind === 'porrectus-flexus' ||
-                                  neume.kind === 'torculus-resupinus' ||
-                                  neume.kind === 'pes-subpunctis'
-                                ? 'fill'
-                                : undefined
-                          }
-                        >
-                          <InkShapeView
-                            className="score__note-hit-target"
-                            shape={
-                              note.hitShape ?? {
-                                kind: 'rect',
-                                bounds: note.hitBounds,
-                                radius: 0,
-                              }
-                            }
-                          />
-                        </g>
-                        {note.modifierBounds ? (
-                          <rect
-                            {...note.modifierBounds}
-                            fill="none"
-                            pointerEvents="none"
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                        {isNoteSelected ? (
-                          <g pointerEvents="none" aria-hidden="true">
-                            <InkShapeView
-                              shape={note.head}
-                              className="score__note-selection"
-                            />
-                          </g>
-                        ) : null}
-                      </g>
-                    );
-                  })}
-                  {neume.accidentals?.map((a) => {
-                    const id = a.accidentalId;
-                    return id ? (
-                      <g
-                        className="score__accidental"
-                        pointerEvents={
-                          activeTool.kind === 'select' &&
-                          !transactionBlocked &&
-                          !accidentalTargetIds
-                            ? 'all'
-                            : 'none'
-                        }
-                        aria-disabled={
-                          activeTool.kind !== 'select' ||
-                          transactionBlocked ||
-                          !!accidentalTargetIds
-                        }
-                        key={id}
-                        data-accidental-id={id}
-                        tabIndex={
-                          activeTool.kind === 'select' &&
-                          !transactionBlocked &&
-                          !accidentalTargetIds
-                            ? 0
-                            : -1
-                        }
-                        role="button"
-                        aria-label={getAccidentalAccessibleLabel(a)}
-                        aria-pressed={
-                          selection.kind === 'accidental' &&
-                          selection.accidentalId === id
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!transactionBlocked) onSelectAccidental(id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (transactionBlocked) return;
-                          if (
-                            e.key === 'Tab' &&
-                            !e.shiftKey &&
-                            selection.kind === 'accidental' &&
-                            selection.accidentalId === id &&
-                            onFocusAccidentalProperties()
-                          ) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return;
-                          }
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onSelectAccidental(id);
-                          }
-                          if (e.key === 'Delete' || e.key === 'Backspace') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onDeleteAccidental(id);
-                          }
-                        }}
-                      >
-                        <InkShapeView
-                          shape={a.ink}
-                          className="score__accidental-ink"
-                        />
-                        <rect
-                          className="score__accidental-target"
-                          clipPath={
-                            neume.hitClip
-                              ? `url(#hit-clip-${neume.neumeId})`
-                              : undefined
-                          }
-                          {...a.hitBounds}
-                          fill="transparent"
-                          stroke={
-                            selection.kind === 'accidental' &&
-                            selection.accidentalId === id
-                              ? 'var(--accent, #a33)'
-                              : 'none'
-                          }
-                          strokeWidth="2"
-                        />
-                      </g>
-                    ) : null;
-                  })}
-                  {lyricMove ? (
-                    <rect
-                      className="score__move-hit-target"
-                      {...moveBounds}
-                      rx="3"
-                      fill="transparent"
-                      stroke="transparent"
-                      strokeWidth={
-                        lyricMove.candidateId === neume.neumeId ? 3 : 2
+                      if (!action) return;
+                      event.preventDefault();
+                      event.stopPropagation();
+                      switch (action.type) {
+                        case 'select':
+                          onSelectSyllable(lyric.syllableId);
+                          break;
+                        case 'edit':
+                          onEditSyllable(lyric.syllableId);
+                          break;
+                        case 'replace':
+                          onEditSyllable(lyric.syllableId, action.text);
+                          break;
+                        case 'delete':
+                          onDeleteSyllable(lyric.syllableId);
+                          break;
+                        case 'advance':
+                          onAdvanceLyric(action.key);
+                          break;
                       }
-                      pointerEvents="all"
-                      clipPath={
-                        neume.hitClip
-                          ? `url(#hit-clip-${neume.neumeId})`
-                          : undefined
-                      }
-                      aria-hidden="true"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onMoveDestination(neume.neumeId);
-                      }}
-                    />
-                  ) : null}
+                    }}
+                    data-syllable-id={lyric.syllableId}
+                    x={lyric.x}
+                    y={lyric.y}
+                    fontSize={lyric.fontSize}
+                    fontFamily={lyricFontFamily}
+                    textAnchor="middle"
+                    textRendering="geometricPrecision"
+                  >
+                    {lyric.text}
+                  </text>
                 </g>
-              );
-            })}
-
-          <g aria-hidden="true" pointerEvents="none" className="score__hyphens">
-            {system.hyphens.map((hyphen, index) => (
-              <text
-                key={index}
-                x={hyphen.x}
-                y={hyphen.y}
-                fontFamily={lyricFontFamily}
-                fontSize={lyricFontSize}
-                textAnchor="middle"
-                textRendering="geometricPrecision"
-                data-outgoing={hyphen.outgoing}
-              >
-                -
-              </text>
+                <g
+                  className="score__lyric-focus-cue"
+                  aria-hidden="true"
+                  pointerEvents="none"
+                >
+                  <path
+                    d={`M${lyric.x - 5},${lyric.y - lyric.fontSize - 10} h10 l-5,6 Z`}
+                  />
+                  <text x={lyric.x} y={lyric.y + 22} textAnchor="middle">
+                    Keyboard focus
+                  </text>
+                </g>
+              </g>
             ))}
           </g>
-          {system.lyrics.map((lyric) => (
-            <g key={lyric.syllableId} className="score__lyric-control">
-              <g
-                className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
-              >
-                {selection.kind === 'syllable' &&
-                selection.syllableId === lyric.syllableId &&
-                lyric.left !== null &&
-                lyric.right !== null ? (
-                  <rect
-                    className="score__lyric-selection"
-                    x={lyric.left + Math.min(2, (lyric.right - lyric.left) / 2)}
-                    y={lyric.y - lyric.fontSize}
-                    width={Math.max(0, lyric.right - lyric.left - 4)}
-                    height={lyric.fontSize * 1.3}
-                    rx={1.5}
-                    aria-hidden="true"
-                    pointerEvents="none"
-                  />
-                ) : null}
-                <text
-                  className="score__lyric"
-                  ref={(element) => {
-                    if (element)
-                      lyricElements.current.set(lyric.syllableId, element);
-                    else lyricElements.current.delete(lyric.syllableId);
-                  }}
-                  role="button"
-                  aria-describedby="lyric-focus-help"
-                  tabIndex={
-                    placementActive || lyricMove || transactionBlocked ? -1 : 0
-                  }
-                  aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
-                  aria-pressed={
-                    selection.kind === 'syllable' &&
-                    selection.syllableId === lyric.syllableId
-                  }
-                  aria-disabled={
-                    placementActive || Boolean(lyricMove) || transactionBlocked
-                  }
-                  pointerEvents={
-                    placementActive || lyricMove || transactionBlocked
-                      ? 'none'
-                      : 'all'
-                  }
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (!placementActive && !lyricMove && !transactionBlocked)
-                      onSelectSyllable(lyric.syllableId);
-                  }}
-                  onDoubleClick={(event) => {
-                    event.stopPropagation();
-                    if (!placementActive && !lyricMove && !transactionBlocked)
-                      onEditSyllable(lyric.syllableId);
-                  }}
-                  onKeyDown={(event) => {
-                    if (lyricMove || transactionBlocked) return;
-                    const action = getSyllableKeyAction(
-                      event.nativeEvent,
-                      selection.kind === 'syllable' &&
-                        selection.syllableId === lyric.syllableId,
-                      placementActive,
-                    );
-                    if (!action) return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    switch (action.type) {
-                      case 'select':
-                        onSelectSyllable(lyric.syllableId);
-                        break;
-                      case 'edit':
-                        onEditSyllable(lyric.syllableId);
-                        break;
-                      case 'replace':
-                        onEditSyllable(lyric.syllableId, action.text);
-                        break;
-                      case 'delete':
-                        onDeleteSyllable(lyric.syllableId);
-                        break;
-                      case 'advance':
-                        onAdvanceLyric(action.key);
-                        break;
-                    }
-                  }}
-                  data-syllable-id={lyric.syllableId}
-                  x={lyric.x}
-                  y={lyric.y}
-                  fontSize={lyric.fontSize}
-                  fontFamily={lyricFontFamily}
-                  textAnchor="middle"
-                  textRendering="geometricPrecision"
-                >
-                  {lyric.text}
-                </text>
-              </g>
-              <g
-                className="score__lyric-focus-cue"
-                aria-hidden="true"
-                pointerEvents="none"
-              >
-                <path
-                  d={`M${lyric.x - 5},${lyric.y - lyric.fontSize - 10} h10 l-5,6 Z`}
-                />
-                <text x={lyric.x} y={lyric.y + 22} textAnchor="middle">
-                  Keyboard focus
-                </text>
-              </g>
-            </g>
-          ))}
-        </g>
-      ))}
+        );
+      })}
 
       {clefPreview ? (
         <g
@@ -1354,7 +1410,9 @@ export function ScoreSvg({
             <NeumeInk
               ink={placementPreview.ink}
               ledgers={placementPreview.ledgers}
-              band={band}
+              band={bandFor(
+                layout.systems[placementPreview.pointerSystemIndex],
+              )}
             />
           </g>
           {placementPreview.caret.systemIndex !==
@@ -1362,7 +1420,11 @@ export function ScoreSvg({
             <text
               className="score__placement-target"
               x="64"
-              y={layout.systems[placementPreview.pointerSystemIndex].y + 208}
+              y={(() => {
+                const target =
+                  layout.systems[placementPreview.pointerSystemIndex];
+                return target.y + target.height - 12;
+              })()}
             >
               Insertion: system {placementPreview.caret.systemIndex + 1}
             </text>

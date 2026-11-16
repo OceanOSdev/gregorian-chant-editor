@@ -15,13 +15,6 @@ export interface AccidentalGeometry {
   hitBounds: LayoutBounds;
 }
 
-export interface AccidentalLyricBox {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
 export const accidentalPrefixAdvance = 20;
 
 /** Original measured square-notation contours, in canonical score units. */
@@ -97,7 +90,6 @@ export function addAccidentalGeometry(
   specs: readonly AccidentalSpec[],
   leftX: number,
   bottomY: number,
-  lyricBox?: AccidentalLyricBox,
 ): NeumeGeometry {
   if (!specs.length) return base;
   let prefixIndex = 0;
@@ -111,29 +103,19 @@ export function addAccidentalGeometry(
     // Align to the target column, clearing occupied ink on its outer side.
     // Later constituents clear to the right so ink cannot imply a prefix
     // before an unaffected earlier note. The semantic anchor never changes.
-    if (note || lyricBox) {
+    // Signs clear musical ink only; the lyric row clears them vertically
+    // (ADR 0028), so no lyric baseline enters this horizontal placement.
+    if (note) {
       const clearRight = spec.noteIndex !== null && spec.noteIndex > 0;
       const glyph = g.ink.bounds;
       const occupied = [
-        ...(note ? base.ink.map((shape) => shape.bounds) : []),
+        ...base.ink.map((shape) => shape.bounds),
         // Only the ledger strokes level with this glyph (its y is fixed).
-        ...(note
-          ? ledgerStrokesInBand(
-              base.ledgers ?? [],
-              glyph.y - 3,
-              glyph.y + glyph.height + 3,
-            )
-          : []),
-        ...(lyricBox
-          ? [
-              {
-                x: base.lyricAnchorX + lyricBox.left,
-                y: bottomY + lyricBox.top,
-                width: lyricBox.right - lyricBox.left,
-                height: lyricBox.bottom - lyricBox.top,
-              },
-            ]
-          : []),
+        ...ledgerStrokesInBand(
+          base.ledgers ?? [],
+          glyph.y - 3,
+          glyph.y + glyph.height + 3,
+        ),
       ];
       for (const ink of occupied.sort((a, b) =>
         clearRight ? a.x - b.x : b.x - a.x,
