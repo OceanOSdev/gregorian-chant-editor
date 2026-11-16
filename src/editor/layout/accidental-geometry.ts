@@ -1,10 +1,7 @@
 import type { ChantAccidental } from '../domain/chant-document';
 import type { InkShape, LayoutBounds, NeumeGeometry } from './neume-geometry';
-import {
-  getInkBounds,
-  interNeumeInkGap,
-  engravingStaffStep,
-} from './neumes/shared';
+import { interNeumeInkGap, engravingStaffStep } from './neumes/shared';
+import { geometryBounds, ledgerStrokesInBand } from './ledger-lines';
 
 export interface AccidentalSpec {
   kind: ChantAccidental['kind'];
@@ -116,8 +113,17 @@ export function addAccidentalGeometry(
     // before an unaffected earlier note. The semantic anchor never changes.
     if (note || lyricBox) {
       const clearRight = spec.noteIndex !== null && spec.noteIndex > 0;
+      const glyph = g.ink.bounds;
       const occupied = [
         ...(note ? base.ink.map((shape) => shape.bounds) : []),
+        // Only the ledger strokes level with this glyph (its y is fixed).
+        ...(note
+          ? ledgerStrokesInBand(
+              base.ledgers ?? [],
+              glyph.y - 3,
+              glyph.y + glyph.height + 3,
+            )
+          : []),
         ...(lyricBox
           ? [
               {
@@ -146,7 +152,7 @@ export function addAccidentalGeometry(
     );
   });
   const ink = [...base.ink, ...accidentals.map((a) => a.ink)];
-  const bounds = getInkBounds(ink);
+  const bounds = geometryBounds(ink, base.ledgers);
   return {
     ...base,
     ink,

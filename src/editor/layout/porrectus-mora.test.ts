@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { staffPosition } from '../domain/chant-document';
-import { buildNeumeGeometry } from './neume-geometry';
+import { buildNeumeGeometry, getInkBounds } from './neume-geometry';
 
 const build = (pitches: number[], pair: boolean) =>
   buildNeumeGeometry('porrectus', pitches.map(staffPosition), 50, 140, [
@@ -28,7 +28,12 @@ describe('conventional Porrectus mora', () => {
       const single = build(positions, false);
       const pair = build(positions, true);
       for (const marked of [single, pair]) {
-        expect(marked.bounds.width - plain.bounds.width).toBe(7);
+        // The dot column follows the body ink, not a derived ledger's
+        // overhang (Stage 11A), which it clears in its space row.
+        const ink = getInkBounds(plain.ink);
+        expect(marked.bounds.x + marked.bounds.width).toBe(
+          ink.x + ink.width + 7,
+        );
         expect(marked.notes[0].modifierBounds).toBeUndefined();
         expect(marked.lyricAnchorX).toBe(plain.lyricAnchorX);
         expect(marked.ink.slice(0, plain.ink.length)).toEqual(plain.ink);

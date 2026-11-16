@@ -207,6 +207,11 @@ const clefRight = Math.max(
 const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
 export const firstSystemLyricBaselineY = 180;
+/**
+ * How far musical ink may grow the outer canvas beyond its system (Stage 11A
+ * rendering safeguard; Stage 11B vertical extents must respect it too).
+ */
+export const offStaffCanvasMargin = 50 * engravingStaffStep * 2;
 
 function staffLineY(line: StaffLine, bottomStaffY: number) {
   return bottomStaffY - (line - 1) * staffLineSpacing;
@@ -1204,37 +1209,48 @@ export function layoutChant(
     canvasLeft = Math.min(canvasLeft, (lyric.left ?? 12) - 12);
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
+  // Rendering safeguard, not a pitch restriction (Stage 11A): musical ink
+  // and continuation hyphens grow the canvas by at most offStaffCanvasMargin
+  // beyond its system's box vertically, and beyond the text-derived extent
+  // (the score width, widened by any oversized lyric, ADR 0010/0011)
+  // horizontally. That is far past any musical use (50 ledger levels) and
+  // keeps text overflow and the ink it displaces intact, while a valid but
+  // absurd safe-integer pitch, the interval-proportional ribbon of a
+  // Porrectus reaching one, or an outgoing hyphen displaced after that
+  // ribbon cannot turn the viewBox into an unusable 10^17-unit canvas. Ink
+  // beyond is clipped; derived positions are unchanged.
+  const left = canvasLeft - offStaffCanvasMargin;
+  const right = canvasRight + offStaffCanvasMargin;
+  const containX = (inkLeft: number, inkRight: number) => {
+    canvasLeft = Math.min(canvasLeft, Math.max(left, inkLeft));
+    canvasRight = Math.max(canvasRight, Math.min(right, inkRight));
+  };
   for (const system of systems) {
-    for (const marked of system.neumes.filter(
-      (n) =>
-        n.accidentals?.length ||
-        n.notes.some(
-          (note) =>
-            note.mora || note.episema || note.verticalEpisema || note.form,
-        ),
-    )) {
-      canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
+    // Complete musical ink (neumes with their signs, authored forms and
+    // derived ledger runs, and custodes) grows the outer canvas so off-staff
+    // notation is not clipped. Ordinary in-staff scores keep their baseline
+    // canvas; system height, origins and lyric baselines stay fixed (dynamic
+    // vertical layout is Stage 11B, which must respect the same margin).
+    const top = system.y - offStaffCanvasMargin;
+    const bottom = system.y + system.height + offStaffCanvasMargin;
+    const contain = (bounds: LayoutBounds) => {
+      canvasTop = Math.min(canvasTop, Math.max(top, bounds.y - 12));
       canvasBottom = Math.max(
         canvasBottom,
-        marked.bounds.y + marked.bounds.height + 12,
+        Math.min(bottom, bounds.y + bounds.height + 12),
       );
+    };
+    for (const neume of system.neumes) {
+      contain(neume.bounds);
+      containX(neume.bounds.x - 12, neume.bounds.x + neume.bounds.width + 12);
     }
-    for (const guide of system.custodes) {
-      canvasTop = Math.min(canvasTop, guide.bounds.y - 12);
-      canvasBottom = Math.max(
-        canvasBottom,
-        guide.bounds.y + guide.bounds.height + 12,
-      );
-    }
+    for (const guide of system.custodes) contain(guide.bounds);
     for (const c of [...system.clefChanges, ...system.custodes])
-      canvasRight = Math.max(canvasRight, c.bounds.x + c.bounds.width + 12);
+      containX(c.bounds.x, c.bounds.x + c.bounds.width + 12);
     if (system.staffLines[0].x2 > staffEndX)
-      canvasRight = Math.max(canvasRight, system.staffLines[0].x2 + 12);
+      containX(0, system.staffLines[0].x2 + 12);
     for (const hyphen of system.hyphens)
-      canvasRight = Math.max(
-        canvasRight,
-        hyphen.x + (hyphenExtents?.right ?? 0) + 12,
-      );
+      containX(0, hyphen.x + (hyphenExtents?.right ?? 0) + 12);
   }
   return {
     title: document.title,

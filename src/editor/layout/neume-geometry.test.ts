@@ -16,7 +16,7 @@ import {
   undoDocumentEdit,
 } from '../state/document-history';
 import {
-  firstHeadHalfWidth,
+  buildNeumeBodyGeometry,
   buildNeumeGeometry,
   getInkBounds,
 } from './neume-geometry';
@@ -137,7 +137,8 @@ describe('approved engraving geometry', () => {
   it.each([1, 2, 3, 4, 5, 6, 8, 12])(
     'uses the approved stem at Δ%s without an interval cutoff',
     (distance) => {
-      const g = buildNeumeGeometry(
+      // The approved body recipe; derived ledgers are covered separately.
+      const g = buildNeumeBodyGeometry(
         'clivis',
         [staffPosition(0), staffPosition(-distance)],
         0,
@@ -188,7 +189,8 @@ describe('approved engraving geometry', () => {
             const preview = buildNeumeGeometry(
               kind,
               positions,
-              committed.notes[0].anchorX - firstHeadHalfWidth(kind),
+              // leftX is the complete left ink edge, including any ledger.
+              committed.bounds.x,
               committed.notes[0].anchorY + positions[0] * 12,
             );
             expect(preview).toEqual({
@@ -266,7 +268,8 @@ describe('approved engraving geometry', () => {
     'preserves %s bounds, advance, hit regions and lyric anchors',
     (kind) => {
       for (const distance of [1, 2, 3, 4, 5, 8]) {
-        const g = buildNeumeGeometry(
+        // The approved body recipe; derived ledgers are covered separately.
+        const g = buildNeumeBodyGeometry(
           kind,
           [
             staffPosition(0),
@@ -480,7 +483,17 @@ describe('approved engraving geometry', () => {
       },
       compound,
     ];
-    const original = documentWith([...prefix, twoNote('clivis', 2, 'tail')]);
+    // The tail sits a third higher than twoNote's default so that no derived
+    // ledger (Stage 11A) widens it; only its interval matters for the fit.
+    const tailNeume: Neume = {
+      id: 'tail',
+      kind: 'clivis',
+      notes: [
+        { id: 'tail-first', staffPosition: staffPosition(2) },
+        { id: 'tail-second', staffPosition: staffPosition(0) },
+      ],
+    };
+    const original = documentWith([...prefix, tailNeume]);
     const layout = layoutChant(original);
     const tail = layout.systems[0].neumes.at(-1);
     expect(layout.systems).toHaveLength(1);

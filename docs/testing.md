@@ -270,6 +270,10 @@ and consult the owning record for feature-specific assertions and manual checks.
   `liquescence.test.ts` (domain/commands/clipboard/session),
   `persistence/liquescence.test.ts` (v10 and the owner's v9 WIP) and
   `liquescent-geometry.test.ts`; runner driver `liquescent-notation`.
+- [Neume ledger lines](verification/neume-ledger-lines/README.md):
+  `ledger-lines.test.ts` (ledger math, every family/authored form, merging,
+  distant pitches, signs, accidentals, spacing, canvas, ghost/commit and the
+  Et Jesum case); runner driver `neume-ledger-lines`.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 
