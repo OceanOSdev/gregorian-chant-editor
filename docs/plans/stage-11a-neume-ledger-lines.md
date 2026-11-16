@@ -246,7 +246,16 @@ marked notes, authored forms, accidentals and distant custodes on both
 sides of the staff; exhaustive ledger-aware mark tests across the
 liquescent, extended Scandicus/Climacus, Porrectus-family and compound
 families; and a browser scenario proving the editor stays usable with
-extreme imported pitches. The policy and exactly what is clipped are owned
+extreme imported pitches.
+
+Second review (b1ad10a): the owner accepted the horizontal and vertical
+margins and the documented limitations, and found that an outgoing
+continuation hyphen displaced after an extreme-width ribbon bypassed the
+horizontal safeguard. The horizontal musical limit is now relative to the
+text-derived extent (score width or oversized lyric text) and also bounds
+hyphens; lyric text itself is never capped. This also restores master's
+canvas for ink displaced by oversized text: the 608edc2 fixed limit clipped
+7 units of extended staff/custos after a 4,000-unit continuation word. The policy and exactly what is clipped are owned
 by [layout and rendering](../layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted).
 
 ## Explicitly deferred — Stage 11B

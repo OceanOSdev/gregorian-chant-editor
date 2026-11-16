@@ -728,9 +728,15 @@ A rendering safeguard, not a semantic pitch restriction or engraving rule:
 all musical ink (plain, marked and authored-form neumes, accidentals,
 ledgers, custodes, clef changes and extended staff lines) grows the outer
 canvas by at most `offStaffCanvasMargin` = 1,200 units (50 ledger levels)
-beyond its system vertically, and beyond the 720-unit score width
-horizontally. There is no marked/unmarked distinction. Lyrics and hyphens
-keep their own rule. Allowed pitches, the native v10 format, effective
+beyond its system vertically, and beyond the text-derived extent
+horizontally: the 720-unit score width, widened by any oversized lyric text
+([ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
+overflow). There is no marked/unmarked distinction. Lyric text extents stay
+uncapped, so genuinely oversized text and the music and hyphens it displaces
+keep their canvas and horizontal scrolling. Continuation hyphens share the
+musical limit: an outgoing hyphen follows its system's musical ink, so one
+displaced after an extreme-width ribbon is musical displacement, not text
+overflow. Allowed pitches, the native v10 format, effective
 pitches, history and clipboard are unchanged; Stage 11B's
 content-dependent vertical extents must respect the same margin.
 
@@ -740,8 +746,9 @@ What is clipped:
   note heads, signs and accidentals at a distant pitch, the far part of a
   stem or ribbon reaching it, and ledger levels beyond the margin. A
   Porrectus-family ribbon's width follows its interval, so one reaching a
-  distant pitch also pushes its later notes, and its system's following
-  neumes or custos, beyond the right edge.
+  distant pitch also pushes its later notes, its system's following neumes
+  or custos, and an outgoing continuation hyphen beyond the right edge (the
+  hyphen keeps its derived position and is clipped).
 - Painted elements derived from extents are limited to the canvas plus one
   ledger space (`render-band.ts`): each ledger run (neume or custos) paints
   only its strokes inside that window, as an exact sub-run anchored on the

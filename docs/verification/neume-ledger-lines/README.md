@@ -164,11 +164,18 @@ After the owner's review of `121d8b3` (decisions recorded in
     epiphonus, flat and distant-custos ink at ±MAX_SAFE and ±400, both
     sides; complete containment at -60 and 70; the ribbon width bound;
     painted sub-runs on the grid.
-  - `ledger-modifiers.test.ts` (new): every valid mark combination
-    (mora scopes × episema × vertical episema patterns × allowed forms,
-    filtered by `isValidNeume`) on all 22 entry families, including the
-    three liquescent appearances, extended Scandicus/Climacus,
-    Porrectus-family and compound neumes, at first pitches -9..13. All
+  - `ledger-modifiers.test.ts` (new): valid mark combinations on all 22
+    entry families, including the three liquescent appearances, extended
+    Scandicus/Climacus, Porrectus-family and compound neumes. At `b1ad10a`
+    it used four episema masks per sign (none, all, even and odd notes),
+    not every subset. It now enumerates every valid subset: each mora
+    scope × every subset of horizontally episematized notes × every subset
+    of vertically episematized notes × with and without an allowed form,
+    filtered by `isValidNeume`. It uses first pitches -9..13 (twelve
+    values), and four representative ones (-7, -3, 8, 11) for the
+    five-note families, whose 1,024 sign subsets per scope would otherwise
+    take ~6 s each. A one-off run with all twelve first pitches for every
+    family also passed (22/22, 30.7 s, `--testTimeout=120000`). All
     authored marks are present, none touches a ledger stroke, and vertical
     episema placement never throws. A mutation check (disabling the ledger
     obstacle) fails 21 of 22 families.
@@ -201,6 +208,79 @@ The lyric-move failure reproduces identically on clean `master` (`fef1d33`)
 at its third step, before any ledger content; it is a pre-existing driver
 or UI mismatch, not caused by this branch. Modifier production geometry did
 not change, so the remaining modifier drivers were not rerun.
+
+## Second owner follow-up (outgoing hyphens)
+
+Review of `b1ad10a` found that an outgoing continuation hyphen bypassed the
+horizontal safeguard: it is placed after its system's musical ink, and
+hyphens grew the canvas without limit. Reproduced with measured lyrics and
+the native v10 fixture
+[`extreme-ribbon-continuation.chant.json`](extreme-ribbon-continuation.chant.json):
+"Do" on a Porrectus whose first pitch is MAX_SAFE_INTEGER (ribbon ~7.2 ×
+10^16 wide) and "mi" 30 neumes later. At `b1ad10a` the canvas was
+72,057,594,037,928,130 units wide.
+
+Fix (`layout-chant.ts`): the horizontal limit for musical ink is now
+relative to the text-derived extent (score width, widened by any oversized
+lyric text) plus 1,200 units, and it also bounds hyphens. Lyric text
+extents are never capped, so text overflow and horizontal scrolling are
+unchanged. An outgoing hyphen can only exceed that limit through musical
+displacement; it keeps its derived position and is clipped.
+
+This also corrects the `608edc2` fixed limit (score width + 1,200), which
+clipped ink displaced by oversized text. After a 4,000-unit continuation
+word it cut 7 units of extended staff/custos (canvas 4,066 instead of
+master's 4,073).
+
+Evidence:
+
+- `ledger-lines.test.ts`:
+  - the extreme case (native fixture and an equivalent built document) is
+    bounded at 1,920, with the hyphen still at ~7.2 × 10^16; it fails on
+    `b1ad10a`;
+  - the ordinary cross-system hyphen stays at its staff-end position on a
+    720-unit canvas;
+  - a 4,000-unit continuation word, and a 3,000-unit word ending a system
+    before its custos, keep every neume, custos, staff line and hyphen
+    inside an uncapped canvas.
+- A probe of seven lyric layouts (ordinary and low continuation, long
+  first/last/ending/continuation words, a 9,000-unit continuation)
+  produced canvases identical to clean `master`. The only difference was
+  the low case, where hyphen and custos sit 6 units further right because
+  11A ledgers widen low neumes; its canvas is identical.
+- Driver scenario 10 (Chromium and Firefox, 1440 and 320px) imports the
+  native fixture and checks:
+  - viewBox 0–1,920 and an SVG 1,920 px wide;
+  - the outgoing hyphen rendered with its derived x ≈ 7.2 × 10^16;
+  - both syllables rendered;
+  - real-pointer selection and transposition of a note on a later system;
+  - Undo.
+- Firefox's `scrollIntoView` did not centre an SVG note inside the wide
+  score viewport (Chromium did), so the driver's pointer helper now
+  finishes with a page scroll when the target is still outside the
+  viewport.
+
+Results, final working tree (2026-11-16):
+
+| Check                                                                     | Result                     |
+| ------------------------------------------------------------------------- | -------------------------- |
+| format:check, lint, build, `git diff --check`                             | Pass                       |
+| `npm test`                                                                | Pass, 2363 tests           |
+| `npm run test:verify-runner`                                              | Pass, 28 tests             |
+| neume-ledger-lines, mid-score-clefs, divisions (Chromium and Firefox)     | Pass                       |
+| continuous-lyrics, vowel-alignment (Chromium only)                        | Pass                       |
+| word-composition (Chromium and Firefox)                                   | Fail, baseline (see below) |
+| lyric-spacing (Chromium only), lyric-spacing-selection-cue (Firefox only) | Fail, baseline (see below) |
+
+Baseline failures, reproduced identically on clean `master` (`fef1d33`) and
+on `b1ad10a`, within their first seconds; not fixed here (unrelated):
+
+- word-composition, both browsers: `punctum selected whole-neume cue must
+be clipped`.
+- lyric-spacing (Chromium): a strict-equality assertion.
+- lyric-spacing-selection-cue (Firefox): BiDi `move target out of bounds`.
+- lyric-move (Chromium, from the first follow-up): `Missing button Move
+syllable`.
 
 ## Owner acceptance steps
 
