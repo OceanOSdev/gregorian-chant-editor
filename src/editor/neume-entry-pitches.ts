@@ -268,17 +268,17 @@ export function createNeumeEntryPitches(
     case 'pes-subbipunctis':
       return {
         kind,
-        staffPositions: [firstStaffPosition, at(2), at(1), firstStaffPosition],
+        staffPositions: [firstStaffPosition, at(1), firstStaffPosition, at(-1)],
       };
     case 'pes-subtripunctis':
       return {
         kind,
         staffPositions: [
           firstStaffPosition,
-          at(3),
-          at(2),
           at(1),
           firstStaffPosition,
+          at(-1),
+          at(-2),
         ],
       };
     case 'scandicus-4':
@@ -350,8 +350,8 @@ export function createNeumeEntryPitches(
         kind,
         staffPositions: [
           firstStaffPosition,
-          staffPosition(firstStaffPosition + 2),
           staffPosition(firstStaffPosition + 1),
+          staffPosition(firstStaffPosition),
         ],
       };
     case 'climacus':

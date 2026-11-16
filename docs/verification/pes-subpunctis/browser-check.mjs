@@ -478,12 +478,12 @@ try {
         added.map((n) => n.notes.map((x) => x.staffPosition)),
         count === 4
           ? [
-              [2, 4, 3, 2],
-              [3, 5, 4, 3],
+              [2, 3, 2, 1],
+              [3, 4, 3, 2],
             ]
           : [
-              [2, 5, 4, 3, 2],
-              [3, 6, 5, 4, 3],
+              [2, 3, 2, 1, 0],
+              [3, 4, 3, 2, 1],
             ],
       );
       assert.ok(added.every((n) => n.kind === 'pes-subpunctis'));

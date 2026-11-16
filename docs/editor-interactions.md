@@ -298,7 +298,7 @@ Punctum:   [p]
 Podatus:   [p, p + 1]
 Clivis:    [p, p - 1]
 Scandicus: [p, p + 1, p + 2]
-Torculus:  [p, p + 2, p + 1]
+Torculus:  [p, p + 1, p]
 Climacus:  [p, p - 1, p - 2]
 Porrectus: [p, p - 2, p - 1]
 ```
@@ -933,7 +933,7 @@ Pes subtripunctis, each with an icon drawn from the shared measured geometry
 of its default entry contour. Choosing an item arms that exact variant without
 inserting music. One staff click inserts the complete group at the snapped
 first pitch and leaves the tool armed. Default contours relative to the first
-pitch p are [p, p+2, p+1, p] and [p, p+3, p+2, p+1, p]; they are entry
+pitch p are [p, p+1, p, p-1] and [p, p+1, p, p-1, p-2]; they are entry
 templates, and individual notes can then be moved within the valid contour.
 
 I and contextual Insert (including Insert before/after a selected division or
