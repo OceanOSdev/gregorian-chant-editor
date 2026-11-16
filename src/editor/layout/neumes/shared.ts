@@ -1,4 +1,5 @@
 import type { AccidentalGeometry } from '../accidental-geometry';
+import type { LedgerRun } from '../ledger-lines';
 import type { Neume, StaffPosition } from '../../domain/chant-document';
 import {
   liquescentFigure,
@@ -41,6 +42,11 @@ export interface NeumeGeometry {
   ink: readonly InkShape[];
   /** When present, the independently rendered neume body (no accidentals). */
   bodyInk?: readonly InkShape[];
+  /**
+   * Derived ledger runs (Stage 11A), painted behind the body. Separate from
+   * `ink` so collision queries stay analytic; `bounds` includes them.
+   */
+  ledgers?: readonly LedgerRun[];
   bounds: LayoutBounds;
   lyricAnchorX: number;
   /** Distance from this glyph's left ink edge to the following glyph's left edge. */

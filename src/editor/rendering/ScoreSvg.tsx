@@ -824,7 +824,10 @@ export function ScoreSvg({
                       </text>
                     </g>
                   ) : null}
-                  <NeumeInk ink={neume.bodyInk ?? neume.ink} />
+                  <NeumeInk
+                    ink={neume.bodyInk ?? neume.ink}
+                    ledgers={neume.ledgers}
+                  />
                   {neume.notes.map((note, noteIndex) => {
                     const isNoteSelected =
                       selection.kind === 'note' &&
@@ -1329,7 +1332,10 @@ export function ScoreSvg({
             />
           </g>
           <g className="score__placement-ghost">
-            <NeumeInk ink={placementPreview.ink} />
+            <NeumeInk
+              ink={placementPreview.ink}
+              ledgers={placementPreview.ledgers}
+            />
           </g>
           {placementPreview.caret.systemIndex !==
           placementPreview.pointerSystemIndex ? (

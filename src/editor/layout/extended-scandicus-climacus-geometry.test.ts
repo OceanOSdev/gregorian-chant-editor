@@ -6,7 +6,11 @@ import {
   type NoteModifiers,
 } from '../domain/chant-document';
 import { blankDocument } from '../persistence/native-document';
-import { buildNeumeGeometry, type InkShape } from './neume-geometry';
+import {
+  buildNeumeBodyGeometry,
+  buildNeumeGeometry,
+  type InkShape,
+} from './neume-geometry';
 import { layoutChant } from './layout-chant';
 import { extendedScandicusElements } from './neumes/scandicus-extended';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
@@ -113,7 +117,9 @@ describe('extended Scandicus staircase (Mocquereau Fig. 34)', () => {
       for (let first = -3; first <= 7; first++)
         for (const intervals of intervalSets(count - 1)) {
           const pitches = contour('scandicus', first, intervals);
-          const g = buildNeumeGeometry(
+          // Component bodies compose exactly; ledgers merge across the whole
+          // neume (Stage 11A), so compare the staffless recipes.
+          const g = buildNeumeBodyGeometry(
             'scandicus',
             positions(pitches),
             100,
@@ -123,7 +129,7 @@ describe('extended Scandicus staircase (Mocquereau Fig. 34)', () => {
           expect(g.notes).toHaveLength(count);
           expect(g.ink).toHaveLength(elements.length);
           elements.forEach((indexes, column) => {
-            const element = buildNeumeGeometry(
+            const element = buildNeumeBodyGeometry(
               indexes.length === 2 ? 'podatus' : 'punctum',
               positions(indexes.map((i) => pitches[i])),
               100 + column * 12,

@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { staffPosition } from '../domain/chant-document';
-import { buildNeumeGeometry } from '../layout/neume-geometry';
+import { buildNeumeBodyGeometry } from '../layout/neume-geometry';
 import {
   createNeumeEntryPitches,
   entryGeometryKind,
@@ -18,9 +18,10 @@ import { NeumeInk } from '../rendering/NeumeInk';
 import type { PunctumFamilyKind } from '../state/editor-tool';
 import './NeumeFamilyMenu.css';
 
+// Icons are staffless silhouettes: body-only geometry, never ledger lines.
 export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
   const count = kind === 'punctum' ? 1 : kind === 'bistropha' ? 2 : 3;
-  const geometry = buildNeumeGeometry(
+  const geometry = buildNeumeBodyGeometry(
     kind,
     Array.from({ length: count }, () => staffPosition(0)),
     0,
@@ -35,7 +36,7 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
 
 /** The exact default entry contour, drawn from the shared measured geometry. */
 export function EntryIcon({ kind }: { kind: GraphicalNeumeKind }) {
-  const geometry = buildNeumeGeometry(
+  const geometry = buildNeumeBodyGeometry(
     entryGeometryKind(kind),
     createNeumeEntryPitches(kind, staffPosition(0)).staffPositions,
     0,

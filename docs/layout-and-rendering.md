@@ -49,8 +49,9 @@ This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
 Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
-Height grows with system count and exceptional guide ink; a negative canvas Y
-origin can include high custodes without moving systems. Stage 4B's combined music-and-lyric layout
+Height grows with system count, exceptional guide ink and off-staff neume ink
+(including ledgers, Stage 11A); a negative canvas Y origin can include high
+custodes or notes without moving systems. Stage 4B's combined music-and-lyric layout
 follows [accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
 which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
@@ -628,14 +629,25 @@ not alter canonical layout, hit identities, interpreted pitches or derived
 custodes until Apply. Both placement and edit overlays are aria-hidden and
 pointer-inert. Approved C/F contours and measured wrapping are unchanged.
 
-## Ledger lines for custodes
+## Ledger lines
 
-Custodes alone have derived ledger runs: the four staff lines are at positions
-0/2/4/6; adjacent outside spaces -1/7 need none; more distant guides acquire
-short rules at -2/-4/… or 8/10/… through their last required line. Rules share
-the guide's horizontal allocation and staff lattice without moving its pitch.
-They are rendered behind the unchanged glyph, pointer-inert and nonsemantic.
-The compact regular run avoids enumerating an unbounded number of ledger nodes.
+`src/editor/layout/ledger-lines.ts` owns the one ledger rule for custodes and
+neumes: the four staff lines are at positions 0/2/4/6; adjacent outside spaces
+-1/7 need none; more distant pitches acquire short rules at -2/-4/… or
+8/10/… through the last line at or inside the pitch, so a line note and the
+outer space beyond it share the same count. Every run is a compact
+`LedgerRun` (`x1`, `x2`, first/last stroke centre, `count`); nothing
+allocates an array, path command, loop iteration or DOM element per level,
+so arbitrarily distant safe pitches stay bounded. Metrics (1.5-unit
+thickness, 3-unit overhang, 24-unit spacing) are in
+[drawing metrics](engraving-metrics.md#ledger-lines-stage-11a).
+
+### Custodes
+
+Rules share the guide's horizontal allocation and staff lattice without moving
+its pitch. They are rendered behind the unchanged glyph, pointer-inert and
+nonsemantic. Stage 11A moved the counting into the shared module without
+changing custos output.
 
 Guide bounds and measured reservation include rule thickness and overhang.
 Outgoing reservation and reclaimed mid-staff guide spacing use the actual width;
@@ -643,9 +655,75 @@ ledger-free guides retain their previous reservation. Existing staff extension,
 lyric/hyphen/caret clearance and horizontal canvas logic consume those bounds.
 The canvas also includes guide ink above/below its normal extent using a derived
 Y origin, without moving staff/system coordinates or adding a vertical collision
-engine. Neume ledger lines remain absent. See the [Gregorio comparison and
+engine. See the [Gregorio comparison and
 verification](verification/mid-score-clefs/custos-ledgers.md) for source, dimensions,
 actual examples and remaining silhouette differences.
+
+### Neumes (Stage 11A)
+
+Neume ledgers are derived engraving, never authored: no IDs, document edits,
+selection, lyric boundaries, schema change or pitch restriction.
+`buildNeumeGeometry` derives them from each constituent's nominal staff
+position and **pitch-bearing column** after the authored body recipe is built
+and before rhythmic signs and accidentals resolve. The column is the
+constituent's head contour (12-unit squares, 14-unit diamonds, narrower reduced
+liquescent terminals); a selection region wider than a diamond is shared
+Porrectus-family ribbon ink, whose endpoint uses the nominal 12-unit cell
+about its anchor, never the whole ribbon, stem or connector.
+
+Within one neume each staff side is partitioned into bands at the
+constituents' distinct depths. In a band the contributing columns are
+constant; their overhung intervals are unioned only when they overlap or
+touch, and emitted as runs; an identical interval in the next band extends
+the same run. Stacked heads therefore share one run, touching repeated-note
+overhangs form one stroke, and a positive gap (between disconnected
+components, a Porrectus ribbon's endpoints, or two neumes) is never bridged.
+The run count is bounded by the constituent count.
+
+`NeumeGeometry.ledgers` keeps runs separate from `ink` so that collision
+queries stay analytic: `ledgerStrokesNear`/`ledgerStrokesInBand` return only
+the strokes level with a sign, never the whole run envelope. Complete `bounds`
+and `advanceX` include the runs, so spacing, compaction, wrapping, fit checks,
+whole-neume and range selection outlines, the outer canvas and lyric-band
+clearances all consume them. Horizontal and vertical episemata and mora treat
+strokes as obstacles with the ordinary 2-unit ink clearance; their columns
+and edges are still seeded from body ink, so a ledger alone does not move a
+mark that was already clear. Note-attached accidentals clear level strokes
+with their ordinary 3/4-unit spacing; a prefix accidental keeps its 20-unit
+advance to the ledger's left edge. Geometry needing no ledger is returned
+unchanged and has no `ledgers` field.
+
+`leftX` remains the complete left ink edge. When a ledger overhangs the
+first head, the body is rebuilt 3 units right inside its box (one-pass,
+exact), so every rebuild-at-`bounds.x` consumer keeps its contract. Note
+anchors, lyric anchors, head contours and hit targets translate rigidly with
+the body; their relative geometry never changes. The first neume of a system
+can therefore start its head 3 units right of `firstNeumeCenterX`.
+
+`NeumeInk` paints the runs (`.score__ledgers`, one rect per run with a tiled
+`userSpaceOnUse` pattern for several levels and a per-instance `useId`)
+before the body, aria-hidden and pointer-inert, in the score colour.
+Committed notation and placement ghosts share the same geometry and
+component; the ghost's white halo applies to body ink only. Palette icons
+call `buildNeumeBodyGeometry` (the explicit staffless option) and never draw
+ledgers.
+
+The ghost keeps its first head on the pointer using the measured offset of
+that head from the complete box, rather than the head half-width alone;
+pointer entry (first pitch -1..7) is unchanged, while default multi-note
+figures extending beyond the staff show their ledgers.
+
+Stage 11A keeps fixed system height, staff origins, lyric baseline, gaps and
+vertical placement policy. The outer canvas now includes every neume's
+complete bounds (signs, off-staff ink and ledgers), so first/last-system
+ink is not clipped; ordinary in-staff scores keep their baseline canvas.
+Unmarked neume ink grows the canvas by at most `offStaffCanvasMargin`
+(1,200 units, 50 ledger levels) beyond its system; beyond that a valid but
+absurd pitch stays clipped as before, rather than producing an unusable
+viewBox. Marked neumes and custodes keep their earlier unbounded rule.
+Collisions between low notes or ledgers and the fixed lyric baseline, and
+between adjacent systems, remain unresolved for
+[Stage 11B](roadmap.md#neume-ledger-lines-stage-11a).
 
 ## Rhythmic sign geometry (Stage 8A)
 

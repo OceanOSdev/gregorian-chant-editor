@@ -6,7 +6,11 @@ import {
   type NoteModifiers,
 } from '../domain/chant-document';
 import { blankDocument } from '../persistence/native-document';
-import { buildNeumeGeometry, type InkShape } from './neume-geometry';
+import {
+  buildNeumeBodyGeometry,
+  buildNeumeGeometry,
+  type InkShape,
+} from './neume-geometry';
 import { layoutChant } from './layout-chant';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import { insertEditorNeume } from '../interaction/insert-editor-neume';
@@ -61,13 +65,15 @@ describe('pes subpunctis measured geometry', () => {
   it.each(contours)(
     '%j reuses the approved Podatus and Climacus diamonds without new connectors',
     (...pitches) => {
-      const g = buildNeumeGeometry(
+      // Component bodies compose exactly; ledgers merge across the whole
+      // neume (Stage 11A), so compare the staffless recipes.
+      const g = buildNeumeBodyGeometry(
         'pes-subpunctis',
         positions(pitches),
         100,
         140,
       );
-      const pes = buildNeumeGeometry(
+      const pes = buildNeumeBodyGeometry(
         'podatus',
         positions(pitches.slice(0, 2)),
         100,
@@ -85,7 +91,7 @@ describe('pes subpunctis measured geometry', () => {
       });
       expect(g.lyricAnchorX).toBe(pes.lyricAnchorX);
       // The first two tail diamonds match Climacus diamonds hung from the apex.
-      const climacus = buildNeumeGeometry(
+      const climacus = buildNeumeBodyGeometry(
         'climacus',
         positions(pitches.slice(1, 4)),
         100,

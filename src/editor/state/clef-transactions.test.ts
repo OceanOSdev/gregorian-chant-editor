@@ -451,13 +451,15 @@ it('keeps arrow changes uncommitted until the final Apply reflows complete neume
     layoutChant(s.history.present).systems.map(
       (system) => system.startNeumeIndex,
     ),
-  ).toEqual([0, 10, 21]);
+    // Every punctum here lies below the staff and carries its derived ledger
+    // run (Stage 11A), so each system holds fewer than before that stage.
+  ).toEqual([0, 9, 19]);
   s = reduce(s, { type: 'apply-clef-change' });
   expect(
     layoutChant(s.history.present).systems.map(
       (system) => system.startNeumeIndex,
     ),
-  ).toEqual([0, 9, 20]);
+  ).toEqual([0, 8, 18]);
   expect(s.history.past).toEqual([d]);
   expect(s.focusRequest).toEqual({ kind: 'clef-change', clefChangeId: 'C' });
 });

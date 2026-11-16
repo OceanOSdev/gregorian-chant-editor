@@ -1,0 +1,52 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 10,
+  "document": {
+    "accidentals": [],
+    "title": "Et Jesum ledger acceptance",
+    "lyricLanguage": "la",
+    "clef": { "type": "c", "staffLine": 4 },
+    "neumes": [
+      {
+        "id": "et",
+        "kind": "punctum",
+        "notes": [{ "id": "et-d", "staffPosition": 0 }]
+      },
+      {
+        "id": "je",
+        "kind": "punctum",
+        "notes": [{ "id": "je-a", "staffPosition": -3 }]
+      },
+      {
+        "id": "sum",
+        "kind": "podatus",
+        "notes": [
+          { "id": "sum-c", "staffPosition": -1 },
+          { "id": "sum-d", "staffPosition": 0 }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "s-et",
+        "text": "Et",
+        "startsAtNeumeId": "et",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-je",
+        "text": "Je",
+        "startsAtNeumeId": "je",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-sum",
+        "text": "sum",
+        "startsAtNeumeId": "sum",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [],
+    "clefChanges": []
+  }
+}

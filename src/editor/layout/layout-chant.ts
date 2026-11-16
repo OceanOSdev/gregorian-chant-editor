@@ -207,6 +207,8 @@ const clefRight = Math.max(
 const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
 export const firstSystemLyricBaselineY = 180;
+/** Furthest unmarked off-staff ink grows the outer canvas (Stage 11A). */
+export const offStaffCanvasMargin = 50 * engravingStaffStep * 2;
 
 function staffLineY(line: StaffLine, bottomStaffY: number) {
   return bottomStaffY - (line - 1) * staffLineSpacing;
@@ -1205,18 +1207,35 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   for (const system of systems) {
-    for (const marked of system.neumes.filter(
-      (n) =>
-        n.accidentals?.length ||
-        n.notes.some(
+    // Complete neume ink, including derived ledger runs (Stage 11A), so
+    // off-staff notation is not clipped at the outer canvas. Ordinary in-staff
+    // scores keep their baseline canvas. System height, origins and lyric
+    // baselines stay fixed (dynamic vertical layout is Stage 11B).
+    for (const neume of system.neumes) {
+      const marked =
+        neume.accidentals?.length ||
+        neume.notes.some(
           (note) =>
             note.mora || note.episema || note.verticalEpisema || note.form,
-        ),
-    )) {
-      canvasTop = Math.min(canvasTop, marked.bounds.y - 12);
+        );
+      // Signs and authored forms keep their earlier unbounded containment.
+      // Other ink grows the canvas by at most offStaffCanvasMargin beyond its
+      // system: far past any musical use (50 ledger levels), while a valid
+      // but absurd pitch cannot turn the viewBox into an unusable 10^17-unit
+      // canvas (that ink stays clipped, as before Stage 11A).
+      const top = marked ? -Infinity : system.y - offStaffCanvasMargin;
+      const bottom = marked
+        ? Infinity
+        : system.y + system.height + offStaffCanvasMargin;
+      canvasTop = Math.min(canvasTop, Math.max(top, neume.bounds.y - 12));
       canvasBottom = Math.max(
         canvasBottom,
-        marked.bounds.y + marked.bounds.height + 12,
+        Math.min(bottom, neume.bounds.y + neume.bounds.height + 12),
+      );
+      canvasLeft = Math.min(canvasLeft, neume.bounds.x - 12);
+      canvasRight = Math.max(
+        canvasRight,
+        neume.bounds.x + neume.bounds.width + 12,
       );
     }
     for (const guide of system.custodes) {

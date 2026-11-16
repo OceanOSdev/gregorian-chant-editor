@@ -1,7 +1,10 @@
 # Stage 11A — derived neume ledger lines
 
-Status: proposed implementation contract following owner agreement to the
-11A ledger / 11B dynamic vertical layout split (2026-11-15).
+Status: implemented on `feat/neume-ledger-lines` (master merged in at
+fef1d33, PR #90); awaiting owner review and visual acceptance. Agreed
+2026-11-15 as the 11A ledger / 11B dynamic vertical layout split. The
+implementation record, checks and deviations are in
+[the verification record](../verification/neume-ledger-lines/README.md).
 Base: master at 404b84a318cb25aa6f09a67cd0365f116d6be1eb (PR #89 merged).
 
 ## Motivation and evidence
@@ -186,6 +189,7 @@ rather than the full printed chant.
 
 Add one focused browser driver to the existing verification runner,
 Chromium and Firefox at desktop and 320px:
+
 - Insert/transpose a note from -1 to -2/-3/-4 and back; same ID, ledger
   added/removed, Undo/Redo, no new semantic edit for derived ink.
 - Verify Et Jesum low A's ledger, high note and compound examples.

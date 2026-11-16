@@ -20,7 +20,10 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   See [drawing metrics](engraving-metrics.md) for exact choices and extrapolated
   intervals beyond the reference coverage (Porrectus ribbons through Δ5,
   explicit Climacus spacing cases through Δ4). This is not complete publication-quality
-  chant typography; extreme pitches can exceed fixed vertical system bounds.
+  chant typography. Off-staff notes now draw derived ledger lines and the outer
+  canvas contains their ink (Stage 11A), but systems keep a fixed height and
+  lyric baseline: low notes and ledgers can collide with lyrics or an adjacent
+  system until Stage 11B.
 - The semantic vocabulary contains Punctum, Podatus, Clivis, Scandicus,
   Torculus, Climacus, and Porrectus.
 - Graphical entry uses fixed contours for those seven whitelisted kinds.
@@ -412,3 +415,21 @@ neume-level appearances of Podatus/Clivis with native v10
 and foreground owner acceptance are pending. Deferred: single-note Dominican
 liquescents (_osténde_, _Virgo_), liquescence on other kinds, other
 augmentative forms, initio debilis, compound grouping and Dominican bars.
+
+## Neume ledger lines (Stage 11A)
+
+Derived ledger lines for every neume family and authored appearance,
+merged per neume from pitch-bearing columns, with compact runs for distant
+pitches; measured horizontal spacing, wrapping, sign clearance, ghosts and
+outer canvas containment
+([plan](plans/stage-11a-neume-ledger-lines.md),
+[metrics](engraving-metrics.md#ledger-lines-stage-11a),
+[contract](layout-and-rendering.md#neumes-stage-11a),
+[record](verification/neume-ledger-lines/README.md)). No schema, command or
+pitch-range change. Owner visual acceptance is pending.
+
+**Stage 11B (deferred):** content-dependent system origins and heights, a
+common lyric baseline with text and musical ink clearance, inter-system
+collisions, placement mapping with variable heights, scroll/focus and print
+layout. The Et Jesum low A (Salve Regina, Dominican) still overlaps its
+lyric; that collision is 11B's primary acceptance case.

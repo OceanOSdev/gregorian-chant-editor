@@ -24,6 +24,7 @@ import {
 } from '../state/document-history';
 import {
   firstHeadHalfWidth,
+  buildNeumeBodyGeometry,
   buildNeumeGeometry,
   type LayoutBounds,
 } from './neume-geometry';
@@ -187,7 +188,8 @@ describe('ordinary Scandicus and Torculus engraving', () => {
               first + a,
               first + a + (kind === 'scandicus' ? b : -b),
             ].map(staffPosition);
-            const g = buildNeumeGeometry(kind, positions, 17.5, 244);
+            // Body recipe; wide intervals leave the staff (ledgers: 11A tests).
+            const g = buildNeumeBodyGeometry(kind, positions, 17.5, 244);
             const u = -12 * a,
               v = kind === 'scandicus' ? -12 * (a + b) : 12 * (b - a);
             const h = a === 1 ? 12 : 10.5;

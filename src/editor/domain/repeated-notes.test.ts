@@ -372,8 +372,14 @@ describe.each(kinds)('%s fixed written-unison group', (kind) => {
             marks.filter((n) => n.episema).length +
             marks.filter((n) => n.verticalEpisema).length,
         );
-        expect(g.bounds.width).toBe(12 + (count - 1) * 18);
-        expect(g.lyricAnchorX).toBe(100 + g.bounds.width / 2);
+        // Off-staff pitches add one merged ledger run (Stage 11A): the
+        // touching 18-unit overhung columns join, widening by 3 each side.
+        const overhang = pitch < -1 || pitch > 7 ? 3 : 0;
+        expect(g.ledgers?.length ?? 0).toBe(overhang ? 1 : 0);
+        expect(g.bounds.width).toBe(12 + (count - 1) * 18 + overhang * 2);
+        expect(g.lyricAnchorX).toBe(
+          100 + overhang + (12 + (count - 1) * 18) / 2,
+        );
         g.notes.forEach((n, i) => {
           expect(n.head).toEqual(
             buildNeumeGeometry(

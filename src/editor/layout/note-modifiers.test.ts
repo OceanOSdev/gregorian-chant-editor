@@ -196,7 +196,8 @@ describe('measured rhythmic signs', () => {
             system.neumes[i - 1].bounds.x + system.neumes[i - 1].bounds.width,
           );
       }
-    expect(measureNeumeWidth(document.neumes[0])).toBe(21);
+    // Punctum at 20 adds its 18-unit ledger run (3 left overhang, Stage 11A).
+    expect(measureNeumeWidth(document.neumes[0])).toBe(24);
     expect(getNoteModifierDescription(document.neumes[0].notes[0])).toBe(
       '. Punctum mora. Horizontal episema',
     );

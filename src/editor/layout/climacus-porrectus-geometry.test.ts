@@ -20,6 +20,7 @@ import { getSurvivingFocusNoteId } from '../interaction/multi-system-editing';
 import { reconcileSelection, selectNote } from '../state/selection';
 import {
   firstHeadHalfWidth,
+  buildNeumeBodyGeometry,
   buildNeumeGeometry,
   getInkBounds,
   type LayoutBounds,
@@ -104,7 +105,8 @@ describe('approved Climacus and Porrectus engraving', () => {
     (r) => {
       const kind = r.kind.toLowerCase() as Kind;
       const candidate = three(kind, ...r.intervals);
-      const g = buildNeumeGeometry(
+      // The approved body recipe; derived ledgers are covered separately.
+      const g = buildNeumeBodyGeometry(
         kind,
         candidate.notes.map((n) => n.staffPosition),
         0,
@@ -138,13 +140,14 @@ describe('approved Climacus and Porrectus engraving', () => {
       for (const a of [1, 2, 3, 4, 5, 6, 8])
         for (const b of [1, 2, 3, 4, 5, 6, 8]) {
           const candidate = three(kind, a, b);
-          const origin = buildNeumeGeometry(
+          // Body recipes; matrix pitches leave the staff (ledgers: 11A tests).
+          const origin = buildNeumeBodyGeometry(
             kind,
             candidate.notes.map((n) => n.staffPosition),
             0,
             0,
           );
-          const shifted = buildNeumeGeometry(
+          const shifted = buildNeumeBodyGeometry(
             kind,
             three(kind, a, b, 1).notes.map((n) => n.staffPosition),
             17.5,

@@ -12,6 +12,7 @@ import {
 } from '../neume-entry-pitches';
 import type { ChantLayout, ChantSystemLayout } from './layout-chant';
 import {
+  buildNeumeBodyGeometry,
   buildNeumeGeometry,
   firstHeadHalfWidth,
   interNeumeInkGap,
@@ -116,12 +117,24 @@ export function layoutGraphicalPlacementPreview(
     bottomStaffY,
     placement.appearance,
   );
+  // The first head follows the pointer. A left ledger overhang (Stage 11A)
+  // moves the head right inside the measured box, so use its measured offset
+  // rather than the head half-width alone; ledger-free shapes are unchanged.
+  const ledgerOffset =
+    measured.notes[0].anchorX -
+    buildNeumeBodyGeometry(
+      kind,
+      placement.staffPositions,
+      0,
+      bottomStaffY,
+      placement.appearance,
+    ).notes[0].anchorX;
   // Keep the actual shape visible at crowded ends without changing its pitch or scale.
   const left = Math.max(
     source.staffLines[0].x1 + 3,
     Math.min(
       source.staffLines[0].x2 - measured.bounds.width - 3,
-      point.x - firstHeadHalfWidth(kind),
+      point.x - firstHeadHalfWidth(kind) - ledgerOffset,
     ),
   );
   return {

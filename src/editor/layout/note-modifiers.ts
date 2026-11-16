@@ -13,6 +13,7 @@ import {
 } from './neumes/shared';
 import { extendedScandicusElements } from './neumes/scandicus-extended';
 import { clivisStemLength } from './neumes/podatus-clivis';
+import { geometryBounds, ledgerStrokesNear } from './ledger-lines';
 
 function overlaps(a: LayoutBounds, b: LayoutBounds, clearance = 2): boolean {
   return (
@@ -36,10 +37,17 @@ export function addNoteModifiers(
   // semantic kind's mora rules; their vertical obstacles are figure-specific.
   const kind = semanticGeometryKind(geometryKind);
   const ink = [...geometry.ink];
+  // Body ink alone seeds sign columns and edges; ledger strokes are separate
+  // analytic obstacles (Stage 11A), never their whole run envelope.
+  const inkBounds = getInkBounds(geometry.ink);
+  const ledgers = geometry.ledgers ?? [];
+  const clearOfLedgers = (bounds: LayoutBounds) =>
+    !ledgerStrokesNear(ledgers, bounds, 2).length;
   const signs: InkShape[] = [];
   const noteSigns: InkShape[][] = geometry.notes.map(() => []);
   const clear = (bounds: LayoutBounds) =>
     ![...ink, ...signs].some((part) => overlaps(bounds, part.bounds)) &&
+    clearOfLedgers(bounds) &&
     ![0, 2, 4, 6].some((position) => {
       const lineY = bottomStaffY - position * 12;
       return bounds.y < lineY + 1 && bounds.y + bounds.height > lineY - 1;
@@ -83,7 +91,7 @@ export function addNoteModifiers(
   const marked = geometry.notes.flatMap((_, index) =>
     modifiers[index]?.mora ? [index] : [],
   );
-  const right = geometry.bounds.x + geometry.bounds.width;
+  const right = inkBounds.x + inkBounds.width;
   const position = (index: number) =>
     Math.round((bottomStaffY - geometry.notes[index].anchorY) / 12);
   const row = (index: number, below: boolean) =>
@@ -151,6 +159,7 @@ export function addNoteModifiers(
         ? ![...geometry.notes.map((n) => n.head), ...signs].some((s) =>
             overlaps(bounds, s.bounds),
           ) &&
+          clearOfLedgers(bounds) &&
           bounds.x >= geometry.notes[0].anchorX + 9 &&
           ![0, 2, 4, 6].some(
             (p) => Math.abs(bounds.y + 2 - (bottomStaffY - p * 12)) < 3,
@@ -162,12 +171,16 @@ export function addNoteModifiers(
   // Resolve vertical signs last so horizontal episemata and mora retain their
   // established geometry. Compound occupied boxes include empty apertures;
   // use the same head regions and the recipes' narrow shafts for this pass.
-  const obstacles = verticalObstacles(geometry, geometryKind);
+  const obstacles = verticalObstacles(
+    { ...geometry, bounds: inkBounds },
+    geometryKind,
+  );
   const verticalClear = (bounds: LayoutBounds, leftOfInk = false) =>
-    (leftOfInk || bounds.x >= geometry.bounds.x) &&
+    (leftOfInk || bounds.x >= inkBounds.x) &&
     ![...obstacles, ...signs.map((sign) => sign.bounds)].some((part) =>
       overlaps(bounds, part),
     ) &&
+    clearOfLedgers(bounds) &&
     ![0, 2, 4, 6].some((position) => {
       const lineY = bottomStaffY - position * 12;
       // The staff stroke does not scale with the SVG. Four layout units
@@ -221,7 +234,7 @@ export function addNoteModifiers(
     noteSigns[index].push(sign);
   });
   ink.push(...signs);
-  const bounds = getInkBounds(ink);
+  const bounds = geometryBounds(ink, ledgers);
   return {
     ...geometry,
     notes: geometry.notes.map((note, index) =>

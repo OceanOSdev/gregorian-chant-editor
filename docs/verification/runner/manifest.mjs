@@ -99,6 +99,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'neume-ledger-lines',
+    script: 'neume-ledger-lines/browser-check.mjs',
+    server: 'preview',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'compound-directional-neumes',
     script: 'compound-directional-neumes/browser-check.mjs',
     server: 'preview',

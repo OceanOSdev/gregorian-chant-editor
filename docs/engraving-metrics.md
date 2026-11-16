@@ -629,3 +629,38 @@ Observed evidence covers seconds (print) and seconds to fifths (Gregorio,
 both fonts, line and space starts). Wider valid intervals use the same
 constructions: stems and strokes lengthen, terminals and tail stay
 pitch-anchored (documented extrapolation, not historical evidence).
+
+## Ledger lines (Stage 11A)
+
+Neume ledger lines reuse the custos metrics unchanged (`ledger-lines.ts`).
+They are proposed project conventions for owner visual acceptance, based on
+the [Stage 11A plan](plans/stage-11a-neume-ledger-lines.md#motivation-and-evidence)
+(Liber Usualis p. xvij supplementary lines; GregoBase #4577 for the Et Jesum
+pitches), not measured from any printed edition.
+
+| Property            | Project value                                               |
+| ------------------- | ----------------------------------------------------------- |
+| Stroke thickness    | 1.5 units (`s/8`, as stems and custos ledgers)              |
+| Overhang            | 3 units each side of the pitch-bearing column               |
+| Spacing             | 24 units (one staff-line interval)                          |
+| Required levels     | -2, -4, … through the last even position at or above p ≤ -2 |
+|                     | 8, 10, … through the last even position at or below p ≥ 8   |
+| Ordinary head       | 12-unit column → 18-unit ledger                             |
+| Diamond (inclinata) | 14-unit column → 20-unit ledger                             |
+| Reduced terminal    | its own head contour (e.g. 6.4 units → 12.4-unit ledger)    |
+| Ribbon endpoint     | nominal 12-unit cell about its anchor → 18-unit ledger      |
+
+Merging is per neume: overlapping or touching overhung intervals at one level
+form a single stroke (for example the three 18-unit-pitch Tristropha heads,
+whose 3-unit overhangs touch, give one 54-unit stroke); a positive gap is
+never bridged. Several levels beyond one Liber Usualis supplementary line are
+an intentional editor extension for distant valid pitches, not a historical
+Solesmes claim.
+
+Optical adjustments: none to the ledger itself. A ledger may make a neume
+wider (bounds and advance include it) and, when it overhangs the first head,
+moves the whole body 3 units right inside its ink box. Signs keep their
+ordinary placement rules and treat ledger strokes as ink: a horizontal
+episema whose nominal 16-unit position above a note just below a ledger would
+touch that stroke follows the existing above-then-below order and takes the
+same distance below; a vertical episema moves to its next clear distance.

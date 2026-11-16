@@ -6,6 +6,7 @@ import {
   type AccidentalLyricBox,
 } from './accidental-geometry';
 import { addNoteModifiers } from './note-modifiers';
+import { addLedgerLines } from './ledger-lines';
 import type {
   NoteAppearance,
   Neume,
@@ -43,6 +44,14 @@ export type {
   NeumeGeometry,
 } from './neumes/shared';
 
+export interface NeumeGeometryOptions {
+  /**
+   * Body-only geometry for staffless silhouettes (palette icons): no derived
+   * ledger runs, so bounds and appearance match the pre-ledger contour.
+   */
+  staffless?: boolean;
+}
+
 /**
  * Approved project contours; see docs/engraving-metrics.md. Intended joins
  * share a filled outer contour; conventional disconnected components stay apart.
@@ -56,6 +65,7 @@ export function buildNeumeGeometry(
   modifiers: readonly NoteAppearance[] = [],
   accidentals: readonly AccidentalSpec[] = [],
   lyricBox?: AccidentalLyricBox,
+  options: NeumeGeometryOptions = {},
 ): NeumeGeometry {
   const buildAt = (groupX: number) => {
     const shiftedX =
@@ -65,20 +75,36 @@ export function buildNeumeGeometry(
     const semantic = semanticGeometryKind(kind);
     // Liquescent figures exclude authored forms (ADR 0027 D8), so they never
     // reach the authored recipes.
-    const body =
+    const buildBody = (x: number) =>
       kind === 'epiphonus' ||
       kind === 'cephalicus' ||
       kind === 'augmentative-pes'
-        ? buildLiquescent(kind, positions, shiftedX, bottomStaffY)
+        ? buildLiquescent(kind, positions, x, bottomStaffY)
         : (buildAuthoredGeometry(
             semantic,
             positions,
-            shiftedX,
+            x,
             bottomStaffY,
             modifiers,
-          ) ??
-          buildUnmodifiedGeometry(semantic, positions, shiftedX, bottomStaffY));
-    const base = addNoteModifiers(body, modifiers, bottomStaffY, kind);
+          ) ?? buildUnmodifiedGeometry(semantic, positions, x, bottomStaffY));
+    const body = buildBody(shiftedX);
+    // Derived ledger runs join the body before signs resolve, so marks and
+    // accidentals clear them (Stage 11A). Staffless icons omit them. A left
+    // overhang moves the body right within its box, so the ledger, not the
+    // head, starts at `shiftedX` (and a prefix keeps its ordinary gap).
+    const staffed = options.staffless
+      ? body
+      : addLedgerLines(body, positions, bottomStaffY);
+    const overhang = staffed === body ? 0 : shiftedX - staffed.bounds.x;
+    const ledgered =
+      overhang > 0
+        ? addLedgerLines(
+            buildBody(shiftedX + overhang),
+            positions,
+            bottomStaffY,
+          )
+        : staffed;
+    const base = addNoteModifiers(ledgered, modifiers, bottomStaffY, kind);
     return addAccidentalGeometry(
       base,
       accidentals,
@@ -89,12 +115,36 @@ export function buildNeumeGeometry(
   };
   const result = buildAt(leftX);
   // `leftX` is the group's left ink edge for every layout consumer (spacing,
-  // compaction and reflow rebuild at `bounds.x + shift`). Prefix accidentals,
-  // and the left vertical-episema fallback (ADR 0025), can
+  // compaction and reflow rebuild at `bounds.x + shift`). Ledger overhang,
+  // prefix accidentals, and the left vertical-episema fallback (ADR 0025), can
   // extend ink left of it; translate the group so they never overhang.
   return result.bounds.x < leftX
     ? buildAt(leftX + leftX - result.bounds.x)
     : result;
+}
+
+/**
+ * The authored body alone, as drawn without a staff: no derived ledger runs
+ * (Stage 11A), no accidentals. Staffless silhouettes (palette icons) and
+ * recipe-contour checks use it; scores always use buildNeumeGeometry.
+ */
+export function buildNeumeBodyGeometry(
+  kind: GeometryKind,
+  positions: readonly StaffPosition[],
+  leftX: number,
+  bottomStaffY: number,
+  modifiers: readonly NoteAppearance[] = [],
+): NeumeGeometry {
+  return buildNeumeGeometry(
+    kind,
+    positions,
+    leftX,
+    bottomStaffY,
+    modifiers,
+    [],
+    undefined,
+    { staffless: true },
+  );
 }
 
 function buildUnmodifiedGeometry(

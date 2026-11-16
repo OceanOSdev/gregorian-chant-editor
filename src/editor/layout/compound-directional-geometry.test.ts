@@ -10,6 +10,7 @@ import {
 } from '../domain/chant-document';
 import { blankDocument } from '../persistence/native-document';
 import {
+  buildNeumeBodyGeometry,
   buildNeumeGeometry,
   interNeumeInkGap,
   type NeumeGeometry,
@@ -133,7 +134,12 @@ describe('exhaustive bounded compound geometry', () => {
       for (const pitches of contours(kind)) {
         const g = build(kind, pitches);
         expect(g.lyricAnchorX).toBe(g.notes[0].anchorX);
-        expect(g.notes[0].anchorX).toBe(56);
+        // A first-column ledger moves the whole body 3 units right inside the
+        // ink box (Stage 11A); the body recipe's anchor is unchanged.
+        const body = buildNeumeBodyGeometry(kind, positions(pitches), 50, 140);
+        expect(body.notes[0].anchorX).toBe(56);
+        expect(g.bounds.x).toBe(50);
+        expect([0, 3]).toContain(g.notes[0].anchorX - body.notes[0].anchorX);
         // Horizontal ownership: no rectangular target extends into a later
         // column owned by a different element.
         const [n0, n1, n2, n3] = g.notes;
