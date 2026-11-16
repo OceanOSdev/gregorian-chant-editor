@@ -101,19 +101,30 @@ expects 44 runnable pairs.
 
 ## Verification
 
-Revision: see the PR for the final commit. Results below were produced on
-the implementation working tree before commit.
+Implementation revision `1a3f918` (2026-11-16), local Linux, headless
+Chromium (CDP) and Firefox (BiDi) via `npm run verify:browser`.
 
-| Check                                     | Result |
-| ----------------------------------------- | ------ |
-| `npm run format:check`                    | RESULT |
-| `npm run lint`                            | RESULT |
-| `npm test`                                | RESULT |
-| `npm run build`                           | RESULT |
-| `git diff --check`                        | RESULT |
-| `npm run test:verify-runner`              | RESULT |
-| `neume-ledger-lines` Chromium and Firefox | RESULT |
-| Affected existing drivers, both browsers  | RESULT |
+| Check                                     | Result                                       |
+| ----------------------------------------- | -------------------------------------------- |
+| `npm run format:check`                    | Pass                                         |
+| `npm run lint`                            | Pass                                         |
+| `npm test`                                | Pass, 2333 tests (49 in `ledger-lines.test`) |
+| `npm run build`                           | Pass                                         |
+| `git diff --check`                        | Pass                                         |
+| `npm run test:verify-runner`              | Pass, 28 tests                               |
+| `neume-ledger-lines` Chromium and Firefox | Pass                                         |
+| 16 affected existing drivers, both        | 31 pass (`clefs` is Chromium-only)           |
+
+Affected drivers: mid-score-clefs, note-modifiers, vertical-episemata (+
+context), b-accidentals (+ acceptance), contiguous-selection,
+musical-passage-clipboard, liquescent-notation, compound-directional-neumes,
+extended-scandicus-climacus, pes-subpunctis, repeated-note-neumes,
+note-shapes, clefs, divisions. An earlier run (before the canvas bound
+below) failed mid-score-clefs in both browsers at its
+`Number.MAX_SAFE_INTEGER` scenario; that is the cause of the canvas-bound
+deviation, not a baseline failure. The known Firefox mid-score-clefs
+intermittency did not recur. Baseline note: the committed plan itself
+failed `format:check` (list spacing); it was formatted here.
 
 The focused driver covers, at 1440px and 320px: the Et Jesum ledger
 (position, width, paint order, inert/aria-hidden, no new targets); export
