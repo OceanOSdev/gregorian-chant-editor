@@ -26,6 +26,8 @@ acceptance case, not an 11A failure.
 
 ![320px: Puncta at -12 and 15 inside the outer canvas](canvas-320.png)
 
+![Firefox 1440px, extreme imported pitches: top of the bounded canvas, with ledger fields painted exactly on the staff grid up to the margin and a Podatus stem reaching MAX_SAFE_INTEGER (before the follow-up, Firefox painted this area blank)](extreme-firefox-1440.png)
+
 ## Implementation summary
 
 - `src/editor/layout/ledger-lines.ts` (new): the shared ledger rule
@@ -59,28 +61,22 @@ acceptance case, not an 11A failure.
   liquescent terminals use their own narrower contour.
 - **Touching overhangs merge** (as specified): repeated notes 18 units apart
   give one continuous stroke.
-- **Horizontal episema near a ledger**: the existing above-then-below order
-  at each distance now sees ledger strokes, so an episema over a note just
-  below a ledger (e.g. -3) moves to the same 16-unit distance below rather
-  than further above. The rule itself is unchanged; review whether a
-  "prefer above" exception is wanted.
+- **Horizontal episema near a ledger** (owner-accepted, no exception): the
+  existing above-then-below order at each distance now sees ledger strokes,
+  so an episema over a note just below a ledger (e.g. -3) moves to the same
+  16-unit distance below rather than further above.
 - **Prefix accidentals** keep their 20-unit advance to the ledger edge (the
   head moves 3 units right), rather than letting the ledger close the gap.
 - **First neume of a system**: a first-column ledger moves its head 3 units
   right of `firstNeumeCenterX` (the ink box still starts at the usual left
   edge); no clef clearance changes.
-- **Canvas**: horizontal neume extents are also included, as the plan's
-  "all ink" wording asks; ordinary scores keep their 720 × height canvas.
-- **Canvas bound for absurd pitches (owner decision)**: including every
-  neume's ink made a valid `Number.MAX_SAFE_INTEGER` Punctum produce a
-  ~10^17-unit viewBox, which broke the existing `mid-score-clefs` unsafe-pitch
-  scenario in both browsers (the clef became unreachable). Unmarked neume ink
-  now grows the canvas by at most `offStaffCanvasMargin` (1,200 units = 50
-  ledger levels) beyond its system; farther ink stays clipped, exactly as
-  before 11A. Marked neumes and custodes keep their earlier unbounded rule
-  (a pre-existing limitation, not changed here). Alternatives: a different
-  margin, applying the bound to marked neumes and custodes too, or deferring
-  extreme-coordinate policy to 11B.
+- **Canvas containment (owner-accepted policy)**: all musical ink grows the
+  outer canvas by at most `offStaffCanvasMargin` (1,200 units, 50 ledger
+  levels) beyond its system, vertically and (beyond the 720-unit width)
+  horizontally; there is no marked/unmarked distinction. Painted ledger
+  runs (neume and custos) and bounds-derived outlines are limited to the
+  canvas plus one ledger space; derived geometry is unchanged. See
+  [what is clipped and what remains supported](../../layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted).
 - Pointer entry cannot start below -1, so the ghost's measured-offset path is
   exercised by a unit test calling the preview layout directly; the browser
   checks a default Climacus extending to -2.
@@ -142,6 +138,70 @@ staff; no ledgers on palette icons; no horizontal page overflow.
 Not run: the full browser matrix and the TeX/historical comparison (not
 required for this milestone); foreground manual and screen-reader testing.
 
+## Owner follow-up (canvas policy and modifier tests)
+
+After the owner's review of `121d8b3` (decisions recorded in
+[the plan](../../plans/stage-11a-neume-ledger-lines.md#owner-decisions-after-pr-91-review)):
+
+- **Bounded containment for all musical ink**, vertically and horizontally
+  (`layout-chant.ts`). On `master` a distant custos already made the
+  canvas unbounded vertically, and a Porrectus ribbon reaching a distant
+  pitch (width proportional to its interval, ~7 × 10^16) unbounded
+  horizontally when a custos followed it. At `121d8b3` the latter was
+  unbounded even without a custos, and the 7 × 10^16-unit SVG left the
+  ordinary note with a 0 × 0 hit box in Chromium.
+- **Investigation of rendering with a bounded viewBox**: with ±MAX_SAFE
+  pitches, Chromium painted the ~10^17-unit tiled ledger rects across
+  neighbouring systems, and Firefox painted only the first stroke or none
+  (blank score area at 1440px). Painted ledger runs (neume and custos) and
+  bounds-derived outlines are now limited to the canvas plus one ledger
+  space, anchored exactly on the staff grid (`visibleLedgerRun`,
+  `render-band.ts`); both browsers now paint identically.
+  `ledgerStrokesInBand` uses the same exact anchoring; ordinary results
+  are unchanged.
+- **Tests**:
+  - `ledger-lines.test.ts`: plain, marked, virga, inclinatum, quilisma pes,
+    epiphonus, flat and distant-custos ink at ±MAX_SAFE and ±400, both
+    sides; complete containment at -60 and 70; the ribbon width bound;
+    painted sub-runs on the grid.
+  - `ledger-modifiers.test.ts` (new): every valid mark combination
+    (mora scopes × episema × vertical episema patterns × allowed forms,
+    filtered by `isValidNeume`) on all 22 entry families, including the
+    three liquescent appearances, extended Scandicus/Climacus,
+    Porrectus-family and compound neumes, at first pitches -9..13. All
+    authored marks are present, none touches a ledger stroke, and vertical
+    episema placement never throws. A mutation check (disabling the ledger
+    obstacle) fails 21 of 22 families.
+  - No regression surfaced, so ordinary and modifier engraving is unchanged.
+- **Driver scenario 9** (both browsers, 1440 and 320px): 24 neumes
+  alternating between MAX_SAFE and -MAX_SAFE+8 (plain, marked, virga with a
+  flat, epiphonus, quilisma pes), plus a Podatus and a Porrectus spanning
+  from the staff to MAX_SAFE. It checks:
+  - a bounded viewBox (-1,200 to systems + 1,200);
+  - distant custodes present;
+  - every painted ledger or outline inside the band and on the staff grid,
+    with the full derived count retained;
+  - real-pointer selection and transposition of an ordinary note;
+  - keyboard selection and transposition of a distant note;
+  - a whole-neume outline limited to the band;
+  - Undo restoring the exact document and pitches.
+
+Follow-up verification, final working tree (2026-11-16):
+
+| Check                                                                                                                                           | Result                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| format:check, lint, build, `git diff --check`                                                                                                   | Pass                                           |
+| `npm test`                                                                                                                                      | Pass, 2361 tests                               |
+| `npm run test:verify-runner`                                                                                                                    | Pass                                           |
+| neume-ledger-lines, mid-score-clefs, Chromium and Firefox                                                                                       | Pass                                           |
+| note-modifiers, vertical-episemata, contiguous-selection, b-accidentals, liquescent-notation, compound-directional-neumes, Chromium and Firefox | Pass                                           |
+| lyric-move (Chromium only)                                                                                                                      | Fail, baseline: `Missing button Move syllable` |
+
+The lyric-move failure reproduces identically on clean `master` (`fef1d33`)
+at its third step, before any ledger content; it is a pre-existing driver
+or UI mismatch, not caused by this branch. Modifier production geometry did
+not change, so the remaining modifier drivers were not rerun.
+
 ## Owner acceptance steps
 
 1. `npm run build && npm run preview`, Import `et-jesum.chant.json`: one
@@ -152,3 +212,5 @@ required for this milestone); foreground manual and screen-reader testing.
    (Tristropha at -3) and ribbon (Porrectus [-2,-5,-2]) figures, and a
    default Climacus placed on the bottom line (ghost and commit).
 4. Check episemata, mora and a flat next to ledgers, and the 320px view.
+5. Optionally import a score with a distant (e.g. ±9007199254740991) pitch:
+   the editor stays usable; ink beyond 1,200 units is clipped.

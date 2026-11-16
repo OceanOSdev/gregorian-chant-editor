@@ -1,10 +1,12 @@
 # Stage 11A — derived neume ledger lines
 
 Status: implemented on `feat/neume-ledger-lines` (master merged in at
-fef1d33, PR #90); awaiting owner review and visual acceptance. Agreed
-2026-11-15 as the 11A ledger / 11B dynamic vertical layout split. The
-implementation record, checks and deviations are in
-[the verification record](../verification/neume-ledger-lines/README.md).
+fef1d33, PR #90); owner review of PR #91 at 121d8b3 accepted the
+architecture, engraving choices and canvas margin (see
+[owner decisions](#owner-decisions-after-pr-91-review)); awaiting foreground
+visual acceptance. Agreed 2026-11-15 as the 11A ledger / 11B dynamic
+vertical layout split. The implementation record, checks and deviations are
+in [the verification record](../verification/neume-ledger-lines/README.md).
 Base: master at 404b84a318cb25aa6f09a67cd0365f116d6be1eb (PR #89 merged).
 
 ## Motivation and evidence
@@ -217,6 +219,35 @@ Owner acceptance: ledger on Je (one at -2); at -1 no ledger, -2/-3 one,
 figures; check signs, pointer/keyboard, Undo and narrow widths. The low
 note/lyric collision is not an acceptance failure for 11A; it is the
 primary follow-up for 11B. Do not merge before owner review.
+
+## Owner decisions after PR #91 review
+
+1. Accept the 1,200-unit off-staff canvas margin and apply it to all
+   musical ink alike (ordinary, marked and authored-form neumes,
+   accidentals, ledgers, custodes), with no marked/unmarked distinction.
+   It is a rendering safeguard, not a semantic pitch restriction or a
+   historical engraving rule: the document model, allowed pitches, native
+   v10 format, effective pitches, history and clipboard are unchanged.
+   Stage 11B must respect the same safety policy when it derives
+   content-dependent vertical system extents.
+2. Accept the current horizontal episema placement (no exception to keep
+   it above a note when a ledger obstructs that position).
+3. Accept the ledger dimensions, merging rules, pitch-bearing columns,
+   prefix accidental spacing and first-head offset, pending foreground
+   visual acceptance.
+
+Follow-up implemented on the same branch: the bounded containment policy
+(also applied horizontally, since an interval-proportional Porrectus
+ribbon reaching a distant pitch is ~10^17 units wide); render-time
+limiting of painted ledger runs and bounds-derived outlines to the canvas,
+because a bounded viewBox alone left ~10^17-unit painted rects that
+Firefox dropped and Chromium drew; extreme-pitch regression tests for
+marked notes, authored forms, accidentals and distant custodes on both
+sides of the staff; exhaustive ledger-aware mark tests across the
+liquescent, extended Scandicus/Climacus, Porrectus-family and compound
+families; and a browser scenario proving the editor stays usable with
+extreme imported pitches. The policy and exactly what is clipped are owned
+by [layout and rendering](../layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted).
 
 ## Explicitly deferred — Stage 11B
 

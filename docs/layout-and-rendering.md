@@ -50,8 +50,10 @@ system-local coordinate design.
 
 Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
 Height grows with system count, exceptional guide ink and off-staff neume ink
-(including ledgers, Stage 11A); a negative canvas Y origin can include high
-custodes or notes without moving systems. Stage 4B's combined music-and-lyric layout
+(including ledgers, Stage 11A), bounded by the
+[canvas containment margin](#canvas-containment-and-extreme-pitches-owner-accepted);
+a negative canvas Y origin can include high custodes or notes without moving
+systems. Stage 4B's combined music-and-lyric layout
 follows [accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
 which supersedes the music-only wrapping rule in ADR 0005.
 For exceptional unbreakable lyrics, see the overflow policy below. Logical
@@ -655,7 +657,8 @@ ledger-free guides retain their previous reservation. Existing staff extension,
 lyric/hyphen/caret clearance and horizontal canvas logic consume those bounds.
 The canvas also includes guide ink above/below its normal extent using a derived
 Y origin, without moving staff/system coordinates or adding a vertical collision
-engine. See the [Gregorio comparison and
+engine; since Stage 11A that growth is bounded like all musical ink (see
+[canvas containment](#canvas-containment-and-extreme-pitches-owner-accepted)). See the [Gregorio comparison and
 verification](verification/mid-score-clefs/custos-ledgers.md) for source, dimensions,
 actual examples and remaining silhouette differences.
 
@@ -715,12 +718,56 @@ figures extending beyond the staff show their ledgers.
 
 Stage 11A keeps fixed system height, staff origins, lyric baseline, gaps and
 vertical placement policy. The outer canvas now includes every neume's
-complete bounds (signs, off-staff ink and ledgers), so first/last-system
-ink is not clipped; ordinary in-staff scores keep their baseline canvas.
-Unmarked neume ink grows the canvas by at most `offStaffCanvasMargin`
-(1,200 units, 50 ledger levels) beyond its system; beyond that a valid but
-absurd pitch stays clipped as before, rather than producing an unusable
-viewBox. Marked neumes and custodes keep their earlier unbounded rule.
+complete bounds (signs, authored forms, off-staff ink and ledgers) and every
+custos, so first/last-system ink is not clipped; ordinary in-staff scores
+keep their baseline canvas.
+
+#### Canvas containment and extreme pitches (owner-accepted)
+
+A rendering safeguard, not a semantic pitch restriction or engraving rule:
+all musical ink (plain, marked and authored-form neumes, accidentals,
+ledgers, custodes, clef changes and extended staff lines) grows the outer
+canvas by at most `offStaffCanvasMargin` = 1,200 units (50 ledger levels)
+beyond its system vertically, and beyond the 720-unit score width
+horizontally. There is no marked/unmarked distinction. Lyrics and hyphens
+keep their own rule. Allowed pitches, the native v10 format, effective
+pitches, history and clipboard are unchanged; Stage 11B's
+content-dependent vertical extents must respect the same margin.
+
+What is clipped:
+
+- Ink beyond the margin lies outside the viewBox and is not visible:
+  note heads, signs and accidentals at a distant pitch, the far part of a
+  stem or ribbon reaching it, and ledger levels beyond the margin. A
+  Porrectus-family ribbon's width follows its interval, so one reaching a
+  distant pitch also pushes its later notes, and its system's following
+  neumes or custos, beyond the right edge.
+- Painted elements derived from extents are limited to the canvas plus one
+  ledger space (`render-band.ts`): each ledger run (neume or custos) paints
+  only its strokes inside that window, as an exact sub-run anchored on the
+  run's end nearest the staff (`visibleLedgerRun`), so the strokes stay on
+  the staff grid even where the far end's coordinate is not exactly
+  representable; selection, range, placement-context, lyric-move and
+  ownership-clip rectangles are limited the same way. Without this, a
+  ~10^17-unit tiled rect painted inconsistently (Firefox dropped it;
+  Chromium drew it).
+- Derived geometry is never clipped: `LedgerRun`s keep their full count
+  (`data-ledger-count`; a limited painted element adds
+  `data-painted-ledger-count`), bounds, spacing, wrapping and collision
+  queries use the complete ink.
+- Body ink (paths and rects) is painted unchanged and clipped by the
+  viewBox; Chromium and Firefox render a stem or ribbon reaching a
+  safe-integer pitch identically.
+
+What remains supported: importing, displaying, selecting (pointer and
+keyboard), transposing, undoing and exporting such a score, with every pitch
+preserved exactly. A distant note's own hit target lies outside the canvas,
+so it is reached by keyboard. Arbitrarily distant safe-integer coordinates
+are not otherwise rendered faithfully: floating-point precision there is
+coarser than a staff step, ledger fields from neighbouring systems overlap,
+and nothing beyond the margin is visible. Within the margin, such ink is
+complete.
+
 Collisions between low notes or ledgers and the fixed lyric baseline, and
 between adjacent systems, remain unresolved for
 [Stage 11B](roadmap.md#neume-ledger-lines-stage-11a).

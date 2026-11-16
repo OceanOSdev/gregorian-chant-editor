@@ -601,6 +601,155 @@ try {
     );
     await key('Escape');
     checks.push('palette-overflow');
+
+    // 9. Extreme but valid imported pitches (owner follow-up): every kind of
+    // musical ink at ±MAX_SAFE_INTEGER, alternating so system breaks end in
+    // distant custodes. The editor must stay usable and pitches semantic.
+    const max = Number.MAX_SAFE_INTEGER;
+    const extremeNeumes = [
+      neume('near', 'punctum', [3]),
+      // Authored bodies spanning from the staff to a distant pitch.
+      neume('span-pes', 'podatus', [3, max]),
+      neume('span-porrectus', 'porrectus', [max, 3, 4]),
+    ];
+    for (let i = 0; i < 24; i++) {
+      // MAX_SAFE_INTEGER is a B under C3 (the flat's owner); the low side
+      // stays a few steps inside so every effective degree remains safe.
+      const at = i % 2 ? max : -max + 8;
+      extremeNeumes.push(
+        i % 4 === 0
+          ? neume(
+              `far${i}`,
+              'punctum',
+              [at],
+              [{ mora: 1, episema: true, verticalEpisema: true }],
+            )
+          : i % 4 === 1
+            ? neume(
+                `far${i}`,
+                'punctum',
+                [at],
+                [{ form: 'virga', episema: true }],
+              )
+            : i % 4 === 2
+              ? {
+                  ...neume(
+                    `far${i}`,
+                    'podatus',
+                    [at, at + 1],
+                    [{ episema: true }],
+                  ),
+                  liquescence: 'diminutive',
+                }
+              : neume(
+                  `far${i}`,
+                  'podatus',
+                  [at - 2, at],
+                  [{ form: 'quilisma' }, { verticalEpisema: true }],
+                ),
+      );
+    }
+    const extreme = {
+      ...base,
+      document: {
+        ...base.document,
+        neumes: extremeNeumes,
+        accidentals: [{ id: 'far-flat', kind: 'flat', ownerNoteId: 'far1-0' }],
+      },
+    };
+    const started = Date.now();
+    const extremeBytes = await hydrate(extreme);
+    const loadMs = Date.now() - started;
+    // The canvas stops 1,200 units beyond the systems; nothing painted
+    // (ledger runs, custos ledgers, outlines) exceeds the canvas by more than
+    // one ledger space, so no browser tiles or strokes a 10^17-unit shape.
+    const painted = () =>
+      ev(`(()=>{
+        const svg=document.querySelector('svg.score');
+        const v=svg.viewBox.baseVal;
+        const rects=[...svg.querySelectorAll('.score__ledger-run,.score__custos-ledgers,.score__neume-selection,.score__range-selection')]
+          .map(r=>({cls:r.getAttribute('class'),y:+r.getAttribute('y'),h:+r.getAttribute('height'),count:+(r.dataset.ledgerCount??0),painted:+(r.dataset.paintedLedgerCount??r.dataset.ledgerCount??0)}));
+        const lines=[...svg.querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1'));
+        const bottoms=[];for(let i=0;i<lines.length;i+=4)bottoms.push(Math.max(...lines.slice(i,i+4)));
+        return {view:{top:v.y,bottom:v.y+v.height,height:v.height},rects,bottoms,systems:bottoms.length,scrollHeight:document.documentElement.scrollHeight};
+      })()`);
+    let state = await painted();
+    const systemsBottom = state.systems * 244 - 24;
+    assert.equal(state.view.top, -1200, 'canvas top bounded at the margin');
+    assert.equal(
+      state.view.bottom,
+      systemsBottom + 1200,
+      'canvas bottom bounded at the margin',
+    );
+    const ledgerRects = state.rects.filter((r) => /ledger/.test(r.cls));
+    assert.ok(
+      ledgerRects.some((r) => r.cls === 'score__custos-ledgers'),
+      'distant custodes are present',
+    );
+    for (const r of state.rects) {
+      assert.ok(r.y >= state.view.top - 24 - 0.75, `${r.cls} top in band`);
+      assert.ok(
+        r.y + r.h <= state.view.bottom + 24 + 0.75,
+        `${r.cls} bottom in band`,
+      );
+    }
+    for (const r of ledgerRects) {
+      // Full derived count is reported; only the painted element is limited.
+      assert.ok(r.count > 1000, 'derived distant ledger count');
+      assert.ok(r.painted < r.count && r.painted > 10);
+      assert.equal(r.h, (r.painted - 1) * 24 + 1.5);
+      // Painted strokes sit exactly on some system's staff grid.
+      assert.ok(
+        state.bottoms.some((b) => Math.abs((r.y + 0.75 - b) % 24) === 0),
+        'ledger strokes stay on the staff grid',
+      );
+    }
+    assert.ok(state.scrollHeight < 20000, 'page height stays usable');
+
+    // Usable: real pointer selection, transposition, Undo, and the distant
+    // pitches survive exactly.
+    await pointer(selector('near-0'));
+    assert.equal(
+      await ev(
+        `document.querySelector(${JSON.stringify(selector('near-0'))}).getAttribute('aria-pressed')`,
+      ),
+      'true',
+      'real pointer selection beside distant ink',
+    );
+    await key('ArrowUp');
+    assert.equal((await score()).neumes[0].notes[0].staffPosition, 4);
+    await clickLabel('Undo last edit');
+    const extremeDocument = JSON.parse(extremeBytes).document;
+    assert.deepEqual(await score(), extremeDocument, 'Undo restores the score');
+    // A distant note: keyboard selection, transposition toward the staff.
+    await select('far0-0');
+    await key('ArrowUp');
+    let moved = (await score()).neumes.find((n) => n.id === 'far0');
+    assert.equal(moved.notes[0].staffPosition, -max + 9);
+    await clickLabel('Undo last edit');
+    assert.deepEqual(await score(), extremeDocument);
+    // Whole-neume selection of a distant neume: its outline (from complete
+    // bounds reaching the pitch) is painted, but only inside the band.
+    await key('Escape');
+    await ev(`document.querySelector('[data-note-id="far0-0"]').focus()`);
+    await key('Enter', 'Enter', true);
+    state = await painted();
+    const farOutline = state.rects.find((r) =>
+      /neume-selection|range-selection/.test(r.cls),
+    );
+    assert.ok(farOutline, 'distant neume selection outline is painted');
+    assert.ok(farOutline.y >= state.view.top - 24 - 0.75);
+    assert.ok(farOutline.y + farOutline.h <= state.view.bottom + 24 + 0.75);
+    moved = (await score()).neumes.find((n) => n.id === 'far1');
+    assert.equal(moved.notes[0].staffPosition, max, 'pitch stays semantic');
+    console.error(
+      'extreme',
+      width,
+      JSON.stringify({ loadMs, view: state.view, systems: state.systems }),
+    );
+    await key('Escape');
+    await snapshot('extreme-' + width);
+    checks.push('extreme-pitches');
   }
   console.log(
     JSON.stringify({

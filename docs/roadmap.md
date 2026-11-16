@@ -426,10 +426,16 @@ outer canvas containment
 [metrics](engraving-metrics.md#ledger-lines-stage-11a),
 [contract](layout-and-rendering.md#neumes-stage-11a),
 [record](verification/neume-ledger-lines/README.md)). No schema, command or
-pitch-range change. Owner visual acceptance is pending.
+pitch-range change. The owner accepted the engraving choices and a
+bounded canvas: all musical ink grows the canvas by at most 1,200 units,
+and painted ledger runs and outlines stop at the canvas, so extreme but
+valid imported pitches stay usable; their ink beyond the margin is clipped
+([what is clipped](layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted)).
+Foreground visual acceptance is pending.
 
 **Stage 11B (deferred):** content-dependent system origins and heights, a
 common lyric baseline with text and musical ink clearance, inter-system
 collisions, placement mapping with variable heights, scroll/focus and print
 layout. The Et Jesum low A (Salve Regina, Dominican) still overlaps its
-lyric; that collision is 11B's primary acceptance case.
+lyric; that collision is 11B's primary acceptance case. Its content-dependent
+vertical extents must respect the same canvas safety margin.
