@@ -20,7 +20,9 @@ import {
   ledgerSpacing,
   ledgerStrokesNear,
   mergeLedgerRuns,
+  ledgerStrokesInBand,
   pitchColumn,
+  visibleLedgerRun,
   type LedgerRun,
 } from './ledger-lines';
 import {
@@ -210,6 +212,51 @@ describe('shared ledger mathematics', () => {
     expect(g.ledgers?.length).toBeLessThanOrEqual(4);
     for (const value of Object.values(g.bounds))
       expect(Number.isFinite(value)).toBe(true);
+  });
+
+  it('limits a painted run to a window exactly on the staff grid', () => {
+    const max = Number.MAX_SAFE_INTEGER;
+    // Window as the renderer uses it: canvas ±1,200 plus one ledger space.
+    const top = -1224;
+    const bottomEdge = 220 + 1224;
+    for (const position of [-max, -max + 8, max, max - 2, -400, 400]) {
+      const [run] = mergeLedgerRuns([{ position, left: 0, right: 12 }], bottom);
+      const painted = visibleLedgerRun(run, top, bottomEdge);
+      if (!painted) throw new Error('Expected visible strokes');
+      // Every painted stroke sits on the staff's 24-unit grid, nearest
+      // stroke next to the staff, and only strokes inside the window.
+      expect(Math.abs((painted.topY - bottom) % 24)).toBe(0);
+      expect(painted.bottomY - painted.topY).toBe(
+        (painted.count - 1) * ledgerSpacing,
+      );
+      expect(painted.topY - 0.75).toBeGreaterThan(top - 24);
+      expect(painted.bottomY + 0.75).toBeLessThan(bottomEdge + 24);
+      if (position < 0) {
+        expect(painted.topY).toBe(bottom + 24);
+        expect(painted.count).toBe(
+          Math.min(run.count, Math.floor((bottomEdge - bottom - 24) / 24) + 1),
+        );
+      } else {
+        expect(painted.bottomY).toBe(bottom - 96);
+        expect(painted.count).toBe(
+          Math.min(run.count, Math.floor((bottom - 96 - top) / 24) + 1),
+        );
+      }
+      // Collision queries use the same exact anchoring near the staff.
+      expect(
+        ledgerStrokesInBand([run], painted.topY - 1, painted.topY + 1),
+      ).toEqual([
+        ledgerRunBounds({ ...painted, bottomY: painted.topY, count: 1 }),
+      ]);
+    }
+    // Ordinary runs inside the window are painted unchanged, and a run
+    // entirely outside it is not painted.
+    const [ordinary] = mergeLedgerRuns(
+      [{ position: -5, left: 0, right: 12 }],
+      bottom,
+    );
+    expect(visibleLedgerRun(ordinary, top, bottomEdge)).toEqual(ordinary);
+    expect(visibleLedgerRun(ordinary, 0, 100)).toBeNull();
   });
 
   it('answers collision queries analytically without expanding a run', () => {
@@ -537,6 +584,94 @@ function etJesum(): ChantDocument {
   };
 }
 
+/** The B under C3 at or just inside `pitch`, keeping its degree safe. */
+function nearestB(pitch: number) {
+  const below = pitch - ((((pitch - 3) % 7) + 7) % 7);
+  return Number.isSafeInteger(below - 4) ? below : below + 7;
+}
+
+/** One distant note as plain, marked, authored-form, flat and custos ink. */
+function extremeVariants(pitch: number) {
+  const at = staffPosition(pitch);
+  const with_ = (neume: Neume, accidental = false) => {
+    const document = punctaDocument(3, 1);
+    document.neumes = [neume];
+    if (accidental)
+      document.accidentals = [
+        { id: 'flat', kind: 'flat', ownerNoteId: 'far-0' },
+      ];
+    return document;
+  };
+  const punctum = (appearance: NoteAppearance = {}): Neume => ({
+    id: 'far',
+    kind: 'punctum',
+    notes: [{ id: 'far-0', staffPosition: at, ...appearance }],
+  });
+  // The far note starts the second system, so the first ends in its custos.
+  const custos = punctaDocument(3, 60);
+  custos.neumes.push(punctum());
+  const wrapped = layoutChant(custos).systems[0].neumes.length;
+  custos.neumes.splice(wrapped, 0, ...custos.neumes.splice(-1));
+  return [
+    { name: 'plain', document: with_(punctum()) },
+    {
+      name: 'marked',
+      document: with_(
+        punctum({ mora: 1, episema: true, verticalEpisema: true }),
+      ),
+    },
+    {
+      name: 'virga',
+      document: with_(
+        punctum({ form: 'virga', episema: true, verticalEpisema: true }),
+      ),
+    },
+    { name: 'inclinatum', document: with_(punctum({ form: 'inclinatum' })) },
+    {
+      name: 'quilisma pes',
+      document: with_({
+        id: 'far',
+        kind: 'podatus',
+        notes: [
+          { id: 'far-0', staffPosition: at, form: 'quilisma', mora: 1 },
+          {
+            id: 'far-1',
+            staffPosition: staffPosition(pitch + 2),
+            verticalEpisema: true,
+          },
+        ],
+      }),
+    },
+    {
+      name: 'epiphonus',
+      document: with_({
+        id: 'far',
+        kind: 'podatus',
+        liquescence: 'diminutive',
+        notes: [
+          { id: 'far-0', staffPosition: at, episema: true },
+          { id: 'far-1', staffPosition: staffPosition(pitch + 1) },
+        ],
+      }),
+    },
+    {
+      // A written flat needs a B (C3: position ≡ 3 mod 7) with a safe degree.
+      name: 'flat',
+      document: with_(
+        {
+          id: 'far',
+          kind: 'punctum',
+          notes: [
+            { id: 'far-0', staffPosition: staffPosition(nearestB(pitch)) },
+          ],
+        },
+        true,
+      ),
+    },
+    { name: 'custos', document: custos },
+  ];
+}
+
 describe('ledgers in layout', () => {
   it('draws exactly one ledger at -2 under Je and none for Et or sum', () => {
     for (const layout of [
@@ -602,17 +737,102 @@ describe('ledgers in layout', () => {
     expect(high.systems[0].y).toBe(0);
   });
 
-  it('bounds canvas growth for an absurd but valid pitch', () => {
-    // Pre-11A, unmarked ink never grew the canvas; a valid safe-integer pitch
-    // must not now produce an unusable viewBox (its ink stays clipped).
-    for (const pitch of [Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER]) {
-      const layout = layoutChant(punctaDocument(pitch, 1));
-      const [run] = layout.systems[0].neumes[0].ledgers ?? [];
-      expect(Number.isFinite(run?.count)).toBe(true);
-      expect(layout.y).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
-      expect(layout.y + layout.height).toBeLessThanOrEqual(
-        220 + offStaffCanvasMargin,
+  it('bounds canvas growth for absurd but valid pitches of all musical ink', () => {
+    // A rendering safeguard, not a pitch restriction: every kind of musical
+    // ink (plain, marked, authored forms, accidentals, custodes) grows the
+    // canvas by at most offStaffCanvasMargin beyond its system, on both sides.
+    const extremes = [
+      Number.MAX_SAFE_INTEGER,
+      -Number.MAX_SAFE_INTEGER,
+      400,
+      -400,
+    ];
+    for (const pitch of extremes)
+      for (const variant of extremeVariants(pitch)) {
+        const layout = layoutChant(variant.document);
+        const label = `${variant.name} at ${pitch}`;
+        const last = layout.systems.at(-1);
+        if (!last) throw new Error('Expected systems');
+        expect(layout.y, label).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
+        expect(layout.y + layout.height, label).toBeLessThanOrEqual(
+          last.y + last.height + offStaffCanvasMargin,
+        );
+        // The ink reaches the clipped edge, and its pitch stays semantic.
+        expect(layout.height, label).toBeGreaterThanOrEqual(
+          offStaffCanvasMargin,
+        );
+        const neumes = layout.systems.flatMap((system) => system.neumes);
+        for (const neume of neumes) {
+          expect(Number.isFinite(neume.bounds.y), label).toBe(true);
+          for (const run of neume.ledgers ?? [])
+            expect(Number.isFinite(run.count), label).toBe(true);
+        }
+        expect(
+          neumes.find((neume) => neume.neumeId === 'far')?.notes[0],
+          label,
+        ).toBeDefined();
+        if (variant.name === 'flat')
+          expect(layout.systems[0].neumes[0].accidentals?.length, label).toBe(
+            1,
+          );
+        if (variant.name === 'custos') {
+          const guide = layout.systems[0].custodes[0];
+          expect(guide, label).toBeDefined();
+          expect(Number.isFinite(guide.bounds.y), label).toBe(true);
+          expect(guide.ledgerLines?.count, label).toBeGreaterThan(40);
+        }
+      }
+  });
+
+  it('bounds horizontal growth from an interval-proportional ribbon', () => {
+    // A Porrectus ribbon's width follows its interval (approved engraving),
+    // so one reaching a safe-integer pitch is ~10^17 units wide. Its custos,
+    // clef or division may also extend the staff that far.
+    const max = Number.MAX_SAFE_INTEGER;
+    const ribbon: Neume = {
+      id: 'far',
+      kind: 'porrectus',
+      notes: [
+        { id: 'far-0', staffPosition: staffPosition(max) },
+        { id: 'far-1', staffPosition: staffPosition(3) },
+        { id: 'far-2', staffPosition: staffPosition(4) },
+      ],
+    };
+    const followed = punctaDocument(3, 2);
+    followed.neumes.splice(1, 0, ribbon);
+    const alone = punctaDocument(3, 0);
+    alone.neumes = [ribbon];
+    for (const document of [alone, followed]) {
+      const layout = layoutChant(document);
+      const ribbonLayout = layout.systems
+        .flatMap((system) => system.neumes)
+        .find((neume) => neume.neumeId === 'far');
+      expect(ribbonLayout?.bounds.width).toBeGreaterThan(1e16);
+      expect(layout.x).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
+      expect(layout.x + layout.width).toBeLessThanOrEqual(
+        720 + offStaffCanvasMargin,
       );
+      expect(layout.y).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
+    }
+  });
+
+  it('contains distant ink within the margin completely', () => {
+    // 60 positions below the staff: 720 units, inside the 1,200-unit margin.
+    for (const variant of extremeVariants(-60)) {
+      const layout = layoutChant(variant.document);
+      const ink = [
+        ...layout.systems.flatMap((system) => system.neumes),
+        ...layout.systems.flatMap((system) => system.custodes),
+      ].map((item) => item.bounds);
+      for (const bounds of ink)
+        expect(layout.y + layout.height, variant.name).toBeGreaterThanOrEqual(
+          bounds.y + bounds.height,
+        );
+    }
+    for (const variant of extremeVariants(70)) {
+      const layout = layoutChant(variant.document);
+      for (const neume of layout.systems.flatMap((system) => system.neumes))
+        expect(layout.y, variant.name).toBeLessThanOrEqual(neume.bounds.y);
     }
   });
 

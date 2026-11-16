@@ -207,7 +207,10 @@ const clefRight = Math.max(
 const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
 export const firstSystemLyricBaselineY = 180;
-/** Furthest unmarked off-staff ink grows the outer canvas (Stage 11A). */
+/**
+ * How far musical ink may grow the outer canvas beyond its system (Stage 11A
+ * rendering safeguard; Stage 11B vertical extents must respect it too).
+ */
 export const offStaffCanvasMargin = 50 * engravingStaffStep * 2;
 
 function staffLineY(line: StaffLine, bottomStaffY: number) {
@@ -1206,49 +1209,42 @@ export function layoutChant(
     canvasLeft = Math.min(canvasLeft, (lyric.left ?? 12) - 12);
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
+  // Rendering safeguard, not a pitch restriction (Stage 11A): musical ink
+  // grows the canvas by at most offStaffCanvasMargin beyond its system's box
+  // (the score width horizontally). That is far past any musical use (50
+  // ledger levels), while a valid but absurd safe-integer pitch, or the
+  // interval-proportional ribbon of a Porrectus reaching one, cannot turn the
+  // viewBox into an unusable 10^17-unit canvas. Ink beyond is clipped.
+  const left = -offStaffCanvasMargin;
+  const right = scoreWidth + offStaffCanvasMargin;
+  const containX = (inkLeft: number, inkRight: number) => {
+    canvasLeft = Math.min(canvasLeft, Math.max(left, inkLeft));
+    canvasRight = Math.max(canvasRight, Math.min(right, inkRight));
+  };
   for (const system of systems) {
-    // Complete neume ink, including derived ledger runs (Stage 11A), so
-    // off-staff notation is not clipped at the outer canvas. Ordinary in-staff
-    // scores keep their baseline canvas. System height, origins and lyric
-    // baselines stay fixed (dynamic vertical layout is Stage 11B).
+    // Complete musical ink (neumes with their signs, authored forms and
+    // derived ledger runs, and custodes) grows the outer canvas so off-staff
+    // notation is not clipped. Ordinary in-staff scores keep their baseline
+    // canvas; system height, origins and lyric baselines stay fixed (dynamic
+    // vertical layout is Stage 11B, which must respect the same margin).
+    const top = system.y - offStaffCanvasMargin;
+    const bottom = system.y + system.height + offStaffCanvasMargin;
+    const contain = (bounds: LayoutBounds) => {
+      canvasTop = Math.min(canvasTop, Math.max(top, bounds.y - 12));
+      canvasBottom = Math.max(
+        canvasBottom,
+        Math.min(bottom, bounds.y + bounds.height + 12),
+      );
+    };
     for (const neume of system.neumes) {
-      const marked =
-        neume.accidentals?.length ||
-        neume.notes.some(
-          (note) =>
-            note.mora || note.episema || note.verticalEpisema || note.form,
-        );
-      // Signs and authored forms keep their earlier unbounded containment.
-      // Other ink grows the canvas by at most offStaffCanvasMargin beyond its
-      // system: far past any musical use (50 ledger levels), while a valid
-      // but absurd pitch cannot turn the viewBox into an unusable 10^17-unit
-      // canvas (that ink stays clipped, as before Stage 11A).
-      const top = marked ? -Infinity : system.y - offStaffCanvasMargin;
-      const bottom = marked
-        ? Infinity
-        : system.y + system.height + offStaffCanvasMargin;
-      canvasTop = Math.min(canvasTop, Math.max(top, neume.bounds.y - 12));
-      canvasBottom = Math.max(
-        canvasBottom,
-        Math.min(bottom, neume.bounds.y + neume.bounds.height + 12),
-      );
-      canvasLeft = Math.min(canvasLeft, neume.bounds.x - 12);
-      canvasRight = Math.max(
-        canvasRight,
-        neume.bounds.x + neume.bounds.width + 12,
-      );
+      contain(neume.bounds);
+      containX(neume.bounds.x - 12, neume.bounds.x + neume.bounds.width + 12);
     }
-    for (const guide of system.custodes) {
-      canvasTop = Math.min(canvasTop, guide.bounds.y - 12);
-      canvasBottom = Math.max(
-        canvasBottom,
-        guide.bounds.y + guide.bounds.height + 12,
-      );
-    }
+    for (const guide of system.custodes) contain(guide.bounds);
     for (const c of [...system.clefChanges, ...system.custodes])
-      canvasRight = Math.max(canvasRight, c.bounds.x + c.bounds.width + 12);
+      containX(c.bounds.x, c.bounds.x + c.bounds.width + 12);
     if (system.staffLines[0].x2 > staffEndX)
-      canvasRight = Math.max(canvasRight, system.staffLines[0].x2 + 12);
+      containX(0, system.staffLines[0].x2 + 12);
     for (const hyphen of system.hyphens)
       canvasRight = Math.max(
         canvasRight,

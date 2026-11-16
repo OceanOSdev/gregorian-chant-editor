@@ -7,6 +7,7 @@ import {
   custosLedgerThickness,
   custosLedgerSpacing,
 } from '../layout/custos-geometry';
+import { visibleLedgerRun } from '../layout/ledger-lines';
 import type { ClefPlacementPreview } from '../interaction/resolve-graphical-clef-placement';
 import type { ClefGeometry } from '../layout/clef-geometry';
 import type { ClefKeyboardCommand } from '../state/editor-session';
@@ -44,6 +45,7 @@ import {
 } from './note-accessible-label';
 import { getScoreAccessibleDescription } from './score-accessible-description';
 import { InkShapeView, NeumeInk } from './NeumeInk';
+import { clampToBand, renderBandFor } from './render-band';
 
 export interface SvgPoint {
   x: number;
@@ -160,6 +162,9 @@ export function ScoreSvg({
   onDeleteSyllable,
 }: ScoreSvgProps) {
   const ledgerId = useId();
+  // Distant but valid pitches: painted elements stop just outside the canvas
+  // (Stage 11A rendering safeguard); derived layout geometry is unchanged.
+  const band = renderBandFor(layout);
   const clefPreviewElement = useRef<SVGGElement>(null);
   const clefChangeElements = useRef(new Map<string, SVGGElement>());
   const clefElement = useRef<SVGGElement>(null);
@@ -558,8 +563,9 @@ export function ScoreSvg({
       {layout.systems.map((system) => (
         <g key={system.index} data-system-index={system.index}>
           {(() => {
-            const bounds = rangeSelectionBounds(system, rangeIds);
-            if (!bounds) return null;
+            const range = rangeSelectionBounds(system, rangeIds);
+            if (!range) return null;
+            const bounds = clampToBand(range, band);
             return (
               <rect
                 className="score__range-selection"
@@ -593,51 +599,57 @@ export function ScoreSvg({
               pointerEvents="none"
             />
           ) : null}
-          {system.custodes.map((guide, i) => (
-            <g key={i} aria-hidden="true" pointerEvents="none">
-              {guide.ledgerLines ? (
-                <>
-                  <defs>
-                    {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
-                    <pattern
-                      id={`${ledgerId}-${system.index}-${i}`}
-                      patternUnits="userSpaceOnUse"
-                      viewBox={`0 0 ${guide.ledgerLines.x2 - guide.ledgerLines.x1} ${custosLedgerSpacing}`}
-                      x={guide.ledgerLines.x1}
-                      y={guide.ledgerLines.topY - custosLedgerThickness / 2}
-                      width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
-                      height={custosLedgerSpacing}
-                    >
-                      <rect
-                        width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
-                        height={custosLedgerThickness}
-                        fill="currentColor"
-                      />
-                    </pattern>
-                  </defs>
-                  <rect
-                    className="score__custos-ledgers"
-                    data-ledger-count={guide.ledgerLines.count}
-                    x={guide.ledgerLines.x1}
-                    y={guide.ledgerLines.topY - custosLedgerThickness / 2}
-                    width={guide.ledgerLines.x2 - guide.ledgerLines.x1}
-                    height={
-                      guide.ledgerLines.bottomY -
-                      guide.ledgerLines.topY +
-                      custosLedgerThickness
-                    }
-                    fill={`url(#${ledgerId}-${system.index}-${i})`}
-                  />
-                </>
-              ) : null}
-              <path
-                className="score__custos"
-                d={guide.path}
-                data-custos-position={guide.staffPosition}
-                data-outgoing={guide.outgoing}
-              />
-            </g>
-          ))}
+          {system.custodes.map((guide, i) => {
+            const run =
+              guide.ledgerLines &&
+              visibleLedgerRun(guide.ledgerLines, band.top, band.bottom);
+            return (
+              <g key={i} aria-hidden="true" pointerEvents="none">
+                {guide.ledgerLines && run ? (
+                  <>
+                    <defs>
+                      {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
+                      <pattern
+                        id={`${ledgerId}-${system.index}-${i}`}
+                        patternUnits="userSpaceOnUse"
+                        viewBox={`0 0 ${run.x2 - run.x1} ${custosLedgerSpacing}`}
+                        x={run.x1}
+                        y={run.topY - custosLedgerThickness / 2}
+                        width={run.x2 - run.x1}
+                        height={custosLedgerSpacing}
+                      >
+                        <rect
+                          width={run.x2 - run.x1}
+                          height={custosLedgerThickness}
+                          fill="currentColor"
+                        />
+                      </pattern>
+                    </defs>
+                    <rect
+                      className="score__custos-ledgers"
+                      data-ledger-count={guide.ledgerLines.count}
+                      data-painted-ledger-count={
+                        run.count === guide.ledgerLines.count
+                          ? undefined
+                          : run.count
+                      }
+                      x={run.x1}
+                      y={run.topY - custosLedgerThickness / 2}
+                      width={run.x2 - run.x1}
+                      height={run.bottomY - run.topY + custosLedgerThickness}
+                      fill={`url(#${ledgerId}-${system.index}-${i})`}
+                    />
+                  </>
+                ) : null}
+                <path
+                  className="score__custos"
+                  d={guide.path}
+                  data-custos-position={guide.staffPosition}
+                  data-outgoing={guide.outgoing}
+                />
+              </g>
+            );
+          })}
 
           {[
             ...system.clefChanges.map((clef) => ({
@@ -740,12 +752,16 @@ export function ScoreSvg({
                 : undefined;
               // Ordinary padding is clipped to layout's ownership interval at
               // compact boundaries, including lyric reassignment destinations.
-              const moveBounds = {
-                x: neume.bounds.x - 7,
-                y: neume.bounds.y - 7,
-                width: neume.bounds.width + 14,
-                height: neume.bounds.height + 14,
-              };
+              // Bounds-derived overlays are limited to the painted band too.
+              const moveBounds = clampToBand(
+                {
+                  x: neume.bounds.x - 7,
+                  y: neume.bounds.y - 7,
+                  width: neume.bounds.width + 14,
+                  height: neume.bounds.height + 14,
+                },
+                band,
+              );
 
               return (
                 <g
@@ -758,10 +774,15 @@ export function ScoreSvg({
                     <defs>
                       <clipPath id={`hit-clip-${neume.neumeId}`}>
                         <rect
-                          x={neume.hitClip.left}
-                          y={neume.bounds.y - 20}
-                          width={neume.hitClip.right - neume.hitClip.left}
-                          height={neume.bounds.height + 40}
+                          {...clampToBand(
+                            {
+                              x: neume.hitClip.left,
+                              y: neume.bounds.y - 20,
+                              width: neume.hitClip.right - neume.hitClip.left,
+                              height: neume.bounds.height + 40,
+                            },
+                            band,
+                          )}
                         />
                       </clipPath>
                     </defs>
@@ -777,7 +798,7 @@ export function ScoreSvg({
                     <rect
                       className="score__neume-selection"
                       data-selected-neume-id={neume.neumeId}
-                      {...neumeSelectionBounds(neume)}
+                      {...clampToBand(neumeSelectionBounds(neume), band)}
                       rx="4"
                       pointerEvents="none"
                       aria-hidden="true"
@@ -792,10 +813,7 @@ export function ScoreSvg({
                     <rect
                       className="score__placement-context"
                       clipPath={ownershipClip}
-                      x={neume.bounds.x - 7}
-                      y={neume.bounds.y - 7}
-                      width={neume.bounds.width + 14}
-                      height={neume.bounds.height + 14}
+                      {...moveBounds}
                       rx="3"
                       pointerEvents="none"
                       aria-hidden="true"
@@ -827,6 +845,7 @@ export function ScoreSvg({
                   <NeumeInk
                     ink={neume.bodyInk ?? neume.ink}
                     ledgers={neume.ledgers}
+                    band={band}
                   />
                   {neume.notes.map((note, noteIndex) => {
                     const isNoteSelected =
@@ -1335,6 +1354,7 @@ export function ScoreSvg({
             <NeumeInk
               ink={placementPreview.ink}
               ledgers={placementPreview.ledgers}
+              band={band}
             />
           </g>
           {placementPreview.caret.systemIndex !==
