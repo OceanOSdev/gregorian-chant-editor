@@ -20,10 +20,11 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   See [drawing metrics](engraving-metrics.md) for exact choices and extrapolated
   intervals beyond the reference coverage (Porrectus ribbons through Δ5,
   explicit Climacus spacing cases through Δ4). This is not complete publication-quality
-  chant typography. Off-staff notes now draw derived ledger lines and the outer
-  canvas contains their ink (Stage 11A), but systems keep a fixed height and
-  lyric baseline: low notes and ledgers can collide with lyrics or an adjacent
-  system until Stage 11B.
+  chant typography. Off-staff notes draw derived ledger lines (Stage 11A), and
+  each system's height and shared lyric baseline follow its band-limited
+  musical ink (Stage 11B). Musical ink beyond 1,200 units of its canonical
+  system is clipped, and the lyric row uses a conservative 20/5 band rather
+  than per-glyph text bounds.
 - The semantic vocabulary contains Punctum, Podatus, Clivis, Scandicus,
   Torculus, Climacus, and Porrectus.
 - Graphical entry uses fixed contours for those seven whitelisted kinds.
@@ -431,11 +432,17 @@ bounded canvas: all musical ink grows the canvas by at most 1,200 units,
 and painted ledger runs and outlines stop at the canvas, so extreme but
 valid imported pitches stay usable; their ink beyond the margin is clipped
 ([what is clipped](layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted)).
-Foreground visual acceptance is pending.
+Stage 11A was merged into `master` in PR #91 (`559c5a5`).
 
-**Stage 11B (deferred):** content-dependent system origins and heights, a
-common lyric baseline with text and musical ink clearance, inter-system
-collisions, placement mapping with variable heights, scroll/focus and print
-layout. The Et Jesum low A (Salve Regina, Dominican) still overlaps its
-lyric; that collision is 11B's primary acceptance case. Its content-dependent
-vertical extents must respect the same canvas safety margin.
+**Stage 11B — dynamic vertical system layout (implemented; owner acceptance
+pending):** systems are composed horizontally first, then measured and
+stacked ([ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md),
+[plan](plans/stage-11b-dynamic-vertical-layout.md),
+[contract](layout-and-rendering.md#dynamic-vertical-system-layout-stage-11b),
+[record](verification/dynamic-vertical-layout/README.md)). Each system's
+height, staff origin and single shared lyric baseline follow its complete
+musical ink, clamped to the Stage 11A band; ordinary systems are unchanged.
+The Et Jesum low A in the bundled Dominican Salve Regina now clears its
+lyric. Low accidentals no longer reserve horizontal lyric or hyphen room,
+which can make such passages more compact. No manual system breaks,
+pagination or print-specific layout were added.

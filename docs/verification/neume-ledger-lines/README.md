@@ -294,3 +294,14 @@ syllable`.
 4. Check episemata, mora and a flat next to ledgers, and the 320px view.
 5. Optionally import a score with a distant (e.g. ±9007199254740991) pitch:
    the editor stays usable; ink beyond 1,200 units is clipped.
+
+## Stage 11B follow-up (2026-11-16)
+
+[Stage 11B](../dynamic-vertical-layout/README.md) resolves the Et Jesum lyric
+overlap shown above: the shared lyric row of Je's system moves below the low
+A. The screenshots above are historical 11A evidence and were not refreshed.
+Driver section 9 (extreme pitches) now asserts the Stage 11B containment
+contract (canvas from y = 0 to the last measured system, per-system musical
+render bands that clip ink, bounded system heights, systems stacked with the
+24-unit gap) instead of the 11A `-1200` canvas origin and fixed 244-unit
+advances; its band, ledger-grid, usability and Undo checks are unchanged.

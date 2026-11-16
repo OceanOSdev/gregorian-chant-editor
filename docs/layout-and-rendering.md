@@ -32,7 +32,12 @@ Even an empty document produces one empty system.
 - ordered `systems`;
 - each system's index, bounds, staff lines, opening clef, authored clefs, divisions,
   custodes, insertion slots, neumes, lyrics, and
-  `startNeumeIndex`.
+  `startNeumeIndex`;
+- each system's resolved vertical frame (Stage 11B): measured `y` and
+  `height`, the authoritative pitch origin `bottomStaffY`, the shared
+  `lyricBaselineY` of every lyric and hyphen on it, and its `musicBand`
+  (the render band that clips its musical ink and pointer regions). See
+  [dynamic vertical system layout](#dynamic-vertical-system-layout-stage-11b).
 
 `startNeumeIndex` is the global semantic index of the first neume assigned to a
 system. Interaction resolvers add it to a boundary within that system to recover
@@ -49,15 +54,14 @@ This describes the present layout contract, not an eternal ban on a future
 system-local coordinate design.
 
 Normal scores retain a 720-unit canvas at x = 0 and responsive SVG scaling.
-Height grows with system count, exceptional guide ink and off-staff neume ink
-(including ledgers, Stage 11A), bounded by the
-[canvas containment margin](#canvas-containment-and-extreme-pitches-owner-accepted);
-a negative canvas Y origin can include high custodes or notes without moving
-systems. Stage 4B's combined music-and-lyric layout
+Vertically the canvas is exactly the stacked systems (y = 0 to the last
+system's bottom): each system's measured height already reserves its
+band-limited musical ink and lyric row (Stage 11B), so high or low ink grows
+its own system rather than giving the canvas a negative origin. Stage 4B's
+combined music-and-lyric layout
 follows [accepted ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md),
 which supersedes the music-only wrapping rule in ADR 0005.
-For exceptional unbreakable lyrics, see the overflow policy below. Logical
-system placement always retains its normal bounds, independently of canvas size.
+For exceptional unbreakable lyrics, see the overflow policy below.
 
 Every system repeats the four staff lines and its effective incoming C/F clef
 (or a first authored leading clef), positioned on its semantic clef line. Their y coordinates advance by the system offset.
@@ -361,7 +365,8 @@ measured text midpoint supplied by layout. Stage 4A shifts that midpoint to
 align the chosen vowel/segment to the musical anchor; see the measurement
 contract below. Each lyric also exposes measured `left`/`right` occupied edges
 (or null when unavailable), `boundaryBefore`, and `anchorX`; the enclosing system
-provides its boundary; hyphens follow the Stage 4C branch policy.
+provides its boundary; hyphens follow the Stage 4C branch policy. Every lyric
+and hyphen of a system uses that system's `lyricBaselineY`.
 
 ## Rendering and accessibility
 
@@ -687,8 +692,8 @@ The run count is bounded by the constituent count.
 queries stay analytic: `ledgerStrokesNear`/`ledgerStrokesInBand` return only
 the strokes level with a sign, never the whole run envelope. Complete `bounds`
 and `advanceX` include the runs, so spacing, compaction, wrapping, fit checks,
-whole-neume and range selection outlines, the outer canvas and lyric-band
-clearances all consume them. Horizontal and vertical episemata and mora treat
+whole-neume and range selection outlines and the Stage 11B vertical
+measurement all consume them. Horizontal and vertical episemata and mora treat
 strokes as obstacles with the ordinary 2-unit ink clearance; their columns
 and edges are still seeded from body ink, so a ledger alone does not move a
 mark that was already clear. Note-attached accidentals clear level strokes
@@ -716,20 +721,22 @@ that head from the complete box, rather than the head half-width alone;
 pointer entry (first pitch -1..7) is unchanged, while default multi-note
 figures extending beyond the staff show their ledgers.
 
-Stage 11A keeps fixed system height, staff origins, lyric baseline, gaps and
-vertical placement policy. The outer canvas now includes every neume's
-complete bounds (signs, authored forms, off-staff ink and ledgers) and every
-custos, so first/last-system ink is not clipped; ordinary in-staff scores
-keep their baseline canvas.
+Stage 11A kept fixed system height, staff origins, lyric baseline and gaps,
+growing only the outer canvas. Stage 11B replaces that with
+[measured system frames](#dynamic-vertical-system-layout-stage-11b): every
+neume's complete bounds (signs, authored forms, off-staff ink and ledgers),
+custos, clef and division determine its system's height, staff origin and
+lyric baseline; ordinary in-staff systems keep the 11A geometry exactly.
 
 #### Canvas containment and extreme pitches (owner-accepted)
 
 A rendering safeguard, not a semantic pitch restriction or engraving rule:
 all musical ink (plain, marked and authored-form neumes, accidentals,
-ledgers, custodes, clef changes and extended staff lines) grows the outer
-canvas by at most `offStaffCanvasMargin` = 1,200 units (50 ledger levels)
-beyond its system vertically, and beyond the text-derived extent
-horizontally: the 720-unit score width, widened by any oversized lyric text
+ledgers, custodes, clef changes and extended staff lines) is reserved and
+painted at most `offStaffCanvasMargin` = 1,200 units (50 ledger levels)
+beyond its canonical 220-unit system vertically (Stage 11B: the system's
+`musicBand`, which translates with the system), and grows the outer canvas
+at most that far beyond the text-derived extent horizontally: the 720-unit score width, widened by any oversized lyric text
 ([ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
 overflow). There is no marked/unmarked distinction. Lyric text extents stay
 uncapped, so genuinely oversized text and the music and hyphens it displaces
@@ -737,20 +744,24 @@ keep their canvas and horizontal scrolling. Continuation hyphens share the
 musical limit: an outgoing hyphen follows its system's musical ink, so one
 displaced after an extreme-width ribbon is musical displacement, not text
 overflow. Allowed pitches, the native v10 format, effective
-pitches, history and clipboard are unchanged; Stage 11B's
-content-dependent vertical extents must respect the same margin.
+pitches, history and clipboard are unchanged. Stage 11B measures vertical
+extents only after clamping them to this band, so a distant pitch cannot
+allocate an arbitrarily tall system (at most about 2,700 units).
 
 What is clipped:
 
-- Ink beyond the margin lies outside the viewBox and is not visible:
+- Ink beyond the margin is clipped by its system's `musicBand` (an SVG
+  `clipPath` on the system's musical group, which also clips pointer
+  regions, so a distant target cannot intercept another system) and is not
+  visible:
   note heads, signs and accidentals at a distant pitch, the far part of a
   stem or ribbon reaching it, and ledger levels beyond the margin. A
   Porrectus-family ribbon's width follows its interval, so one reaching a
   distant pitch also pushes its later notes, its system's following neumes
   or custos, and an outgoing continuation hyphen beyond the right edge (the
   hyphen keeps its derived position and is clipped).
-- Painted elements derived from extents are limited to the canvas plus one
-  ledger space (`render-band.ts`): each ledger run (neume or custos) paints
+- Painted elements derived from extents are limited to their system's
+  `musicBand` plus one ledger space (`render-band.ts`): each ledger run (neume or custos) paints
   only its strokes inside that window, as an exact sub-run anchored on the
   run's end nearest the staff (`visibleLedgerRun`), so the strokes stay on
   the staff grid even where the far end's coordinate is not exactly
@@ -762,22 +773,86 @@ What is clipped:
   (`data-ledger-count`; a limited painted element adds
   `data-painted-ledger-count`), bounds, spacing, wrapping and collision
   queries use the complete ink.
-- Body ink (paths and rects) is painted unchanged and clipped by the
-  viewBox; Chromium and Firefox render a stem or ribbon reaching a
+- Body ink (paths and rects) is painted unchanged and clipped by the system's
+  band; Chromium and Firefox render a stem or ribbon reaching a
   safe-integer pitch identically.
 
 What remains supported: importing, displaying, selecting (pointer and
 keyboard), transposing, undoing and exporting such a score, with every pitch
-preserved exactly. A distant note's own hit target lies outside the canvas,
-so it is reached by keyboard. Arbitrarily distant safe-integer coordinates
+preserved exactly. A distant note's own hit target lies outside its band,
+so it is reached by keyboard; later notes stay pointer-editable. Arbitrarily distant safe-integer coordinates
 are not otherwise rendered faithfully: floating-point precision there is
 coarser than a staff step, ledger fields from neighbouring systems overlap,
 and nothing beyond the margin is visible. Within the margin, such ink is
 complete.
 
-Collisions between low notes or ledgers and the fixed lyric baseline, and
-between adjacent systems, remain unresolved for
-[Stage 11B](roadmap.md#neume-ledger-lines-stage-11a).
+Collisions between low notes or ledgers and the lyric row, and between
+adjacent systems, are resolved by
+[Stage 11B](#dynamic-vertical-system-layout-stage-11b) within the band.
+
+## Dynamic vertical system layout (Stage 11B)
+
+[ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md) separates
+three phases; no later phase changes an earlier one:
+
+1. **Compose** (`placeNeumeSequence` in `layout-chant.ts`) in one canonical
+   system-local frame: system top 0, bottom staff line at
+   `firstSystemBottomStaffY` (124). Horizontal composition, wrapping,
+   compaction, custodes, divisions and clefs never read the vertical origin;
+   musical geometry no longer receives any lyric rectangle.
+2. **Measure** (`measureSystemVertical` in `system-vertical-layout.ts`, pure)
+   each composed system's complete renderable musical ink in that frame:
+   staff, leading clef, clef changes, divisions, custodes and every neume's
+   complete bounds (body, ledger runs, rhythmic signs, accidentals). Pointer
+   padding, outlines and placement ghosts are not ink. Ink extents are first
+   clamped to the canonical band `[-1200, 220 + 1200]`.
+3. **Position** (`stackSystems`): systems stack from y = 0 with the 24-unit
+   gap; `positionComposedSystem` then translates each composed system
+   independently by rebuilding every neume, sign, custos, clef change and
+   division through its own builder at its composed left edge (the
+   rebuild-at-`bounds.x` contract) and the system's resolved `bottomStaffY`.
+   The walker never runs again, so membership, order and every horizontal
+   decision are fixed by construction; slots, hyphens and hit clips are then
+   derived once from the translated geometry. A system already at the
+   canonical origin is reused unchanged. Builders are origin-independent in
+   x: every group of every bundled example rebuilt at the canonical origin has
+   identical x geometry (tested). At safe-integer coordinates, floating-point
+   rounding of a translated y may change an internal collision decision
+   (a sign's column); this can alter that group's internal x but never
+   membership, consistent with the extreme-coordinate policy below.
+
+Formulas (canonical frame, units; `music` is the clamped ink extent):
+
+| Quantity                   | Value                                                              |
+| -------------------------- | ------------------------------------------------------------------ |
+| Lyric band                 | ascent 20, descent 5 (`lyricAscent`, `lyricDescent`)               |
+| Music-to-lyric clearance   | 3 (`musicToLyricClearance`)                                        |
+| Music padding (top/bottom) | 12 (`systemMusicPadding`)                                          |
+| Top expansion              | `max(0, 12 - music.top)`; staff, ink and lyrics move down together |
+| Lyric baseline (local)     | `max(180, music.bottom + 3 + 20)`                                  |
+| System bottom (local)      | `max(220, music.bottom + 12, lyrics ? baseline + 5 + 35 : 0)`      |
+| Height                     | top expansion + system bottom                                      |
+| Next system y              | `y + height + 24`                                                  |
+| `bottomStaffY`             | `y + topExpansion + 124`                                           |
+| `musicBand`                | `[-1200, 1420]` translated by `y + topExpansion`                   |
+
+Ordinary systems (ink within 12..157 locally) keep height 220, baseline 180
+and staff origin 124 exactly. A system has lyrics when any syllable's anchor
+neume is on it, measured or provisional, so unmeasured fonts stay vertically
+safe; a lyricless system adds no lyric row but keeps the minimum height. All
+lyrics and hyphens on a system share its `lyricBaselineY`. The 20/5 band
+was checked against the browser lyric font: accented Latin capitals measured
+19 units of ascent and descenders 5 units of descent in Chromium and Firefox
+([record](verification/dynamic-vertical-layout/README.md)).
+
+Consumers use the resolved frame, never fixed arithmetic: system hit testing
+uses actual `y`/`height` (points in the 24-unit gap belong to no system, as
+before), pitch snapping and clef placement use each system's staff lines,
+the floating lyric entry sits 24 units above `lyricBaselineY`, the remote
+placement caption 12 units above the system bottom, and `ScoreSvg` clips each
+system's musical group to its `musicBand`. The exported constants
+`systemVerticalAdvance`, `firstSystemLyricBaselineY` and `firstSystemBottomY`
+describe only the ordinary unexpanded frame.
 
 ## Rhythmic sign geometry (Stage 8A)
 
@@ -863,18 +938,17 @@ ink collection for bounds, spacing, wrapping and print. Optional `bodyInk`
 explicitly excludes independently rendered signs; SVG draws that body plus each
 accidental record, without object-identity filtering or parallel metadata arrays.
 
-Lyric collision constraints work in both directions: new signs clear existing
-lyrics, and new lyrics clear earlier signs in the same vertical band. Continuation
-hyphens also clear intervening low signs. Whether a continuation separates is
-decided from genuine music, lyric, structural-event and sign clearance; hyphen
-space is reserved only after separation is required, and only beyond earlier
-signs that end past the previous lyric's right edge, since a hyphen cannot start
-before that edge. Reservation includes the current
-group’s leading low ink, because the sign and lyric translate together. Final
-placement uses the same measured sign exclusions to select the rightmost fitting
-clear interval, which may precede a current-group sign. Accidental-bearing groups
-enter the existing measured vertical canvas expansion, including high plain puncta and
-explicit earlier anchors; this is separate from extreme-pitch limitations.
+Signs clear other musical ink only
+([ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md), qualifying
+ADR 0021's lyric requirement): the former lyric-rectangle exclusion in sign
+placement, the shift of accidental-bearing groups past a preceding lyric and
+the sign reservations for lyrics and continuation hyphens are removed. A low
+sign keeps its music-only position, the shared lyric row moves below it
+vertically, and whether a continuation separates (and where its hyphen is
+centred) depends only on the text gap, music and structural boundaries.
+Low-sign cases can therefore be more compact horizontally, join where they
+formerly separated, or wrap later; ordinary cases are unchanged. High signs
+add room above the staff in their own system.
 
 ## Repeated square heads (Stage 9A)
 

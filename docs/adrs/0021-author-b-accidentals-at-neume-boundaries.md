@@ -10,6 +10,11 @@ acceptance remains pending Stage 8D review. **Owner-approved placement amendment
 (2026-11-11):** PR #72's historical placement gate is resolved by allowing a
 stable earlier-note engraving anchor independently of B-note ownership, as
 specified below. No existing ADR is superseded.
+[ADR 0028](0028-compose-before-vertical-lyric-clearance.md) (2026-11-16)
+narrowly qualifies this record's lyric-clearance engraving: signs clear
+musical ink, and the shared lyric row clears them vertically instead of
+signs or lyrics moving horizontally. Ownership, placement anchors, musical
+clearance and pitch interpretation are unchanged.
 This extends [ADR 0015](0015-order-clef-changes-at-score-boundaries.md) with
 derived accidental ordering and a narrowly scoped destructive-clef confirmation,
 and [ADR 0016](0016-persist-versioned-semantic-chant-documents.md) with native v5.

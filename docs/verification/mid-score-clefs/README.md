@@ -448,3 +448,18 @@ records all 34 supported jobs passing, including this record's supported browser
 pairs, with six expected unsupported pairs and passing hosted CI. Firefox
 mid-score-clefs 150% CSS-zoom intermittency remains unresolved; a passing run
 does not establish a fix. Existing headless and manual acceptance limits remain.
+
+## Stage 11B driver update (2026-11-16)
+
+`browser-check.mjs` measures note positions relative to each system's own
+bottom staff line instead of a fixed `systemIndex * 244` offset (identical
+for ordinary systems; a melody-preserving F-clef insertion can now add room
+above the staff). Its generic `click()` finishes `scrollIntoView` with a page
+scroll from the element's client rect: with a `MAX_SAFE_INTEGER` note in the
+system, Firefox 146's native `scrollIntoView` on the clef-control `<g>`
+scrolled to the wrong offset although `getBoundingClientRect()` was correct
+(the 11A ledger driver already uses this fallback). The application's focus
+reveal does not use `scrollIntoView`; see the
+[Stage 11B record](../dynamic-vertical-layout/README.md#firefox-mid-score-clefs-driver-scrolling-versus-production-behaviour)
+for the branch/base comparison and production pointer, keyboard and focus
+evidence at 150% zoom.

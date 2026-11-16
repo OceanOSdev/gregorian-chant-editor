@@ -280,9 +280,13 @@ and tests must be updated deliberately.
 transforms or non-finite results produce no point.
 
 The canonical graphical resolver accepts a point only when it belongs to
-exactly one rendered system. Points in the vertical gap, outside the score, or
-outside the staff's horizontal placement region are rejected. Placement works
-on first, middle, and final rendered systems.
+exactly one rendered system, using each system's measured `y` and `height`
+(Stage 11B systems can be taller than 220 units). Points in the 24-unit
+vertical gap, outside the score, or outside the staff's horizontal placement
+region are rejected. Placement works on first, middle, and final rendered
+systems, including systems after an expanded one. Placement ghosts never
+trigger reflow; a committed note may expand its system and move later ones,
+while selection and focus follow stable IDs.
 
 ### Pitch snapping and contours
 

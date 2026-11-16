@@ -4,8 +4,10 @@ Date: 2026-11-16
 
 ## Status
 
-**Accepted — owner-approved 2026-11-16.** Stage 11B implementation and
-foreground acceptance are pending. This narrowly qualifies the engraving
+**Accepted — owner-approved 2026-11-16.** Stage 11B is implemented on
+`feat/dynamic-vertical-layout` (see the
+[verification record](../verification/dynamic-vertical-layout/README.md));
+foreground owner acceptance is pending. This narrowly qualifies the engraving
 rules of [ADR 0021](0021-author-b-accidentals-at-neume-boundaries.md);
 ADRs [0007](0007-share-derived-neume-engraving-geometry.md),
 [0010](0010-derive-wrapping-from-music-and-lyric-geometry.md),
