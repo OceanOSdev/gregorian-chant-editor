@@ -21,9 +21,10 @@ import { geometryKindFor } from './neumes/shared';
 const bottom = 124;
 
 /**
- * Stage 11A follow-up: every valid mark combination on the families whose
- * signs negotiate the most crowded geometry, at pitches that need ledgers on
- * both sides of the staff. Authored marks must all survive, stay clear of
+ * Stage 11A follow-up: every valid mark combination (each mora scope, every
+ * subset of horizontally and of vertically episematized notes, with and
+ * without an allowed form, filtered by isValidNeume) on every entry family,
+ * at pitches that need ledgers on both sides of the staff. Authored marks must all survive, stay clear of
  * every ledger stroke, and vertical episema placement must not throw.
  */
 const families: GraphicalNeumeKind[] = [
@@ -54,13 +55,14 @@ const families: GraphicalNeumeKind[] = [
 /** First pitches that put some or all notes on ledgers below or above. */
 const firsts = [-9, -7, -5, -4, -3, -2, 6, 7, 8, 9, 11, 13];
 
-type Pattern = (index: number) => boolean;
-const patterns: Pattern[] = [
-  () => false,
-  () => true,
-  (i) => i % 2 === 0,
-  (i) => i % 2 === 1,
-];
+/**
+ * Five-note families have 1,024 episema × vertical-episema subsets per mora
+ * scope; four representative first pitches (wholly below, straddling the
+ * lower ledgers, straddling and wholly above the upper ones) keep the suite
+ * fast. A one-off run over all twelve first pitches also passed (see the
+ * verification record).
+ */
+const fiveNoteFirsts = [-7, -3, 8, 11];
 
 function candidates(kind: GraphicalNeumeKind, first: number): Neume[] {
   const { staffPositions } = createNeumeEntryPitches(
@@ -72,8 +74,8 @@ function candidates(kind: GraphicalNeumeKind, first: number): Neume[] {
   const count = staffPositions.length;
   const result: Neume[] = [];
   for (const mora of moraChoices(semantic, count, liquescence))
-    for (const episema of patterns)
-      for (const vertical of patterns)
+    for (let episemaMask = 0; episemaMask < 1 << count; episemaMask++)
+      for (let verticalMask = 0; verticalMask < 1 << count; verticalMask++)
         for (const withForm of [false, true]) {
           const moraed = moraIndexes(mora.value, count);
           const notes = staffPositions.map((position, index): ChantNote => {
@@ -85,8 +87,10 @@ function candidates(kind: GraphicalNeumeKind, first: number): Neume[] {
               staffPosition: position,
               ...(form ? { form } : {}),
               ...(moraed.includes(index) ? { mora: 1 as const } : {}),
-              ...(episema(index) ? { episema: true as const } : {}),
-              ...(vertical(index) ? { verticalEpisema: true as const } : {}),
+              ...(episemaMask & (1 << index) ? { episema: true as const } : {}),
+              ...(verticalMask & (1 << index)
+                ? { verticalEpisema: true as const }
+                : {}),
             };
           });
           // The tuple shapes are checked by isValidNeume below.
@@ -111,7 +115,9 @@ describe('ledger-aware marks across families', () => {
     '%s keeps every valid authored mark, clear of ledger strokes',
     (kind) => {
       let checked = 0;
-      for (const first of firsts)
+      const count = createNeumeEntryPitches(kind, staffPosition(0))
+        .staffPositions.length;
+      for (const first of count === 5 ? fiveNoteFirsts : firsts)
         for (const neume of candidates(kind, first)) {
           const geometryKind = geometryKindFor(neume);
           const pitches = neume.notes.map((note) => note.staffPosition);
@@ -165,5 +171,6 @@ describe('ledger-aware marks across families', () => {
         }
       expect(checked).toBeGreaterThan(0);
     },
+    30_000,
   );
 });

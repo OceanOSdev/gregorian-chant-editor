@@ -6,6 +6,7 @@ import {
   type NoteAppearance,
 } from '../domain/chant-document';
 import { lyricGraphemes } from '../domain/lyric-alignment';
+import extremeRibbonContinuation from '../../../docs/verification/neume-ledger-lines/extreme-ribbon-continuation.chant.json?raw';
 import { insertEditorNeume } from '../interaction/insert-editor-neume';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import {
@@ -34,6 +35,7 @@ import {
   type NeumeLayout,
 } from './layout-chant';
 import type { MeasureLyricText } from './lyric-text-metrics';
+import { decodeDocument } from '../persistence/native-document';
 import {
   buildNeumeBodyGeometry,
   buildNeumeGeometry,
@@ -672,6 +674,36 @@ function extremeVariants(pitch: number) {
   ];
 }
 
+/**
+ * A word split across systems: "Do" on the first neume, "mi" 30 neumes
+ * later, so the melisma always ends the first syllable's system with an
+ * outgoing hyphen. With `ribbon`, the first neume is a Porrectus reaching
+ * MAX_SAFE_INTEGER, whose interval-proportional ribbon is ~10^17 wide.
+ */
+function wordAcrossSystems(ribbon: boolean, first = 'Do'): ChantDocument {
+  const document = punctaDocument(3, 34);
+  if (ribbon)
+    document.neumes[0] = {
+      id: 'n0',
+      kind: 'porrectus',
+      notes: [
+        { id: 'far-0', staffPosition: staffPosition(Number.MAX_SAFE_INTEGER) },
+        { id: 'far-1', staffPosition: staffPosition(2) },
+        { id: 'far-2', staffPosition: staffPosition(3) },
+      ],
+    };
+  document.syllables = [
+    { id: 's-do', text: first, startsAtNeumeId: 'n0', boundaryBefore: 'word' },
+    {
+      id: 's-mi',
+      text: 'mi',
+      startsAtNeumeId: 'n30',
+      boundaryBefore: 'continuation',
+    },
+  ];
+  return document;
+}
+
 describe('ledgers in layout', () => {
   it('draws exactly one ledger at -2 under Je and none for Et or sum', () => {
     for (const layout of [
@@ -813,6 +845,74 @@ describe('ledgers in layout', () => {
         720 + offStaffCanvasMargin,
       );
       expect(layout.y).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
+    }
+  });
+
+  it('keeps an outgoing hyphen after an extreme ribbon within the canvas safeguard', () => {
+    // Do- on an interval-proportional ribbon reaching a distant pitch, -mi on
+    // the next system: the outgoing hyphen follows the ribbon's ~10^17-unit
+    // right edge, but that musical displacement must not defeat the margin.
+    // The committed native v10 fixture decodes to the same document.
+    const native = decodeDocument(extremeRibbonContinuation);
+    expect(native.neumes).toEqual(wordAcrossSystems(true).neumes);
+    expect(native.syllables).toEqual(wordAcrossSystems(true).syllables);
+    for (const document of [native, wordAcrossSystems(true)]) {
+      const layout = layoutChant(document, measure);
+      const hyphens = layout.systems.flatMap((system) => system.hyphens);
+      const outgoing = hyphens.find((hyphen) => hyphen.outgoing);
+      if (!outgoing) throw new Error('Expected an outgoing hyphen');
+      // Its derived position is unchanged (beyond the canvas, so clipped).
+      expect(outgoing.x).toBeGreaterThan(1e16);
+      expect(layout.x).toBeGreaterThanOrEqual(-offStaffCanvasMargin);
+      expect(layout.x + layout.width).toBeLessThanOrEqual(
+        720 + offStaffCanvasMargin,
+      );
+    }
+  });
+
+  it('keeps ordinary outgoing hyphens and oversized lyric text unchanged', () => {
+    // Ordinary continuation across systems: the canvas stays the baseline.
+    const plain = layoutChant(wordAcrossSystems(false), measure);
+    const hyphen = plain.systems
+      .flatMap((system) => system.hyphens)
+      .find((h) => h.outgoing);
+    if (!hyphen) throw new Error('Expected an outgoing hyphen');
+    expect(hyphen.x + 5).toBeLessThanOrEqual(656);
+    expect([plain.x, plain.width]).toEqual([0, 720]);
+    // Genuinely oversized text still widens the canvas without any cap, and
+    // its outgoing hyphen remains inside it.
+    const long = wordAcrossSystems(false, 'D' + 'o'.repeat(400));
+    const wide = layoutChant(long, measure);
+    const longHyphen = wide.systems
+      .flatMap((system) => system.hyphens)
+      .find((h) => h.outgoing);
+    if (!longHyphen) throw new Error('Expected an outgoing hyphen');
+    expect(wide.x + wide.width).toBeGreaterThan(720 + offStaffCanvasMargin);
+    // Musical ink and hyphens displaced by text overflow stay inside: the
+    // horizontal limit is relative to the text-derived extent.
+    expect(wide.x + wide.width).toBeGreaterThanOrEqual(longHyphen.x + 5);
+    // Also without a continuation: a long word ending a system, followed by
+    // its custos (no hyphen to widen the canvas past it).
+    const ending = punctaDocument(3, 40);
+    ending.syllables = (
+      [
+        ['a', 0],
+        ['D' + 'o'.repeat(300), 20],
+        ['b', 21],
+      ] as const
+    ).map(([text, at], i) => ({
+      id: `s${i}`,
+      text,
+      startsAtNeumeId: `n${at}`,
+      boundaryBefore: 'word' as const,
+    }));
+    for (const layout of [wide, layoutChant(ending, measure)]) {
+      const right = layout.x + layout.width;
+      for (const system of layout.systems) {
+        for (const ink of [...system.neumes, ...system.custodes])
+          expect(right).toBeGreaterThanOrEqual(ink.bounds.x + ink.bounds.width);
+        expect(right).toBeGreaterThanOrEqual(system.staffLines[0].x2);
+      }
     }
   });
 

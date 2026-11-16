@@ -1210,13 +1210,17 @@ export function layoutChant(
     canvasRight = Math.max(canvasRight, (lyric.right ?? 0) + 12);
   }
   // Rendering safeguard, not a pitch restriction (Stage 11A): musical ink
-  // grows the canvas by at most offStaffCanvasMargin beyond its system's box
-  // (the score width horizontally). That is far past any musical use (50
-  // ledger levels), while a valid but absurd safe-integer pitch, or the
-  // interval-proportional ribbon of a Porrectus reaching one, cannot turn the
-  // viewBox into an unusable 10^17-unit canvas. Ink beyond is clipped.
-  const left = -offStaffCanvasMargin;
-  const right = scoreWidth + offStaffCanvasMargin;
+  // and continuation hyphens grow the canvas by at most offStaffCanvasMargin
+  // beyond its system's box vertically, and beyond the text-derived extent
+  // (the score width, widened by any oversized lyric, ADR 0010/0011)
+  // horizontally. That is far past any musical use (50 ledger levels) and
+  // keeps text overflow and the ink it displaces intact, while a valid but
+  // absurd safe-integer pitch, the interval-proportional ribbon of a
+  // Porrectus reaching one, or an outgoing hyphen displaced after that
+  // ribbon cannot turn the viewBox into an unusable 10^17-unit canvas. Ink
+  // beyond is clipped; derived positions are unchanged.
+  const left = canvasLeft - offStaffCanvasMargin;
+  const right = canvasRight + offStaffCanvasMargin;
   const containX = (inkLeft: number, inkRight: number) => {
     canvasLeft = Math.min(canvasLeft, Math.max(left, inkLeft));
     canvasRight = Math.max(canvasRight, Math.min(right, inkRight));
@@ -1246,10 +1250,7 @@ export function layoutChant(
     if (system.staffLines[0].x2 > staffEndX)
       containX(0, system.staffLines[0].x2 + 12);
     for (const hyphen of system.hyphens)
-      canvasRight = Math.max(
-        canvasRight,
-        hyphen.x + (hyphenExtents?.right ?? 0) + 12,
-      );
+      containX(0, hyphen.x + (hyphenExtents?.right ?? 0) + 12);
   }
   return {
     title: document.title,

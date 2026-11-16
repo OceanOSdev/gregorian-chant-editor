@@ -229,8 +229,10 @@ async function hydrate(value) {
   return bytes;
 }
 async function pointer(selector) {
+  // Firefox's scrollIntoView does not always centre an SVG element inside the
+  // wide (horizontally scrolling) score viewport; finish with a page scroll.
   await ev(
-    `document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center'})`,
+    `(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)scrollBy(0,r.top+r.height/2-innerHeight/2)})()`,
   );
   await pause();
   const point = await ev(
@@ -303,6 +305,10 @@ const neume = (id, kind, pitches, marks = []) => ({
 });
 const etJesum = await readFile(
   new URL('./et-jesum.chant.json', import.meta.url),
+  'utf8',
+);
+const ribbonContinuation = await readFile(
+  new URL('./extreme-ribbon-continuation.chant.json', import.meta.url),
   'utf8',
 );
 const checks = [];
@@ -750,6 +756,50 @@ try {
     await key('Escape');
     await snapshot('extreme-' + width);
     checks.push('extreme-pitches');
+
+    // 10. An extreme-width Porrectus carrying "Do-" with "-mi" on a later
+    // system (native fixture, real measured lyrics): the outgoing hyphen's
+    // derived position follows the ~10^17-unit ribbon, but cannot defeat the
+    // horizontal canvas safeguard; the score stays usable.
+    await hydrate(JSON.parse(ribbonContinuation));
+    const ribbon = await ev(`(()=>{
+      const svg=document.querySelector('svg.score');
+      const v=svg.viewBox.baseVal;
+      const out=[...svg.querySelectorAll('.score__hyphens [data-outgoing="true"]')].map(h=>+h.getAttribute('x'));
+      return {left:v.x,right:v.x+v.width,out,svgWidth:svg.getBoundingClientRect().width,
+        lyrics:[...svg.querySelectorAll('text')].map(t=>t.textContent).filter(t=>t==='Do'||t==='mi').length,
+        scroll:document.documentElement.scrollWidth<=innerWidth};
+    })()`);
+    assert.ok(ribbon.out.length >= 1, 'outgoing hyphen rendered');
+    assert.ok(
+      ribbon.out.some((x) => x > 1e16),
+      'hyphen keeps its derived position after the ribbon',
+    );
+    assert.ok(ribbon.left >= -1200 && ribbon.right <= 720 + 1200);
+    assert.ok(ribbon.svgWidth < 5000, 'SVG element stays a usable size');
+    assert.equal(ribbon.lyrics, 2, 'both syllables rendered');
+    await pointer(selector('p31'));
+    assert.equal(
+      await ev(
+        `document.querySelector(${JSON.stringify(selector('p31'))}).getAttribute('aria-pressed')`,
+      ),
+      'true',
+      'pointer selection after the extreme ribbon',
+    );
+    await key('ArrowUp');
+    assert.equal(
+      (await score()).neumes[31].notes[0].staffPosition,
+      4,
+      'transposition after the extreme ribbon',
+    );
+    await clickLabel('Undo last edit');
+    assert.deepEqual(
+      (await score()).neumes,
+      JSON.parse(ribbonContinuation).document.neumes,
+    );
+    console.error('ribbon', width, JSON.stringify(ribbon));
+    await key('Escape');
+    checks.push('extreme-ribbon-continuation');
   }
   console.log(
     JSON.stringify({

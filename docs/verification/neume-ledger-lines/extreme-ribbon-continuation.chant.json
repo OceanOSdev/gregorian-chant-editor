@@ -1,0 +1,379 @@
+{
+  "format": "gregorian-chant-editor",
+  "version": 10,
+  "document": {
+    "title": "Extreme ribbon with cross-system continuation",
+    "lyricLanguage": "la",
+    "clef": {
+      "type": "c",
+      "staffLine": 3
+    },
+    "neumes": [
+      {
+        "id": "n0",
+        "kind": "porrectus",
+        "notes": [
+          {
+            "id": "far-0",
+            "staffPosition": 9007199254740991
+          },
+          {
+            "id": "far-1",
+            "staffPosition": 2
+          },
+          {
+            "id": "far-2",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n1",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p1",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n2",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p2",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n3",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p3",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n4",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p4",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n5",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p5",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n6",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p6",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n7",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p7",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n8",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p8",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n9",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p9",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n10",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p10",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n11",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p11",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n12",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p12",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n13",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p13",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n14",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p14",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n15",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p15",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n16",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p16",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n17",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p17",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n18",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p18",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n19",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p19",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n20",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p20",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n21",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p21",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n22",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p22",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n23",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p23",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n24",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p24",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n25",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p25",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n26",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p26",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n27",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p27",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n28",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p28",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n29",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p29",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n30",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p30",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n31",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p31",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n32",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p32",
+            "staffPosition": 3
+          }
+        ]
+      },
+      {
+        "id": "n33",
+        "kind": "punctum",
+        "notes": [
+          {
+            "id": "p33",
+            "staffPosition": 3
+          }
+        ]
+      }
+    ],
+    "syllables": [
+      {
+        "id": "s-do",
+        "text": "Do",
+        "startsAtNeumeId": "n0",
+        "boundaryBefore": "word"
+      },
+      {
+        "id": "s-mi",
+        "text": "mi",
+        "startsAtNeumeId": "n30",
+        "boundaryBefore": "continuation"
+      }
+    ],
+    "divisions": [],
+    "clefChanges": [],
+    "accidentals": []
+  }
+}
