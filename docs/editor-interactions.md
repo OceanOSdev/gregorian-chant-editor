@@ -197,10 +197,15 @@ the shell's focused division/lyric IDs in the same event, without remounting
 the palette or the score.
 
 `EditorActionBar` is a view: `ChantEditor` derives its permissions, labels and
-counts from the session and binds each button to the same function used by the
-corresponding keyboard shortcut (copy, paste, Lyrics, Insert, Undo/Redo).
-Clipboard ID allocation, copy/paste scope and history navigation stay in the
-shell and reducer.
+counts from the session and binds each button to a shell handler for an
+existing session action. Copy, Paste and Undo/Redo use the same handler as
+their keyboard shortcuts. Lyrics and Insert intentionally differ by focus:
+the buttons act on the semantic selection, while **L** on a focused note or
+lyric starts at that focused target (only its fallback shares the button's
+handler), and **I** on a focused division or clef change first selects it.
+Undo/Redo buttons are additionally disabled during a lyric move; the
+reducer guards the shortcut path. Clipboard ID allocation, copy/paste scope
+and history navigation stay in the shell and reducer.
 
 ## Continuous lyric entry
 

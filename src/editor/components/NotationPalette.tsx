@@ -21,6 +21,7 @@ import {
   type ButtonPaletteTool,
   type FamilyMenuTool,
   type FamilyPrimaryTool,
+  type PaletteControl,
   type QuilismaFigure,
 } from './notation-palette-tools';
 import type { DivisionKind } from '../domain/chant-document';
@@ -237,6 +238,17 @@ export function NotationPalette({
     );
   }
 
+  function renderControl(control: PaletteControl) {
+    switch (control.kind) {
+      case 'division-family':
+        return renderDivisionFamily();
+      case 'neume-family':
+        return renderNeumeFamily(control.family);
+      case 'button':
+        return renderButton(control.tool);
+    }
+  }
+
   return (
     <>
       <div
@@ -247,13 +259,7 @@ export function NotationPalette({
         data-notation-shortcuts
         onKeyDown={browseTools}
       >
-        {paletteControls.map((control) =>
-          control.kind === 'division-family'
-            ? renderDivisionFamily()
-            : control.kind === 'neume-family'
-              ? renderNeumeFamily(control.family)
-              : renderButton(control.tool),
-        )}
+        {paletteControls.map(renderControl)}
       </div>
       <label className="quilisma-figure">
         Quilisma figure{' '}

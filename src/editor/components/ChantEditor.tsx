@@ -493,12 +493,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     () => dispatch({ type: 'paste-passage', ids: allocatePasteIds(clipboard) }),
     [dispatch, clipboard],
   );
-  function copyPassage() {
-    dispatch({ type: 'copy-passage' });
-  }
-  function startLyricsAtSelection() {
-    lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null });
-  }
+  // Shared by the Copy/Lyrics buttons and their keyboard shortcuts.
+  const copyPassage = useCallback(
+    () => dispatch({ type: 'copy-passage' }),
+    [dispatch],
+  );
+  const selectedNeumeId = selectedNeume?.id ?? null;
+  const startLyricsAtSelection = useCallback(
+    () => lyricAction({ type: 'start', neumeId: selectedNeumeId }),
+    [lyricAction, selectedNeumeId],
+  );
   const clipboardUnavailable = clipboardBlocked(session);
   const canCopy =
     !clipboardUnavailable &&
@@ -527,7 +531,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         // Claim the in-app command once; held-key repeats never paste again.
         event.preventDefault();
         if (event.repeat) return;
-        if (clipboardShortcut === 'copy') dispatch({ type: 'copy-passage' });
+        if (clipboardShortcut === 'copy') copyPassage();
         else pasteClipboard();
         return;
       }
@@ -559,7 +563,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             newId: crypto.randomUUID(),
           });
         } else {
-          lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null });
+          // Without a focused note or lyric, L starts at the selection, as
+          // the Lyrics button does.
+          startLyricsAtSelection();
         }
         return;
       }
@@ -672,9 +678,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     session.clefTransaction,
     session.accidentalTargetId,
     history.present,
-    selectedNeume,
     selection.kind,
     pasteClipboard,
+    copyPassage,
+    startLyricsAtSelection,
   ]);
 
   return (

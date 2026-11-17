@@ -3,8 +3,10 @@ import {
   paletteTools,
   type PaletteTool,
 } from '../interaction/palette-navigation';
+import type { Clef } from '../domain/chant-document';
 import { noteFormLabels } from '../domain/note-forms';
 import type { GraphicalNeumeKind } from '../neume-entry-pitches';
+import type { EditorSession } from '../state/editor-session';
 import {
   isPlacementTool,
   neumeFamilyMembers,
@@ -20,7 +22,7 @@ import {
  * session reducer remains the authority for what arming actually does.
  */
 
-export type QuilismaFigure = 'podatus' | 'scandicus';
+export type QuilismaFigure = EditorSession['quilismaFigure'];
 /** Primary (ordinary-member) button of a split family control. */
 export type FamilyPrimaryTool = NeumeFamily | 'minima';
 /** Chevron button of a split family control. */
@@ -52,16 +54,20 @@ function isFamilyMenuTool(tool: PaletteTool): tool is FamilyMenuTool {
  * Rendered controls in palette order. Each split control owns two roving stops
  * (primary then chevron); `paletteTools` stays the single source of order.
  */
-export const paletteControls: readonly PaletteControl[] = paletteTools.flatMap(
-  (tool): PaletteControl[] =>
-    isFamilyMenuTool(tool)
-      ? []
-      : tool === 'minima'
-        ? [{ kind: 'division-family' }]
-        : isNeumeFamily(tool)
-          ? [{ kind: 'neume-family', family: tool }]
-          : [{ kind: 'button', tool }],
-);
+export const paletteControls: readonly PaletteControl[] =
+  paletteTools.flatMap(controlsFor);
+
+function controlsFor(tool: PaletteTool): PaletteControl[] {
+  // A chevron stop is rendered by its family's split control.
+  if (isFamilyMenuTool(tool)) return [];
+  if (tool === 'minima') return [{ kind: 'division-family' }];
+  if (isNeumeFamily(tool)) return [{ kind: 'neume-family', family: tool }];
+  return [{ kind: 'button', tool }];
+}
+
+function clefTypeOf(tool: 'c-clef' | 'f-clef'): Clef['type'] {
+  return tool === 'c-clef' ? 'c' : 'f';
+}
 
 export function paletteButtonLabel(tool: ButtonPaletteTool): string {
   switch (tool) {
@@ -94,7 +100,7 @@ export function paletteButtonCommand(
     case 'f-clef':
       return {
         type: 'arm',
-        tool: { kind: 'place-clef', clefType: tool === 'c-clef' ? 'c' : 'f' },
+        tool: { kind: 'place-clef', clefType: clefTypeOf(tool) },
       };
     case 'quilisma':
       return { type: 'arm', tool: quilismaFigureTool(quilismaFigure) };
@@ -113,7 +119,8 @@ export function isPaletteButtonPressed(
     case 'c-clef':
     case 'f-clef':
       return (
-        activeTool.kind === 'place-clef' && activeTool.clefType === tool[0]
+        activeTool.kind === 'place-clef' &&
+        activeTool.clefType === clefTypeOf(tool)
       );
     default:
       return toolNoteForm(activeTool) === tool;

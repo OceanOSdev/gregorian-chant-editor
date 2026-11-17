@@ -225,6 +225,18 @@ const pressed = (tool) =>
   );
 const noteCount = () =>
   ev(`document.querySelectorAll('[data-note-id]').length`);
+/**
+ * The `focusRequest` prop NotationPalette last rendered with, read from the
+ * React fiber attached to its toolbar element (`__reactFiber$…`, present in
+ * production builds), switched to its current-tree twin when the DOM node
+ * still references the alternate. Test-only introspection: it shows whether the session
+ * still holds the palette request after the palette handled it.
+ */
+const paletteFocusRequest = () =>
+  ev(
+    `(()=>{const e=document.querySelector('.neume-palette');const k=Object.keys(e).find(k=>k.startsWith('__reactFiber$'));if(!k)throw Error('No React fiber on .neume-palette');const isPalette=f=>f.memoizedProps&&typeof f.memoizedProps==='object'&&'onFocusRequestHandled' in f.memoizedProps;let f=e[k];while(f&&!isPalette(f))f=f.return;if(!f)throw Error('NotationPalette fiber not found');const inCurrentTree=f=>{let r=f;while(r.return)r=r.return;return r.stateNode&&r.stateNode.current===r};const current=inCurrentTree(f)?f:f.alternate;if(!current||!inCurrentTree(current))throw Error('No current NotationPalette fiber');return current.memoizedProps.focusRequest})()`,
+  );
+const storageKey = 'gregorian-chant-editor:active-document:v1';
 const selectionFingerprint = () =>
   ev(
     `[document.querySelectorAll('.score [class*="--selected"], .score [data-selected-neume-id]').length, !!document.querySelector('.note-context-toolbar, [aria-label*="note properties" i]')].join('|')`,
@@ -378,7 +390,7 @@ try {
   await assertPaletteReset('New');
   console.log('PASS: New resets roving stop and remembered division kind');
 
-  // 3. Import resets presentation memory too, without remounting the score.
+  // 3. Import resets presentation memory too.
   await dirtyPaletteMemory();
   await ev(
     `(()=>{const input=document.querySelector('input[type="file"]');const dt=new DataTransfer();dt.items.add(new File([${JSON.stringify(JSON.stringify(importFixture))}],'score.chant.json',{type:'application/json'}));input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`,
@@ -388,7 +400,35 @@ try {
   await assertPaletteReset('Import');
   console.log('PASS: Import resets roving stop and remembered division kind');
 
-  // 4. T from the score focuses the remembered tool once, without selection.
+  // 3b. Recovery reload: a foreign autosave (as another tab would write) is
+  // detected on window focus; Load cached score reloads it and must reset
+  // presentation memory through the same path as New/Import.
+  await dirtyPaletteMemory();
+  const cached = {
+    ...importFixture,
+    document: { ...importFixture.document, title: 'Reloaded cache' },
+  };
+  await ev(
+    `(localStorage.setItem(${JSON.stringify(storageKey)},${JSON.stringify(JSON.stringify(cached))}),window.dispatchEvent(new Event('focus')),true)`,
+  );
+  await pause(300);
+  await ev(
+    `(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Load cached score');if(!b)throw Error('No recovery after foreign autosave');b.setAttribute('data-toolbar-check','reload')})()`,
+  );
+  await clickSelector('[data-toolbar-check="reload"]');
+  await pause(300);
+  assert.match(
+    await ev(
+      `document.querySelector('section[aria-label="Document"]').textContent`,
+    ),
+    /Reloaded cache/,
+    'reload loaded the cached score',
+  );
+  await assertPaletteReset('Reload');
+  console.log('PASS: recovery reload resets roving stop and division kind');
+
+  // 4. T from the score focuses the remembered tool without selection, and
+  // the handled palette request is cleared from the session.
   await ev(`document.querySelector('[data-note-id="note2"]').focus()`);
   await pause();
   const before = await selectionFingerprint();
@@ -396,12 +436,17 @@ try {
   assert.equal(await focusedTool(), 'punctum', 'T reaches Punctum');
   assert.deepEqual(await rovingStops(), ['punctum']);
   assert.equal(await selectionFingerprint(), before, 'T changes no selection');
+  assert.equal(
+    await paletteFocusRequest(),
+    null,
+    'handled palette focus request is acknowledged (cleared)',
+  );
   await key('ArrowRight');
   await pause(300);
   assert.equal(
     await focusedTool(),
     'punctum-menu',
-    'palette focus request is acknowledged once (no refocus)',
+    'arrow browsing after T is not undone by a refocus',
   );
   // Arm a family variant; T then targets that family's menu stop.
   await clickSelector('[data-tool="podatus-menu"]');
@@ -413,8 +458,9 @@ try {
   await pause();
   await key('t');
   assert.equal(await focusedTool(), 'podatus-menu', 'T reaches variant menu');
+  assert.equal(await paletteFocusRequest(), null, 'second request cleared');
   await shot('t-focus-variant');
-  console.log('PASS: T palette focus request, variant target, one-time ack');
+  console.log('PASS: T palette focus request, variant target, request cleared');
 
   // 5. Quilisma figure select arms through the session and is remembered.
   await ev(
@@ -490,6 +536,7 @@ try {
   await viewport(320, 500);
   const short = await checkStickyThreshold('320x500');
   assert.equal(short.flag, 'true', 'short narrow viewport falls back');
+  assert.equal(short.position, 'static', 'fallback toolbar is not sticky');
   await viewport(1440, 1100);
   await ev(`document.querySelector('main').style.zoom='1.5'`);
   await checkStickyThreshold('1440x1100 at 150% zoom');
@@ -499,7 +546,7 @@ try {
   console.log('PASS: sticky data-too-tall observer at 1440/320/short/150%');
 
   console.log(
-    `PASS: editor toolbar (${firefox ? 'Firefox' : 'Chromium'}) palette roving, reset on New/Import, T focus, action bar and sticky threshold.`,
+    `PASS: editor toolbar (${firefox ? 'Firefox' : 'Chromium'}) palette roving, reset on New/Import/reload, T focus, action bar and sticky threshold.`,
   );
 } finally {
   if (ownsSession) await rawSend('session.end').catch(() => {});

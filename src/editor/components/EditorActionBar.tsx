@@ -28,8 +28,9 @@ interface EditorActionBarProps {
  * The editor action buttons beside the notation palette.
  *
  * A view only: the editor shell derives every permission and label from the
- * session and binds each callback to an existing session action, so keyboard
- * shortcuts and these buttons share one implementation.
+ * session and binds each callback to a handler for an existing session action.
+ * Copy, Paste and Undo/Redo share those handlers with their shortcuts; Lyrics
+ * and Insert act on the selection, while L/I also consider keyboard focus.
  */
 export function EditorActionBar({
   clipboardFeedback,
