@@ -666,13 +666,15 @@ try {
     const started = Date.now();
     const extremeBytes = await hydrate(extreme);
     const loadMs = Date.now() - started;
-    // Stage 11B: each system's measured extent reserves its musical ink up
-    // to a render band 1,200 units beyond the canonical 220-unit system; the
-    // canvas is exactly the stacked systems. Nothing painted (ledger runs,
-    // custos ledgers, outlines) exceeds its own system's band by more than
-    // one ledger space, the band clips musical ink and pointer regions, and
-    // no browser tiles or strokes a 10^17-unit shape. (Stage 11A asserted a
-    // -1200 canvas origin and fixed 244-unit advances instead.)
+    // Stage 11B: each system's measured extent reserves its musical ink,
+    // clamped to the canonical band 1,200 units beyond the canonical
+    // 220-unit system; the canvas is exactly the stacked systems. Each
+    // system's resolved band is that canonical band intersected with its own
+    // box and clips musical ink and pointer regions. Nothing painted (ledger
+    // runs, custos ledgers, outlines) exceeds its own system's band by more
+    // than one ledger space, and no browser tiles or strokes a 10^17-unit
+    // shape. (Stage 11A asserted a -1200 canvas origin and fixed 244-unit
+    // advances instead.)
     const painted = () =>
       ev(`(()=>{
         const svg=document.querySelector('svg.score');
@@ -704,12 +706,15 @@ try {
       assert.ok(system.clipped, `system ${i} clips its musical ink`);
       assert.equal(system.clipTop, system.musicTop);
       assert.equal(system.clipHeight, system.musicBottom - system.musicTop);
-      assert.equal(
-        system.musicBottom - system.musicTop,
-        220 + 2 * 1200,
-        'band is the canonical system plus the margin on each side',
+      assert.ok(system.musicTop >= system.top, 'band within system box');
+      assert.ok(
+        system.musicBottom <= system.top + system.height,
+        'band within system box',
       );
-      assert.ok(system.musicTop >= system.top - 1212, 'band within system');
+      assert.ok(
+        system.musicBottom - system.musicTop <= 220 + 2 * 1200,
+        'band no larger than the canonical maximum band',
+      );
       assert.ok(system.height <= 2700, `system ${i} height bounded`);
       if (i)
         assert.equal(

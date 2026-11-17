@@ -290,10 +290,9 @@ const clefIds = () =>
   );
 const ink = () =>
   ev(
-    // Relative to the note's own system staff origin (Stage 11B systems have
-    // measured heights; this equals the former fixed systemIndex*244 offset
-    // for ordinary systems).
-    `[...document.querySelectorAll('[data-note-id]')].map(e=>({id:e.dataset.noteId,y:Number(e.querySelector('.score__note-hit-target').getAttribute('y')) - (Math.max(...[...e.closest('[data-system-index]').querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1'))) - 124)}))`,
+    // Relative to the note's own system's resolved staff origin
+    // (`data-bottom-staff`), expressed in the canonical frame (origin 124).
+    `[...document.querySelectorAll('[data-note-id]')].map(e=>({id:e.dataset.noteId,y:Number(e.querySelector('.score__note-hit-target').getAttribute('y')) - (Number(e.closest('[data-system-index]').dataset.bottomStaff) - 124)}))`,
   );
 const offset = (type, line) => (type === 'c' ? 0 : 3) - 2 * (line - 1);
 const layoutFor = (d) => ev(`clefLayout(${JSON.stringify(d)})`);

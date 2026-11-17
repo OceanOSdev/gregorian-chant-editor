@@ -364,9 +364,62 @@ try {
     assert.ok(metric.ascent <= 20, `${name} ascent ${metric.ascent} <= 20`);
     assert.ok(metric.descent <= 5, `${name} descent ${metric.descent} <= 5`);
   }
+  // Which installed face the lyric stack actually resolves to. A family is
+  // available when, given a monospace fallback, it measures differently from
+  // monospace alone; the resolved face is the available candidate whose
+  // advance matches the lyric stack. Candidates are measured individually so
+  // the record distinguishes the face used here from other installed serifs.
+  const fontFaces = await ev(`(()=>{
+    const c=document.createElement('canvas').getContext('2d');
+    const sample='Salve Regína mater misericórdiæ ÁÉÍÓÚǼ gjpqy';
+    const width=(f)=>{c.font='20px '+f;return c.measureText(sample).width};
+    const metric=(f,s)=>{c.font='20px '+f;const r=c.measureText(s);return {ascent:r.actualBoundingBoxAscent,descent:r.actualBoundingBoxDescent}};
+    const lyric=width("Georgia, 'Times New Roman', serif");
+    const mono=width('monospace');
+    const candidates=['Georgia','Times New Roman','Liberation Serif','Noto Serif','DejaVu Serif','Gelasio','Tinos'].map(f=>{
+      const w=width("'"+f+"', monospace");
+      return {family:f,available:w!==mono,matchesLyric:w===lyric,accents:metric("'"+f+"', monospace",'ÁÉÍÓÚÝǼǢŒÆÄËÏÖÜÅ'),descenders:metric("'"+f+"', monospace",'gjpqyçţ;,Qſ')};
+    });
+    return {genericSerifMatchesLyric:width('serif')===lyric,candidates};
+  })()`);
+  const resolved = fontFaces.candidates.filter(
+    (f) => f.available && f.matchesLyric,
+  );
+  assert.ok(resolved.length >= 1, 'lyric stack resolves to a known face');
+  for (const face of resolved) {
+    assert.ok(face.accents.ascent <= 20, `${face.family} accents`);
+    assert.ok(face.descenders.descent <= 5, `${face.family} descenders`);
+  }
+  let platformFonts = null;
+  if (!firefox) {
+    // Chromium reports the platform face that rendered a real lyric node.
+    await send('Emulation.setDeviceMetricsOverride', {
+      width: 1440,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await loadSalve();
+    await rawSend('DOM.enable');
+    await rawSend('CSS.enable');
+    const { root } = await rawSend('DOM.getDocument', { depth: 0 });
+    const { nodeId } = await rawSend('DOM.querySelector', {
+      nodeId: root.nodeId,
+      selector: 'text.score__lyric',
+    });
+    platformFonts = (await rawSend('CSS.getPlatformFontsForNode', { nodeId }))
+      .fonts;
+    assert.ok(
+      platformFonts.every((f) =>
+        resolved.some((r) => r.family === f.familyName),
+      ),
+      `platform font ${JSON.stringify(platformFonts)} matches the fingerprint`,
+    );
+  }
   checks.push('lyric-font-band');
 
   const baselineByWidth = {};
+  const jeCueByWidth = {};
   for (const width of [1440, 320]) {
     await send('Emulation.setDeviceMetricsOverride', {
       width,
@@ -386,7 +439,10 @@ try {
     assert.ok(jeSystem.baseline - jeSystem.top > 180, 'Je baseline lowered');
     assert.equal(jeSystem.bottomStaff - jeSystem.top, 124, 'staff unchanged');
     const grow = jeSystem.height - 220;
-    assert.ok(grow > 0);
+    // Exact local measurements recorded in the verification record.
+    assert.equal(grow, 9, 'Je system grows by 9 units');
+    assert.equal(jeSystem.height, 229, 'Je system height');
+    assert.equal(jeSystem.baseline - jeSystem.top, 189, 'Je local baseline');
     state.systems.forEach((s, i) => {
       if (i !== jeIndex) assert.equal(s.height, 220, `system ${i} ordinary`);
       assert.equal(s.top, i * 244 + (i > jeIndex ? grow : 0));
@@ -398,8 +454,58 @@ try {
       return {bottom:Math.max(...b.map(r=>r.y+r.height)),runs};
     })()`);
     assert.deepEqual(jeInk.runs, [1], 'one ledger under Je');
+    assert.equal(jeInk.bottom - jeSystem.top, 166, 'Je local ink bottom');
     const jeText = jeSystem.lyrics.find((l) => l.text === 'Je');
     assert.ok(jeText.top >= jeInk.bottom + 3, 'Je text clears the low A');
+    // Keyboard-focus cue on Je: shown by :focus-within, below the lyric text
+    // and every painted musical ink box, inside the system box.
+    await ev(
+      `document.querySelector('text.score__lyric[data-syllable-id="${jeText.id}"]').focus({preventScroll:true})`,
+    );
+    await pause();
+    const cue = await ev(`(()=>{
+      const t=document.querySelector('text.score__lyric[data-syllable-id="${jeText.id}"]');
+      const cue=t.closest('.score__lyric-control').querySelector('.score__lyric-focus-cue');
+      const shown=getComputedStyle(cue).display!=='none';
+      // Geometry is read with the cue forced visible, so the check also runs
+      // where headless Firefox has no document focus for :focus-within.
+      cue.style.display='block';
+      const b=(e)=>{const r=e.getBBox();return {top:r.y,bottom:r.y+r.height,left:r.x,right:r.x+r.width}};
+      const result={shown,focused:document.activeElement===t,documentFocused:document.hasFocus(),triangle:b(cue.querySelector('path')),label:b(cue.querySelector('text'))};
+      cue.style.display='';
+      const g=t.closest('[data-system-index]');
+      const inkSel='.score__ink,.score__ledger-run,.score__accidental-ink,.score__custos,.score__clef-ink,.score__division-ink';
+      result.ink=[...g.querySelectorAll(inkSel)].map(b).filter(r=>r.bottom>r.top);
+      return result;
+    })()`);
+    assert.ok(cue.focused, 'Je lyric focused');
+    if (!firefox || cue.documentFocused)
+      assert.ok(cue.shown, 'focus cue shown for the focused lyric');
+    for (const part of [cue.triangle, cue.label]) {
+      assert.ok(part.top > jeText.bottom, 'cue below the Je lyric text');
+      assert.ok(part.top > jeInk.bottom, 'cue below the low A');
+      assert.ok(
+        part.bottom <= jeSystem.top + jeSystem.height,
+        'cue inside the Je system',
+      );
+      for (const ink of cue.ink)
+        assert.ok(
+          part.top >= ink.bottom ||
+            part.bottom <= ink.top ||
+            part.left >= ink.right ||
+            part.right <= ink.left,
+          `cue clear of ink ${JSON.stringify(ink)}`,
+        );
+    }
+    jeCueByWidth[width] = {
+      shownByFocusWithin: cue.shown,
+      documentFocused: cue.documentFocused,
+      triangleTop: cue.triangle.top - jeSystem.top,
+      labelBottom: cue.label.bottom - jeSystem.top,
+      lyricBottom: jeText.bottom - jeSystem.top,
+    };
+    await ev(`document.activeElement.blur()`);
+    checks.push('je-focus-cue');
     baselineByWidth[width] = jeSystem.baseline;
     await viewportPoint(360, jeSystem.top + jeSystem.height / 2);
     const shot = await send('Page.captureScreenshot', { format: 'png' });
@@ -773,6 +879,193 @@ try {
   console.error('zoom', JSON.stringify(zoomEvidence));
   checks.push('zoom-150-reveal-pointer-keyboard');
 
+  // 8. Extreme adjacent systems: a safe-integer low note on one system and a
+  // safe-integer high note on the next. Each system's clip equals its
+  // resolved band inside its own box; no point in one system's box (or the
+  // gap) reaches an element of another system, in ordinary mode and with
+  // lyric-move targets active; whole-neume, range, placement-context and
+  // lyric-move overlays and captions stay inside their system's band; real
+  // pointer presses select ordinary notes beside both extremes.
+  const extremeFixture = (low, high) => ({
+    format: 'gregorian-chant-editor',
+    version: 10,
+    document: {
+      title: 'Extreme systems',
+      lyricLanguage: 'la',
+      clef: { type: 'c', staffLine: 3 },
+      neumes: Array.from({ length: 90 }, (_, i) => ({
+        id: `x${i}`,
+        kind: 'punctum',
+        notes: [
+          {
+            id: `x${i}-0`,
+            staffPosition:
+              i === low
+                ? -Number.MAX_SAFE_INTEGER + 8
+                : i === high
+                  ? Number.MAX_SAFE_INTEGER
+                  : 3,
+          },
+        ],
+      })),
+      syllables: [
+        { id: 'xa', text: 'Ky', startsAtNeumeId: 'x0', boundaryBefore: 'word' },
+        { id: 'xz', text: 'e', startsAtNeumeId: 'x89', boundaryBefore: 'word' },
+      ],
+      divisions: [],
+      clefChanges: [],
+      accidentals: [],
+    },
+  });
+  const membership = () =>
+    ev(
+      `[...document.querySelectorAll('g[data-system-index]')].map(g=>[...g.querySelectorAll('[data-neume-id]')].map(n=>+n.dataset.neumeId.slice(1)))`,
+    );
+  const extremeEvidence = [];
+  for (const width of [1440, 320]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await navigate();
+    // Choose the middle neume of systems 0 and 1 so the extremes stay there.
+    await importText(JSON.stringify(extremeFixture(-1, -1)));
+    const plain = await membership();
+    const low = plain[0][Math.floor(plain[0].length / 2)];
+    const high = plain[1][Math.floor(plain[1].length / 2)];
+    await importText(JSON.stringify(extremeFixture(low, high)));
+    const systemsNow = await membership();
+    assert.ok(systemsNow[0].includes(low) && systemsNow[1].includes(high));
+    const bands =
+      await ev(`[...document.querySelectorAll('g[data-system-index]')].map(g=>{
+      const rect=document.getElementById(g.querySelector(':scope > .score__system-music').getAttribute('clip-path').slice(5,-1)).querySelector('rect');
+      return {index:+g.dataset.systemIndex,top:+g.dataset.systemTop,height:+g.dataset.systemHeight,musicTop:+g.dataset.musicTop,musicBottom:+g.dataset.musicBottom,clipTop:+rect.getAttribute('y'),clipBottom:+rect.getAttribute('y')+ +rect.getAttribute('height')};
+    })`);
+    assert.ok(bands[0].height > 1200 && bands[1].height > 1200, 'extremes');
+    bands.forEach((b, i) => {
+      assert.equal(b.clipTop, b.musicTop, `system ${i} clip top is its band`);
+      assert.equal(b.clipBottom, b.musicBottom, `system ${i} clip bottom`);
+      assert.ok(b.musicTop >= b.top, `system ${i} band inside box (top)`);
+      assert.ok(b.musicBottom <= b.top + b.height, `system ${i} band bottom`);
+      if (i)
+        assert.ok(b.musicTop - bands[i - 1].musicBottom >= 24, 'bands apart');
+    });
+    // Sample real hit testing over systems 0..2 at the extreme columns and
+    // beside them; each hit must belong to the system whose box holds it.
+    const sample = async (label) => {
+      const result = await ev(`(()=>{
+        const svg=document.querySelector('svg.score');
+        const frames=[...svg.querySelectorAll('g[data-system-index]')].slice(0,3).map(g=>({index:+g.dataset.systemIndex,top:+g.dataset.systemTop,bottom:+g.dataset.systemTop+ +g.dataset.systemHeight}));
+        const column=(id)=>{const b=document.querySelector('[data-neume-id="'+id+'"] .score__note-hit-target').getBBox();return b.x+b.width/2};
+        const xs=[column('x${low}'),column('x${high}'),column('x${low + 1}'),column('x${high + 1}')];
+        const bad=[];let hits=0,samples=0;
+        for(const x of xs)for(let y=frames[0].top+1;y<frames[2].bottom;y+=6){
+          const p=new DOMPoint(x,y).matrixTransform(svg.getScreenCTM());
+          scrollBy(p.x-innerWidth/2,p.y-innerHeight/2);
+          const q=new DOMPoint(x,y).matrixTransform(svg.getScreenCTM());
+          const hit=document.elementFromPoint(q.x,q.y);samples++;
+          const owner=hit?.closest?.('[data-system-index]');
+          if(!owner)continue;hits++;
+          const box=frames.find(f=>y>=f.top&&y<=f.bottom);
+          if(!box||+owner.dataset.systemIndex!==box.index)bad.push({x,y,owner:+owner.dataset.systemIndex,box:box?.index??null,element:hit.getAttribute('class')});
+        }
+        return {bad:bad.slice(0,5),badCount:bad.length,hits,samples};
+      })()`);
+      assert.equal(
+        result.badCount,
+        0,
+        `${label}: ${JSON.stringify(result.bad)}`,
+      );
+      assert.ok(result.hits > 0, `${label}: hit testing sampled real targets`);
+      return result;
+    };
+    const ordinaryHits = await sample(`extreme ${width} ordinary`);
+    // Real pointer presses beside both extremes select those notes.
+    for (const id of [`x${low + 1}-0`, `x${high + 1}-0`, `x${high - 1}-0`]) {
+      await pointer(selector(id));
+      assert.equal(
+        await ev(
+          `document.querySelector(${JSON.stringify(selector(id))}).getAttribute('aria-pressed')`,
+        ),
+        'true',
+        `extreme ${width}: pointer selects ${id}`,
+      );
+    }
+    const inBand = (label) =>
+      ev(`(()=>{
+        const out=[];
+        for(const e of document.querySelectorAll(${JSON.stringify(label)})){
+          const g=e.closest('[data-system-index]');const b=e.getBBox();
+          const band={top:+g.dataset.musicTop,bottom:+g.dataset.musicBottom};
+          // Inside the clip, only the clipped part can paint or be hit.
+          const clipped=!!e.closest('.score__system-music');
+          const top=clipped?Math.max(b.y,band.top):b.y,bottom=clipped?Math.min(b.y+b.height,band.bottom):b.y+b.height;
+          out.push({clipped,top,bottom,band,ok:top>=band.top-0.01&&bottom<=band.bottom+0.01});
+        }
+        return out;
+      })()`);
+    const overlays = {};
+    // Whole-neume outline and a range reaching the high extreme (Shift
+    // activation on a different neume extends, so select the target first).
+    await select(`x${high}-0`);
+    await key('Enter', 'Enter', true);
+    overlays.outline = await inBand('.score__neume-selection');
+    await key('ArrowRight', 'ArrowRight', true);
+    overlays.range = await inBand('.score__range-selection');
+    await key('Escape');
+    await key('Escape');
+    // Placement context around the selected extreme note.
+    await select(`x${high}-0`);
+    await pointer('button[data-tool="punctum"]');
+    overlays.placement = await inBand('.score__placement-context');
+    await pointer('button[data-tool="select"]');
+    // Lyric-move targets and captions, including both extremes.
+    await ev(
+      `document.querySelector('text.score__lyric[data-syllable-id="xz"]').focus()`,
+    );
+    await key(' ');
+    await clickText('Move syllable');
+    assert.ok(await ev(`!!document.querySelector('#lyric-move-help')`));
+    overlays.moveTarget = await inBand('.score__move-target');
+    overlays.moveHit = await inBand('.score__move-hit-target');
+    overlays.caption = await inBand('.score__move-caption');
+    overlays.rawCaption =
+      await ev(`[...document.querySelectorAll('.score__move-caption')].map(e=>{
+      const g=e.closest('[data-system-index]');const b=e.getBBox();
+      const band={top:+g.dataset.musicTop,bottom:+g.dataset.musicBottom};
+      return {neume:e.closest('[data-neume-id]').dataset.neumeId,top:b.y,bottom:b.y+b.height,band,ok:b.y>=band.top-0.01&&b.y+b.height<=band.bottom+0.01};
+    })`);
+    const moveHits = await sample(`extreme ${width} lyric move`);
+    await key('Escape');
+    for (const [name, list] of Object.entries(overlays)) {
+      assert.ok(list.length > 0, `extreme ${width}: ${name} rendered`);
+      for (const o of list)
+        assert.ok(o.ok, `extreme ${width}: ${name} ${JSON.stringify(o)}`);
+    }
+    // Captions are drawn inside the clip but fit there unclipped: their full
+    // rendered text box lies inside the band.
+    for (const c of overlays.rawCaption)
+      assert.ok(
+        c.ok,
+        `extreme ${width}: caption unclipped ${JSON.stringify(c)}`,
+      );
+    extremeEvidence.push({
+      width,
+      low,
+      high,
+      heights: bands.slice(0, 3).map((b) => b.height),
+      ordinaryHits,
+      moveHits,
+      overlays: Object.fromEntries(
+        Object.entries(overlays).map(([k, v]) => [k, v.length]),
+      ),
+    });
+  }
+  console.error('extreme', JSON.stringify(extremeEvidence));
+  checks.push('extreme-clip-pointer-overlays');
+
   // Layout is width-independent (score units); only scaling changes.
   assert.equal(baselineByWidth[1440], baselineByWidth[320]);
   console.log(
@@ -781,7 +1074,11 @@ try {
       userAgent: await ev('navigator.userAgent'),
       output,
       font,
+      fontFaces,
+      platformFonts,
       jeBaseline: baselineByWidth,
+      jeCue: jeCueByWidth,
+      extreme: extremeEvidence,
       zoom: zoomEvidence,
       checks: [...new Set(checks)].join(', ') + ' at 1440px and 320px',
     }),
