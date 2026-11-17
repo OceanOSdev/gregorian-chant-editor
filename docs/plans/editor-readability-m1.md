@@ -3,7 +3,7 @@
 Branch: `refactor/editor-readability-m1`
 Target: `master`
 Base: `917137cc5941ecb0539391efe7f859e5e7d30153` (Stage 11B / PR #93 merged)
-Status: design/handoff ready; **no implementation or verification has happened on this branch**.
+Status: M1 implemented on this branch and in review (PR pending owner acceptance). Actual verification is recorded in the PR and [editor-toolbar record](../verification/editor-toolbar/README.md); M2–M3 not started.
 
 ## Why this effort
 

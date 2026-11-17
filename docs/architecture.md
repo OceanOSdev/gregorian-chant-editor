@@ -122,9 +122,25 @@ for keys, selection, and focus, but it does not store musical state.
 
 ### `src/editor/components/`
 
-`ChantEditor` coordinates React state, semantic commands, history navigation,
-layout, resolvers, focus requests, and controls. Component state is not a
-second score model.
+`ChantEditor` is the editor shell. It acquires the single persisted session,
+derives layout and selection projections, binds semantic edits and history
+navigation, owns the global keyboard listeners and composes the score and
+controls. Component state is not a second score model.
+
+The editor toolbar is split by ownership (readability M1):
+
+| Module                      | Owns                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                           |
+| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure |
+| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button      |
+| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                             |
+
+The palette and action bar receive session values and narrowly named callbacks;
+they never dispatch arbitrary actions, hold document state or derive clipboard
+or history permissions. The session reducer stays the only transition
+authority. See [editor interactions](editor-interactions.md#palette-and-action-bar-ownership)
+for focus-request and replacement-reset behavior.
 
 ## Why the boundaries matter
 

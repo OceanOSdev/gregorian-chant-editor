@@ -103,8 +103,8 @@ Each committed note is a focusable SVG control keyed by stable note ID.
 only. Focus requests identify an enabled note, the placement surface anchored to
 a committed note, or a palette tool. Layout effects resolve mounted refs after
 React commits and acknowledge the exact request; stale acknowledgements cannot
-clear newer requests. The parent handles palette focus, `ScoreSvg` handles notes
-and the surface. Insertion and whole-neume movement restore stable note IDs even
+clear newer requests. `NotationPalette` handles palette focus, `ScoreSvg` handles
+notes and the surface. Insertion and whole-neume movement restore stable note IDs even
 across system reflow. Undo/Redo restores a surviving focused note in Select.
 
 Automatic focus uses `focus({ preventScroll: true })`, without refocusing an
@@ -171,6 +171,36 @@ visible I hint make the shortcuts discoverable without a permanent help panel.
 The ordinary Tab order follows the DOM: document controls, initial clef and lyric language, palette, Quilisma figure, Lyrics, Insert, enabled Undo/Redo, Keyboard help, score note/lyric controls, then lyric input/actions and one strip stop. Native traversal is preserved.
 After insertion, note focus supports pitch arrows then I directly. T → arrows →
 Enter → I switches kind and inserts.
+
+### Palette and action-bar ownership
+
+`NotationPalette` owns the palette's presentation-only browser state: the
+roving Tab stop, the mounted button refs used to move focus, and the remembered
+Division kind. Its pure model, `notation-palette-tools.ts`, derives each stop's
+control, label, pressed/active state and the tool it arms from
+`paletteTools` (the single source of order) and the session's `activeTool`.
+The palette sends choices only through `onArmTool` and `onSelectTool`, which
+`ChantEditor` binds to the existing `arm`/`select-tool` actions; the session
+reducer still owns arming, remembered entry kind and Quilisma figure. Arrow
+browsing never dispatches, so it never changes semantic selection.
+
+`T` dispatches `focus-palette`; the reducer turns it into a `palette` focus
+request. `NotationPalette` resolves that request in a layout effect, makes the
+target the roving stop, focuses it, and acknowledges that exact request once
+through `onFocusRequestHandled` (stable, so the effect does not re-run until
+the next request).
+
+Accepted New, Import, Load example and recovery reload call
+`ChantEditor`'s `resetPresentationState`, which invokes the palette's imperative
+`reset()` (roving stop back to Select, Division kind back to Minima) and clears
+the shell's focused division/lyric IDs in the same event, without remounting
+the palette or the score.
+
+`EditorActionBar` is a view: `ChantEditor` derives its permissions, labels and
+counts from the session and binds each button to the same function used by the
+corresponding keyboard shortcut (copy, paste, Lyrics, Insert, Undo/Redo).
+Clipboard ID allocation, copy/paste scope and history navigation stay in the
+shell and reducer.
 
 ## Continuous lyric entry
 
@@ -605,6 +635,8 @@ returns to normal flow; it also does so when its measured height exceeds half
 the viewport (including wrapped or zoomed tools). Measured occupied toolbar bounds constrain score reveal
 and note/accidental contextual panels; no engraving or semantic state changes.
 Pitch handling and selected division/clef editing remain outside this region.
+`EditorStickyToolbar` owns the region and its `data-too-tall` ResizeObserver;
+the palette and action bar are its children.
 
 ## Stage 5B division controls
 
@@ -782,7 +814,8 @@ Dirty/recovery lyric drafts, pending history prompts, lyric moves and staged
 clef transactions disable these controls with an explanation. Finish or cancel
 the existing edit first. New/import confirm replacement; cancellation and file
 errors preserve the active session. Accepted replacement resets history,
-selection, tools and drafts. Export names the committed snapshot explicitly.
+selection, tools and drafts, plus palette presentation memory (see
+[palette ownership](#palette-and-action-bar-ownership)). Export names the committed snapshot explicitly.
 Recovery and conflicting-cache operations also require explicit confirmation;
 see [persistence](persistence.md) for their authoritative workflow and limitations.
 
