@@ -1,5 +1,6 @@
-import { DivisionIcon } from './DivisionIcon';
-import { EntryIcon, NeumeFamilyMenu, PunctumIcon } from './NeumeFamilyMenu';
+import { EditorActionBar } from './EditorActionBar';
+import { EditorStickyToolbar } from './EditorStickyToolbar';
+import { NotationPalette, type NotationPaletteHandle } from './NotationPalette';
 import {
   AccidentalContextToolbar,
   type AccidentalContextToolbarHandle,
@@ -18,20 +19,10 @@ import {
   placeAccidental,
   updateAccidental,
 } from '../commands/update-accidental';
-import { noteFormLabels } from '../domain/note-forms';
 import { updateNoteForm } from '../commands/update-note-form';
 import { updateNeumeLiquescence } from '../commands/update-neume-liquescence';
 import {
   entryAppearance,
-  climacusFamily,
-  porrectusFamily,
-  torculusFamily,
-  podatusFamily,
-  clivisFamily,
-  punctumFamily,
-  scandicusFamily,
-  isPunctumFamilyKind,
-  placeEntryTool,
   toolNoteForm,
   type EditorTool,
 } from '../state/editor-tool';
@@ -55,7 +46,7 @@ import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import { isDivisionKind } from '../domain/divisions';
-import type { DivisionKind, Neume, NoteForm } from '../domain/chant-document';
+import type { Neume, NoteForm } from '../domain/chant-document';
 import {
   liquescenceRejection,
   liquescentFigureFor,
@@ -72,14 +63,7 @@ import { lyricLanguage } from '../domain/lyric-alignment';
 import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
 import type { LyricAction } from '../state/lyric-entry';
 import { allowsNotePatch, findNeume, findNote } from '../domain/neume';
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { deleteNeumeResult } from '../commands/delete-neume';
 import { deleteNoteResult } from '../commands/delete-note';
 import { moveNeumeVerticallyResult } from '../commands/move-neume';
@@ -93,12 +77,7 @@ import {
   getClipboardShortcut,
 } from '../interaction/clipboard-shortcuts';
 import { copyableNeumeIndexes } from '../commands/musical-passage-clipboard';
-import {
-  getNotationShortcut,
-  nextPaletteTool,
-  paletteTools,
-  type PaletteTool,
-} from '../interaction/palette-navigation';
+import { getNotationShortcut } from '../interaction/palette-navigation';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import {
   layoutChant,
@@ -106,22 +85,13 @@ import {
   type GraphicalNeumeKind,
 } from '../layout/layout-chant';
 import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
-import { focusAndReveal } from '../rendering/focus-visibility';
 import {
   clipboardBlocked,
   entryName,
   neumeName,
   lyricMoveTargets,
+  type EditorFocusRequest,
 } from '../state/editor-session';
-import {
-  placeClimacusTool,
-  placeClivisTool,
-  placePodatusTool,
-  placePorrectusTool,
-  placePunctumTool,
-  placeScandicusTool,
-  placeTorculusTool,
-} from '../state/editor-tool';
 import {
   clearSelection,
   resolveNeumeRange,
@@ -130,35 +100,6 @@ import {
 
 interface ChantEditorProps {
   document: ChantDocument;
-}
-
-const neumeTools = [
-  { kind: 'punctum', tool: placePunctumTool },
-  { kind: 'podatus', tool: placePodatusTool },
-  { kind: 'clivis', tool: placeClivisTool },
-  { kind: 'scandicus', tool: placeScandicusTool },
-  { kind: 'torculus', tool: placeTorculusTool },
-  { kind: 'climacus', tool: placeClimacusTool },
-  { kind: 'porrectus', tool: placePorrectusTool },
-] as const;
-
-/** Split-control families: ordinary member first, then exact variants. */
-const neumeFamilies = {
-  punctum: { variants: punctumFamily, tool: placePunctumTool },
-  podatus: { variants: podatusFamily, tool: placePodatusTool },
-  clivis: { variants: clivisFamily, tool: placeClivisTool },
-  scandicus: { variants: scandicusFamily, tool: placeScandicusTool },
-  torculus: { variants: torculusFamily, tool: placeTorculusTool },
-  climacus: { variants: climacusFamily, tool: placeClimacusTool },
-  porrectus: { variants: porrectusFamily, tool: placePorrectusTool },
-} as const;
-type FamilyPrimary = keyof typeof neumeFamilies;
-
-function isFamilyVariant(
-  family: FamilyPrimary,
-  kind: GraphicalNeumeKind,
-): boolean {
-  return (neumeFamilies[family].variants as readonly string[]).includes(kind);
 }
 
 function isEditableTarget(target: EventTarget | null) {
@@ -223,32 +164,17 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const noteToolbar = useRef<NoteContextToolbarHandle>(null);
   const accidentalToolbar = useRef<AccidentalContextToolbarHandle>(null);
   const accidentalAnchorList = useRef<HTMLSelectElement>(null);
-  const stickyToolbar = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const toolbar = stickyToolbar.current;
-    if (!toolbar) return;
-    const update = () => {
-      toolbar.dataset.tooTall = String(
-        toolbar.getBoundingClientRect().height > window.innerHeight / 2,
-      );
-    };
-    const observer = new ResizeObserver(update);
-    observer.observe(toolbar);
-    window.addEventListener('resize', update);
-    update();
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-  const paletteButtons = useRef(new Map<PaletteTool, HTMLButtonElement>());
-  const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
-  // Presentation-only browser focus; never dispatch a semantic selection on Tab.
-  const [divisionKind, setDivisionKind] = useState<DivisionKind>('minima');
+  // Browser-only presentation memory, reset when the document is replaced.
+  const notationPalette = useRef<NotationPaletteHandle>(null);
   const [focusedDivisionId, setFocusedDivisionId] = useState<string | null>(
     null,
   );
   const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
+  function resetPresentationState() {
+    notationPalette.current?.reset();
+    setFocusedDivisionId(null);
+    setFocusedLyricId(null);
+  }
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
   const measureLyrics = useLyricMeasurement([
@@ -472,52 +398,28 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           draftTransaction.clef,
         )
       : null;
-  const paletteDisabled = Boolean(
+  // Tool changes wait for a lyric move, history prompt or clef draft to end.
+  const toolChangesBlocked = Boolean(
     session.lyricMove || session.pendingHistory || session.clefTransaction,
   );
-  /** Shared roving-focus and arming wiring for a family split control. */
-  function familyMenuProps(
-    primaryTool: FamilyPrimary | 'minima',
-    menuTool: `${FamilyPrimary}-menu` | 'division-menu',
-    tool: () => EditorTool,
-  ) {
-    return {
-      buttonRef: (button: HTMLButtonElement | null) => {
-        if (button) paletteButtons.current.set(menuTool, button);
-        else paletteButtons.current.delete(menuTool);
-      },
-      primaryRef: (button: HTMLButtonElement | null) => {
-        if (button) paletteButtons.current.set(primaryTool, button);
-        else paletteButtons.current.delete(primaryTool);
-      },
-      primaryProps: {
-        type: 'button' as const,
-        tabIndex: rovingTool === primaryTool ? 0 : -1,
-        'aria-pressed':
-          primaryTool === 'minima'
-            ? activeTool.kind === 'place-division' &&
-              activeTool.divisionKind === 'minima'
-            : placementKind === primaryTool && !toolNoteForm(activeTool),
-        disabled: paletteDisabled,
-        onFocus: () => setRovingTool(primaryTool),
-        onClick: () => {
-          if (primaryTool === 'minima') setDivisionKind('minima');
-          dispatch({
-            type: 'arm',
-            tool: tool(),
-            lyricCommitId: crypto.randomUUID(),
-          });
-        },
-      },
-      buttonProps: {
-        type: 'button' as const,
-        'data-tool': menuTool,
-        tabIndex: rovingTool === menuTool ? 0 : -1,
-        onFocus: () => setRovingTool(menuTool),
-        disabled: paletteDisabled,
-      },
-    };
-  }
+  // Lyrics and Insert additionally need a single target, not a passage.
+  const canTargetEntry =
+    selection.kind !== 'neume-range' && !toolChangesBlocked;
+  const armTool = useCallback(
+    (tool: EditorTool) =>
+      // The reducer ignores the lyric commit ID when arming a clef.
+      dispatch({ type: 'arm', tool, lyricCommitId: crypto.randomUUID() }),
+    [dispatch],
+  );
+  const selectEditingTool = useCallback(
+    () => dispatch({ type: 'select-tool' }),
+    [dispatch],
+  );
+  const acknowledgeFocusRequest = useCallback(
+    (request: EditorFocusRequest) =>
+      dispatch({ type: 'focus-handled', request }),
+    [dispatch],
+  );
   const placementName = placementKind
     ? entryName(placementKind, toolNoteForm(activeTool))
     : '';
@@ -574,15 +476,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     });
   }
 
-  useLayoutEffect(() => {
-    const request = session.focusRequest;
-    if (request?.kind !== 'palette') return;
-    const button = paletteButtons.current.get(request.tool);
-    setRovingTool(request.tool);
-    if (button) focusAndReveal(button);
-    dispatch({ type: 'focus-handled', request });
-  }, [session.focusRequest, dispatch]);
-
   function insertRememberedNeume(divisionSide?: {
     divisionId: string;
     side: 'before' | 'after';
@@ -599,6 +492,16 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const pasteClipboard = useCallback(
     () => dispatch({ type: 'paste-passage', ids: allocatePasteIds(clipboard) }),
     [dispatch, clipboard],
+  );
+  // Shared by the Copy/Lyrics buttons and their keyboard shortcuts.
+  const copyPassage = useCallback(
+    () => dispatch({ type: 'copy-passage' }),
+    [dispatch],
+  );
+  const selectedNeumeId = selectedNeume?.id ?? null;
+  const startLyricsAtSelection = useCallback(
+    () => lyricAction({ type: 'start', neumeId: selectedNeumeId }),
+    [lyricAction, selectedNeumeId],
   );
   const clipboardUnavailable = clipboardBlocked(session);
   const canCopy =
@@ -628,7 +531,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         // Claim the in-app command once; held-key repeats never paste again.
         event.preventDefault();
         if (event.repeat) return;
-        if (clipboardShortcut === 'copy') dispatch({ type: 'copy-passage' });
+        if (clipboardShortcut === 'copy') copyPassage();
         else pasteClipboard();
         return;
       }
@@ -660,7 +563,9 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             newId: crypto.randomUUID(),
           });
         } else {
-          lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null });
+          // Without a focused note or lyric, L starts at the selection, as
+          // the Lyrics button does.
+          startLyricsAtSelection();
         }
         return;
       }
@@ -773,9 +678,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     session.clefTransaction,
     session.accidentalTargetId,
     history.present,
-    selectedNeume,
     selection.kind,
     pasteClipboard,
+    copyPassage,
+    startLyricsAtSelection,
   ]);
 
   return (
@@ -856,18 +762,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         needsRecovery={persistence.needsRecovery}
         replace={(document) => {
           persistence.replace(document);
-          setRovingTool('select');
-          setDivisionKind('minima');
-          setFocusedDivisionId(null);
-          setFocusedLyricId(null);
+          resetPresentationState();
         }}
         reload={() => {
-          if (persistence.reload()) {
-            setRovingTool('select');
-            setDivisionKind('minima');
-            setFocusedDivisionId(null);
-            setFocusedLyricId(null);
-          }
+          if (persistence.reload()) resetPresentationState();
         }}
         replaceCache={persistence.replaceCache}
         recoverySource={persistence.recoverySource}
@@ -950,334 +848,38 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Lyrics provide minimum spacing between neumes. Oversized syllables can
         be viewed by scrolling the score.
       </p>
-      <div className="editor-sticky-toolbar" ref={stickyToolbar}>
-        <div
-          className="neume-palette"
-          role="toolbar"
-          aria-label="Notation tools"
-          aria-describedby="palette-instructions"
-          data-notation-shortcuts
-          onKeyDown={(event) => {
-            if (
-              event.nativeEvent.isComposing ||
-              event.altKey ||
-              event.ctrlKey ||
-              event.metaKey
-            )
-              return;
-            const focusedTool =
-              event.target instanceof Element
-                ? event.target.closest<HTMLButtonElement>('button')?.dataset
-                    .tool
-                : undefined;
-            const current = paletteTools.find((tool) => tool === focusedTool);
-            const next = current && nextPaletteTool(current, event.key);
-            if (!next) return;
-            event.preventDefault();
-            const button = paletteButtons.current.get(next);
-            setRovingTool(next);
-            if (button) focusAndReveal(button);
-          }}
-        >
-          {paletteTools.map((tool) =>
-            tool === 'division-menu' ||
-            tool === 'punctum-menu' ||
-            tool === 'podatus-menu' ||
-            tool === 'clivis-menu' ||
-            tool === 'scandicus-menu' ||
-            tool === 'torculus-menu' ||
-            tool === 'climacus-menu' ||
-            tool === 'porrectus-menu' ? null : tool === 'minima' ? (
-              <NeumeFamilyMenu<DivisionKind>
-                key={tool}
-                family="Division"
-                familyClassName="division-menu"
-                variants={['minima', 'minor', 'maior', 'finalis']}
-                label={neumeName}
-                icon={(kind) => <DivisionIcon kind={kind} />}
-                active={
-                  activeTool.kind === 'place-division'
-                    ? activeTool.divisionKind
-                    : null
-                }
-                remembered={divisionKind}
-                onChoose={(kind) => {
-                  setDivisionKind(kind);
-                  dispatch({
-                    type: 'arm',
-                    tool: { kind: 'place-division', divisionKind: kind },
-                    lyricCommitId: crypto.randomUUID(),
-                  });
-                }}
-                {...familyMenuProps('minima', 'division-menu', () => ({
-                  kind: 'place-division',
-                  divisionKind: 'minima',
-                }))}
-              />
-            ) : tool === 'punctum' ||
-              tool === 'podatus' ||
-              tool === 'clivis' ||
-              tool === 'scandicus' ||
-              tool === 'torculus' ||
-              tool === 'climacus' ||
-              tool === 'porrectus' ? (
-              <NeumeFamilyMenu<GraphicalNeumeKind>
-                key={tool}
-                family={neumeName(tool)}
-                familyClassName={`${tool}-menu`}
-                variants={neumeFamilies[tool].variants}
-                label={neumeName}
-                icon={(kind) =>
-                  isPunctumFamilyKind(kind) ? (
-                    <PunctumIcon kind={kind} />
-                  ) : (
-                    <EntryIcon kind={kind} />
-                  )
-                }
-                active={
-                  placementKind === tool && !toolNoteForm(activeTool)
-                    ? tool
-                    : placementKind &&
-                        placementKind !== tool &&
-                        isFamilyVariant(tool, placementKind)
-                      ? placementKind
-                      : null
-                }
-                remembered={
-                  rememberedKind !== tool &&
-                  isFamilyVariant(tool, rememberedKind)
-                    ? rememberedKind
-                    : tool
-                }
-                onChoose={(kind) =>
-                  dispatch({
-                    type: 'arm',
-                    tool: placeEntryTool(kind),
-                    lyricCommitId: crypto.randomUUID(),
-                  })
-                }
-                {...familyMenuProps(
-                  tool,
-                  `${tool}-menu`,
-                  neumeFamilies[tool].tool,
-                )}
-              />
-            ) : (
-              <button
-                key={tool}
-                type="button"
-                data-tool={tool}
-                disabled={Boolean(
-                  session.lyricMove ||
-                  session.pendingHistory ||
-                  session.clefTransaction,
-                )}
-                ref={(button) => {
-                  if (button) paletteButtons.current.set(tool, button);
-                  else paletteButtons.current.delete(tool);
-                }}
-                tabIndex={rovingTool === tool ? 0 : -1}
-                aria-pressed={
-                  tool === 'select'
-                    ? !placing
-                    : tool === 'c-clef' || tool === 'f-clef'
-                      ? activeTool.kind === 'place-clef' &&
-                        activeTool.clefType === tool[0]
-                      : tool === 'virga' || tool === 'inclinatum'
-                        ? toolNoteForm(activeTool) === tool
-                        : tool === 'quilisma'
-                          ? toolNoteForm(activeTool) === 'quilisma'
-                          : placementKind === tool && !toolNoteForm(activeTool)
-                }
-                onFocus={() => setRovingTool(tool)}
-                onClick={() => {
-                  if (tool === 'select') dispatch({ type: 'select-tool' });
-                  else if (tool === 'c-clef' || tool === 'f-clef')
-                    dispatch({
-                      type: 'arm',
-                      tool: {
-                        kind: 'place-clef',
-                        clefType: tool === 'c-clef' ? 'c' : 'f',
-                      },
-                    });
-                  else if (
-                    tool === 'virga' ||
-                    tool === 'inclinatum' ||
-                    tool === 'quilisma'
-                  )
-                    dispatch({
-                      type: 'arm',
-                      tool:
-                        tool === 'quilisma'
-                          ? {
-                              kind:
-                                session.quilismaFigure === 'podatus'
-                                  ? 'place-podatus'
-                                  : 'place-scandicus',
-                              form: 'quilisma',
-                            }
-                          : { kind: 'place-punctum', form: tool },
-                      lyricCommitId: crypto.randomUUID(),
-                    });
-                  else {
-                    const choice = neumeTools.find(
-                      (choice) => choice.kind === tool,
-                    );
-                    if (choice)
-                      dispatch({
-                        type: 'arm',
-                        tool: choice.tool(),
-                        lyricCommitId: crypto.randomUUID(),
-                      });
-                  }
-                }}
-              >
-                {tool === 'select'
-                  ? 'Select'
-                  : tool === 'c-clef'
-                    ? 'C clef'
-                    : tool === 'f-clef'
-                      ? 'F clef'
-                      : tool === 'virga' ||
-                          tool === 'inclinatum' ||
-                          tool === 'quilisma'
-                        ? noteFormLabels[tool]
-                        : neumeName(tool)}
-              </button>
-            ),
-          )}
-        </div>
-        <label className="quilisma-figure">
-          Quilisma figure{' '}
-          <select
-            aria-label="Quilisma figure"
-            value={session.quilismaFigure}
-            disabled={Boolean(
-              session.pendingHistory ||
-              session.lyricMove ||
-              session.clefTransaction,
-            )}
-            onChange={(event) =>
-              dispatch({
-                type: 'arm',
-                tool: {
-                  kind:
-                    event.target.value === 'scandicus'
-                      ? 'place-scandicus'
-                      : 'place-podatus',
-                  form: 'quilisma',
-                },
-                lyricCommitId: crypto.randomUUID(),
-              })
-            }
-          >
-            <option value="podatus">Podatus</option>
-            <option value="scandicus">Scandicus</option>
-          </select>
-        </label>
-        <div className="editor-actions">
-          {session.clipboardFeedback ? (
-            // Visible copy of the live announcement; not itself live, so the
-            // explanation is spoken once.
-            <p id="clipboard-feedback" className="editor-clipboard-feedback">
-              {session.clipboardFeedback}
-            </p>
-          ) : null}
-          {range ? (
-            <span id="range-selection-status">
-              {range.neumes.length} neumes selected · Escape clears. Select one
-              target for insertion or lyrics.
-            </span>
-          ) : null}
-          <button
-            type="button"
-            aria-pressed={Boolean(session.lyrics)}
-            aria-describedby={range ? 'range-selection-status' : undefined}
-            disabled={Boolean(
-              selection.kind === 'neume-range' ||
-              session.lyricMove ||
-              session.pendingHistory ||
-              session.clefTransaction,
-            )}
-            aria-keyshortcuts="L"
-            onClick={() =>
-              lyricAction({ type: 'start', neumeId: selectedNeume?.id ?? null })
-            }
-          >
-            Lyrics <kbd aria-hidden="true">L</kbd>
-          </button>
-          <button
-            aria-describedby={range ? 'range-selection-status' : undefined}
-            disabled={Boolean(
-              selection.kind === 'neume-range' ||
-              session.lyricMove ||
-              session.pendingHistory ||
-              session.clefTransaction,
-            )}
-            className="editor-insert"
-            type="button"
-            data-notation-shortcuts
-            aria-keyshortcuts="I"
-            onClick={() => insertRememberedNeume()}
-          >
-            Insert {rememberedName} <kbd aria-hidden="true">I</kbd>
-          </button>
-          <button
-            type="button"
-            className="editor-clipboard"
-            data-notation-shortcuts
-            aria-label="Copy selected music"
-            aria-keyshortcuts="Control+C Meta+C"
-            title="Copy the selected whole neume or passage (Ctrl/⌘+C)"
-            disabled={!canCopy}
-            onClick={() => dispatch({ type: 'copy-passage' })}
-          >
-            Copy
-          </button>
-          <button
-            type="button"
-            className="editor-clipboard"
-            data-notation-shortcuts
-            aria-label={
-              clipboard
-                ? `Paste ${clipboard.neumeCount} copied neume${clipboard.neumeCount === 1 ? '' : 's'}`
-                : 'Paste (clipboard empty)'
-            }
-            aria-keyshortcuts="Control+V Meta+V"
-            title="Paste copied music after the selection, or at the end (Ctrl/⌘+V)"
-            aria-describedby={
-              session.clipboardFeedback ? 'clipboard-feedback' : undefined
-            }
-            disabled={!canPaste}
-            onClick={pasteClipboard}
-          >
-            Paste
-            {clipboard ? (
-              <span className="editor-clipboard__count" aria-hidden="true">
-                {clipboard.neumeCount}
-              </span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            aria-label="Undo last edit"
-            aria-keyshortcuts="Control+Z Meta+Z"
-            disabled={!canUndo || Boolean(session.lyricMove)}
-            onClick={() => navigateHistory('undo')}
-          >
-            Undo
-          </button>
-          <button
-            type="button"
-            aria-label="Redo last undone edit"
-            aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y"
-            disabled={!canRedo || Boolean(session.lyricMove)}
-            onClick={() => navigateHistory('redo')}
-          >
-            Redo
-          </button>
-        </div>
-      </div>
+      <EditorStickyToolbar>
+        <NotationPalette
+          ref={notationPalette}
+          activeTool={activeTool}
+          rememberedKind={rememberedKind}
+          quilismaFigure={session.quilismaFigure}
+          disabled={toolChangesBlocked}
+          focusRequest={session.focusRequest}
+          onArmTool={armTool}
+          onSelectTool={selectEditingTool}
+          onFocusRequestHandled={acknowledgeFocusRequest}
+        />
+        <EditorActionBar
+          clipboardFeedback={session.clipboardFeedback}
+          passageNeumeCount={range ? range.neumes.length : null}
+          lyricsActive={Boolean(session.lyrics)}
+          canStartLyrics={canTargetEntry}
+          canInsert={canTargetEntry}
+          insertName={rememberedName}
+          canCopy={canCopy}
+          canPaste={canPaste}
+          copiedNeumeCount={clipboard ? clipboard.neumeCount : null}
+          canUndo={canUndo && !session.lyricMove}
+          canRedo={canRedo && !session.lyricMove}
+          onStartLyrics={startLyricsAtSelection}
+          onInsert={() => insertRememberedNeume()}
+          onCopy={copyPassage}
+          onPaste={pasteClipboard}
+          onUndo={() => navigateHistory('undo')}
+          onRedo={() => navigateHistory('redo')}
+        />
+      </EditorStickyToolbar>
       {activeTool.kind === 'place-clef' ||
       session.selection.kind === 'clef-change' ||
       session.clefTransaction ? (

@@ -166,7 +166,7 @@ describe('selectJobs', () => {
         .map((browser) => `${driver.id}:${browser}`),
     );
     assert.deepEqual(pairs(selection), expected);
-    assert.equal(selection.runnable.length, 46);
+    assert.equal(selection.runnable.length, 48);
     assert.equal(selection.unsupported.length, 6);
   });
 
