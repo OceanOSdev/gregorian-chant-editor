@@ -120,6 +120,45 @@ See [layout and rendering](layout-and-rendering.md).
 Renders layout data as accessible SVG. It uses semantic IDs copied into layout
 for keys, selection, and focus, but it does not store musical state.
 
+The score's interactive SVG is split by ownership (readability M2):
+
+| Module                | Owns                                                                                                                                                                                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ScoreSvg.tsx`        | The single SVG root and its pointer/placement/clef-keyboard handlers, coordinate inversion, titles and shared descriptions, unique clip/pattern ID prefix, per-system groups, music clipping, mixed clef/neume/division ordering, staff, custodes, hyphens, previews, and all score focus |
+| `NeumeControl.tsx`    | One committed neume's `<g data-neume-id>` subtree: ownership clip, selection/placement/lyric-move decorations, ink, each note button and each written-accidental button, with their click and key rules                                                                                   |
+| `LyricControl.tsx`    | One engraved syllable's `<g className="score__lyric-control">`: selection background, focusable text, keyboard-intent resolution and the keyboard-focus cue                                                                                                                               |
+| `ClefControl.tsx`     | The initial clef and each clef change's button                                                                                                                                                                                                                                            |
+| `DivisionControl.tsx` | Each committed division's button                                                                                                                                                                                                                                                          |
+| `NeumeInk.tsx`        | Engraved neume ink and ledgers, shared by committed neumes and previews                                                                                                                                                                                                                   |
+
+Where to change things:
+
+- **Note click or key behavior, accidental placement targets, written
+  accidentals**: `NoteControl` and `WrittenAccidentalControl` in
+  `NeumeControl.tsx`. Each handler reads top to bottom in precedence order.
+- **Lyric click or key behavior**: `LyricControl.tsx`. Key-to-intent mapping
+  stays pure in `interaction/lyric-entry-keyboard.ts`.
+- **Score focus requests, `focusin` tracking, reveal and restoring focus after
+  reflow**: `ScoreSvg.tsx` only. It keeps one registry of mounted note, lyric,
+  division and clef elements. Controls register their element through an
+  explicit callback (`registerNoteElement`, `registerElement`). They never
+  keep their own focus map or call `focus()` for a request. One exception is
+  accidental-target arrow keys: they ask the score to `focusNote(id)`.
+- **Selection decoration versus engraved ink**: `NeumeControl` paints the
+  whole-neume dashed outline, placement context, lyric-move targets and the
+  per-note selection contour. `NeumeInk` paints only musical ink. The passage
+  range rectangle stays in `ScoreSvg` because it spans neumes and lies outside
+  the music clip.
+
+Controls report intents through narrowly named callback groups (`NoteActions`,
+`WrittenAccidentalActions`, `LyricActions`) plus a precomputed per-neume
+`LyricMoveTarget`. `ScoreSvg` fills these groups from its own props without
+changing them, so every edit still goes through `ChantEditor` to the session
+reducer. Controls do not import commands, the reducer, or layout derivation.
+They also do not create IDs. No React context or generic controller is used.
+These are component boundaries only: they add no SVG elements, and the
+rendered DOM, sibling order and clip hierarchy are unchanged.
+
 ### `src/editor/components/`
 
 `ChantEditor` is the editor shell. It acquires the single persisted session,

@@ -97,7 +97,20 @@ score surface owns pointer placement input.
 ## Focus
 
 Each committed note is a focusable SVG control keyed by stable note ID.
-`ScoreSvg` maintains a map from note IDs to mounted SVG groups.
+`ScoreSvg` maintains a map from note IDs to mounted SVG groups. It also keeps
+similar maps for lyrics, divisions and clef changes. `NeumeControl` and
+`LyricControl` render those elements and register them through callbacks from
+the score. They own their elements' click and key handlers. Focus requests,
+`focusin` tracking, reveal and reflow restoration stay in `ScoreSvg`.
+
+React detaches a note before reparenting it into another system group. When
+it does, the score's note-registration callback records whether that exact
+element had browser focus. Headless Firefox can move focus to SVG controls
+without emitting the bubbling `focusin` the tracker uses (verified for both
+script `focus()` and native Tab). This record is then the only source for
+restoring focus by ID. Lyrics have no such record, and a focused lyric can
+lose focus when reflow reparents it in Firefox. See the
+[reparenting record](verification/score-focus-reparenting/README.md).
 
 `ChantEditor` uses a pure session reducer; history contains semantic documents
 only. Focus requests identify an enabled note, the placement surface anchored to

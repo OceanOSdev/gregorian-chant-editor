@@ -3,13 +3,14 @@
 Branch: `refactor/score-svg-interactions-m2`
 Target: `master`
 Base: `9b9d2afbc6096ccc4811db98a5108b0c256fbd43` (M1 / PR #94 merged)
-Status: design/handoff only. Implementation, tests and browser acceptance have **not** yet been performed on this branch.
+Status: M2 implemented on this branch and in review (PR pending owner acceptance). The PR and the [score-focus-reparenting record](../verification/score-focus-reparenting/README.md) hold the actual verification. The starting inventory below describes the base, not the current tree.
 
 ## Goal and rationale
 
 Make the committed SVG notation controls understandable and safely modifiable by a human developer. A readable architecture has explicit, cohesive ownership: event semantics should live beside their interactive control; score-wide focus, placement and stacking should remain centralized. Shrinking `ScoreSvg.tsx` for its own sake is not an acceptance criterion.
 
 Starting inventory (2026-11-17, current master):
+
 - `src/editor/rendering/ScoreSvg.tsx`: ~1,489 lines.
 - Lines ~165–326: score-wide refs, browser focus tracking/reflow restoration, focus-request handling, focus reveal.
 - Lines ~328–489: score click/pointer placement and note mouse/keyboard handlers.
@@ -37,6 +38,7 @@ M4), or an unrelated redesign of the score.
 
 `ScoreSvg` stays the authoritative renderer entry point and sole SVG root. It
 continues to own:
+
 - root `<svg>` event handlers, coordinate inversion through `getScreenCTM()`,
   root placement and clef-keyboard intent routing;
 - score-wide focus request dispatch, browser `focusin` tracking, ref lookup,
@@ -60,6 +62,7 @@ Create a focused `NeumeControl` / `ScoreNeumeControl` module under
 `DivisionControl`).
 
 It should own the **existing** `<g data-neume-id>` subtree:
+
 - complete neume ink and ledger rendering and its in-neume ownership clip;
 - whole-neume selection, placement context and lyric-move target/caption;
 - per-note SVG button groups, accessible label, target shape, selected contour,
@@ -91,6 +94,7 @@ alternatives instead of hiding the problem.
 
 Create `LyricControl` / `ScoreLyricControl` under `src/editor/rendering/`
 for the existing `<g className="score__lyric-control">` subtree:
+
 - selected lyric background, text control, keyboard-input resolver,
   click/double-click and edit/delete/advance callbacks;
 - ARIA, `data-syllable-id`, note-independent lyric focus cue and visual
@@ -108,6 +112,7 @@ geometry or alter system wrapping.
 
 These are **behavior-preserving component boundaries**, not new SVG grouping
 layers. The resulting DOM must preserve:
+
 - the outer root, system `<g>` and data hooks, `<defs>`/`clipPath` scope and
   IDs, sibling order (including mixed semantic item sorting), score title and
   descriptions;
@@ -134,7 +139,7 @@ must change, preserve the public `ScoreSvgProps` and the current
 - No notation, glyph, ledger, accidental, mora, liquescence, pitch, wrapping,
   lyric placement, dynamic system size, clipping math or CSS redesign.
 - No broad `ScoreSystem` extraction or relocation of the root focus manager
-  in this PR. They are possible *subsequent* responsibilities to assess
+  in this PR. They are possible _subsequent_ responsibilities to assess
   after the interaction-control seams prove themselves.
 - No dependency, framework, test-harness, generic React context or event-bus
   introduction.
@@ -147,6 +152,7 @@ must change, preserve the public `ScoreSvgProps` and the current
 Before editing, inventory existing `ScoreSvg` DOM/keyboard/pointer contracts
 and the relevant browser-driver coverage. Capture representative normal
 and interactive DOM structure at base and branch, for at least:
+
 1. Ordinary notes and lyric controls with and without selection.
 2. Dense joined/compact neumes (Scandicus/Clivis/Porrectus/Climacus/
    longer compound families), with hit ownership.
@@ -165,6 +171,7 @@ requires rationale and contract-level verification, not only a screenshot.
 ### Browser interactions
 
 Run actual browser checks (not simulated reducer calls alone) for:
+
 - Native pointer hit testing of note constituents at compact boundaries,
   including ribbon/diamond cases; selection/Shift-range and note-versus-neume
   contours; mouse down and modifier precedence;
@@ -214,6 +221,7 @@ screen-reader parity from headless tests alone.
 ### Readability acceptance
 
 The PR must answer concretely:
+
 - Where a developer changes note click/key behavior, where lyric keyboard
   behavior lives, and where score focus/reveal is owned;
 - Which component owns selection decoration versus musical engraving ink;
@@ -233,6 +241,7 @@ observable behavior or accepted ADRs.
 ## Stop / escalation conditions
 
 Stop the affected extraction and report evidence plus options if:
+
 - maintaining focus/reparenting requires new semantic state or changes the
   public layout contract;
 - the note/lyric seam needs excessive props, duplicated handler logic or

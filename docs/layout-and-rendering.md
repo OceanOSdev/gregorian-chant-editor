@@ -373,8 +373,15 @@ and hyphen of a system uses that system's `lyricBaselineY`.
 ## Rendering and accessibility
 
 `ScoreSvg` renders each system's staff, clef, notation, and lyrics. It keeps
-neume/division paint ordering and ID-based focus restoration; `DivisionControl`
-owns each committed division's SVG control, accessible label, and event handlers.
+clef/neume/division paint ordering, the per-system music clip and ID-based
+focus restoration. `NeumeControl` owns each committed neume's subtree (ink,
+decorations, note controls and written accidentals). `LyricControl` owns each
+engraved syllable's control and focus cue. `DivisionControl` owns each
+committed division's SVG control, accessible label, and event handlers. See
+the [module map](architecture.md#srceditorrendering) for this ownership. The
+DOM is unchanged: a neume `<g>` is still a direct child of the system's
+`score__system-music` group, and lyrics and hyphens remain siblings outside
+that clip.
 `NeumeInk` displays the same supplied ink for committed notation and previews;
 preview opacity changes presentation only. Intended joined ink is painted as a
 continuous filled contour; conventional disconnected components remain separate.

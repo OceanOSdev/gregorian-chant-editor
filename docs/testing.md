@@ -281,6 +281,9 @@ and consult the owning record for feature-specific assertions and manual checks.
   placement, opposing extreme systems, the bundled Salve Regina) with the
   shared `vertical-clearance.test-cases.ts` invariants; runner driver
   `dynamic-vertical-layout`.
+- [Score focus reparenting](verification/score-focus-reparenting/README.md):
+  note and lyric focus across uncommanded reflow (readability M2); runner
+  driver `score-focus-reparenting`.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 
