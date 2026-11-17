@@ -23,8 +23,8 @@ Roadmap items are non-binding, have no promised order or date, and may change.
   chant typography. Off-staff notes draw derived ledger lines (Stage 11A), and
   each system's height and shared lyric baseline follow its band-limited
   musical ink (Stage 11B). Musical ink beyond 1,200 units of its canonical
-  system is clipped, and the lyric row uses a conservative 20/5 band rather
-  than per-glyph text bounds.
+  system is clipped, and the lyric row uses a fixed 20/5 band rather than
+  per-glyph text bounds, verified only against the Linux fallback face.
 - The semantic vocabulary contains Punctum, Podatus, Clivis, Scandicus,
   Torculus, Climacus, and Porrectus.
 - Graphical entry uses fixed contours for those seven whitelisted kinds.
@@ -428,10 +428,14 @@ outer canvas containment
 [contract](layout-and-rendering.md#neumes-stage-11a),
 [record](verification/neume-ledger-lines/README.md)). No schema, command or
 pitch-range change. The owner accepted the engraving choices and a
-bounded canvas: all musical ink grows the canvas by at most 1,200 units,
-and painted ledger runs and outlines stop at the canvas, so extreme but
-valid imported pitches stay usable; their ink beyond the margin is clipped
-([what is clipped](layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted)).
+bounded canvas: in Stage 11A all musical ink grew the canvas by at most
+1,200 units and painted ledger runs and outlines stopped at the canvas, so
+extreme but valid imported pitches stay usable; their ink beyond the margin
+is clipped. Stage 11B keeps the 1,200-unit limit but applies it per system:
+it bounds each system's measured height, and each system clips its music to
+its own box
+([what is clipped](layout-and-rendering.md#canvas-containment-and-extreme-pitches-owner-accepted),
+[containment](layout-and-rendering.md#system-containment-stage-11b)).
 Stage 11A was merged into `master` in PR #91 (`559c5a5`).
 
 **Stage 11B — dynamic vertical system layout (implemented; owner acceptance

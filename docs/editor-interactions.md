@@ -448,8 +448,9 @@ would make ordinary focus navigation change editing context or commit a draft.
 
 Purple marks selection: neumes retain their dashed outline and lyrics use a
 contained background highlight. Engraved-lyric keyboard
-focus uses a blue caret and a separate “Keyboard focus” caption, rather than
-another enclosing active box. The lyric panel names the currently focused
+focus uses a blue caret below the syllable and a separate “Keyboard focus”
+caption beneath it (both in the lyric row's bottom padding, clear of low
+notes and the text), rather than another enclosing active box. The lyric panel names the currently focused
 syllable and explains that Delete/Backspace deletes it and Enter edits it.
 The selection summary names the selected syllable; **Edit selected syllable**
 and **Delete selected syllable** keep acting on that selection. Their activation

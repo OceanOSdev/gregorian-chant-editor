@@ -452,7 +452,8 @@ does not establish a fix. Existing headless and manual acceptance limits remain.
 ## Stage 11B driver update (2026-11-16)
 
 `browser-check.mjs` measures note positions relative to each system's own
-bottom staff line instead of a fixed `systemIndex * 244` offset (identical
+resolved bottom staff line (`data-bottom-staff`, from `system.bottomStaffY`)
+instead of a fixed `systemIndex * 244` offset (identical
 for ordinary systems; a melody-preserving F-clef insertion can now add room
 above the staff). Its generic `click()` finishes `scrollIntoView` with a page
 scroll from the element's client rect: with a `MAX_SAFE_INTEGER` note in the
@@ -462,4 +463,7 @@ scrolled to the wrong offset although `getBoundingClientRect()` was correct
 reveal does not use `scrollIntoView`; see the
 [Stage 11B record](../dynamic-vertical-layout/README.md#firefox-mid-score-clefs-driver-scrolling-versus-production-behaviour)
 for the branch/base comparison and production pointer, keyboard and focus
-evidence at 150% zoom.
+evidence at 150% zoom, and for an instrumented comparison showing why this
+driver passes on the base although native `scrollIntoView` on a clef `<g>`
+fails there: its clicks almost never need scrolling, and none that do
+targets a clef `<g>`.

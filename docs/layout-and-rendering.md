@@ -35,8 +35,10 @@ Even an empty document produces one empty system.
   `startNeumeIndex`;
 - each system's resolved vertical frame (Stage 11B): measured `y` and
   `height`, the authoritative pitch origin `bottomStaffY`, the shared
-  `lyricBaselineY` of every lyric and hyphen on it, and its `musicBand`
-  (the render band that clips its musical ink and pointer regions). See
+  `lyricBaselineY` of every lyric and hyphen on it, and its resolved
+  `musicBand` (the canonical maximum band intersected with the system's own
+  box; it clips the system's musical ink, pointer regions and in-system
+  overlays). See
   [dynamic vertical system layout](#dynamic-vertical-system-layout-stage-11b).
 
 `startNeumeIndex` is the global semantic index of the first neume assigned to a
@@ -439,8 +441,15 @@ selection summary and pressed state still identify selection without guessed
 highlight width. Neume selection keeps its existing dashed outline.
 
 A separate blue caret and “Keyboard focus” caption identify the focused lyric,
-independently of selection. Both cues leave musical geometry, lyric spacing,
-wrapping and semantic history unchanged. No decorative clearance is reserved.
+independently of selection. Both sit below the syllable in the lyric row's
+35-unit bottom padding (`lyric-focus-cue.ts`): an upward triangle whose apex
+is 2 units below the reserved 5-unit descent, and the 11-unit caption below
+it. Musical ink always ends above the lyric row and lyric text within its
+descent, so the cue overlaps neither (formerly the triangle sat 24–30 units
+above the baseline and could cover a low note that expanded the system, such
+as _Je_ in the bundled Salve Regina). Both cues leave musical geometry, lyric
+spacing, wrapping and semantic history unchanged; no decorative clearance is
+reserved beyond the ordinary bottom padding.
 
 During lyric reassignment, each neume has a nonfocusable pointer rectangle with
 the same rounded bounds and stroke extent as its seven-unit padded outline.
@@ -734,8 +743,9 @@ A rendering safeguard, not a semantic pitch restriction or engraving rule:
 all musical ink (plain, marked and authored-form neumes, accidentals,
 ledgers, custodes, clef changes and extended staff lines) is reserved and
 painted at most `offStaffCanvasMargin` = 1,200 units (50 ledger levels)
-beyond its canonical 220-unit system vertically (Stage 11B: the system's
-`musicBand`, which translates with the system), and grows the outer canvas
+beyond its canonical 220-unit system vertically (Stage 11B: the canonical
+maximum band `canonicalMusicBand`, translated with the system; the system's
+measured box contains everything measured inside it), and grows the outer canvas
 at most that far beyond the text-derived extent horizontally: the 720-unit score width, widened by any oversized lyric text
 ([ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
 overflow). There is no marked/unmarked distinction. Lyric text extents stay
@@ -750,9 +760,9 @@ allocate an arbitrarily tall system (at most about 2,700 units).
 
 What is clipped:
 
-- Ink beyond the margin is clipped by its system's `musicBand` (an SVG
-  `clipPath` on the system's musical group, which also clips pointer
-  regions, so a distant target cannot intercept another system) and is not
+- Ink beyond the margin is clipped by its system's resolved `musicBand` (an
+  SVG `clipPath` on the system's musical group, which also clips pointer
+  regions; see [containment](#system-containment-stage-11b)) and is not
   visible:
   note heads, signs and accidentals at a distant pitch, the far part of a
   stem or ribbon reaching it, and ledger levels beyond the margin. A
@@ -761,7 +771,9 @@ What is clipped:
   or custos, and an outgoing continuation hyphen beyond the right edge (the
   hyphen keeps its derived position and is clipped).
 - Painted elements derived from extents are limited to their system's
-  `musicBand` plus one ledger space (`render-band.ts`): each ledger run (neume or custos) paints
+  resolved `musicBand` plus one ledger space (`render-band.ts`; elements
+  drawn outside the clip, such as the range rectangle, clamp to the band
+  itself): each ledger run (neume or custos) paints
   only its strokes inside that window, as an exact sub-run anchored on the
   run's end nearest the staff (`visibleLedgerRun`), so the strokes stay on
   the staff grid even where the far end's coordinate is not exactly
@@ -823,36 +835,74 @@ three phases; no later phase changes an earlier one:
 
 Formulas (canonical frame, units; `music` is the clamped ink extent):
 
-| Quantity                   | Value                                                              |
-| -------------------------- | ------------------------------------------------------------------ |
-| Lyric band                 | ascent 20, descent 5 (`lyricAscent`, `lyricDescent`)               |
-| Music-to-lyric clearance   | 3 (`musicToLyricClearance`)                                        |
-| Music padding (top/bottom) | 12 (`systemMusicPadding`)                                          |
-| Top expansion              | `max(0, 12 - music.top)`; staff, ink and lyrics move down together |
-| Lyric baseline (local)     | `max(180, music.bottom + 3 + 20)`                                  |
-| System bottom (local)      | `max(220, music.bottom + 12, lyrics ? baseline + 5 + 35 : 0)`      |
-| Height                     | top expansion + system bottom                                      |
-| Next system y              | `y + height + 24`                                                  |
-| `bottomStaffY`             | `y + topExpansion + 124`                                           |
-| `musicBand`                | `[-1200, 1420]` translated by `y + topExpansion`                   |
+| Quantity                   | Value                                                               |
+| -------------------------- | ------------------------------------------------------------------- |
+| Lyric band                 | ascent 20, descent 5 (`lyricAscent`, `lyricDescent`)                |
+| Music-to-lyric clearance   | 3 (`musicToLyricClearance`)                                         |
+| Music padding (top/bottom) | 12 (`systemMusicPadding`)                                           |
+| Top expansion              | `max(0, 12 - music.top)`; staff, ink and lyrics move down together  |
+| Lyric baseline (local)     | `max(180, music.bottom + 3 + 20)`                                   |
+| System bottom (local)      | `max(220, music.bottom + 12, lyrics ? baseline + 5 + 35 : 0)`       |
+| Height                     | top expansion + system bottom                                       |
+| Next system y              | `y + height + 24`                                                   |
+| `bottomStaffY`             | `y + topExpansion + 124`                                            |
+| `musicBand` (resolved)     | `[-1200, 1420]` translated by `y + topExpansion`, ∩ `[y, y+height]` |
 
 Ordinary systems (ink within 12..157 locally) keep height 220, baseline 180
 and staff origin 124 exactly. A system has lyrics when any syllable's anchor
 neume is on it, measured or provisional, so unmeasured fonts stay vertically
 safe; a lyricless system adds no lyric row but keeps the minimum height. All
 lyrics and hyphens on a system share its `lyricBaselineY`. The 20/5 band
-was checked against the browser lyric font: accented Latin capitals measured
-19 units of ascent and descenders 5 units of descent in Chromium and Firefox
-([record](verification/dynamic-vertical-layout/README.md)).
+is a fixed reservation, not a per-glyph measurement. It was checked only
+against the face the lyric stack resolves to in the available Linux
+Chromium and Firefox (Liberation Serif, via the `Times New Roman` alias;
+Georgia is not installed there): accented Latin capitals 19 units of ascent,
+descenders 5 units of descent, a zero-unit descent margin. Real Georgia and
+Times New Roman on macOS or Windows were not measured
+([record](verification/dynamic-vertical-layout/README.md#lyric-font-evidence)).
+
+### System containment (Stage 11B)
+
+Two bands are distinct. `canonicalMusicBand` (`[-1200, 1420]` in the local
+frame) is the canonical **maximum** rendering band: measurement clamps ink to
+it, so no system grows beyond about 2,700 units. A system's resolved
+`musicBand` is that band translated to the system's origin and intersected
+with the system's own box `[y, y + height]`:
+
+- For every ordinary or moderately expanded system it equals the box; only a
+  system whose ink reaches the canonical limit has a band inside its 12-unit
+  padding.
+- Measured musical ink lies at least 12 units inside the box. Rendered
+  pointer regions (note, sign, accidental, clef and division targets),
+  whole-neume outlines, placement-context and lyric-move rectangles extend at
+  most 8.5 units beyond ink, and the range rectangle 4, so for unclipped
+  music they are complete inside the band; lyric-move captions are lowered
+  when needed (`moveCaptionBaseline`) so their em box stays inside it.
+- The system's musical group is clipped to the band, and the range rectangle
+  (drawn outside that group) is clamped to it. Adjacent bands are therefore
+  separated by at least the 24-unit gap: no painted or pointer-targetable
+  part of one system, including a clipped distant target, reaches another.
+  Lyrics, hyphens and the lyric focus cue are outside the clip and inside the
+  box by construction.
+- The pointer-following placement ghost and remote-insertion caption are
+  transient, `pointer-events: none` and unclipped.
+
+Tests: `system-vertical-layout.test.ts` (containment of body, accidental and
+ledger ink in neume bounds; overlays and pointer regions in the band; band
+inside the box; a pure model of clipped note targeting) and the
+`dynamic-vertical-layout` driver's extreme-system section (real hit testing
+and overlays in Chromium and Firefox).
 
 Consumers use the resolved frame, never fixed arithmetic: system hit testing
 uses actual `y`/`height` (points in the 24-unit gap belong to no system, as
 before), pitch snapping and clef placement use each system's staff lines,
 the floating lyric entry sits 24 units above `lyricBaselineY`, the remote
 placement caption 12 units above the system bottom, and `ScoreSvg` clips each
-system's musical group to its `musicBand`. The exported constants
-`systemVerticalAdvance`, `firstSystemLyricBaselineY` and `firstSystemBottomY`
-describe only the ordinary unexpanded frame.
+system's musical group to its resolved `musicBand`. Graphical neume and clef
+placement read the system's `bottomStaffY`. `systemVerticalAdvance` (exported
+for tests of ordinary layouts) describes only the ordinary unexpanded
+advance; `firstSystemBottomStaffY` and `canonicalLyricBaselineY` are the
+canonical-frame origin and baseline that composition and measurement use.
 
 ## Rhythmic sign geometry (Stage 8A)
 

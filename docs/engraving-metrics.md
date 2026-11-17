@@ -673,18 +673,21 @@ top 0, bottom staff line 124, staff lines 24 units apart). The full contract
 and formulas are in
 [layout and rendering](layout-and-rendering.md#dynamic-vertical-system-layout-stage-11b).
 
-| Property                       | Project value                                    |
-| ------------------------------ | ------------------------------------------------ |
-| Minimum system height          | 220                                              |
-| Inter-system gap               | 24                                               |
-| Ordinary lyric baseline        | 180                                              |
-| Lyric row                      | 20 above / 5 below the baseline (20-unit font)   |
-| Music-to-lyric clearance       | 3 (formerly the sign-band clearance)             |
-| Ink-to-system-edge padding     | 12                                               |
-| Room below the lyric row       | 35                                               |
-| Render band (clip and measure) | 1,200 beyond the canonical 220-unit system edges |
+| Property                   | Project value                                    |
+| -------------------------- | ------------------------------------------------ |
+| Minimum system height      | 220                                              |
+| Inter-system gap           | 24                                               |
+| Ordinary lyric baseline    | 180                                              |
+| Lyric row                  | 20 above / 5 below the baseline (20-unit font)   |
+| Music-to-lyric clearance   | 3 (formerly the sign-band clearance)             |
+| Ink-to-system-edge padding | 12                                               |
+| Room below the lyric row   | 35                                               |
+| Canonical maximum band     | 1,200 beyond the canonical 220-unit system edges |
+| Resolved band (clip)       | canonical band ∩ the system's measured box       |
 
-The lyric row is conservative: browser-measured accented Latin capitals
-reached 19 units of ascent and descenders 5 units of descent in Chromium and
-Firefox, inside the 20/5 band. A low punctum at -3 (ledger at -2) lowers its
-system's baseline by 10 units (ink bottom 167 → baseline 190).
+The lyric row is a fixed reservation. In the available Linux Chromium and
+Firefox the lyric stack resolves to Liberation Serif; there accented Latin
+capitals reached 19 units of ascent and descenders 5 units of descent (a
+zero descent margin). Georgia and Times New Roman on other platforms were not
+measured. A low punctum at -3 (ledger at -2; head ink 154–166) lowers its
+system's baseline by 9 units (ink bottom 166 → baseline 189, height 229).
