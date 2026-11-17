@@ -132,7 +132,9 @@ the same minimum ink-gap rule.
 
 ## Automatic whole-neume wrapping
 
-`placeNeumeSequence` processes semantic neumes in order and measures each
+`composeSystemsHorizontally` (in `horizontal-system-composition.ts`; see
+[layout pipeline ownership](#layout-pipeline-ownership)) processes semantic
+neumes in order and measures each
 complete raw rendered extent and measured lyric advance at its proposed horizontal position. A candidate that exceeds
 the usable right boundary starts the next system when the current system
 already has content.
@@ -325,8 +327,54 @@ indices and ghost/caret layout against the committed snapshot. The existing
 `layout-chant.ts` public API re-exports those functions and placement types.
 Both modules consume shared staff metrics from `staff-metrics.ts`; placement
 uses type-only imports for committed layout records. The combined music/lyric
-wrapping walker remains in `layout-chant.ts`, and division-aware semantic slot
+wrapping walker lives in `horizontal-system-composition.ts`, score slot
+geometry in `system-layout-assembly.ts`, and division-aware semantic slot
 resolution remains in the interaction layer.
+
+### Layout pipeline ownership
+
+`layoutChant` in `layout-chant.ts` is the only score layout pipeline and the
+only public layout module: callers import every layout type, constant and
+helper from it, while the phases live in internal modules. It reads as the
+[ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md) sequence:
+
+1. **Prepare input** (`layout-chant.ts`): lyric alignments and the
+   all-or-nothing measured `LyricRequirement` map, semantic score order split
+   into boundary events and per-neume clefs, written accidentals grouped by
+   neume, and one `GeometryInput` per neume.
+2. **Compose horizontally once** (`horizontal-system-composition.ts`,
+   `composeSystemsHorizontally`): the single greedy walker owns system
+   membership, every x position, ink spacing and compaction, lyric clearance,
+   hyphen and custos reservations, clef/division events and oversized
+   progress, in the canonical local frame. Its output, `PositionedSystem`, is
+   not a second score model; nothing later revisits its decisions.
+3. **Measure and stack** (`system-vertical-layout.ts`): `measureSystemVertical`
+   and `stackSystems`, fed by `positionedMusicInk`.
+4. **Rebuild and assemble** (`system-layout-assembly.ts`):
+   `positionComposedSystem` translates each composed system to its resolved
+   origin; `buildSystemLayout` adds the staff, leading clef and semantic IDs;
+   `attachLyrics`, `addContinuationHyphens` and `clipCompactNeumeHitAreas`
+   derive the lyric row and pointer ownership; `buildScoreSlots` derives
+   insertion slots; `measureCanvas` derives the score-absolute viewBox.
+
+Public result types live in `chant-layout-types.ts` so the phases share them
+without importing the entry point; staff-frame helpers (`clefX`,
+`staffLineSpacing`, `staffLineY`) live in `staff-metrics.ts`. The import
+graph is acyclic: the entry point depends on the phases, assembly depends on
+composition's records and constants, and neither phase imports
+`layout-chant.ts`.
+
+Where to change behavior:
+
+| Question                                   | Owner                                                                     |
+| ------------------------------------------ | ------------------------------------------------------------------------- |
+| Why did this neume wrap?                   | `composeSystemsHorizontally` (`reservedRight`, `finishSystem`)            |
+| Why is this syllable separated or compact? | `composeSystemsHorizontally` (`placeCandidate`)                           |
+| Where is a hyphen drawn?                   | Reserved by the walker; drawn by `addContinuationHyphens`                 |
+| Why did the lyric baseline or height move? | `measureSystemVertical` / `stackSystems` (`system-vertical-layout.ts`)    |
+| Where are insertion slots calculated?      | `buildScoreSlots` (`system-layout-assembly.ts`)                           |
+| What expands the canvas?                   | `measureCanvas` (`system-layout-assembly.ts`)                             |
+| Which lyrics affect spacing at all?        | `prepareLyricMetrics` (`layout-chant.ts`): only a fully measured snapshot |
 
 Committed layout copies semantic neume and note IDs into `NeumeLayout` and
 `NoteLayout`. Rendering uses those IDs for React keys, selection, focus, and
@@ -591,7 +639,7 @@ extreme pitches; this stage adds no vertical collision or pagination engine.
 
 ## Measured clef events and custodes (Stage 6B)
 
-The existing `placeNeumeSequence` walker consumes mixed boundary events from
+The horizontal walker (`composeSystemsHorizontally`) consumes mixed boundary events from
 `deriveScoreOrder`, carrying the effective clef through semantic placement.
 `ClefChangeLayout` retains the authored ID; `leadingClefChangeId` identifies a
 continuation system whose first semantic item supplies its leading clef at x=100.
@@ -814,7 +862,8 @@ adjacent systems, are resolved by
 [ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md) separates
 three phases; no later phase changes an earlier one:
 
-1. **Compose** (`placeNeumeSequence` in `layout-chant.ts`) in one canonical
+1. **Compose** (`composeSystemsHorizontally` in
+   `horizontal-system-composition.ts`) in one canonical
    system-local frame: system top 0, bottom staff line at
    `firstSystemBottomStaffY` (124). Horizontal composition, wrapping,
    compaction, custodes, divisions and clefs never read the vertical origin;
@@ -826,7 +875,7 @@ three phases; no later phase changes an earlier one:
    padding, outlines and placement ghosts are not ink. Ink extents are first
    clamped to the canonical band `[-1200, 220 + 1200]`.
 3. **Position** (`stackSystems`): systems stack from y = 0 with the 24-unit
-   gap; `positionComposedSystem` then translates each composed system
+   gap; `positionComposedSystem` (`system-layout-assembly.ts`) then translates each composed system
    independently by rebuilding every neume, sign, custos, clef change and
    division through its own builder at its composed left edge (the
    rebuild-at-`bounds.x` contract) and the system's resolved `bottomStaffY`.
