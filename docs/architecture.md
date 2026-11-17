@@ -139,8 +139,10 @@ Where to change things:
 - **Lyric click or key behavior**: `LyricControl.tsx`. Key-to-intent mapping
   stays pure in `interaction/lyric-entry-keyboard.ts`.
 - **Score focus requests, `focusin` tracking, reveal and restoring focus after
-  reflow**: `ScoreSvg.tsx` only. It keeps one registry of mounted note, lyric,
-  division and clef elements. Controls register their element through an
+  reflow**: `ScoreSvg.tsx` only. It keeps per-kind maps of mounted note,
+  lyric, division and clef-change elements, plus refs for the initial clef and
+  the clef preview. Written accidentals have no map: the score finds them with
+  a `data-accidental-id` query. Controls register their element through an
   explicit callback (`registerNoteElement`, `registerElement`). They never
   keep their own focus map or call `focus()` for a request. One exception is
   accidental-target arrow keys: they ask the score to `focusNote(id)`.
@@ -152,9 +154,11 @@ Where to change things:
 
 Controls report intents through narrowly named callback groups (`NoteActions`,
 `WrittenAccidentalActions`, `LyricActions`) plus a precomputed per-neume
-`LyricMoveTarget`. `ScoreSvg` fills these groups from its own props without
-changing them, so every edit still goes through `ChantEditor` to the session
-reducer. Controls do not import commands, the reducer, or layout derivation.
+`LyricMoveTarget`. `ChantEditor` binds the semantic actions to the session
+reducer. `ScoreSvg` only forwards them from its props, unchanged, so every edit
+still goes through `ChantEditor`. Controls have no runtime dependency on
+commands, the reducer, or layout derivation. Their only import from `commands/`
+is the type `StaffPositionDelta`, which is erased at build time.
 They also do not create IDs. No React context or generic controller is used.
 These are component boundaries only: they add no SVG elements, and the
 rendered DOM, sibling order and clip hierarchy are unchanged.

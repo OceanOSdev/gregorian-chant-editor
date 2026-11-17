@@ -105,11 +105,15 @@ the score. They own their elements' click and key handlers. Focus requests,
 
 React detaches a note before reparenting it into another system group. When
 it does, the score's note-registration callback records whether that exact
-element had browser focus. Headless Firefox can move focus to SVG controls
-without emitting the bubbling `focusin` the tracker uses (verified for both
-script `focus()` and native Tab). This record is then the only source for
-restoring focus by ID. Lyrics have no such record, and a focused lyric can
-lose focus when reflow reparents it in Firefox. See the
+element had browser focus. The restore effect can then refocus the note by ID
+even if no `focusin` reached the tracker. Lyrics have no such record.
+
+Observed in headless Firefox under WebDriver BiDi only: the driver saw no
+`focusin` at all, for SVG controls or for an HTML button. The note record is
+then the only restoration path. A Tab-focused lyric reparented by reflow had its
+focus redirected to the note the tracker last recorded, not left on the lyric.
+The exact pre-M2 base behaves the same. The cause is inferred, not proven, and
+headed Firefox with window focus has not been checked. See the
 [reparenting record](verification/score-focus-reparenting/README.md).
 
 `ChantEditor` uses a pure session reducer; history contains semantic documents

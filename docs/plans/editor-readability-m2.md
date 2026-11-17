@@ -80,7 +80,7 @@ whose pointer semantics are `fill` rather than `all`. Preserve the current
 routing of pointer, keyboard and accessibility events with every disabled
 mode, modifier and precedence rule.
 
-Pass explicit typed context: the committed `NeumeLayout`, its system-local
+Pass explicit typed context: the committed `NeumeLayout`, its score-wide
 ordinal (derived at the orchestration boundary), current tool/selection and
 mode flags, musical/render band, unique clip ID, note element-registration
 callback, and cohesive named action callbacks. Prefer a small grouping of
