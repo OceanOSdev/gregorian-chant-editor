@@ -1,8 +1,5 @@
 import { rangeSelectionBounds } from './range-selection-bounds';
-import { neumeSelectionBounds } from './neume-selection-bounds';
-import { getAccidentalAccessibleLabel } from './accidental-accessible-label';
 import { useVerticalEpisemaRasterization } from './use-vertical-episema-rasterization';
-import { getNoteModifierDescription } from './note-accessible-label';
 import {
   custosLedgerThickness,
   custosLedgerSpacing,
@@ -17,12 +14,10 @@ import { DivisionControl } from './DivisionControl';
 import { DivisionInk } from './DivisionInk';
 import type { DivisionLayout } from '../layout/division-geometry';
 import { lyricFontFamily, lyricFontSize } from '../layout/lyric-text-metrics';
-import { getSyllableKeyAction } from '../interaction/lyric-entry-keyboard';
 import {
   useId,
   useLayoutEffect,
   useRef,
-  type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
 } from 'react';
@@ -38,15 +33,18 @@ import { isPlacementTool, type EditorTool } from '../state/editor-tool';
 import type { EditorSelection } from '../state/selection';
 import type { EditorFocusRequest } from '../state/editor-session';
 import { focusAndReveal } from './focus-visibility';
-import {
-  getNoteAccessibleLabel,
-  getSelectedNeumeDescription,
-  wholeNeumeSelectionInstruction,
-} from './note-accessible-label';
+import { wholeNeumeSelectionInstruction } from './note-accessible-label';
 import { getScoreAccessibleDescription } from './score-accessible-description';
-import { InkShapeView, NeumeInk } from './NeumeInk';
-import { lyricFocusCue } from './lyric-focus-cue';
-import { clampToBand, moveCaptionBaseline, renderBandFor } from './render-band';
+import { NeumeInk } from './NeumeInk';
+import { LyricControl, type LyricActions } from './LyricControl';
+import {
+  NeumeControl,
+  type AccidentalPlacementTargets,
+  type LyricMoveTarget,
+  type NoteActions,
+  type WrittenAccidentalActions,
+} from './NeumeControl';
+import { clampToBand, renderBandFor } from './render-band';
 
 export interface SvgPoint {
   x: number;
@@ -325,28 +323,70 @@ export function ScoreSvg({
     onFocusHandled(focusRequest);
   }, [focusRequest, onFocusHandled, placementActive]);
 
-  function handleNoteClick(event: MouseEvent<SVGGElement>, noteId: string) {
-    if (accidentalTargetIds) {
-      event.stopPropagation();
-      onAccidentalTarget(noteId);
+  /**
+   * Registers a mounted note control. React calls this with `null` on every
+   * ref swap (each render) and when it detaches a note, including before it
+   * reparents one during reflow. Recording whether the outgoing element had
+   * browser focus matters only in the detach case: it lets the restore effect
+   * refocus the note by ID when no `focusin` reached the tracker (observed in
+   * headless Firefox).
+   */
+  function registerNoteElement(noteId: string, element: SVGGElement | null) {
+    if (element) {
+      noteElements.current.set(noteId, element);
       return;
     }
-    event.stopPropagation();
-    if (placementActive || transactionBlocked) return;
-    if (lyricMove) {
-      const neumeId =
-        event.currentTarget.closest<SVGGElement>('[data-neume-id]')?.dataset
-          .neumeId;
-      if (neumeId) onMoveDestination(neumeId);
-      return;
-    }
+    const previous = noteElements.current.get(noteId);
+    if (previous && document.activeElement === previous)
+      focusedEntity.current = { kind: 'note', id: noteId, element: previous };
+    noteElements.current.delete(noteId);
+  }
 
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.shiftKey) {
-      onSelectNeumeForNote(noteId);
-    } else {
-      onSelectNote(noteId);
-    }
+  function focusNote(noteId: string) {
+    const element = noteElements.current.get(noteId);
+    if (element) focusAndReveal(element);
+  }
+
+  // Semantic edit intents handed to the extracted controls. They forward to
+  // the editor's callbacks unchanged; no control talks to the session itself.
+  const noteActions: NoteActions = {
+    onSelectNote,
+    onSelectNeumeForNote,
+    onExtendSelection,
+    onMoveNote,
+    onMoveNeume,
+    onDeleteNote,
+    onDeleteNeume,
+    onFocusNoteModifiers,
+  };
+  const accidentalActions: WrittenAccidentalActions = {
+    onSelectAccidental,
+    onDeleteAccidental,
+    onFocusAccidentalProperties,
+  };
+  const lyricActions: LyricActions = {
+    onSelectSyllable,
+    onEditSyllable,
+    onDeleteSyllable,
+    onAdvanceLyric,
+  };
+  const accidentalPlacement: AccidentalPlacementTargets | null =
+    accidentalTargetIds
+      ? { noteIds: accidentalTargetIds, onTarget: onAccidentalTarget }
+      : null;
+
+  function lyricMoveTargetFor(neumeId: string): LyricMoveTarget | null {
+    if (!lyricMove) return null;
+    return {
+      status:
+        lyricMove.anchorId === neumeId
+          ? 'current-anchor'
+          : lyricMove.legalIds.includes(neumeId)
+            ? 'legal'
+            : 'unavailable',
+      previewed: lyricMove.candidateId === neumeId,
+      onChoose: () => onMoveDestination(neumeId),
+    };
   }
 
   function handleScoreClick(event: MouseEvent<SVGSVGElement>) {
@@ -397,94 +437,6 @@ export function ScoreSvg({
       onPlacementPointerMove(localPoint);
     } else {
       onPlacementPointerLeave();
-    }
-  }
-
-  function handleNoteKeyDown(
-    event: KeyboardEvent<SVGGElement>,
-    noteId: string,
-    neumeId: string,
-    isNoteSelected: boolean,
-    isNeumeSelected: boolean,
-  ) {
-    if (
-      transactionBlocked ||
-      lyricMove ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.altKey ||
-      isPlacementTool(activeTool) ||
-      event.nativeEvent.isComposing
-    ) {
-      return;
-    }
-
-    if (
-      (isNoteSelected || isNeumeSelected) &&
-      event.key === 'Tab' &&
-      !event.shiftKey &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.altKey &&
-      onFocusNoteModifiers?.()
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-
-    if (
-      onExtendSelection &&
-      event.shiftKey &&
-      (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      onExtendSelection(noteId, event.key === 'ArrowLeft' ? -1 : 1);
-      return;
-    }
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (event.shiftKey) {
-        onSelectNeumeForNote(noteId);
-      } else {
-        onSelectNote(noteId);
-      }
-
-      return;
-    }
-
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.repeat) return;
-
-      if (isNoteSelected) {
-        onDeleteNote(noteId);
-      } else if (isNeumeSelected) {
-        onDeleteNeume(neumeId);
-      }
-
-      return;
-    }
-
-    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
-      return;
-    }
-
-    if (!isNoteSelected && !isNeumeSelected) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (isNoteSelected) {
-      onMoveNote(noteId, event.key === 'ArrowUp' ? 1 : -1);
-    } else if (isNeumeSelected) {
-      onMoveNeume(neumeId, event.key === 'ArrowUp' ? 1 : -1, noteId);
     }
   }
 
@@ -781,419 +733,29 @@ export function ScoreSvg({
                     );
                   }
                   const neume = item.neume;
-                  const isNeumeSelected =
-                    selection.kind === 'neume' &&
-                    selection.neumeId === neume.neumeId;
-                  const selectedDescription = getSelectedNeumeDescription(
-                    neume.kind,
-                    isNeumeSelected,
-                    neume.notes.length,
-                    neume.liquescentFigure,
-                  );
-                  const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
-                  const ownershipClipId = `${scoreId}-hit-${neume.neumeId}`;
-                  const ownershipClip = neume.hitClip
-                    ? `url(#${ownershipClipId})`
-                    : undefined;
-                  // Ordinary padding is clipped to layout's ownership interval at
-                  // compact boundaries, including lyric reassignment destinations.
-                  // Bounds-derived overlays are limited to the painted band too.
-                  const moveBounds = clampToBand(
-                    {
-                      x: neume.bounds.x - 7,
-                      y: neume.bounds.y - 7,
-                      width: neume.bounds.width + 14,
-                      height: neume.bounds.height + 14,
-                    },
-                    band,
-                  );
-
                   return (
-                    <g
+                    <NeumeControl
                       key={neume.neumeId}
-                      data-neume-id={neume.neumeId}
-                      data-neume-kind={neume.kind}
-                      data-liquescent-figure={neume.liquescentFigure}
-                    >
-                      {neume.hitClip ? (
-                        <defs>
-                          <clipPath id={ownershipClipId}>
-                            <rect
-                              {...clampToBand(
-                                {
-                                  x: neume.hitClip.left,
-                                  y: neume.bounds.y - 20,
-                                  width:
-                                    neume.hitClip.right - neume.hitClip.left,
-                                  height: neume.bounds.height + 40,
-                                },
-                                band,
-                              )}
-                            />
-                          </clipPath>
-                        </defs>
-                      ) : null}
-                      {selectedDescription ? (
-                        <desc id={selectedDescriptionId}>
-                          {selectedDescription}
-                        </desc>
-                      ) : null}
-                      {isNeumeSelected ? (
-                        // Fitted inside ownership rather than clipped, so the
-                        // dashed outline stays complete at compact boundaries.
-                        <rect
-                          className="score__neume-selection"
-                          data-selected-neume-id={neume.neumeId}
-                          {...clampToBand(neumeSelectionBounds(neume), band)}
-                          rx="4"
-                          pointerEvents="none"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      {placementActive &&
-                      (isNeumeSelected ||
-                        (selection.kind === 'note' &&
-                          neume.notes.some(
-                            (note) => note.noteId === selection.noteId,
-                          ))) ? (
-                        <rect
-                          className="score__placement-context"
-                          clipPath={ownershipClip}
-                          {...moveBounds}
-                          rx="3"
-                          pointerEvents="none"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      {lyricMove &&
-                      (lyricMove.legalIds.includes(neume.neumeId) ||
-                        lyricMove.anchorId === neume.neumeId) ? (
-                        <g pointerEvents="none" aria-hidden="true">
-                          <rect
-                            clipPath={ownershipClip}
-                            className={`score__move-target${lyricMove.candidateId === neume.neumeId ? ' score__move-target--preview' : ''}`}
-                            {...moveBounds}
-                            rx="3"
-                          />
-                          <text
-                            className="score__move-caption"
-                            x={neume.bounds.x}
-                            y={moveCaptionBaseline(
-                              neume.bounds,
-                              system.musicBand,
-                            )}
-                          >
-                            {lyricMove.anchorId === neume.neumeId
-                              ? 'Current anchor'
-                              : lyricMove.candidateId === neume.neumeId
-                                ? 'Preview'
-                                : 'Legal'}
-                          </text>
-                        </g>
-                      ) : null}
-                      <NeumeInk
-                        ink={neume.bodyInk ?? neume.ink}
-                        ledgers={neume.ledgers}
-                        band={band}
-                      />
-                      {neume.notes.map((note, noteIndex) => {
-                        const isNoteSelected =
-                          selection.kind === 'note' &&
-                          selection.noteId === note.noteId;
-                        const accessibleLabel =
-                          getNoteAccessibleLabel(
-                            neume.kind,
-                            noteIndex,
-                            neume.notes.length,
-                            neume.liquescentFigure,
-                          ) +
-                          getNoteModifierDescription(
-                            note,
-                            neume.notes.filter((n) => n.mora).length === 2,
-                          );
-
-                        return (
-                          <g
-                            className="score__note"
-                            key={note.noteId}
-                            ref={(element) => {
-                              if (element) {
-                                noteElements.current.set(note.noteId, element);
-                              } else {
-                                // Remember actual SVG focus before React detaches
-                                // a reparented note. Firefox may not have emitted
-                                // the bubbling focus event used by the listener.
-                                const previous = noteElements.current.get(
-                                  note.noteId,
-                                );
-                                if (
-                                  previous &&
-                                  document.activeElement === previous
-                                )
-                                  focusedEntity.current = {
-                                    kind: 'note',
-                                    id: note.noteId,
-                                    element: previous,
-                                  };
-                                noteElements.current.delete(note.noteId);
-                              }
-                            }}
-                            data-note-id={note.noteId}
-                            role="button"
-                            tabIndex={
-                              placementActive ||
-                              transactionBlocked ||
-                              (accidentalTargetIds &&
-                                !accidentalTargetIds.includes(note.noteId))
-                                ? -1
-                                : 0
-                            }
-                            pointerEvents={
-                              placementActive || lyricMove || transactionBlocked
-                                ? 'none'
-                                : 'all'
-                            }
-                            aria-label={
-                              lyricMove
-                                ? `${accessibleLabel}. Neume ${system.startNeumeIndex + system.neumes.indexOf(neume) + 1}. ${lyricMove.anchorId === neume.neumeId ? 'Current anchor' : lyricMove.legalIds.includes(neume.neumeId) ? 'Legal destination' : 'Unavailable: occupied or crosses another anchor'}.${lyricMove.candidateId === neume.neumeId ? ' Previewed destination.' : ''}`
-                                : accessibleLabel
-                            }
-                            aria-describedby={
-                              lyricMove
-                                ? 'lyric-move-help'
-                                : `whole-neume-selection-instruction${rangeIds?.has(neume.neumeId) ? ' range-member-description' : ''}${isNeumeSelected ? ` ${selectedDescriptionId}` : ''}`
-                            }
-                            aria-pressed={isNoteSelected}
-                            aria-disabled={
-                              placementActive ||
-                              transactionBlocked ||
-                              (!!accidentalTargetIds &&
-                                !accidentalTargetIds.includes(note.noteId))
-                            }
-                            onMouseDown={(event) => {
-                              if (
-                                onExtendSelection &&
-                                event.shiftKey &&
-                                !event.ctrlKey &&
-                                !event.metaKey &&
-                                !event.altKey &&
-                                !placementActive &&
-                                !transactionBlocked &&
-                                !lyricMove &&
-                                !accidentalTargetIds
-                              )
-                                event.preventDefault();
-                            }}
-                            onClick={(event) =>
-                              handleNoteClick(event, note.noteId)
-                            }
-                            onKeyDown={(event) => {
-                              if (accidentalTargetIds) {
-                                if (event.nativeEvent.isComposing) return;
-                                if (
-                                  event.key === 'Enter' ||
-                                  event.key === ' '
-                                ) {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  onAccidentalTarget(note.noteId);
-                                } else if (
-                                  [
-                                    'ArrowLeft',
-                                    'ArrowRight',
-                                    'ArrowUp',
-                                    'ArrowDown',
-                                  ].includes(event.key)
-                                ) {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  const current = accidentalTargetIds.indexOf(
-                                    note.noteId,
-                                  );
-                                  const delta =
-                                    event.key === 'ArrowLeft' ||
-                                    event.key === 'ArrowUp'
-                                      ? -1
-                                      : 1;
-                                  const id =
-                                    accidentalTargetIds[
-                                      (current +
-                                        delta +
-                                        accidentalTargetIds.length) %
-                                        accidentalTargetIds.length
-                                    ];
-                                  const element = noteElements.current.get(id);
-                                  if (element) focusAndReveal(element);
-                                }
-                                return;
-                              }
-                              handleNoteKeyDown(
-                                event,
-                                note.noteId,
-                                neume.neumeId,
-                                isNoteSelected,
-                                isNeumeSelected,
-                              );
-                            }}
-                          >
-                            {accidentalTargetIds?.includes(note.noteId) ? (
-                              <rect
-                                className="score__accidental-placement-target"
-                                {...note.hitBounds}
-                                fill="none"
-                                stroke="#a33"
-                                strokeWidth="2"
-                                pointerEvents="none"
-                                aria-hidden="true"
-                              />
-                            ) : null}
-                            <g
-                              aria-hidden="true"
-                              clipPath={ownershipClip}
-                              pointerEvents={
-                                placementActive || lyricMove
-                                  ? 'none'
-                                  : neume.kind === 'climacus' ||
-                                      neume.kind === 'climacus-resupinus' ||
-                                      neume.kind === 'porrectus' ||
-                                      neume.kind === 'porrectus-flexus' ||
-                                      neume.kind === 'torculus-resupinus' ||
-                                      neume.kind === 'pes-subpunctis'
-                                    ? 'fill'
-                                    : undefined
-                              }
-                            >
-                              <InkShapeView
-                                className="score__note-hit-target"
-                                shape={
-                                  note.hitShape ?? {
-                                    kind: 'rect',
-                                    bounds: note.hitBounds,
-                                    radius: 0,
-                                  }
-                                }
-                              />
-                            </g>
-                            {note.modifierBounds ? (
-                              <rect
-                                {...note.modifierBounds}
-                                fill="none"
-                                pointerEvents="none"
-                                aria-hidden="true"
-                              />
-                            ) : null}
-                            {isNoteSelected ? (
-                              <g pointerEvents="none" aria-hidden="true">
-                                <InkShapeView
-                                  shape={note.head}
-                                  className="score__note-selection"
-                                />
-                              </g>
-                            ) : null}
-                          </g>
-                        );
-                      })}
-                      {neume.accidentals?.map((a) => {
-                        const id = a.accidentalId;
-                        return id ? (
-                          <g
-                            className="score__accidental"
-                            pointerEvents={
-                              activeTool.kind === 'select' &&
-                              !transactionBlocked &&
-                              !accidentalTargetIds
-                                ? 'all'
-                                : 'none'
-                            }
-                            aria-disabled={
-                              activeTool.kind !== 'select' ||
-                              transactionBlocked ||
-                              !!accidentalTargetIds
-                            }
-                            key={id}
-                            data-accidental-id={id}
-                            tabIndex={
-                              activeTool.kind === 'select' &&
-                              !transactionBlocked &&
-                              !accidentalTargetIds
-                                ? 0
-                                : -1
-                            }
-                            role="button"
-                            aria-label={getAccidentalAccessibleLabel(a)}
-                            aria-pressed={
-                              selection.kind === 'accidental' &&
-                              selection.accidentalId === id
-                            }
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!transactionBlocked) onSelectAccidental(id);
-                            }}
-                            onKeyDown={(e) => {
-                              if (transactionBlocked) return;
-                              if (
-                                e.key === 'Tab' &&
-                                !e.shiftKey &&
-                                selection.kind === 'accidental' &&
-                                selection.accidentalId === id &&
-                                onFocusAccidentalProperties()
-                              ) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return;
-                              }
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onSelectAccidental(id);
-                              }
-                              if (e.key === 'Delete' || e.key === 'Backspace') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onDeleteAccidental(id);
-                              }
-                            }}
-                          >
-                            <InkShapeView
-                              shape={a.ink}
-                              className="score__accidental-ink"
-                            />
-                            <rect
-                              className="score__accidental-target"
-                              clipPath={ownershipClip}
-                              {...a.hitBounds}
-                              fill="transparent"
-                              stroke={
-                                selection.kind === 'accidental' &&
-                                selection.accidentalId === id
-                                  ? 'var(--accent, #a33)'
-                                  : 'none'
-                              }
-                              strokeWidth="2"
-                            />
-                          </g>
-                        ) : null;
-                      })}
-                      {lyricMove ? (
-                        <rect
-                          className="score__move-hit-target"
-                          {...moveBounds}
-                          rx="3"
-                          fill="transparent"
-                          stroke="transparent"
-                          strokeWidth={
-                            lyricMove.candidateId === neume.neumeId ? 3 : 2
-                          }
-                          pointerEvents="all"
-                          clipPath={ownershipClip}
-                          aria-hidden="true"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onMoveDestination(neume.neumeId);
-                          }}
-                        />
-                      ) : null}
-                    </g>
+                      neume={neume}
+                      ordinal={
+                        system.startNeumeIndex +
+                        system.neumes.indexOf(neume) +
+                        1
+                      }
+                      musicBand={system.musicBand}
+                      band={band}
+                      ownershipClipId={`${scoreId}-hit-${neume.neumeId}`}
+                      selection={selection}
+                      inSelectedRange={rangeIds?.has(neume.neumeId) ?? false}
+                      placementActive={placementActive}
+                      transactionBlocked={transactionBlocked}
+                      lyricMove={lyricMoveTargetFor(neume.neumeId)}
+                      accidentalPlacement={accidentalPlacement}
+                      noteActions={noteActions}
+                      accidentalActions={accidentalActions}
+                      registerNoteElement={registerNoteElement}
+                      focusNote={focusNote}
+                    />
                   );
                 })}
             </g>
@@ -1219,126 +781,23 @@ export function ScoreSvg({
               ))}
             </g>
             {system.lyrics.map((lyric) => (
-              <g key={lyric.syllableId} className="score__lyric-control">
-                <g
-                  className={`score__lyric-group${selection.kind === 'syllable' && selection.syllableId === lyric.syllableId ? ' score__lyric-group--selected' : ''}`}
-                >
-                  {selection.kind === 'syllable' &&
-                  selection.syllableId === lyric.syllableId &&
-                  lyric.left !== null &&
-                  lyric.right !== null ? (
-                    <rect
-                      className="score__lyric-selection"
-                      x={
-                        lyric.left + Math.min(2, (lyric.right - lyric.left) / 2)
-                      }
-                      y={lyric.y - lyric.fontSize}
-                      width={Math.max(0, lyric.right - lyric.left - 4)}
-                      height={lyric.fontSize * 1.3}
-                      rx={1.5}
-                      aria-hidden="true"
-                      pointerEvents="none"
-                    />
-                  ) : null}
-                  <text
-                    className="score__lyric"
-                    ref={(element) => {
-                      if (element)
-                        lyricElements.current.set(lyric.syllableId, element);
-                      else lyricElements.current.delete(lyric.syllableId);
-                    }}
-                    role="button"
-                    aria-describedby="lyric-focus-help"
-                    tabIndex={
-                      placementActive || lyricMove || transactionBlocked
-                        ? -1
-                        : 0
-                    }
-                    aria-label={`Syllable: ${lyric.text}. Click or Space selects; L activates Lyrics here; double-click or Enter edits; Delete or Backspace removes focused lyrics; typing replaces; minus continues a word; Space starts a word; underscore skips.`}
-                    aria-pressed={
-                      selection.kind === 'syllable' &&
-                      selection.syllableId === lyric.syllableId
-                    }
-                    aria-disabled={
-                      placementActive ||
-                      Boolean(lyricMove) ||
-                      transactionBlocked
-                    }
-                    pointerEvents={
-                      placementActive || lyricMove || transactionBlocked
-                        ? 'none'
-                        : 'all'
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (!placementActive && !lyricMove && !transactionBlocked)
-                        onSelectSyllable(lyric.syllableId);
-                    }}
-                    onDoubleClick={(event) => {
-                      event.stopPropagation();
-                      if (!placementActive && !lyricMove && !transactionBlocked)
-                        onEditSyllable(lyric.syllableId);
-                    }}
-                    onKeyDown={(event) => {
-                      if (lyricMove || transactionBlocked) return;
-                      const action = getSyllableKeyAction(
-                        event.nativeEvent,
-                        selection.kind === 'syllable' &&
-                          selection.syllableId === lyric.syllableId,
-                        placementActive,
-                      );
-                      if (!action) return;
-                      event.preventDefault();
-                      event.stopPropagation();
-                      switch (action.type) {
-                        case 'select':
-                          onSelectSyllable(lyric.syllableId);
-                          break;
-                        case 'edit':
-                          onEditSyllable(lyric.syllableId);
-                          break;
-                        case 'replace':
-                          onEditSyllable(lyric.syllableId, action.text);
-                          break;
-                        case 'delete':
-                          onDeleteSyllable(lyric.syllableId);
-                          break;
-                        case 'advance':
-                          onAdvanceLyric(action.key);
-                          break;
-                      }
-                    }}
-                    data-syllable-id={lyric.syllableId}
-                    x={lyric.x}
-                    y={lyric.y}
-                    fontSize={lyric.fontSize}
-                    fontFamily={lyricFontFamily}
-                    textAnchor="middle"
-                    textRendering="geometricPrecision"
-                  >
-                    {lyric.text}
-                  </text>
-                </g>
-                {(() => {
-                  const cue = lyricFocusCue(lyric);
-                  return (
-                    <g
-                      className="score__lyric-focus-cue"
-                      aria-hidden="true"
-                      pointerEvents="none"
-                    >
-                      <path d={cue.path} />
-                      <text
-                        x={cue.labelX}
-                        y={cue.labelBaselineY}
-                        textAnchor="middle"
-                      >
-                        Keyboard focus
-                      </text>
-                    </g>
-                  );
-                })()}
-              </g>
+              <LyricControl
+                key={lyric.syllableId}
+                lyric={lyric}
+                selected={
+                  selection.kind === 'syllable' &&
+                  selection.syllableId === lyric.syllableId
+                }
+                placementActive={placementActive}
+                lyricMoveActive={Boolean(lyricMove)}
+                transactionBlocked={transactionBlocked}
+                actions={lyricActions}
+                registerElement={(element) => {
+                  if (element)
+                    lyricElements.current.set(lyric.syllableId, element);
+                  else lyricElements.current.delete(lyric.syllableId);
+                }}
+              />
             ))}
           </g>
         );

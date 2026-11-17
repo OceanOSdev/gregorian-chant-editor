@@ -165,6 +165,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'score-focus-reparenting',
+    script: 'score-focus-reparenting/browser-check.mjs',
+    server: 'preview',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'local-persistence',
     script: 'local-persistence/browser-check.mjs',
     server: 'preview',
