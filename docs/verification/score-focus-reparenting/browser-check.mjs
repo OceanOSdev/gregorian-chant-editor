@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 // Readability M2: browser focus survives React reparenting a focused note or
-// lyric between system groups during an uncommanded reflow, and reflow never
-// steals focus from outside the score. Reflow is forced through the real
-// lyric-measurement fallback (a FontFaceSet `loading` event), as in
-// `lyric-spacing`. Focus is reached both by trusted Tab (bubbling `focusin`)
-// and by script focus(), which in headless Firefox emits no focus event, so
-// only ScoreSvg's ref-detachment memory can restore it.
+// lyric between system groups during an uncommanded reflow, and reflow leaves
+// focus on another focusable control outside the score alone. Reflow is forced
+// through the real lyric-measurement fallback (a FontFaceSet `loading` event),
+// as in `lyric-spacing`. Focus is reached by trusted Tab and by script focus().
+// In Chromium both reach ScoreSvg's document `focusin` tracker. In headless
+// Firefox under WebDriver BiDi this driver observes no `focusin` at all (not
+// even for an HTML button), so there the note's ref-detachment record is the
+// only thing that restores focus. Whether headed Firefox with window focus
+// behaves the same is not established here.
 // Standalone CDP (Chromium) / WebDriver BiDi (Firefox) driver.
 const firefox = Boolean(process.env.CHANT_FIREFOX_URL);
 const pages = firefox
@@ -159,6 +162,16 @@ const focused = (attribute) =>
     `(()=>{const e=document.activeElement;return e&&e.hasAttribute('${attribute}')?{id:e.getAttribute('${attribute}'),system:Number(e.closest('[data-system-index]').dataset.systemIndex)}:{id:null,tag:e?.tagName,cls:e?.getAttribute?.('class')}})()`,
   );
 
+const lyricSystem = (id) =>
+  ev(
+    `Number(document.querySelector('.score [data-syllable-id="${id}"]').closest('[data-system-index]').dataset.systemIndex)`,
+  );
+/** Identity of document.activeElement, for focus loss vs redirection. */
+const activeElement = () =>
+  ev(
+    `(()=>{const e=document.activeElement;return {tag:e?.tagName??null,noteId:e?.getAttribute?.('data-note-id')??null,syllableId:e?.getAttribute?.('data-syllable-id')??null}})()`,
+  );
+
 /** Picks a control whose system differs between measured and fallback layout. */
 async function movingControls(attribute) {
   const measured = await systemsById(attribute);
@@ -237,12 +250,12 @@ try {
   );
   const noteSelector = (id) => `.score [data-note-id="${id}"][role="button"]`;
 
-  // 1. Native Tab arrival (bubbling focusin path).
+  // 1. Native Tab arrival.
   await tabInto(noteSelector(notes[0]));
   await assertSurvivesReparent('data-note-id', notes[0], 'Tab-focused note');
 
-  // 2. Script focus. Headless Firefox emits no focus event for this, so only
-  // the note's ref-detachment memory can carry focus through the reparent.
+  // 2. Script focus. Like case 1, Firefox here relies on the detachment
+  // record; this case also leaves notes[1] as the score's tracked focus.
   await ev(
     `(document.querySelector(${JSON.stringify(noteSelector(notes[1]))}).focus(),true)`,
   );
@@ -250,32 +263,72 @@ try {
   await assertSurvivesReparent('data-note-id', notes[1], 'script-focused note');
 
   // 3. A focused lyric (lyric-spacing covers this in Chromium only). Lyrics
-  // have no ref-detachment memory. In headless Firefox the base (9b9d2af)
-  // already loses lyric focus here, because no focus event reaches the
-  // score's tracker. That defect predates readability M2 and is reported,
-  // not asserted, until the owner decides on a fix. Chromium asserts it.
-  await tabInto(`.score [data-syllable-id="${lyrics[0]}"]`);
-  if (firefox) {
-    try {
-      await assertSurvivesReparent('data-syllable-id', lyrics[0], 'lyric');
+  // have no ref-detachment record. Preconditions are strict in both browsers.
+  // In headless Firefox the exact base 9b9d2af already redirects focus to the
+  // note the tracker last recorded (notes[1], from case 2) instead of keeping
+  // the lyric. That pre-M2 behavior, and only that exact outcome, is reported
+  // rather than failed; any other outcome fails.
+  const lyricId = lyrics[0];
+  await ev(
+    `(window.__focusins=[],document.addEventListener('focusin',e=>window.__focusins.push(e.target.getAttribute?.('data-syllable-id')??e.target.tagName)),true)`,
+  );
+  await tabInto(`.score [data-syllable-id="${lyricId}"]`);
+  const lyricBefore = await focused('data-syllable-id');
+  assert.equal(lyricBefore.id, lyricId, 'lyric: focused before reflow');
+  console.log(
+    `Observed focusin targets while reaching the lyric: ${JSON.stringify(await ev('window.__focusins'))}`,
+  );
+  await fonts('loading');
+  assert.notEqual(
+    await lyricSystem(lyricId),
+    lyricBefore.system,
+    'lyric: fallback really moves the lyric to another system',
+  );
+  const lyricDuring = await activeElement();
+  await fonts('loadingdone');
+  assert.equal(
+    await lyricSystem(lyricId),
+    lyricBefore.system,
+    'lyric: returns to its system',
+  );
+  const lyricAfter = await activeElement();
+  console.log(
+    `Active element after fallback: ${JSON.stringify(lyricDuring)}; after measured return: ${JSON.stringify(lyricAfter)}`,
+  );
+  const keptLyric = (active) => active.syllableId === lyricId;
+  if (!firefox || (keptLyric(lyricDuring) && keptLyric(lyricAfter))) {
+    assert.ok(
+      keptLyric(lyricDuring),
+      'lyric: focus survives fallback reparent',
+    );
+    assert.ok(keptLyric(lyricAfter), 'lyric: focus survives measured reparent');
+    console.log('PASS: lyric keeps focus through both reparents');
+    if (firefox)
       console.log(
-        'NOTE: Firefox lyric reparent focus now passes; the known baseline defect may be fixed. Make this check strict.',
+        'NOTE: the known Firefox lyric redirection was not observed; make this check strict.',
       );
-    } catch (error) {
-      console.log(
-        `KNOWN BASELINE DEFECT (Firefox, not an M2 regression): ${error.message}`,
-      );
-      await fonts('loadingdone');
-    }
   } else {
-    await assertSurvivesReparent('data-syllable-id', lyrics[0], 'lyric');
+    const redirected = { tag: 'g', noteId: notes[1], syllableId: null };
+    assert.deepEqual(
+      lyricDuring,
+      redirected,
+      'Firefox lyric: only the baseline redirection to notes[1] is tolerated',
+    );
+    assert.deepEqual(lyricAfter, redirected);
+    console.log(
+      'KNOWN BASELINE BEHAVIOR (headless Firefox, pre-M2): lyric focus redirected to the stale tracked note notes[1], not lost.',
+    );
   }
 
-  // 4. Reflow never steals focus from outside the score.
+  // 4. Reflow leaves focus on a palette button outside the score alone.
+  // (Focus resting on <body> with a stale tracked control is not covered.)
   await ev(
     `(document.querySelector('.neume-palette [data-tool="select"]').focus(),true)`,
   );
   await pause();
+  console.log(
+    `Observed focusin targets after script-focusing the HTML Select button: ${JSON.stringify(await ev('window.__focusins'))}`,
+  );
   const outside = `document.activeElement?.dataset?.tool ?? document.activeElement?.tagName`;
   assert.equal(await ev(outside), 'select');
   await fonts('loading');
@@ -285,7 +338,7 @@ try {
   console.log('PASS: reflow leaves focus outside the score alone');
 
   console.log(
-    `PASS: score focus reparenting (${firefox ? 'Firefox' : 'Chromium'}) for Tab- and script-focused notes, ${firefox ? 'lyrics (reported only), ' : 'lyrics, '}and outside focus.`,
+    `PASS: score focus reparenting (${firefox ? 'Firefox' : 'Chromium'}) for Tab- and script-focused notes, lyrics and a palette button.`,
   );
 } finally {
   if (ownsSession) await rawSend('session.end').catch(() => {});
