@@ -159,6 +159,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'editor-toolbar',
+    script: 'editor-toolbar/browser-check.mjs',
+    server: 'preview',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'local-persistence',
     script: 'local-persistence/browser-check.mjs',
     server: 'preview',
