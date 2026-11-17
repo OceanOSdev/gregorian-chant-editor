@@ -14,12 +14,12 @@ one-way dependencies and code whose structure explains the interaction model.
 
 Current master inventory (2026-11-17; line counts from the checked-in source):
 
-| Module | Approx. lines | Observed responsibilities |
-| --- | ---: | --- |
-| `src/editor/components/ChantEditor.tsx` | 1,913 | persisted session and dispatch; measured layout; selection/accidental/note/lyric projections; tool and history commands; global keyboard listeners; palette focus and split-menu logic; document options; action bar; massive `ScoreSvg` callback wiring; contextual toolbars and lyric controls |
-| `src/editor/rendering/ScoreSvg.tsx` | 1,489 | SVG root/focus restoration and reveal; per-system clipping and ledger rendering; clefs/divisions/neumes/accidentals; note and lyric keyboard/pointer controls; selection feedback; graphical ghosts and caret |
-| `src/editor/layout/layout-chant.ts` | 1,274 | public layout types/constants; `placeNeumeSequence` horizontal walker; word compaction/hyphens/wrapping; positional rebuild and measurements; final systems and slots/lyrics/canvas |
-| `src/editor/state/editor-session.ts` | 1,904 | pure action reduction and transition policy, semantic command dispatch, history and focus request reconciliation |
+| Module                                  | Approx. lines | Observed responsibilities                                                                                                                                                                                                                                                                        |
+| --------------------------------------- | ------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/editor/components/ChantEditor.tsx` |         1,913 | persisted session and dispatch; measured layout; selection/accidental/note/lyric projections; tool and history commands; global keyboard listeners; palette focus and split-menu logic; document options; action bar; massive `ScoreSvg` callback wiring; contextual toolbars and lyric controls |
+| `src/editor/rendering/ScoreSvg.tsx`     |         1,489 | SVG root/focus restoration and reveal; per-system clipping and ledger rendering; clefs/divisions/neumes/accidentals; note and lyric keyboard/pointer controls; selection feedback; graphical ghosts and caret                                                                                    |
+| `src/editor/layout/layout-chant.ts`     |         1,274 | public layout types/constants; `placeNeumeSequence` horizontal walker; word compaction/hyphens/wrapping; positional rebuild and measurements; final systems and slots/lyrics/canvas                                                                                                              |
+| `src/editor/state/editor-session.ts`    |         1,904 | pure action reduction and transition policy, semantic command dispatch, history and focus request reconciliation                                                                                                                                                                                 |
 
 These are distinct problems, not one safe giant extraction. The current
 [architecture](../architecture.md) already assigns semantic authority to
@@ -171,6 +171,7 @@ over adding a testing framework. Add small tests only for new boundaries,
 reset semantics or focus lifecycle where preexisting coverage is inadequate.
 
 Verify:
+
 1. Palette roving focus across ordinary, split and division family controls;
    dropdown/variants, clicking while in select/placement mode, remembered
    tool/Quilisma appearance, accessible press and disabled states.
@@ -214,6 +215,7 @@ focused repair plans unless M1 demonstrably introduces a regression.
 ## Architectural evidence / definition of done
 
 The PR must explain:
+
 - Which module owns palette browser focus, tool selection intent and action
   rendering, and which remains the sole semantic transition authority.
 - How replacement/reload resets presentation state and how palette focus
@@ -231,12 +233,13 @@ The PR must explain:
 
 No schema, domain, accepted ADR or feature behavior change is authorized.
 A behavior-preserving ownership clarification should not need a new ADR.
-If an accepted design *must* change, stop and request an owner decision
+If an accepted design _must_ change, stop and request an owner decision
 before writing a conflicting ADR amendment.
 
 ## Stop conditions
 
 Stop the affected portion and report alternatives if:
+
 - The proposed palette/action seam produces a giant props surface or forces
   duplicated derived session state; choose a narrower extraction.
 - A keyboard event, focus request or document-replacement lifecycle cannot
