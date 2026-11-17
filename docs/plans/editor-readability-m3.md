@@ -32,7 +32,7 @@ The following line ranges are approximate, anchored to the specified base; inspe
 A reasonable candidate (names provisional, not required) is:
 
 1. **Horizontal composition** — `horizontal-system-composition.ts` owns the current horizontal walker, its internal data types/constants and any helpers intrinsic to it. It returns ordered, canonical-local `PositionedSystem` data, not `ChantLayout` and not a second authoritative score. Retain the walker's related state and `finishSystem` / event handling together; do not break the algorithm into an elaborate strategy hierarchy or tiny wrappers just to shorten functions.
-2. **Vertical positioning / layout assembly** — retain `system-vertical-layout.ts` as the owner of `measureSystemVertical` / `stackSystems`. A cohesive internal module or a few well-named phase functions may own the *consumer-side* rebuilding and assembly (resolved systems, lyrics, hyphens, ownership clips, insertion slots, canvas). If splitting these responsibilities creates circular runtime dependencies or an enormous shared context, leave smaller portions in `layout-chant.ts` and explain why.
+2. **Vertical positioning / layout assembly** — retain `system-vertical-layout.ts` as the owner of `measureSystemVertical` / `stackSystems`. A cohesive internal module or a few well-named phase functions may own the _consumer-side_ rebuilding and assembly (resolved systems, lyrics, hyphens, ownership clips, insertion slots, canvas). If splitting these responsibilities creates circular runtime dependencies or an enormous shared context, leave smaller portions in `layout-chant.ts` and explain why.
 3. **Public orchestrator and compatibility surface** — `layoutChant(document, measure)` should read like the actual sequence: prepare input → compose horizontally once → measure/stack → rebuild/attach → finalize. It is the only public layout entry point. Keep existing public exported helpers, type re-exports and constants compatible with their current callers.
 
 Before coding, map the proposed import graph. Shared internal records may live in a small internal types module if necessary. **Avoid any runtime dependency cycle** between the horizontal module, assembler and `layout-chant.ts`. Type-only references are acceptable where they do not obscure ownership. Do not add a generic pipeline framework, context object with scores of unrelated fields, service class, plugin system or alternate "draft layout" model.
@@ -103,6 +103,7 @@ Accepted ADRs remain authoritative. This refactor should require **no new ADR** 
 ### 1. Baseline and structural understanding
 
 Before implementation, inventory:
+
 - all external imports of `layout-chant.ts`, including its public exports;
 - every horizontal input/output type and each state variable in `placeNeumeSequence`;
 - phase dependencies, especially whether finalizing a system affects subsequent wrapping;
@@ -115,7 +116,7 @@ Record the proposed module graph and why each extracted unit owns a coherent res
 For the **exact M3 base** and the final candidate, compare serialized `layoutChant` outputs and public helper results on a broad fixture matrix. Use deterministic, complete structural comparisons rather than screenshots or selective bounds. Cover at least:
 
 - Empty/single/neume-only scores; normal multi-system wrapping, exact fit and leading/trailing divisions or mid-score clef changes;
-- Gregorian chant bundled examples: Kyrie XI, Dominican Salve Regina (including the low note at *Et Jesum*), Pater Noster and any other applicable examples;
+- Gregorian chant bundled examples: Kyrie XI, Dominican Salve Regina (including the low note at _Et Jesum_), Pater Noster and any other applicable examples;
 - Measured and missing/partial lyric metrics, narrow and oversize syllables, same-word compact and intra-syllable spacing, melismas, continuation/outgoing hyphens and forced word boundary exceptions;
 - Written accidentals (including independently placed signs), rhythmic signs, repeated-note and compound neumes, clef changes and custodes;
 - Expanded high/low systems, extreme ledger coordinates, clipping bands, staff/baseline positions, canvas bounds and negative x origins;
@@ -130,6 +131,7 @@ Run the standard gate in [testing](../testing.md): `npm run format:check`, `npm 
 Inspect the browser-runner manifest and run appropriate Chromium and Firefox drivers on the **final substantive revision**, including layout/wrapping/word-composition/lyric-spacing, divisions, mid-score clefs, accidental placement, dynamic-vertical-layout, ledger lines, note-shapes, selection and bundled examples. A full preset on both browsers is desirable given the breadth of M3, with a base-versus-branch pair comparison. Do not call known flaky baseline cases "passes" or treat old six-failure counts as waivers. Reproduce any suspicious failure on the exact base before classifying it. Do not weaken tests or rewrite expected engravings solely to make the refactor pass.
 
 Verify production preview (prefer the repository's browser runner), particularly:
+
 - reflow triggered by lyric measurements, whole-neume wrapping and stable IDs;
 - expanded systems with the shared lyric baseline, 24-unit system gap and bounded music clip;
 - score/preview/pointer alignment after reflow and unusual canvases;
