@@ -148,3 +148,14 @@ Actual repository checks for this evidence-only change:
 - Browser feature drivers: not run; no application feature was implemented.
 
 Successful baseline checks cannot establish Stage 8D acceptance.
+
+## Stage 11B driver update (2026-11-16)
+
+[ADR 0028](../../adrs/0028-compose-before-vertical-lyric-clearance.md)
+qualifies the lyric-clearance engraving recorded here. `browser-check.mjs`
+now expects a high sign to add room above the staff inside its system (not a
+negative canvas origin), the anchored current-group case to keep the compact
+A-men join (no hyphen), and the narrow-join sign to lie above the lyric row
+(rather than ending before the previous lyric's edge). Every 2-D sign, lyric
+and hyphen non-overlap check is unchanged. Historical evidence below
+describes the former policy and was not refreshed.

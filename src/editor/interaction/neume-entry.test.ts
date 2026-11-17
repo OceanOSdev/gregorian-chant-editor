@@ -85,10 +85,7 @@ describe.each(Object.values(entryPitchCases))(
         if (!system || !slot) throw new Error('Missing insertion slot');
         const graphical = resolveGraphicalNeumePlacement(layout, kind, {
           x: slot.x,
-          y: staffPositionY(
-            staffPosition(first),
-            Math.max(...system.staffLines.map((line) => line.y)),
-          ),
+          y: staffPositionY(staffPosition(first), system.bottomStaffY),
         });
         expect(graphical?.staffPositions).toEqual(expected);
         expect(graphical?.boundary).toEqual(toolbar?.boundary);

@@ -280,9 +280,13 @@ and tests must be updated deliberately.
 transforms or non-finite results produce no point.
 
 The canonical graphical resolver accepts a point only when it belongs to
-exactly one rendered system. Points in the vertical gap, outside the score, or
-outside the staff's horizontal placement region are rejected. Placement works
-on first, middle, and final rendered systems.
+exactly one rendered system, using each system's measured `y` and `height`
+(Stage 11B systems can be taller than 220 units). Points in the 24-unit
+vertical gap, outside the score, or outside the staff's horizontal placement
+region are rejected. Placement works on first, middle, and final rendered
+systems, including systems after an expanded one. Placement ghosts never
+trigger reflow; a committed note may expand its system and move later ones,
+while selection and focus follow stable IDs.
 
 ### Pitch snapping and contours
 
@@ -444,8 +448,9 @@ would make ordinary focus navigation change editing context or commit a draft.
 
 Purple marks selection: neumes retain their dashed outline and lyrics use a
 contained background highlight. Engraved-lyric keyboard
-focus uses a blue caret and a separate “Keyboard focus” caption, rather than
-another enclosing active box. The lyric panel names the currently focused
+focus uses a blue caret below the syllable and a separate “Keyboard focus”
+caption beneath it (both in the lyric row's bottom padding, clear of low
+notes and the text), rather than another enclosing active box. The lyric panel names the currently focused
 syllable and explains that Delete/Backspace deletes it and Enter edits it.
 The selection summary names the selected syllable; **Edit selected syllable**
 and **Delete selected syllable** keep acting on that selection. Their activation

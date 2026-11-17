@@ -189,7 +189,7 @@ it('shared signed preview, complete advances, whole-neume wrapping and stable id
       expect(neume.advanceX).toBe(neume.bounds.width + 33);
     }
   const source = layout.systems[0];
-  const bottom = Math.max(...source.staffLines.map((line) => line.y));
+  const bottom = source.bottomStaffY;
   const preview = layoutGraphicalPlacementPreview(
     layout,
     {

@@ -10,15 +10,17 @@ import { moveNoteVertically } from '../commands/move-note';
 import {
   firstNeumeCenterX,
   firstSystemBottomStaffY,
-  firstSystemLyricBaselineY,
   layoutChant,
   measureNeumeWidth,
   staffEndX,
-  systemGap,
-  systemHeight,
   systemVerticalAdvance,
   wrapNeumes,
 } from './layout-chant';
+import {
+  canonicalLyricBaselineY,
+  systemGap,
+  systemHeight,
+} from './system-vertical-layout';
 
 function punctum(id: string): PunctumNeume {
   return {
@@ -242,7 +244,7 @@ describe('multi-system chant layout', () => {
     expect(high?.ink).toHaveLength(2);
     expect(high?.bounds.y).toBeGreaterThanOrEqual(layout.systems[1]?.y ?? 0);
     expect((finalHighNote?.y ?? 0) + (finalHighNote?.height ?? 0)).toBeLessThan(
-      firstSystemLyricBaselineY + systemVerticalAdvance,
+      canonicalLyricBaselineY + systemVerticalAdvance,
     );
   });
 
@@ -290,7 +292,7 @@ describe('multi-system chant layout', () => {
       {
         syllableId: 'syllable-2',
         x: (secondNeume?.bounds.x ?? 0) + (secondNeume?.bounds.width ?? 0) / 2,
-        y: firstSystemLyricBaselineY + systemVerticalAdvance,
+        y: canonicalLyricBaselineY + systemVerticalAdvance,
       },
     ]);
     expect(layout.systems.flatMap((system) => system.lyrics)).toHaveLength(2);

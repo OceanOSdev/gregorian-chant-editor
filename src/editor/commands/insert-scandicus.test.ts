@@ -151,9 +151,7 @@ describe('insertScandicus', () => {
     const document = createDocument();
     const layout = layoutChant(document);
     const staffLine = layout.systems[0]?.staffLines[0];
-    const bottomStaffY = Math.max(
-      ...layout.systems[0]?.staffLines.map((line) => line.y),
-    );
+    const bottomStaffY = layout.systems[0]?.bottomStaffY ?? NaN;
 
     if (!staffLine) {
       throw new Error('Missing staff geometry');

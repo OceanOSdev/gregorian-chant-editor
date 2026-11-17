@@ -4,7 +4,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
 import { isValidLyricText } from '../domain/lyrics';
 import { nextSyllableId } from '../interaction/syllable-navigation';
-import type { ChantLayout } from '../layout/layout-chant';
+import type { ChantLayout, ChantSystemLayout } from '../layout/layout-chant';
+import { lyricFontSize } from '../layout/lyric-text-metrics';
 import {
   focusAndReveal,
   getVisibilityAdjustment,
@@ -41,6 +42,11 @@ interface SyllableControlsProps {
   onAction: (action: LyricAction) => void;
   onHistoryChoice: (choice: 'save' | 'discard' | 'cancel') => void;
   onFocusHandled: (request: EditorFocusRequest) => void;
+}
+
+/** Score units from the canvas top to the floating lyric entry. */
+function lyricEntryTop(system: ChantSystemLayout, canvasTop: number) {
+  return system.lyricBaselineY - lyricFontSize - 4 - canvasTop;
 }
 
 export function SyllableControls({
@@ -324,10 +330,11 @@ export function SyllableControls({
               layout.width > 720
                 ? '0.5rem'
                 : `clamp(0.5rem, ${((neume.lyricAnchorX - 80) / layout.width) * 100}%, calc(100% - min(13rem, 65%) - 0.5rem))`,
+            // Just above this system's shared lyric baseline (Stage 11B).
             top:
               layout.width > 720
-                ? `${system.y + 156}px`
-                : `${((system.y + 156) / layout.width) * 100}cqw`,
+                ? `${lyricEntryTop(system, layout.y)}px`
+                : `${(lyricEntryTop(system, layout.y) / layout.width) * 100}cqw`,
           }}
           onSubmit={(event) => {
             event.preventDefault();

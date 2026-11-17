@@ -30,10 +30,11 @@ import {
   layoutChant,
   layoutGraphicalPlacementPreview,
   measureNeumeWidth,
-  offStaffCanvasMargin,
   wrapNeumes,
   type NeumeLayout,
 } from './layout-chant';
+import { lyricRowTop, offStaffCanvasMargin } from './system-vertical-layout';
+import { verticalLayoutViolations } from './vertical-clearance.test-cases';
 import type { MeasureLyricText } from './lyric-text-metrics';
 import { decodeDocument } from '../persistence/native-document';
 import {
@@ -725,8 +726,17 @@ describe('ledgers in layout', () => {
           count: 1,
         },
       ]);
-      // Stage 11A keeps the fixed lyric baseline (the collision is 11B).
-      expect(layout.systems[0].height).toBe(220);
+      // Stage 11B: the shared lyric row drops below the low A and its
+      // system grows by the same amount; the staff does not move.
+      const [system] = layout.systems;
+      const rowTop = lyricRowTop(system.lyricBaselineY);
+      expect(system.bottomStaffY).toBe(bottom);
+      expect(je.bounds.y + je.bounds.height).toBe(rowTop);
+      expect(system.lyricBaselineY).toBeGreaterThan(180);
+      expect(system.height).toBe(220 + system.lyricBaselineY - 180);
+      for (const lyric of system.lyrics)
+        expect(lyric.y).toBe(system.lyricBaselineY);
+      expect(verticalLayoutViolations(layout)).toEqual([]);
     }
   });
 
@@ -793,6 +803,14 @@ describe('ledgers in layout', () => {
         expect(layout.height, label).toBeGreaterThanOrEqual(
           offStaffCanvasMargin,
         );
+        // Stage 11B: systems reserve their band-limited ink, so the canvas
+        // starts at the first system and no system exceeds the bounded band.
+        expect(layout.y, label).toBe(0);
+        for (const system of layout.systems)
+          expect(system.height, label).toBeLessThanOrEqual(
+            220 + 2 * offStaffCanvasMargin + 80,
+          );
+        expect(verticalLayoutViolations(layout), label).toEqual([]);
         const neumes = layout.systems.flatMap((system) => system.neumes);
         for (const neume of neumes) {
           expect(Number.isFinite(neume.bounds.y), label).toBe(true);

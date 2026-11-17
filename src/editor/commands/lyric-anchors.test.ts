@@ -206,7 +206,7 @@ it('graphical insertion stays on the hovered system despite remote lyric anchors
   const system = layout.systems[2];
   const placement = resolveGraphicalNeumePlacement(layout, 'punctum', {
     x: 64,
-    y: Math.max(...system.staffLines.map((l) => l.y)) - 24,
+    y: system.bottomStaffY - 24,
   });
   expect(placement?.insertionIndex).toBe(system.startNeumeIndex);
   expect(placement?.preview.caret.systemIndex).toBe(2);

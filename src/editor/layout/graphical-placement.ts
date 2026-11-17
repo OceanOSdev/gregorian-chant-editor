@@ -108,7 +108,7 @@ export function layoutGraphicalPlacementPreview(
     : previousRight === null
       ? firstNeumeCenterX
       : previousRight + interNeumeInkGap / 2;
-  const bottomStaffY = Math.max(...source.staffLines.map((line) => line.y));
+  const { bottomStaffY } = source;
   const kind = entryGeometryKind(placement.kind);
   const measured = buildNeumeGeometry(
     kind,

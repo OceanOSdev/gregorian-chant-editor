@@ -269,8 +269,9 @@ connections without altering heads or imposing an interval cutoff. This is a
 Δ5 and retaining the Clivis Δ4–5 leading-stem plateau are **project
 extrapolations**, not prescriptions verified against published large-interval
 glyphs. No interval cutoff or semantic restriction is imposed. Extreme pitches
-can exceed fixed system height; this milestone adds no vertical collision
-handling, ledger lines, or clef changes.
+could exceed the fixed system height of that milestone; Stage 11A later
+added ledger lines and Stage 11B
+[measured system heights](#vertical-system-metrics-stage-11b).
 
 ## Climacus and Porrectus reference basis
 
@@ -664,3 +665,29 @@ ordinary placement rules and treat ledger strokes as ink: a horizontal
 episema whose nominal 16-unit position above a note just below a ledger would
 touch that stroke follows the existing above-then-below order and takes the
 same distance below; a vertical episema moves to its next clear distance.
+
+## Vertical system metrics (Stage 11B)
+
+Project conventions (ADR 0028), in the canonical system-local frame (system
+top 0, bottom staff line 124, staff lines 24 units apart). The full contract
+and formulas are in
+[layout and rendering](layout-and-rendering.md#dynamic-vertical-system-layout-stage-11b).
+
+| Property                   | Project value                                    |
+| -------------------------- | ------------------------------------------------ |
+| Minimum system height      | 220                                              |
+| Inter-system gap           | 24                                               |
+| Ordinary lyric baseline    | 180                                              |
+| Lyric row                  | 20 above / 5 below the baseline (20-unit font)   |
+| Music-to-lyric clearance   | 3 (formerly the sign-band clearance)             |
+| Ink-to-system-edge padding | 12                                               |
+| Room below the lyric row   | 35                                               |
+| Canonical maximum band     | 1,200 beyond the canonical 220-unit system edges |
+| Resolved band (clip)       | canonical band ∩ the system's measured box       |
+
+The lyric row is a fixed reservation. In the available Linux Chromium and
+Firefox the lyric stack resolves to Liberation Serif; there accented Latin
+capitals reached 19 units of ascent and descenders 5 units of descent (a
+zero descent margin). Georgia and Times New Roman on other platforms were not
+measured. A low punctum at -3 (ledger at -2; head ink 154–166) lowers its
+system's baseline by 9 units (ink bottom 166 → baseline 189, height 229).

@@ -780,11 +780,19 @@ try {
         },
       ];
       await hydrate(high);
+      // Stage 11B (ADR 0028): the high sign adds room above the staff in
+      // its own system instead of a negative canvas origin (formerly
+      // asserted as box.top < 0); staff and sign move down together.
       const box = await ev(
-        `(()=>{const s=document.querySelector('svg.score'),v=s.viewBox.baseVal,b=s.querySelector('.score__accidental-ink').getBBox();return {top:v.y,bottom:v.y+v.height,inkTop:b.y,inkBottom:b.y+b.height}})()`,
+        `(()=>{const s=document.querySelector('svg.score'),v=s.viewBox.baseVal,b=s.querySelector('.score__accidental-ink').getBBox(),g=s.querySelector('[data-system-index="0"]'),staff=Math.max(...[...g.querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1')));return {top:v.y,bottom:v.y+v.height,inkTop:b.y,inkBottom:b.y+b.height,systemTop:+g.dataset.systemTop,systemBottom:+g.dataset.systemTop+ +g.dataset.systemHeight,staff}})()`,
       );
       assert.ok(
-        box.top < 0 && box.inkTop >= box.top && box.inkBottom <= box.bottom,
+        box.top === 0 &&
+          box.staff > 124 &&
+          box.inkTop >= box.systemTop + 12 &&
+          box.inkBottom <= box.systemBottom &&
+          box.inkTop >= box.top &&
+          box.inkBottom <= box.bottom,
         JSON.stringify(box),
       );
       await snapshot(`high-${kind}-${explicit}`);
@@ -885,7 +893,10 @@ try {
     const metrics = await ev(
       `(()=>{const box=e=>{const b=e.getBBox();return {x:b.x,y:b.y,width:b.width,height:b.height}};return {signs:[...document.querySelectorAll('.score__accidental-ink')].map(box),hyphens:[...document.querySelectorAll('.score__hyphens text')].map(box),lyrics:[...document.querySelectorAll('.score__lyric')].map(box)}})()`,
     );
-    assert.equal(metrics.hyphens.length, 1);
+    // ADR 0028: the sign is no longer a lyric-row obstacle, so the anchored
+    // case keeps the compact A-men join (formerly a forced hyphen) and the
+    // prefix case centres its hyphen in the text gap; no ink may overlap.
+    assert.equal(metrics.hyphens.length, explicit ? 0 : 1);
     assert.equal(metrics.signs.length, 1);
     for (const h of metrics.hyphens)
       for (const b of [...metrics.signs, ...metrics.lyrics]) {
@@ -961,11 +972,15 @@ try {
       assert.equal(metrics.hyphens.length, 0, JSON.stringify(metrics));
       assert.equal(metrics.signs.length, signed ? 1 : 0);
       const [, before, after] = metrics.lyrics;
+      // ADR 0028: the sign keeps its music-only column and cannot obstruct
+      // a hyphen because the lyric row clears it vertically. (Formerly the
+      // lyric box pushed it left, so this asserted it ended before the
+      // previous lyric's right edge.)
       if (signed)
         assert.ok(
-          metrics.signs[0].x + metrics.signs[0].width <=
-            before.x + before.width,
-          'the sign ends before the previous lyric edge',
+          metrics.signs[0].y + metrics.signs[0].height + 3 <=
+            Math.min(...metrics.lyrics.map((l) => l.y)),
+          'the sign lies above the lyric row',
         );
       gaps.push(after.x - (before.x + before.width));
       if (signed) {

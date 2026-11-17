@@ -207,3 +207,15 @@ No existing ADR is superseded. Implementation and foreground acceptance
 remain pending in PR #89. See the
 [research record](../verification/liquescent-notation/README.md) and the
 [approved Stage 10B plan](../plans/stage-10b-liquescent-podatus-clivis.md).
+
+[Accepted ADR 0028: Compose systems horizontally before resolving vertical lyric clearance](0028-compose-before-vertical-lyric-clearance.md)
+records the owner-approved Stage 11B policy (2026-11-16): compose in a
+canonical system-local frame, measure each system's band-limited musical ink,
+then stack systems with a shared, content-dependent lyric baseline. Signs
+clear musical ink only; the lyric row clears them vertically. It narrowly
+qualifies ADR 0021's lyric requirement; ADRs 0007, 0010, 0011, 0013 and 0026
+remain Accepted and no semantic or persistence decision changes. The
+implementation is on `feat/dynamic-vertical-layout`; foreground owner
+acceptance is pending. See the
+[Stage 11B plan](../plans/stage-11b-dynamic-vertical-layout.md) and
+[verification record](../verification/dynamic-vertical-layout/README.md).

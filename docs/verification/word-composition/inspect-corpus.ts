@@ -5,8 +5,6 @@ import {
   compactNeumeInkGap,
   lyricJoinClearance,
   staffEndX,
-  systemVerticalAdvance,
-  firstSystemBottomStaffY,
   type ChantLayout,
 } from '../../../src/editor/layout/layout-chant';
 import {
@@ -94,7 +92,7 @@ export function inspectCorpusCase(
         semantic.kind,
         semantic.notes.map((note) => note.staffPosition),
         n.bounds.x,
-        firstSystemBottomStaffY + system.index * systemVerticalAdvance,
+        system.bottomStaffY,
       );
       check(
         JSON.stringify(n.ink) === JSON.stringify(original.ink),
@@ -212,7 +210,7 @@ export function inspectCorpusCase(
         previousNeume.bounds.x +
           previousNeume.bounds.width +
           compactNeumeInkGap,
-        firstSystemBottomStaffY + system.index * systemVerticalAdvance,
+        system.bottomStaffY,
       );
       const extents = lyricTextExtents(lyric.alignment);
       if (extents) {

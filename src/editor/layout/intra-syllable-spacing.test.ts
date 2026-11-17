@@ -20,7 +20,6 @@ import { isValidNeume } from '../domain/neume';
 import {
   layoutChant,
   firstSystemBottomStaffY,
-  systemVerticalAdvance,
   staffEndX,
   type NeumeLayout,
 } from './layout-chant';
@@ -436,7 +435,7 @@ it.each(['Christe', 'last Kyrie'] as const)(
           semantic.kind,
           semantic.notes.map((q) => q.staffPosition),
           n.bounds.x,
-          firstSystemBottomStaffY + system.index * systemVerticalAdvance,
+          system.bottomStaffY,
           semantic.notes,
         );
         expect(n.ink).toEqual(original.ink);
@@ -524,7 +523,7 @@ it('keeps all fourteen existing kinds independent with unchanged geometry and ly
           semantic.kind,
           semantic.notes.map((v) => v.staffPosition),
           n.bounds.x,
-          firstSystemBottomStaffY + s.index * systemVerticalAdvance,
+          s.bottomStaffY,
         );
         expect(n.ink).toEqual(original.ink);
         expect(n.lyricAnchorX).toBe(original.lyricAnchorX);

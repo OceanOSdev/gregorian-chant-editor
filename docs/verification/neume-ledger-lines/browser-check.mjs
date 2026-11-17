@@ -666,36 +666,73 @@ try {
     const started = Date.now();
     const extremeBytes = await hydrate(extreme);
     const loadMs = Date.now() - started;
-    // The canvas stops 1,200 units beyond the systems; nothing painted
-    // (ledger runs, custos ledgers, outlines) exceeds the canvas by more than
-    // one ledger space, so no browser tiles or strokes a 10^17-unit shape.
+    // Stage 11B: each system's measured extent reserves its musical ink,
+    // clamped to the canonical band 1,200 units beyond the canonical
+    // 220-unit system; the canvas is exactly the stacked systems. Each
+    // system's resolved band is that canonical band intersected with its own
+    // box and clips musical ink and pointer regions. Nothing painted (ledger
+    // runs, custos ledgers, outlines) exceeds its own system's band by more
+    // than one ledger space, and no browser tiles or strokes a 10^17-unit
+    // shape. (Stage 11A asserted a -1200 canvas origin and fixed 244-unit
+    // advances instead.)
     const painted = () =>
       ev(`(()=>{
         const svg=document.querySelector('svg.score');
         const v=svg.viewBox.baseVal;
+        const frame=(e)=>{const g=e.closest('[data-system-index]');return g?{top:+g.dataset.musicTop,bottom:+g.dataset.musicBottom}:null};
         const rects=[...svg.querySelectorAll('.score__ledger-run,.score__custos-ledgers,.score__neume-selection,.score__range-selection')]
-          .map(r=>({cls:r.getAttribute('class'),y:+r.getAttribute('y'),h:+r.getAttribute('height'),count:+(r.dataset.ledgerCount??0),painted:+(r.dataset.paintedLedgerCount??r.dataset.ledgerCount??0)}));
+          .filter(r=>!r.closest('.score__placement-ghost'))
+          .map(r=>({cls:r.getAttribute('class'),y:+r.getAttribute('y'),h:+r.getAttribute('height'),count:+(r.dataset.ledgerCount??0),painted:+(r.dataset.paintedLedgerCount??r.dataset.ledgerCount??0),band:frame(r)}));
         const lines=[...svg.querySelectorAll('.score__staff-line')].map(l=>+l.getAttribute('y1'));
         const bottoms=[];for(let i=0;i<lines.length;i+=4)bottoms.push(Math.max(...lines.slice(i,i+4)));
-        return {view:{top:v.y,bottom:v.y+v.height,height:v.height},rects,bottoms,systems:bottoms.length,scrollHeight:document.documentElement.scrollHeight};
+        const systems=[...svg.querySelectorAll('g[data-system-index]')].map(g=>{
+          const clip=g.querySelector(':scope > defs > clipPath > rect');
+          const music=g.querySelector(':scope > .score__system-music');
+          return {top:+g.dataset.systemTop,height:+g.dataset.systemHeight,musicTop:+g.dataset.musicTop,musicBottom:+g.dataset.musicBottom,
+            clipTop:+clip.getAttribute('y'),clipHeight:+clip.getAttribute('height'),
+            clipped:!!music&&music.getAttribute('clip-path')==='url(#'+clip.parentElement.id+')'};
+        });
+        return {view:{top:v.y,bottom:v.y+v.height,height:v.height},rects,bottoms,systems,scrollHeight:document.documentElement.scrollHeight};
       })()`);
     let state = await painted();
-    const systemsBottom = state.systems * 244 - 24;
-    assert.equal(state.view.top, -1200, 'canvas top bounded at the margin');
+    const lastSystem = state.systems.at(-1);
+    assert.equal(state.view.top, 0, 'canvas starts at the first system');
     assert.equal(
       state.view.bottom,
-      systemsBottom + 1200,
-      'canvas bottom bounded at the margin',
+      lastSystem.top + lastSystem.height,
+      'canvas ends at the last measured system',
     );
+    state.systems.forEach((system, i) => {
+      assert.ok(system.clipped, `system ${i} clips its musical ink`);
+      assert.equal(system.clipTop, system.musicTop);
+      assert.equal(system.clipHeight, system.musicBottom - system.musicTop);
+      assert.ok(system.musicTop >= system.top, 'band within system box');
+      assert.ok(
+        system.musicBottom <= system.top + system.height,
+        'band within system box',
+      );
+      assert.ok(
+        system.musicBottom - system.musicTop <= 220 + 2 * 1200,
+        'band no larger than the canonical maximum band',
+      );
+      assert.ok(system.height <= 2700, `system ${i} height bounded`);
+      if (i)
+        assert.equal(
+          system.top,
+          state.systems[i - 1].top + state.systems[i - 1].height + 24,
+          'systems stack by measured height and the 24-unit gap',
+        );
+    });
     const ledgerRects = state.rects.filter((r) => /ledger/.test(r.cls));
     assert.ok(
       ledgerRects.some((r) => r.cls === 'score__custos-ledgers'),
       'distant custodes are present',
     );
     for (const r of state.rects) {
-      assert.ok(r.y >= state.view.top - 24 - 0.75, `${r.cls} top in band`);
+      assert.ok(r.band, `${r.cls} belongs to a system`);
+      assert.ok(r.y >= r.band.top - 24 - 0.75, `${r.cls} top in band`);
       assert.ok(
-        r.y + r.h <= state.view.bottom + 24 + 0.75,
+        r.y + r.h <= r.band.bottom + 24 + 0.75,
         `${r.cls} bottom in band`,
       );
     }
@@ -744,14 +781,20 @@ try {
       /neume-selection|range-selection/.test(r.cls),
     );
     assert.ok(farOutline, 'distant neume selection outline is painted');
-    assert.ok(farOutline.y >= state.view.top - 24 - 0.75);
-    assert.ok(farOutline.y + farOutline.h <= state.view.bottom + 24 + 0.75);
+    assert.ok(farOutline.y >= farOutline.band.top - 24 - 0.75);
+    assert.ok(
+      farOutline.y + farOutline.h <= farOutline.band.bottom + 24 + 0.75,
+    );
     moved = (await score()).neumes.find((n) => n.id === 'far1');
     assert.equal(moved.notes[0].staffPosition, max, 'pitch stays semantic');
     console.error(
       'extreme',
       width,
-      JSON.stringify({ loadMs, view: state.view, systems: state.systems }),
+      JSON.stringify({
+        loadMs,
+        view: state.view,
+        systems: state.systems.length,
+      }),
     );
     await key('Escape');
     await snapshot('extreme-' + width);

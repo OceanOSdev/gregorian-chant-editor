@@ -274,6 +274,13 @@ and consult the owning record for feature-specific assertions and manual checks.
   `ledger-lines.test.ts` (ledger math, every family/authored form, merging,
   distant pitches, signs, accidentals, spacing, canvas, ghost/commit and the
   Et Jesum case); runner driver `neume-ledger-lines`.
+- [Dynamic vertical system layout](verification/dynamic-vertical-layout/README.md):
+  `system-vertical-layout.test.ts` (measurement formulas, exact clearance
+  boundaries, stacking, ordinary/expanded/lyricless/provisional systems,
+  x-invariance under vertical expansion, later-system hit mapping and
+  placement, opposing extreme systems, the bundled Salve Regina) with the
+  shared `vertical-clearance.test-cases.ts` invariants; runner driver
+  `dynamic-vertical-layout`.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 
