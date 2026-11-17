@@ -45,7 +45,8 @@ import {
 } from './note-accessible-label';
 import { getScoreAccessibleDescription } from './score-accessible-description';
 import { InkShapeView, NeumeInk } from './NeumeInk';
-import { clampToBand, renderBandFor } from './render-band';
+import { lyricFocusCue } from './lyric-focus-cue';
+import { clampToBand, moveCaptionBaseline, renderBandFor } from './render-band';
 
 export interface SvgPoint {
   x: number;
@@ -161,9 +162,10 @@ export function ScoreSvg({
   onAdvanceLyric,
   onDeleteSyllable,
 }: ScoreSvgProps) {
-  const ledgerId = useId();
+  // Prefix for this score's clip and pattern IDs.
+  const scoreId = useId();
   // Distant but valid pitches: painted elements stop just outside each
-  // system's musical render band (Stage 11A/11B rendering safeguard), whose
+  // system's resolved musical band (Stage 11A/11B rendering safeguard), whose
   // clip also bounds musical ink and pointer regions; geometry is unchanged.
   const bandFor = (system: ChantSystemLayout) =>
     renderBandFor(system.musicBand);
@@ -486,6 +488,10 @@ export function ScoreSvg({
     }
   }
 
+  const placementSystem = placementPreview
+    ? layout.systems[placementPreview.pointerSystemIndex]
+    : undefined;
+
   return (
     <svg
       ref={scoreElement}
@@ -564,13 +570,14 @@ export function ScoreSvg({
 
       {layout.systems.map((system) => {
         const band = bandFor(system);
-        const musicClipId = `${ledgerId}-music-${system.index}`;
+        const musicClipId = `${scoreId}-music-${system.index}`;
         return (
           <g
             key={system.index}
             data-system-index={system.index}
             data-system-top={system.y}
             data-system-height={system.height}
+            data-bottom-staff={system.bottomStaffY}
             data-lyric-baseline={system.lyricBaselineY}
             data-music-top={system.musicBand.top}
             data-music-bottom={system.musicBand.bottom}
@@ -588,7 +595,8 @@ export function ScoreSvg({
             {(() => {
               const range = rangeSelectionBounds(system, rangeIds);
               if (!range) return null;
-              const bounds = clampToBand(range, band);
+              // Drawn outside the system clip: clamp to the band itself.
+              const bounds = clampToBand(range, system.musicBand);
               return (
                 <rect
                   className="score__range-selection"
@@ -600,8 +608,9 @@ export function ScoreSvg({
                 />
               );
             })()}
-            {/* Musical ink and its pointer regions stay inside the band its
-              system reserves; lyrics and hyphens are outside the clip. */}
+            {/* Musical ink, pointer regions and their overlays are clipped to
+              the system's resolved band, inside its own box; lyrics and
+              hyphens are outside the clip. */}
             <g
               className="score__system-music"
               clipPath={`url(#${musicClipId})`}
@@ -639,7 +648,7 @@ export function ScoreSvg({
                         <defs>
                           {/* A tiled run avoids enumerating arbitrarily distant pitches. */}
                           <pattern
-                            id={`${ledgerId}-${system.index}-${i}`}
+                            id={`${scoreId}-${system.index}-${i}`}
                             patternUnits="userSpaceOnUse"
                             viewBox={`0 0 ${run.x2 - run.x1} ${custosLedgerSpacing}`}
                             x={run.x1}
@@ -668,7 +677,7 @@ export function ScoreSvg({
                           height={
                             run.bottomY - run.topY + custosLedgerThickness
                           }
-                          fill={`url(#${ledgerId}-${system.index}-${i})`}
+                          fill={`url(#${scoreId}-${system.index}-${i})`}
                         />
                       </>
                     ) : null}
@@ -782,8 +791,9 @@ export function ScoreSvg({
                     neume.liquescentFigure,
                   );
                   const selectedDescriptionId = `selected-neume-${neume.neumeId}`;
+                  const ownershipClipId = `${scoreId}-hit-${neume.neumeId}`;
                   const ownershipClip = neume.hitClip
-                    ? `url(#hit-clip-${neume.neumeId})`
+                    ? `url(#${ownershipClipId})`
                     : undefined;
                   // Ordinary padding is clipped to layout's ownership interval at
                   // compact boundaries, including lyric reassignment destinations.
@@ -807,7 +817,7 @@ export function ScoreSvg({
                     >
                       {neume.hitClip ? (
                         <defs>
-                          <clipPath id={`hit-clip-${neume.neumeId}`}>
+                          <clipPath id={ownershipClipId}>
                             <rect
                               {...clampToBand(
                                 {
@@ -868,7 +878,10 @@ export function ScoreSvg({
                           <text
                             className="score__move-caption"
                             x={neume.bounds.x}
-                            y={neume.bounds.y - 14}
+                            y={moveCaptionBaseline(
+                              neume.bounds,
+                              system.musicBand,
+                            )}
                           >
                             {lyricMove.anchorId === neume.neumeId
                               ? 'Current anchor'
@@ -1036,11 +1049,7 @@ export function ScoreSvg({
                             ) : null}
                             <g
                               aria-hidden="true"
-                              clipPath={
-                                neume.hitClip
-                                  ? `url(#hit-clip-${neume.neumeId})`
-                                  : undefined
-                              }
+                              clipPath={ownershipClip}
                               pointerEvents={
                                 placementActive || lyricMove
                                   ? 'none'
@@ -1151,11 +1160,7 @@ export function ScoreSvg({
                             />
                             <rect
                               className="score__accidental-target"
-                              clipPath={
-                                neume.hitClip
-                                  ? `url(#hit-clip-${neume.neumeId})`
-                                  : undefined
-                              }
+                              clipPath={ownershipClip}
                               {...a.hitBounds}
                               fill="transparent"
                               stroke={
@@ -1180,11 +1185,7 @@ export function ScoreSvg({
                             lyricMove.candidateId === neume.neumeId ? 3 : 2
                           }
                           pointerEvents="all"
-                          clipPath={
-                            neume.hitClip
-                              ? `url(#hit-clip-${neume.neumeId})`
-                              : undefined
-                          }
+                          clipPath={ownershipClip}
                           aria-hidden="true"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -1318,18 +1319,25 @@ export function ScoreSvg({
                     {lyric.text}
                   </text>
                 </g>
-                <g
-                  className="score__lyric-focus-cue"
-                  aria-hidden="true"
-                  pointerEvents="none"
-                >
-                  <path
-                    d={`M${lyric.x - 5},${lyric.y - lyric.fontSize - 10} h10 l-5,6 Z`}
-                  />
-                  <text x={lyric.x} y={lyric.y + 22} textAnchor="middle">
-                    Keyboard focus
-                  </text>
-                </g>
+                {(() => {
+                  const cue = lyricFocusCue(lyric);
+                  return (
+                    <g
+                      className="score__lyric-focus-cue"
+                      aria-hidden="true"
+                      pointerEvents="none"
+                    >
+                      <path d={cue.path} />
+                      <text
+                        x={cue.labelX}
+                        y={cue.labelBaselineY}
+                        textAnchor="middle"
+                      >
+                        Keyboard focus
+                      </text>
+                    </g>
+                  );
+                })()}
               </g>
             ))}
           </g>
@@ -1389,7 +1397,7 @@ export function ScoreSvg({
           </g>
         </g>
       ) : null}
-      {placementPreview ? (
+      {placementPreview && placementSystem ? (
         <g
           className="score__placement-preview"
           pointerEvents="none"
@@ -1410,9 +1418,7 @@ export function ScoreSvg({
             <NeumeInk
               ink={placementPreview.ink}
               ledgers={placementPreview.ledgers}
-              band={bandFor(
-                layout.systems[placementPreview.pointerSystemIndex],
-              )}
+              band={bandFor(placementSystem)}
             />
           </g>
           {placementPreview.caret.systemIndex !==
@@ -1420,11 +1426,7 @@ export function ScoreSvg({
             <text
               className="score__placement-target"
               x="64"
-              y={(() => {
-                const target =
-                  layout.systems[placementPreview.pointerSystemIndex];
-                return target.y + target.height - 12;
-              })()}
+              y={placementSystem.y + placementSystem.height - 12}
             >
               Insertion: system {placementPreview.caret.systemIndex + 1}
             </text>

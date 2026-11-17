@@ -30,12 +30,11 @@ import {
   layoutChant,
   layoutGraphicalPlacementPreview,
   measureNeumeWidth,
-  offStaffCanvasMargin,
   wrapNeumes,
   type NeumeLayout,
 } from './layout-chant';
-import { lyricAscent, musicToLyricClearance } from './system-vertical-layout';
-import { verticalLayoutViolations } from './vertical-clearance.testing';
+import { lyricRowTop, offStaffCanvasMargin } from './system-vertical-layout';
+import { verticalLayoutViolations } from './vertical-clearance.test-cases';
 import type { MeasureLyricText } from './lyric-text-metrics';
 import { decodeDocument } from '../persistence/native-document';
 import {
@@ -730,8 +729,7 @@ describe('ledgers in layout', () => {
       // Stage 11B: the shared lyric row drops below the low A and its
       // system grows by the same amount; the staff does not move.
       const [system] = layout.systems;
-      const rowTop =
-        system.lyricBaselineY - lyricAscent - musicToLyricClearance;
+      const rowTop = lyricRowTop(system.lyricBaselineY);
       expect(system.bottomStaffY).toBe(bottom);
       expect(je.bounds.y + je.bounds.height).toBe(rowTop);
       expect(system.lyricBaselineY).toBeGreaterThan(180);

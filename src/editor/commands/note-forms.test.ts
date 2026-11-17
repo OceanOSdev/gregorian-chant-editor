@@ -255,7 +255,7 @@ describe('atomic direct insertion and matching ghost', () => {
       kind,
       neume.notes.map((n) => n.staffPosition),
       preview?.preview.bounds.x ?? 0,
-      Math.max(...layoutChant(doc).systems[0].staffLines.map((l) => l.y)),
+      layoutChant(doc).systems[0].bottomStaffY,
       neume.notes,
     );
     expect(geometry.ink).toEqual(preview?.preview.ink);

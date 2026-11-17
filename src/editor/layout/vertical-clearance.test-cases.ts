@@ -1,8 +1,7 @@
 import type { ChantLayout, ChantSystemLayout } from './layout-chant';
 import {
-  lyricAscent,
   lyricDescent,
-  musicToLyricClearance,
+  lyricRowTop,
   systemGap,
   systemHeight,
   systemMusicPadding,
@@ -45,7 +44,7 @@ export function systemViolations(system: ChantSystemLayout): string[] {
     })),
     { id: 'clef', bounds: system.clef.bounds },
   ];
-  const rowTop = system.lyricBaselineY - lyricAscent - musicToLyricClearance;
+  const rowTop = lyricRowTop(system.lyricBaselineY);
   const hasLyrics = system.lyrics.length > 0;
   for (const { id, bounds } of ink) {
     const top = Math.max(band.top, bounds.y);

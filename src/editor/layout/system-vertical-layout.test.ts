@@ -5,7 +5,6 @@ import {
   staffPosition,
   type ChantDocument,
   type Neume,
-  type NoteAppearance,
 } from '../domain/chant-document';
 import { blankDocument, decodeDocument } from '../persistence/native-document';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
@@ -18,14 +17,22 @@ import {
   type ChantLayout,
   type ChantSystemLayout,
 } from './layout-chant';
+import type { AccidentalSpec } from './accidental-geometry';
+import { ledgerThickness } from './ledger-lines';
 import type { MeasureLyricText } from './lyric-text-metrics';
-import { buildNeumeGeometry, geometryKindFor } from './neume-geometry';
+import {
+  buildNeumeGeometry,
+  geometryKindFor,
+  type LayoutBounds,
+  type NeumeGeometry,
+} from './neume-geometry';
 import {
   canonicalLyricBaselineY,
   canonicalMusicBand,
   lyricAscent,
   lyricBottomPadding,
   lyricDescent,
+  lyricRowTop,
   measureSystemVertical,
   musicToLyricClearance,
   offStaffCanvasMargin,
@@ -34,8 +41,15 @@ import {
   systemHeight,
   systemMusicPadding,
 } from './system-vertical-layout';
-import { verticalLayoutViolations } from './vertical-clearance.testing';
+import { verticalLayoutViolations } from './vertical-clearance.test-cases';
 import { writtenAccidentals } from '../domain/accidentals';
+import { neumeSelectionBounds } from '../rendering/neume-selection-bounds';
+import { rangeSelectionBounds } from '../rendering/range-selection-bounds';
+import {
+  clampToBand,
+  moveCaptionBaseline,
+  moveCaptionFontSize,
+} from '../rendering/render-band';
 
 const bundledSources = import.meta.glob<string>('../examples/*.chant.json', {
   query: '?raw',
@@ -47,13 +61,12 @@ const bundledSources = import.meta.glob<string>('../examples/*.chant.json', {
  * The x projection of a neume group, including its written signs: the
  * horizontal facts composition decided.
  */
-const xProjection = (g: {
-  bounds: { x: number; width: number };
-  lyricAnchorX: number;
-  advanceX: number;
-  notes: readonly { anchorX: number }[];
-  accidentals?: readonly { ink: { bounds: { x: number; width: number } } }[];
-}) => [
+const xProjection = (
+  g: Pick<NeumeGeometry, 'bounds' | 'lyricAnchorX' | 'advanceX'> & {
+    notes: readonly { anchorX: number }[];
+    accidentals?: readonly { ink: { bounds: LayoutBounds } }[];
+  },
+) => [
   g.bounds.x,
   g.bounds.width,
   g.lyricAnchorX,
@@ -143,7 +156,7 @@ function expectConsistentOrigin(system: ChantSystemLayout, doc: ChantDocument) {
       semantic.notes.map((n) => n.staffPosition),
       neume.bounds.x,
       system.bottomStaffY,
-      semantic.notes as readonly NoteAppearance[],
+      semantic.notes,
     );
     expect(neume.ink).toEqual(rebuilt.ink);
     expect(neume.bounds).toEqual(rebuilt.bounds);
@@ -163,9 +176,7 @@ describe('measureSystemVertical', () => {
       bottom: systemHeight,
     });
     expect(lyricBottomPadding).toBe(35);
-    expect(canonicalLyricBaselineY - lyricAscent - musicToLyricClearance).toBe(
-      157,
-    );
+    expect(lyricRowTop(canonicalLyricBaselineY)).toBe(157);
   });
 
   it('expands the baseline from the exact clearance boundary', () => {
@@ -223,9 +234,45 @@ describe('stackSystems', () => {
     ]);
     expect(frames[1].lyricBaselineY).toBe(244 + 40 + 180);
     expect(frames[2].lyricBaselineY).toBe(528 + 193);
+    // Ordinary and moderately expanded systems: the resolved band is exactly
+    // the system box, never the canonical 1,200-unit margin around it.
     for (const f of frames)
-      expect(f.musicBand.bottom - f.musicBand.top).toBe(220 + 2400);
-    expect(frames[1].musicBand.top).toBe(244 + 40 - offStaffCanvasMargin);
+      expect(f.musicBand).toEqual({ top: f.y, bottom: f.y + f.height });
+  });
+
+  it('resolves extreme bands to the translated canonical band inside the box', () => {
+    const max = Number.MAX_SAFE_INTEGER * 12;
+    const frames = stackSystems([
+      measureSystemVertical([staff, ink(140, max)], true),
+      measureSystemVertical([staff, ink(-max, max)], true),
+      measureSystemVertical([staff], true),
+    ]);
+    const [low, high, plain] = frames;
+    // Low ink: the canonical band ends inside the system's bottom padding.
+    expect(low.musicBand).toEqual({
+      top: low.y,
+      bottom: low.bottomStaffY - 124 + canonicalMusicBand.bottom,
+    });
+    expect(low.y + low.height - low.musicBand.bottom).toBe(
+      lyricDescent + lyricBottomPadding + musicToLyricClearance + lyricAscent,
+    );
+    // High ink: the canonical band starts inside the system's top padding.
+    expect(high.musicBand.top).toBe(high.y + systemMusicPadding);
+    expect(high.musicBand.top).toBe(
+      high.bottomStaffY - 124 - offStaffCanvasMargin,
+    );
+    // Adjacent resolved bands never meet: the inter-system gap separates them.
+    for (const [a, b] of [
+      [low, high],
+      [high, plain],
+    ])
+      expect(b.musicBand.top - a.musicBand.bottom).toBeGreaterThanOrEqual(
+        systemGap,
+      );
+    for (const f of frames) {
+      expect(f.musicBand.top).toBeGreaterThanOrEqual(f.y);
+      expect(f.musicBand.bottom).toBeLessThanOrEqual(f.y + f.height);
+    }
   });
 });
 
@@ -297,11 +344,13 @@ describe('layoutChant vertical positioning (Stage 11B)', () => {
     expect(verticalLayoutViolations(layout)).toEqual([]);
   });
 
-  it('never changes x geometry or membership when vertical expansion occurs', () => {
+  it('keeps x geometry and membership when already-expanded systems expand further', () => {
     // Opposing high and low ink across systems, with lyrics, hyphens,
-    // divisions and clef changes. Moving the extreme notes further from the
-    // staff (same ink widths, deeper baselines and higher staff origins)
-    // must leave every x coordinate, slot and system membership unchanged.
+    // divisions and clef changes. Both layouts expand; moving the extreme
+    // notes further from the staff (same ink widths, deeper baselines and
+    // higher staff origins) must leave every x coordinate, slot and system
+    // membership unchanged. (An unexpanded reference would differ in x:
+    // ledger overhangs widen ledgered notes.)
     const build = (low: number, high: number) => {
       const built = punctaDocument(
         Array.from({ length: 50 }, (_, i) =>
@@ -497,6 +546,27 @@ describe('layoutChant vertical positioning (Stage 11B)', () => {
         y: later.bottomStaffY - 24,
       })?.systemIndex,
     ).toBe(later.index);
+    // Actual note targeting: every later note's centre reaches exactly that
+    // note, and no clipped extreme note on another system intercepts it.
+    for (const system of layout.systems)
+      for (const neume of system.neumes)
+        for (const note of neume.notes) {
+          if (!bandContains(system, note.anchorY)) continue;
+          expect(notesAt(layout, { x: note.anchorX, y: note.anchorY })).toEqual(
+            [note.noteId],
+          );
+        }
+    // The extreme notes' clipped regions stay inside their own systems.
+    for (const system of layout.systems)
+      for (const neume of system.neumes)
+        for (const note of neume.notes) {
+          const region = clampToBand(note.hitBounds, system.musicBand);
+          if (region.height === 0) continue;
+          expect(region.y).toBeGreaterThanOrEqual(system.y);
+          expect(region.y + region.height).toBeLessThanOrEqual(
+            system.y + system.height,
+          );
+        }
   });
 });
 
@@ -505,14 +575,7 @@ describe('translation of composed systems (Stage 11B)', () => {
     'keeps every group of %s at its canonical-frame x geometry',
     (_path, source) => {
       const document = decodeDocument(source);
-      const specs = new Map<
-        string,
-        {
-          kind: 'flat' | 'natural';
-          staffPosition: number;
-          noteIndex: number | null;
-        }[]
-      >();
+      const specs = new Map<string, AccidentalSpec[]>();
       for (const sign of writtenAccidentals(document) ?? []) {
         const id = sign.location.neume.id;
         specs.set(id, [
@@ -538,7 +601,7 @@ describe('translation of composed systems (Stage 11B)', () => {
               semantic.notes.map((n) => n.staffPosition),
               neume.bounds.x,
               firstSystemBottomStaffY,
-              semantic.notes as readonly NoteAppearance[],
+              semantic.notes,
               specs.get(semantic.id) ?? [],
             );
             expect(xProjection(neume)).toEqual(xProjection(canonical));
@@ -572,9 +635,13 @@ describe('bundled Dominican Salve Regina (Stage 11B acceptance)', () => {
         expect.objectContaining({ topY: system.bottomStaffY + 24, count: 1 }),
       ]);
       expect(neume.bounds.y + neume.bounds.height).toBeLessThanOrEqual(
-        system.lyricBaselineY - lyricAscent - musicToLyricClearance,
+        lyricRowTop(system.lyricBaselineY),
       );
-      expect(system.lyricBaselineY - system.y).toBeGreaterThan(180);
+      // Local measurements recorded in the verification record.
+      expect(neume.bounds.y + neume.bounds.height - system.y).toBe(166);
+      expect(system.lyricBaselineY - system.y).toBe(189);
+      expect(system.height).toBe(229);
+      expect(system.bottomStaffY - system.y).toBe(124);
       expect(new Set(system.lyrics.map((l) => l.y))).toEqual(
         new Set([system.lyricBaselineY]),
       );
@@ -615,4 +682,198 @@ describe('bundled Dominican Salve Regina (Stage 11B acceptance)', () => {
           staffEndX,
         );
   });
+});
+
+/** Whether a y lies in the system's resolved (clipped) musical band. */
+const bandContains = (system: ChantSystemLayout, y: number) =>
+  y >= system.musicBand.top && y <= system.musicBand.bottom;
+
+const contains = (b: LayoutBounds, p: { x: number; y: number }) =>
+  p.x >= b.x && p.x <= b.x + b.width && p.y >= b.y && p.y <= b.y + b.height;
+
+/**
+ * Pure model of note pointer targeting as rendered: each note's hit region is
+ * limited by its neume's ownership clip (x, and y within 20 units of ink) and
+ * by its system's resolved band clip.
+ */
+function notesAt(layout: ChantLayout, point: { x: number; y: number }) {
+  return layout.systems.flatMap((system) =>
+    bandContains(system, point.y)
+      ? system.neumes.flatMap((neume) =>
+          neume.notes
+            .filter(
+              (note) =>
+                contains(note.hitBounds, point) &&
+                (!neume.hitClip ||
+                  (point.x >= neume.hitClip.left &&
+                    point.x <= neume.hitClip.right &&
+                    point.y >= neume.bounds.y - 20 &&
+                    point.y <= neume.bounds.y + neume.bounds.height + 20)),
+            )
+            .map((note) => note.noteId),
+        )
+      : [],
+  );
+}
+
+const within = (inner: LayoutBounds, outer: LayoutBounds, label: string) => {
+  const epsilon = 1e-9;
+  expect(inner.x, label).toBeGreaterThanOrEqual(outer.x - epsilon);
+  expect(inner.y, label).toBeGreaterThanOrEqual(outer.y - epsilon);
+  expect(inner.x + inner.width, label).toBeLessThanOrEqual(
+    outer.x + outer.width + epsilon,
+  );
+  expect(inner.y + inner.height, label).toBeLessThanOrEqual(
+    outer.y + outer.height + epsilon,
+  );
+};
+
+const verticallyWithin = (
+  top: number,
+  bottom: number,
+  band: { top: number; bottom: number },
+  label: string,
+) => {
+  expect(top, label).toBeGreaterThanOrEqual(band.top);
+  expect(bottom, label).toBeLessThanOrEqual(band.bottom);
+};
+
+describe('musical containment (Stage 11B)', () => {
+  const max = Number.MAX_SAFE_INTEGER;
+  const extreme = punctaDocument(
+    Array.from({ length: 40 }, (_, i) =>
+      i === 3 ? max : i === 20 ? -max + 8 : i === 30 ? 16 : i === 31 ? -9 : 2,
+    ),
+  );
+  const fixtures: [string, ChantDocument][] = [
+    ...Object.entries(bundledSources).map(
+      ([path, source]): [string, ChantDocument] => [
+        path,
+        decodeDocument(source),
+      ],
+    ),
+    ['opposing extremes', extreme],
+  ];
+
+  it.each(fixtures)(
+    'keeps body, accidental and ledger ink inside authoritative bounds (%s)',
+    (_name, document) => {
+      for (const system of layoutChant(document, measure).systems)
+        for (const neume of system.neumes) {
+          const label = `${neume.neumeId}`;
+          for (const shape of neume.bodyInk ?? neume.ink)
+            within(shape.bounds, neume.bounds, `${label} body`);
+          for (const shape of neume.ink)
+            within(shape.bounds, neume.bounds, `${label} ink`);
+          for (const accidental of neume.accidentals ?? [])
+            within(accidental.ink.bounds, neume.bounds, `${label} accidental`);
+          for (const run of neume.ledgers ?? [])
+            within(
+              {
+                x: run.x1,
+                y: run.topY - ledgerThickness / 2,
+                width: run.x2 - run.x1,
+                height: run.bottomY - run.topY + ledgerThickness,
+              },
+              neume.bounds,
+              `${label} ledger`,
+            );
+        }
+    },
+  );
+
+  it.each(fixtures)(
+    'keeps pointer regions and overlays of unclipped music inside the resolved band (%s)',
+    (_name, document) => {
+      const layout = layoutChant(document, measure);
+      for (const system of layout.systems) {
+        const band = system.musicBand;
+        verticallyWithin(
+          band.top,
+          band.bottom,
+          { top: system.y, bottom: system.y + system.height },
+          `system ${system.index} band`,
+        );
+        // A range of unclipped neumes fits unclamped; one with clipped
+        // members is clamped to the band where it is drawn.
+        const range = rangeSelectionBounds(
+          system,
+          new Set(
+            system.neumes
+              .filter(
+                (n) =>
+                  n.bounds.y >= band.top &&
+                  n.bounds.y + n.bounds.height <= band.bottom,
+              )
+              .map((n) => n.neumeId),
+          ),
+        );
+        if (range)
+          verticallyWithin(range.y, range.y + range.height, band, 'range');
+        for (const neume of system.neumes) {
+          const { y, height } = neume.bounds;
+          // Clipped extreme ink is covered by the clip itself.
+          if (y < band.top || y + height > band.bottom) continue;
+          const label = `${system.index}/${neume.neumeId}`;
+          const outline = neumeSelectionBounds(neume);
+          verticallyWithin(
+            outline.y - outline.strokeWidth / 2,
+            outline.y + outline.height + outline.strokeWidth / 2,
+            band,
+            `${label} outline`,
+          );
+          // Lyric-move and placement-context rectangles (7 units, 3 stroke).
+          verticallyWithin(y - 7 - 1.5, y + height + 7 + 1.5, band, label);
+          const caption = moveCaptionBaseline(neume.bounds, band);
+          verticallyWithin(
+            caption - moveCaptionFontSize,
+            caption + moveCaptionFontSize * 0.3,
+            band,
+            `${label} caption`,
+          );
+          expect(caption).toBeLessThanOrEqual(y);
+          for (const note of neume.notes) {
+            verticallyWithin(
+              note.hitBounds.y,
+              note.hitBounds.y + note.hitBounds.height,
+              band,
+              `${label} note hit`,
+            );
+            if (note.modifierBounds)
+              verticallyWithin(
+                note.modifierBounds.y,
+                note.modifierBounds.y + note.modifierBounds.height,
+                band,
+                `${label} modifier`,
+              );
+          }
+          for (const accidental of neume.accidentals ?? [])
+            verticallyWithin(
+              accidental.hitBounds.y,
+              accidental.hitBounds.y + accidental.hitBounds.height,
+              band,
+              `${label} accidental hit`,
+            );
+        }
+        for (const target of [
+          ...system.divisions,
+          ...system.clefChanges,
+          system.clef,
+        ])
+          verticallyWithin(
+            target.hitBounds.y,
+            target.hitBounds.y + target.hitBounds.height,
+            band,
+            `system ${system.index} control`,
+          );
+      }
+      // Adjacent systems: resolved bands are disjoint, so no clipped region
+      // of one system can intercept a pointer on another.
+      for (let i = 1; i < layout.systems.length; i++)
+        expect(
+          layout.systems[i].musicBand.top -
+            layout.systems[i - 1].musicBand.bottom,
+        ).toBeGreaterThanOrEqual(systemGap);
+    },
+  );
 });

@@ -148,9 +148,7 @@ describe('insertTorculus', () => {
   it('commits the resolved graphical contour in semantic order', () => {
     const document = createDocument();
     const layout = layoutChant(document);
-    const bottomStaffY = Math.max(
-      ...(layout.systems[0]?.staffLines.map((line) => line.y) ?? []),
-    );
+    const bottomStaffY = layout.systems[0]?.bottomStaffY ?? NaN;
     const placement = resolveGraphicalNeumePlacement(layout, 'torculus', {
       x: 300,
       y: bottomStaffY - 24,

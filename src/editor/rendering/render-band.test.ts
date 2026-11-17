@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { clampToBand, renderBandFor } from './render-band';
+import {
+  clampToBand,
+  moveCaptionBaseline,
+  moveCaptionFontSize,
+  renderBandFor,
+} from './render-band';
 
 describe('render band', () => {
-  // A system's musical band (canonical -1200..1420 at the first system).
+  // A resolved band whose system reaches the canonical -1200..1420 margin.
   const band = renderBandFor({ top: -1200, bottom: 1420 });
 
   it('extends the musical band by one ledger space', () => {
@@ -30,5 +35,27 @@ describe('render band', () => {
     expect(
       clampToBand({ x: 1, y: max, width: 3, height: 10 }, band).height,
     ).toBe(0);
+  });
+});
+
+describe('lyric-move caption baseline', () => {
+  const band = { top: 100, bottom: 400 };
+
+  it('keeps the ordinary offset above the neume when it fits', () => {
+    expect(
+      moveCaptionBaseline({ x: 0, y: 200, width: 1, height: 1 }, band),
+    ).toBe(186);
+  });
+
+  it('lowers the caption so its em box stays inside the band', () => {
+    const baseline = moveCaptionBaseline(
+      { x: 0, y: 112, width: 1, height: 1 },
+      band,
+    );
+    expect(baseline - moveCaptionFontSize).toBe(band.top);
+    expect(
+      moveCaptionBaseline({ x: 0, y: -1e17, width: 1, height: 1 }, band) -
+        moveCaptionFontSize,
+    ).toBe(band.top);
   });
 });

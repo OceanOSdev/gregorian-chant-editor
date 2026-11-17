@@ -17,14 +17,18 @@ export const systemGap = 24;
 export const canonicalLyricBaselineY = 180;
 
 /**
- * Conservative lyric row reserved above/below its baseline. The 20/5 band is
- * the 20-unit font's full em above the baseline and a quarter-em descent; it
- * covers measured Georgia/Times accented capitals, descenders and hyphens.
+ * Conservative lyric row reserved above/below its baseline: the 20-unit
+ * font's full em above the baseline and a quarter-em descent. It is a fixed
+ * reservation, not a per-glyph measurement; see the Stage 11B verification
+ * record for which resolved fonts were actually measured against it.
  */
 export const lyricAscent = lyricFontSize;
 export const lyricDescent = lyricFontSize / 4;
 /** Minimum vertical gap between musical ink and the lyric row (ADR 0028). */
 export const musicToLyricClearance = 3;
+/** Top of a lyric row (its ascent plus clearance): musical ink ends above it. */
+export const lyricRowTop = (lyricBaselineY: number) =>
+  lyricBaselineY - lyricAscent - musicToLyricClearance;
 /** Room kept between musical ink and its system's top or bottom edge. */
 export const systemMusicPadding = 12;
 /** The ordinary room below the lyric row (220 - 180 - 5). */
@@ -44,7 +48,12 @@ export interface VerticalBand {
   bottom: number;
 }
 
-/** The musical render band in the canonical local frame. */
+/**
+ * The canonical maximum rendering band, in the canonical local frame: the
+ * furthest any system may ever paint musical ink, whatever its pitches.
+ * Measurement clamps to it. It is not a system's resolved box; see
+ * `SystemFrame.musicBand`.
+ */
 export const canonicalMusicBand: VerticalBand = {
   top: -offStaffCanvasMargin,
   bottom: systemHeight + offStaffCanvasMargin,
@@ -69,7 +78,14 @@ export interface SystemFrame {
   /** Authoritative bottom staff line (pitch origin). */
   bottomStaffY: number;
   lyricBaselineY: number;
-  /** Musical ink outside this band is clipped (rendering and pointer). */
+  /**
+   * Resolved musical band: the canonical maximum band translated to this
+   * system's origin and intersected with the system's own box
+   * `[y, y + height]`. Musical ink, ledger runs, pointer regions and the
+   * overlays drawn with them are clipped to it, so nothing painted or
+   * targetable for this system can reach another system (adjacent bands are
+   * separated by the inter-system gap).
+   */
   musicBand: VerticalBand;
 }
 
@@ -124,14 +140,15 @@ export function stackSystems(
   let y = firstSystemTopY;
   return metrics.map((m) => {
     const origin = y + m.topExpansion;
+    const height = m.topExpansion + m.bottom;
     const frame: SystemFrame = {
       y,
-      height: m.topExpansion + m.bottom,
+      height,
       bottomStaffY: origin + firstSystemBottomStaffY,
       lyricBaselineY: origin + m.lyricBaselineY,
       musicBand: {
-        top: origin + canonicalMusicBand.top,
-        bottom: origin + canonicalMusicBand.bottom,
+        top: Math.max(y, origin + canonicalMusicBand.top),
+        bottom: Math.min(y + height, origin + canonicalMusicBand.bottom),
       },
     };
     y += frame.height + systemGap;

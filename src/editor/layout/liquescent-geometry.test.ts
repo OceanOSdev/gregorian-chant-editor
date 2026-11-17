@@ -239,9 +239,7 @@ describe('preview and committed parity', () => {
       expect(geometryKindFor(neume)).toBe(kind);
       const laid = layoutChant(committed).systems[0].neumes[0];
       expect(laid.liquescentFigure).toBe(entry);
-      const bottomY = Math.max(
-        ...layoutChant(committed).systems[0].staffLines.map((l) => l.y),
-      );
+      const bottomY = layoutChant(committed).systems[0].bottomStaffY;
       const rebuilt = buildNeumeGeometry(
         kind,
         positions.map(p),

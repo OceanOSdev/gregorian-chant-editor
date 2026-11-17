@@ -15,14 +15,20 @@ import { accidentalPrefixAdvance } from './accidental-geometry';
 import { blankDocument } from '../persistence/native-document';
 import {
   firstSystemBottomStaffY,
-  firstSystemLyricBaselineY,
   intraSyllableInkGap,
   layoutChant,
   lyricJoinThreshold,
   type ChantSystemLayout,
 } from './layout-chant';
-import { lyricAscent, musicToLyricClearance } from './system-vertical-layout';
-import { verticalLayoutViolations } from './vertical-clearance.testing';
+import {
+  canonicalLyricBaselineY,
+  lyricAscent,
+  musicToLyricClearance,
+} from './system-vertical-layout';
+import {
+  systemViolations,
+  verticalLayoutViolations,
+} from './vertical-clearance.test-cases';
 import {
   placeAccidental,
   updateAccidental,
@@ -45,13 +51,12 @@ function hyphenInk(hyphen: { x: number }): [number, number] {
   return [hyphen.x + hyphenExtents.left, hyphen.x + hyphenExtents.right];
 }
 const hyphenClearance = lyricFontSize / 10;
-/** Stage 11B (ADR 0028): the shared lyric row clears every sign vertically. */
+/**
+ * Stage 11B (ADR 0028): the shared lyric row clears every sign vertically
+ * (neume bounds include their signs) and all text shares its baseline.
+ */
 function expectLyricRowClearsSigns(system: ChantSystemLayout) {
-  const rowTop = system.lyricBaselineY - lyricAscent - musicToLyricClearance;
-  for (const a of system.neumes.flatMap((n) => n.accidentals ?? []))
-    expect(a.ink.bounds.y + a.ink.bounds.height).toBeLessThanOrEqual(rowTop);
-  for (const text of [...system.lyrics, ...system.hyphens])
-    expect(text.y).toBe(system.lyricBaselineY);
+  expect(systemViolations(system)).toEqual([]);
 }
 // ADR 0028 changed these expectations: a low sign formerly moved away from,
 // or reserved horizontal room against, a lyric at the fixed baseline. Signs
@@ -95,7 +100,7 @@ it('clears a low natural beside its own lyric vertically, keeping its music-only
       musicToLyricClearance +
       lyricAscent,
   );
-  expect(lyric.y).toBeGreaterThan(firstSystemLyricBaselineY);
+  expect(lyric.y).toBeGreaterThan(canonicalLyricBaselineY);
   expectLyricRowClearsSigns(system);
   expect(verticalLayoutViolations(layout)).toEqual([]);
   expect(lyric.anchorX).toBe(system.neumes[0].lyricAnchorX);

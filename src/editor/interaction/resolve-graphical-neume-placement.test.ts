@@ -36,9 +36,7 @@ function resolveOn(
 ) {
   const layout = layoutChant(document);
   const system = layout.systems[systemIndex];
-  const bottom = system
-    ? Math.max(...system.staffLines.map((line) => line.y))
-    : undefined;
+  const bottom = system?.bottomStaffY;
 
   if (!system || bottom === undefined) {
     throw new Error('Missing system');

@@ -33,7 +33,7 @@ function atSlot(
   const system = layout.systems[systemIndex];
   const slot = system?.slots[slotIndex];
   if (!system || !slot || !system.staffLines.length) return null;
-  const bottom = Math.max(...system.staffLines.map((l) => l.y));
+  const bottom = system.bottomStaffY;
   const top = Math.min(...system.staffLines.map((l) => l.y));
   const clef = { type, staffLine };
   const origin = buildClefGeometry(clef, 0, 0).bounds;

@@ -5,7 +5,7 @@ import {
   measureCustosWidth,
 } from './custos-geometry';
 import { layoutChant } from './layout-chant';
-import { verticalLayoutViolations } from './vertical-clearance.testing';
+import { verticalLayoutViolations } from './vertical-clearance.test-cases';
 import { fixture, change, punctum } from '../clef-change.test-cases';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
 import { clefOffset } from '../domain/clef';

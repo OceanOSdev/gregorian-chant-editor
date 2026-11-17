@@ -48,13 +48,11 @@ import {
   type MeasureLyricText,
 } from './lyric-text-metrics';
 import {
-  canonicalLyricBaselineY,
   measureSystemVertical,
   offStaffCanvasMargin,
   stackSystems,
   systemGap,
   systemHeight,
-  type SystemFrame,
   type VerticalBand,
 } from './system-vertical-layout';
 import {
@@ -170,9 +168,9 @@ export interface ChantSystemLayout {
   /** Shared baseline of every lyric and hyphen on this system. */
   lyricBaselineY: number;
   /**
-   * Musical render band: ink, ledger runs, outlines and pointer regions are
-   * clipped to it. It translates with the system, and the system's measured
-   * extent reserves everything inside it.
+   * Resolved musical band (`SystemFrame.musicBand`): the canonical maximum
+   * band intersected with this system's box. Musical ink, ledger runs,
+   * pointer regions and in-system overlays are clipped to it.
    */
   musicBand: VerticalBand;
   staffLines: readonly StaffLineLayout[];
@@ -209,11 +207,6 @@ export interface ChantLayout {
 
 export const scoreWidth = 720;
 export const systemWidth = scoreWidth;
-export {
-  systemHeight,
-  systemGap,
-  offStaffCanvasMargin,
-} from './system-vertical-layout';
 /**
  * Ordinary (unexpanded) system advance. Systems are stacked from measured
  * heights (Stage 11B), so this equals the actual advance only when every
@@ -223,7 +216,6 @@ export const systemVerticalAdvance = systemHeight + systemGap;
 export const svgTopPadding = 0;
 export const svgBottomPadding = 0;
 export const firstSystemTopY = svgTopPadding;
-export const firstSystemBottomY = firstSystemTopY + systemHeight;
 export const clefX = 100;
 // Reserve clearance from the wider clef (F adds an attachment to the shared
 // body) when an outgoing lyric/bar reservation uses the leftward musical room.
@@ -235,8 +227,6 @@ const clefRight = Math.max(
 );
 const minimumNeumeLeft = clefRight + interNeumeInkGap;
 export const staffLineSpacing = engravingStaffStep * 2;
-/** The ordinary local lyric baseline; see `ChantSystemLayout.lyricBaselineY`. */
-export const firstSystemLyricBaselineY = canonicalLyricBaselineY;
 
 function staffLineY(line: StaffLine, bottomStaffY: number) {
   return bottomStaffY - (line - 1) * staffLineSpacing;
@@ -307,9 +297,9 @@ function placeNeumeSequence(
   let custodes: CustosGeometry[] = [];
   const hasItems = () =>
     geometries.length || divisions.length || clefChanges.length;
-  // Every system composes in the canonical local frame (ADR 0028); layoutChant
-  // measures, stacks and then translates each system by rebuilding it.
-  const bottomY = () => firstSystemBottomStaffY;
+  // Every system composes in the canonical local frame (ADR 0028) at
+  // firstSystemBottomStaffY; layoutChant measures, stacks and then translates
+  // each system by rebuilding it.
   const guidePosition = (index: number) =>
     inputs[index].staffPositions[0] +
     clefOffset(noteClefs[index]) -
@@ -343,7 +333,7 @@ function placeNeumeSequence(
             ? buildDivisionGeometry(
                 { id: d.divisionId, kind: d.kind, beforeNeumeId: null },
                 d.bounds.x - shift,
-                bottomY(),
+                firstSystemBottomStaffY,
                 staffLineSpacing,
               )
             : d,
@@ -361,7 +351,7 @@ function placeNeumeSequence(
         buildCustosGeometry(
           guidePosition(nextIndex),
           right + custosGap,
-          bottomY(),
+          firstSystemBottomStaffY,
           nextIndex,
           true,
         ),
@@ -433,7 +423,7 @@ function placeNeumeSequence(
           buildCustosGeometry(
             guidePosition(nextIndex),
             left,
-            bottomY(),
+            firstSystemBottomStaffY,
             nextIndex,
             false,
           ),
@@ -446,7 +436,7 @@ function placeNeumeSequence(
         const geometry = buildClefGeometry(
           clef.clef,
           x,
-          staffLineY(clef.clef.staffLine, bottomY()),
+          staffLineY(clef.clef.staffLine, firstSystemBottomStaffY),
         );
         clefChanges.push({ ...geometry, clefChangeId: clef.id });
         effectiveClef = clef.clef;
@@ -459,7 +449,7 @@ function placeNeumeSequence(
         const geometry = buildDivisionGeometry(
           item.entity,
           left,
-          bottomY(),
+          firstSystemBottomStaffY,
           staffLineSpacing,
         );
         divisions.push(geometry);
@@ -507,7 +497,7 @@ function placeNeumeSequence(
               )
             : nextLeftX
           : firstNeumeCenterX - firstHeadHalfWidth(input.kind),
-        bottomY(),
+        firstSystemBottomStaffY,
         input.modifiers,
         input.accidentals,
       );
@@ -551,7 +541,7 @@ function placeNeumeSequence(
           input.kind,
           input.staffPositions,
           initial.bounds.x + shift,
-          bottomY(),
+          firstSystemBottomStaffY,
           input.modifiers,
           input.accidentals,
         );
@@ -640,7 +630,7 @@ function placeNeumeSequence(
           input.kind,
           input.staffPositions,
           geometry.bounds.x - missing,
-          bottomY(),
+          firstSystemBottomStaffY,
           input.modifiers,
           input.accidentals,
         );
@@ -787,13 +777,20 @@ function positionedMusicInk(
 function positionComposedSystem(
   system: PositionedSystem,
   bottomStaffY: number,
-  inputFor: (offset: number) => GeometryInput,
+  inputs: readonly GeometryInput[],
 ): PositionedSystem {
   if (bottomStaffY === firstSystemBottomStaffY) return system;
+  // Every field is listed (no spread), so a new geometric field cannot
+  // silently keep the canonical frame: it must be translated or declared
+  // vertical-free here.
   return {
-    ...system,
+    // Semantic identity and order, free of vertical geometry.
+    leadingClef: system.leadingClef,
+    leadingClefChangeId: system.leadingClefChangeId,
+    startNeumeIndex: system.startNeumeIndex,
     geometries: system.geometries.map((geometry, offset) => {
-      const input = inputFor(offset);
+      const input = inputs[offset];
+      if (!input) throw new Error('Composed neume without input');
       return buildNeumeGeometry(
         input.kind,
         input.staffPositions,
@@ -957,11 +954,14 @@ export function layoutChant(
   // the composed left edges; the walker never runs again, so membership,
   // order and every placement decision are fixed by construction.
   const wrappedSystems = local.map((system, index) =>
-    positionComposedSystem(system, frames[index].bottomStaffY, (offset) => {
-      const input = inputs[system.startNeumeIndex + offset];
-      if (!input) throw new Error('Composed neume without input');
-      return input;
-    }),
+    positionComposedSystem(
+      system,
+      frames[index].bottomStaffY,
+      inputs.slice(
+        system.startNeumeIndex,
+        system.startNeumeIndex + system.geometries.length,
+      ),
+    ),
   );
   const systemsWithoutLyrics = wrappedSystems.map(
     (
@@ -976,7 +976,7 @@ export function layoutChant(
       },
       index,
     ): ChantSystemLayout => {
-      const frame: SystemFrame = frames[index];
+      const frame = frames[index];
       const { bottomStaffY } = frame;
 
       return {
@@ -1238,8 +1238,9 @@ export function layoutChant(
   // Rendering safeguard, not a pitch restriction (Stage 11A): musical ink
   // and continuation hyphens grow the canvas by at most offStaffCanvasMargin
   // beyond the text-derived extent (the score width, widened by any
-  // oversized lyric, ADR 0010/0011) horizontally; vertically, each system's
-  // musicBand bounds it (Stage 11B). That is far past any musical use (50
+  // oversized lyric, ADR 0010/0011) horizontally; vertically, measurement
+  // clamps ink to the canonical band and each system's resolved musicBand
+  // lies inside its own box (Stage 11B). That is far past any musical use (50
   // ledger levels) and keeps text overflow and the ink it displaces intact,
   // while a valid but absurd safe-integer pitch, the interval-proportional
   // ribbon of a Porrectus reaching one, or an outgoing hyphen displaced after
