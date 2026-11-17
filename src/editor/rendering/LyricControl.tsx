@@ -3,10 +3,13 @@ import type { LyricLayout } from '../layout/layout-chant';
 import { lyricFontFamily } from '../layout/lyric-text-metrics';
 import { lyricFocusCue } from './lyric-focus-cue';
 
-/** Edit intents of an engraved syllable; `ScoreSvg` binds them to the session. */
+/**
+ * Syllable intents. `ChantEditor` binds them to the session; `ScoreSvg`
+ * forwards them unchanged from its props.
+ */
 export interface LyricActions {
-  onSelectSyllable: (id: string) => void;
-  onEditSyllable: (id: string, replacement?: string) => void;
+  onSelectSyllable: (syllableId: string) => void;
+  onEditSyllable: (syllableId: string, replacement?: string) => void;
   onDeleteSyllable: (syllableId: string) => void;
   onAdvanceLyric: (key: '-' | ' ' | '_') => void;
 }

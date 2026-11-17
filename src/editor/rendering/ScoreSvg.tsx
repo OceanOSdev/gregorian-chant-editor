@@ -324,10 +324,12 @@ export function ScoreSvg({
   }, [focusRequest, onFocusHandled, placementActive]);
 
   /**
-   * Registers a mounted note control. Before React detaches a note it is
-   * about to reparent during reflow, remember whether it actually had browser
-   * focus: Firefox may not have emitted the bubbling focus event the
-   * `focusin` listener relies on.
+   * Registers a mounted note control. React calls this with `null` on every
+   * ref swap (each render) and when it detaches a note, including before it
+   * reparents one during reflow. Recording whether the outgoing element had
+   * browser focus matters only in the detach case: it lets the restore effect
+   * refocus the note by ID when no `focusin` reached the tracker (observed in
+   * headless Firefox).
    */
   function registerNoteElement(noteId: string, element: SVGGElement | null) {
     if (element) {

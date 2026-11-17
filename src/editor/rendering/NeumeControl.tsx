@@ -21,7 +21,10 @@ import {
   type RenderBand,
 } from './render-band';
 
-/** Edit intents of a committed note; `ScoreSvg` binds them to the session. */
+/**
+ * Note intents. `ChantEditor` binds them to the session; `ScoreSvg` forwards
+ * them unchanged from its props.
+ */
 export interface NoteActions {
   onSelectNote: (noteId: string) => void;
   onSelectNeumeForNote: (noteId: string) => void;
@@ -345,16 +348,16 @@ function NoteControl({
   registerElement,
   focusNote,
 }: NoteControlProps) {
-  const notAccidentalTarget =
-    !!accidentalPlacement && !accidentalPlacement.noteIds.includes(note.noteId);
+  const isAccidentalTarget =
+    accidentalPlacement?.noteIds.includes(note.noteId) ?? false;
+  const notAccidentalTarget = !!accidentalPlacement && !isAccidentalTarget;
 
   function handleClick(event: MouseEvent<SVGGElement>) {
+    event.stopPropagation();
     if (accidentalPlacement) {
-      event.stopPropagation();
       accidentalPlacement.onTarget(note.noteId);
       return;
     }
-    event.stopPropagation();
     if (placementActive || transactionBlocked) return;
     if (lyricMove) {
       lyricMove.onChoose();
@@ -486,7 +489,7 @@ function NoteControl({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      {accidentalPlacement?.noteIds.includes(note.noteId) ? (
+      {isAccidentalTarget ? (
         <rect
           className="score__accidental-placement-target"
           {...note.hitBounds}
@@ -540,8 +543,17 @@ interface WrittenAccidentalControlProps {
   id: string;
   accidental: AccidentalLayout;
   selected: boolean;
-  /** Select tool, no clef transaction and no armed accidental placement. */
+  /**
+   * No placement tool, clef transaction or armed accidental placement. Every
+   * `EditorTool` except Select is a placement tool (`isPlacementTool`).
+   * Governs tab stop, pointer target and `aria-disabled` only.
+   */
   enabled: boolean;
+  /**
+   * Handlers check only this, as before M2: an accidental that already has
+   * focus still responds to keys while another tool or accidental placement
+   * is armed. Do not replace it with `!enabled`.
+   */
   transactionBlocked: boolean;
   ownershipClip: string | undefined;
   actions: WrittenAccidentalActions;
