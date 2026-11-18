@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
   type Ref,
 } from 'react';
 import { DivisionIcon } from './DivisionIcon';
@@ -67,6 +68,12 @@ interface NotationPaletteProps {
   onArmTool: (tool: EditorTool) => void;
   onSelectTool: () => void;
   onFocusRequestHandled: (request: EditorFocusRequest) => void;
+  /**
+   * Unrelated controls placed at the end of the Quilisma figure row, which
+   * otherwise leaves its width unused (playback, Audio 1). Not palette tools:
+   * they stay outside the notation toolbar and its roving focus.
+   */
+  figureRowEnd?: ReactNode;
 }
 
 /**
@@ -87,6 +94,7 @@ export function NotationPalette({
   onArmTool,
   onSelectTool,
   onFocusRequestHandled,
+  figureRowEnd,
 }: NotationPaletteProps) {
   const buttons = useRef(new Map<PaletteTool, HTMLButtonElement>());
   const [rovingTool, setRovingTool] = useState<PaletteTool>('select');
@@ -261,24 +269,27 @@ export function NotationPalette({
       >
         {paletteControls.map(renderControl)}
       </div>
-      <label className="quilisma-figure">
-        Quilisma figure{' '}
-        <select
-          aria-label="Quilisma figure"
-          value={quilismaFigure}
-          disabled={disabled}
-          onChange={(event) =>
-            onArmTool(
-              quilismaFigureTool(
-                event.target.value === 'scandicus' ? 'scandicus' : 'podatus',
-              ),
-            )
-          }
-        >
-          <option value="podatus">Podatus</option>
-          <option value="scandicus">Scandicus</option>
-        </select>
-      </label>
+      <div className="quilisma-figure-row">
+        <label className="quilisma-figure">
+          Quilisma figure{' '}
+          <select
+            aria-label="Quilisma figure"
+            value={quilismaFigure}
+            disabled={disabled}
+            onChange={(event) =>
+              onArmTool(
+                quilismaFigureTool(
+                  event.target.value === 'scandicus' ? 'scandicus' : 'podatus',
+                ),
+              )
+            }
+          >
+            <option value="podatus">Podatus</option>
+            <option value="scandicus">Scandicus</option>
+          </select>
+        </label>
+        {figureRowEnd}
+      </div>
     </>
   );
 }

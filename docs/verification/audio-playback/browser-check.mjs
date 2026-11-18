@@ -322,31 +322,40 @@ try {
   audio = await log();
   const diesOscillator = audio.oscillators.at(-1);
   assert.equal(diesOscillator.frequencies.length, noteCount(dies));
-  // Each gap is one note (0.4 s) or a note plus one division pause (0.5, 1,
-  // 2 or 3 note lengths); Dies Irae has divisions, so some gaps are pauses.
+  // Each gap is the previous note (1 base note, or 2 with a mora) plus at
+  // most one division pause (0.5, 1, 2 or 3); Dies Irae has divisions, so
+  // some gaps include pauses.
   const gaps = diesOscillator.times
     .slice(1)
     .map((t, i) => +((t - diesOscillator.times[i]) / 0.4).toFixed(6));
   assert.ok(
-    gaps.every((g) => [1, 1.5, 2, 3, 4].includes(g)),
+    gaps.every((g) => [1, 1.5, 2, 2.5, 3, 4, 5].includes(g)),
     `note gaps ${[...new Set(gaps)]}`,
   );
-  results.diesPauseGaps = gaps.filter((g) => g > 1).length;
+  results.diesGaps = Object.fromEntries(
+    [...new Set(gaps)]
+      .sort()
+      .map((g) => [g, gaps.filter((x) => x === g).length]),
+  );
+  results.diesPauseGaps = gaps.filter((g) => g !== 1 && g !== 2).length;
   assert.ok(results.diesPauseGaps > 0, 'Dies Irae pauses at divisions');
   results.diesPeak = await peakOver(600);
   assert.ok(
     results.diesPeak > 0.02,
     `Dies Irae is audible: ${results.diesPeak}`,
   );
-  // Scrolled away from the controls during playback, the Playback group
-  // pins to the viewport so Stop stays reachable; the sticky toolbar keeps
-  // its height. Checked at desktop and narrow widths.
+  // Play/Stop live in the sticky toolbar's Quilisma figure row. Scrolled to
+  // the end of the score during playback, Stop must stay visible, topmost and
+  // clickable: inside the toolbar while it sticks, or pinned to the viewport
+  // when the toolbar's own safeguards make it static (too tall for the
+  // viewport). Playback never changes the toolbar's height.
   const pinState = () =>
     ev(
-      `(()=>{const g=document.querySelector('[role="group"][aria-label="Playback"]');const stop=[...g.querySelectorAll('button')].find(b=>b.textContent.trim()==='Stop');const r=stop.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {pinned:g.classList.contains('editor-playback--pinned'),stopVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth,stopTopmost:!!hit&&stop.contains(hit),toolbar:Math.round(document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().height),noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth}})()`,
+      `(()=>{const bar=document.querySelector('.editor-sticky-toolbar');const t=bar.getBoundingClientRect();const g=document.querySelector('[role="group"][aria-label="Playback"]');const stop=[...g.querySelectorAll('button')].find(b=>b.textContent.trim()==='Stop');const r=stop.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {sticky:bar.dataset.tooTall!=='true'&&getComputedStyle(bar).position==='sticky',inToolbar:bar.contains(g),pinned:g.classList.contains('editor-playback--pinned'),stopInsideToolbar:r.top>=t.top&&r.bottom<=t.bottom,stopVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth,stopTopmost:!!hit&&stop.contains(hit),toolbar:Math.round(t.height),noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth}})()`,
     );
   for (const [width, height] of [
     [1440, 1000],
+    [390, 1100],
     [320, 900],
   ]) {
     await send('Emulation.setDeviceMetricsOverride', {
@@ -355,27 +364,28 @@ try {
       deviceScaleFactor: 1,
       mobile: false,
     });
-    await ev('scrollTo(0,0)');
+    // Let the toolbar's too-tall safeguard settle before scrolling.
+    await sleep(300);
+    await ev(
+      `document.querySelector('.editor-playback-slot').scrollIntoView({block:'center'})`,
+    );
     await sleep(200);
     const top = await pinState();
+    assert.equal(top.inToolbar, true, `${width}: controls in the toolbar`);
     assert.equal(top.pinned, false, `${width}: in place while visible`);
     await ev('scrollTo(0,document.documentElement.scrollHeight)');
     await sleep(300);
-    const scrolled = await pinState();
-    assert.deepEqual(
-      { ...scrolled, toolbar: undefined },
-      {
-        pinned: true,
-        stopVisible: true,
-        stopTopmost: true,
-        toolbar: undefined,
-        noHorizontalScroll: true,
-      },
-      `${width}: pinned Stop`,
-    );
-    assert.equal(scrolled.toolbar, top.toolbar, `${width}: toolbar height`);
-    results[`toolbarHeight${width}`] = top.toolbar;
-    await screenshot(`pinned-${width}`);
+    const end = await pinState();
+    assert.equal(end.stopVisible, true, `${width}: Stop visible`);
+    assert.equal(end.stopTopmost, true, `${width}: Stop topmost`);
+    assert.equal(end.noHorizontalScroll, true, `${width}: no h-scroll`);
+    assert.equal(end.toolbar, top.toolbar, `${width}: toolbar height`);
+    if (top.sticky) {
+      assert.equal(end.pinned, false, `${width}: sticky, not pinned`);
+      assert.equal(end.stopInsideToolbar, true, `${width}: in sticky toolbar`);
+    } else assert.equal(end.pinned, true, `${width}: static toolbar, pinned`);
+    results[`toolbar${width}`] = { height: top.toolbar, sticky: top.sticky };
+    await screenshot(`playing-end-${width}`);
   }
   await click('Stop');
   await waitFor((p) => p.status === 'idle', 'Dies Irae stop');
@@ -416,6 +426,47 @@ try {
   assert.equal(audio.oscillators.length, 1);
   assert.equal(audio.oscillators[0].frequencies.length, 1);
   assert.equal(audio.oscillators[0].ended, true);
+
+  // A mora doubles only its own note: plain, mora, plain is scheduled as
+  // 0.4 s, 0.8 s, 0.4 s (Kyrie XI and Pater Noster contain morae; Dies Irae
+  // has none, so this seeded score proves it in the browser).
+  envelope.document = {
+    ...envelope.document,
+    title: 'Mora',
+    neumes: ['a', 'b', 'c'].map((id, i) => ({
+      id,
+      kind: 'punctum',
+      notes: [
+        {
+          id: `${id}-note`,
+          staffPosition: 4 + i,
+          ...(id === 'b' ? { mora: 1 } : {}),
+        },
+      ],
+    })),
+  };
+  await ev(
+    `localStorage.setItem('${storageKey}', ${JSON.stringify(JSON.stringify(envelope))})`,
+  );
+  await navigate();
+  await click('Play');
+  await waitFor((p) => p.status === 'playing', 'mora score playing');
+  audio = await log();
+  const moraOscillator = audio.oscillators[0];
+  assert.deepEqual(
+    moraOscillator.times
+      .slice(1)
+      .map((t, i) => +(t - moraOscillator.times[i]).toFixed(6)),
+    [0.4, 0.8],
+    'mora note lasts two base notes',
+  );
+  assert.equal(
+    +(moraOscillator.stops[0] - moraOscillator.start).toFixed(6),
+    1.6,
+    'total length includes the doubled note',
+  );
+  await click('Stop');
+  await waitFor((p) => p.status === 'idle', 'mora score stop');
 
   // An empty score cannot start playback.
   await ev(`window.confirm=()=>true`);

@@ -37,7 +37,7 @@ renderable data, including automatic system assignment. `ScoreSvg` renders
 that data and delegates semantic edits back to editor callbacks.
 
 Playback is a separate read-only branch from the same document:
-`ChantDocument → interpretEqualNotes → Performance → Web Audio`. It never reads
+`ChantDocument → interpretProofreadingPlayback → Performance → Web Audio`. It never reads
 layout or SVG and never changes the document; see [playback](playback.md).
 
 `ChantEditor` orchestrates the pipeline. It owns document history and
@@ -179,7 +179,7 @@ rendered DOM, sibling order and clip hierarchy are unchanged.
 
 ### `src/editor/playback/`
 
-Audio 1 playback (see [playback](playback.md)): the pure Equal Note Playback
+Audio 1 playback (see [playback](playback.md)): the pure Proofreading Playback
 interpreter and its performance types, the Web Audio scheduler, the audio
 context/session controller and the `usePlayback` hook. Only the hook depends on
 React; only the scheduler and the hook's context factory touch Web Audio.
@@ -193,13 +193,13 @@ controls. Component state is not a second score model.
 
 The editor toolbar is split by ownership (readability M1):
 
-| Module                      | Owns                                                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                           |
-| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure |
-| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button      |
-| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                             |
-| `PlaybackControls.tsx`      | Play/Stop and playback status for the current document, via `usePlayback`; separate from editing actions           |
+| Module                      | Owns                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                            |
+| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure  |
+| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button       |
+| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                              |
+| `PlaybackControls.tsx`      | Play/Stop and playback status, in the Quilisma figure row via the palette's `figureRowEnd` slot; uses `usePlayback` |
 
 The palette and action bar receive session values and narrowly named callbacks;
 they never dispatch arbitrary actions, hold document state or derive clipboard

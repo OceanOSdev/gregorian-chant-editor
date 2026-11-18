@@ -26,17 +26,38 @@ function statusText(state: PlaybackState, unplayable: string | null) {
   }
 }
 
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M4 2.5v11l9-5.5z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <rect x="3.5" y="3.5" width="9" height="9" fill="currentColor" />
+    </svg>
+  );
+}
+
 /**
- * Play and Stop for the whole score. Playback stays separate from document
- * editing and history; it reads the current document and never changes it.
+ * Play and Stop for the whole score, at the end of the sticky toolbar's
+ * Quilisma figure row. Playback stays separate from document editing and
+ * history; it reads the current document and never changes it.
+ *
+ * Narrow layouts show only the icons; the button text stays in the
+ * accessible name. The polite status is always announced, and is shown where
+ * there is room and whenever playback failed.
  *
  * The buttons use `aria-disabled` rather than `disabled` so keyboard focus is
  * not lost when playback starts or ends.
  *
- * While playback is active and the controls' place in the page is scrolled
- * out of view, the same group pins itself to the bottom corner of the
- * viewport, so Stop stays reachable without enlarging the sticky toolbar. Its
- * slot keeps its height, so nothing shifts.
+ * The sticky toolbar stops sticking when it is too tall or the viewport is
+ * short. If the controls then scroll out of view during playback, the same
+ * group pins itself to the bottom corner of the viewport so Stop stays
+ * reachable; its slot keeps its size, so nothing shifts.
  */
 export function PlaybackControls({ document }: { document: ChantDocument }) {
   const statusId = useId();
@@ -63,26 +84,32 @@ export function PlaybackControls({ document }: { document: ChantDocument }) {
         className={`editor-playback${pinned ? ' editor-playback--pinned' : ''}`}
         role="group"
         aria-label="Playback"
+        data-playback-status={state.status}
       >
         <button
           type="button"
+          className="editor-playback__play"
           aria-disabled={!canPlay}
           aria-describedby={statusId}
-          title="Play the whole score from the beginning"
+          title={unplayable ?? 'Play the whole score from the beginning'}
           onClick={() => {
             if (canPlay) play();
           }}
         >
-          Play
+          <PlayIcon />
+          <span className="editor-playback__label">Play</span>
         </button>
         <button
           type="button"
+          className="editor-playback__stop"
           aria-disabled={!active}
+          title="Stop playback"
           onClick={() => {
             if (active) stop();
           }}
         >
-          Stop
+          <StopIcon />
+          <span className="editor-playback__label">Stop</span>
         </button>
         <span
           id={statusId}

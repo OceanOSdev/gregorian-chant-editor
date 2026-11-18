@@ -849,7 +849,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Lyrics provide minimum spacing between neumes. Oversized syllables can
         be viewed by scrolling the score.
       </p>
-      <PlaybackControls document={history.present} />
       <EditorStickyToolbar>
         <NotationPalette
           ref={notationPalette}
@@ -861,6 +860,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onArmTool={armTool}
           onSelectTool={selectEditingTool}
           onFocusRequestHandled={acknowledgeFocusRequest}
+          figureRowEnd={<PlaybackControls document={history.present} />}
         />
         <EditorActionBar
           clipboardFeedback={session.clipboardFeedback}

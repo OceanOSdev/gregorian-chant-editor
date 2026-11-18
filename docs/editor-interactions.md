@@ -650,10 +650,9 @@ for geometry, reservation and fallback policy.
 
 ## Sticky editing tools
 
-Document controls, initial clef, lyric language and playback controls scroll
-normally. The notation
-palette, Quilisma figure and Lyrics/Insert/Undo/Redo remain in one opaque CSS
-sticky region in the page scroll. At viewport heights of 600px or less it
+Document controls, initial clef and lyric language scroll normally. The notation
+palette, Quilisma figure with the playback controls, and Lyrics/Insert/Undo/Redo
+remain in one opaque CSS sticky region in the page scroll. At viewport heights of 600px or less it
 returns to normal flow; it also does so when its measured height exceeds half
 the viewport (including wrapped or zoomed tools). Measured occupied toolbar bounds constrain score reveal
 and note/accidental contextual panels; no engraving or semantic state changes.
@@ -844,14 +843,32 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 ## Playback controls (Audio 1)
 
-A **Playback** group just above the sticky toolbar holds Play, Stop and a
-polite status (`role="status"`). It is not part of the sticky region, which
-would grow a row at narrow widths and cover more of the score. Instead, while
-playback is starting or playing and the group's place in the page is not fully
-visible, the same group pins to the viewport's bottom-right corner (below
-dialogs and contextual panels). It returns to its place when playback ends or
-its place scrolls back into view. Its slot keeps its height, so nothing
-shifts, and focus stays on the same buttons. Play sounds the whole score from the beginning; Stop
+A **Playback** group holds Play, Stop and a polite status (`role="status"`)
+at the end of the sticky toolbar's Quilisma figure row, after the notation
+palette and before the action bar in both visual and focus order. It is not a
+palette tool and takes no part in the palette's roving focus. That row already
+had unused width at every size, so the toolbar keeps its height:
+
+- **Wide layouts (above 48rem):** the buttons show icon and text, and the
+  status text is visible.
+- **Narrow layouts:** the buttons are icon-only (32px), keeping "Play"/"Stop"
+  as visually hidden text in their accessible names. The status stays
+  announced but is visually hidden; Play shows a blue outline while playback
+  is active. A failure message is shown visibly, and only then may the row
+  wrap.
+- **Height:** the 32px buttons extend into the row's existing vertical
+  margins, so their layout box stays below the label's one-line height. The
+  label never wraps beside them; on unusually wide fonts the select gives up
+  a few pixels instead. Measured against `master` in Chromium and Firefox at
+  eight widths from 1440 to 320px, the toolbar height is identical (see the
+  [verification record](verification/audio-playback/README.md)).
+- **Non-sticky fallback:** when the toolbar's existing safeguards stop it
+  sticking (taller than half the viewport, or a viewport 600px or shorter) and
+  the controls scroll out of view during playback, the same group pins to the
+  viewport's bottom-right corner, below dialogs and contextual panels. Its slot
+  keeps its size, so nothing reflows.
+
+Play sounds the whole score from the beginning; Stop
 ends it promptly. They use `aria-disabled` instead of `disabled` so keyboard
 focus stays on the pressed button when playback starts or ends: Play is inert
 while starting/playing or when the score is empty or unplayable (the status

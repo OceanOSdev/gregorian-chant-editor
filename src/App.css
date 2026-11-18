@@ -560,6 +560,25 @@ kbd {
   gap: 0.4rem;
   margin-block: 0.5rem;
 }
+/* The figure label plus optional end-of-row controls (playback). */
+.quilisma-figure-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-block: 0.5rem;
+}
+/* The label stays on one line beside end-of-row controls; if fonts make the
+   row tight, the select gives up a few pixels rather than wrapping. */
+.quilisma-figure-row > .quilisma-figure {
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin-block: 0;
+  white-space: nowrap;
+}
+.quilisma-figure-row > .quilisma-figure select {
+  min-width: 0;
+}
 
 .note-form-error {
   padding: 0.5rem;
