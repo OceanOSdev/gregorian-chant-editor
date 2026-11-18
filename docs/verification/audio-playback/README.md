@@ -120,6 +120,73 @@ revision of PR #101.
   320 px) and then above it with pinning. Both are superseded by this
   layout. The pinning remains only as the non-sticky fallback.
 
+## Audio 2 follow-along
+
+Vitest:
+
+- `performance-navigation.test.ts`:
+  - start resolution for a note, mid-neume note, neume, forward and reverse
+    range, anchored syllable, nonmusical selections and stale IDs, plus a
+    range across a Dies Irae system boundary;
+  - rebasing: prompt start, no inherited pause, later mora and pauses kept,
+    last-note start, identities kept;
+  - all five speeds scaling every start, duration and total, with mora and
+    pauses at 0.5×;
+  - sounding-note lookup before the first note, at half-open boundaries,
+    across pauses, during a mora hold, at the end, for repeated pitches,
+    for an empty performance and for a rebased slowed performance.
+- `sounding-note.test.ts`: change-only notification and the playback count.
+- `follow-sounding-note.test.ts`: the follow policy.
+- `playback-controller.test.ts` and `web-audio-synth.test.ts`:
+  `elapsedSeconds` on the audio clock for the current session only (null
+  after stop, natural end and dispose), and the scheduler's `startTime`.
+
+Browser driver `audio-playback/follow-along-check.mjs` (runner driver
+`audio-follow-along`; production preview; Chromium/CDP and Firefox/BiDi;
+real pointer clicks for Play, options, speed and note selection):
+
+- **Reference.** A seeded one-system score (a, Podatus p0–p1, minor pause,
+  mora m, b, finalis pause, c) plays from the beginning with scheduled gaps
+  of 1, 1, 2, 2 and 4 base notes.
+- **Start from a mid-neume note.** With p1 selected, the status reads "Plays
+  from the selection"; the scheduled frequencies are exactly the tail from
+  p1, with gaps 2, 2 and 4 and no inherited pause. Focus stays on the
+  toggle, the selection stays, and the selected sounding note shows both the
+  selection outline and the cue. The cue takes no pointer hits and has no
+  role.
+- **Cue against the audio clock.** About 100 samples over 3.2 s compare the
+  cue with the note whose scheduled interval contains `currentTime`,
+  allowing one frame of lag. There is never more than one cue, and no cue in
+  the finalis pause (about 45 silent samples). The cue clears at the natural
+  end.
+- **Play from beginning** in the options plays the whole score while the
+  selection stays. Selecting another note during playback does not restart
+  it. Stop clears the cue.
+- **Speed.** At 0.5× every gap doubles, the speed choice is disabled while
+  playing, and the cue follows the slowed timeline. An initial-clef edit
+  during playback stops it and clears the cue.
+- **Follow scrolling.** At 1.5× from the last note of the third system, whose
+  next notes start below the viewport, in four cases:
+  - Dies Irae 1440×1000;
+  - Dies Irae 320×900;
+  - Salve Regina 320×900;
+  - Dies Irae 1440×1000 at 150% CSS zoom.
+
+  In each case the cue's note on the next system ends up fully in the usable
+  viewport (below the sticky toolbar when it sticks) and topmost at its
+  centre. There is no page overflow, the toolbar height is unchanged, the
+  selection and toggle focus are kept, and after a manual scroll to the top
+  the page is not pulled back for 1.5 s.
+
+- **Sideways score at 320px.** A one-syllable-wider-than-a-system score
+  scrolls sideways, and every note starts off to the right. Play reveals the
+  first sounding note inside the score viewport (`scrollLeft > 0`) without
+  page overflow or moving focus.
+
+The Audio 1 driver (`audio-playback`) was updated for the toggle and the
+options. During playback, "Play from beginning" is inert and creates no
+second session.
+
 ## Listening (manual)
 
 **Not run by the implementing agent**, which cannot hear audio. The owner

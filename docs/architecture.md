@@ -179,10 +179,18 @@ rendered DOM, sibling order and clip hierarchy are unchanged.
 
 ### `src/editor/playback/`
 
-Audio 1 playback (see [playback](playback.md)): the pure Proofreading Playback
-interpreter and its performance types, the Web Audio scheduler, the audio
-context/session controller and the `usePlayback` hook. Only the hook depends on
-React; only the scheduler and the hook's context factory touch Web Audio.
+Playback (see [playback](playback.md)): the pure Proofreading Playback
+interpreter and its performance types; the pure Audio 2 navigation transforms
+(start from a selection, rebase, speed, sounding-note lookup); the Web Audio
+scheduler; the audio context/session controller; the per-editor
+`SoundingNoteStore`; and the `usePlayback` hook. Only the hook and the store's
+subscription hook depend on React. Only the scheduler and the hook's context
+factory touch Web Audio. Nothing here reads the DOM.
+
+The sounding-note cue is drawn by `NoteControl` from its own store
+subscription. `rendering/follow-sounding-note.ts` scrolls the sounding note
+into view with the shared `revealElement` (also used by `focusAndReveal`),
+which never focuses.
 
 ### `src/editor/components/`
 
@@ -193,13 +201,13 @@ controls. Component state is not a second score model.
 
 The editor toolbar is split by ownership (readability M1):
 
-| Module                      | Owns                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                            |
-| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure  |
-| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button       |
-| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                              |
-| `PlaybackControls.tsx`      | Play/Stop and playback status, in the Quilisma figure row via the palette's `figureRowEnd` slot; uses `usePlayback` |
+| Module                      | Owns                                                                                                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                                                                    |
+| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure                                          |
+| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button                                               |
+| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                                                                      |
+| `PlaybackControls.tsx`      | Play/Stop toggle, Playback options (from beginning, speed) and status, in the Quilisma figure row via the palette's `figureRowEnd` slot; uses `usePlayback` |
 
 The palette and action bar receive session values and narrowly named callbacks;
 they never dispatch arbitrary actions, hold document state or derive clipboard

@@ -2,11 +2,11 @@
 
 Branch: feat/audio-2-follow-along
 Target: master
-Status: Implementation handoff (plan only; no Audio 2 code or tests run)
+Status: Implemented in the Audio 2 PR; awaiting owner review (this plan records intent, not verification)
 
 ## Problem and user-visible goal
 
-Audio 1 (merged PR #101) can play an authored chant with accurate semantic pitches, per-note mora doubling, and division-specific pauses, but playback always starts at the beginning and gives no indication of which written note is sounding. Proofreading a long chant such as *Dies Irae* requires repeatedly listening from the start and manually finding the passage.
+Audio 1 (merged PR #101) can play an authored chant with accurate semantic pitches, per-note mora doubling, and division-specific pauses, but playback always starts at the beginning and gives no indication of which written note is sounding. Proofreading a long chant such as _Dies Irae_ requires repeatedly listening from the start and manually finding the passage.
 
 Audio 2 should let an author select a passage, start playback at that spot, slow down the audition, and follow the sounding note in the score as it progresses through wrapped systems. It is still **melodic proofreading**, not authentic Gregorian performance or audio export.
 
@@ -18,7 +18,7 @@ Keep this one reviewable feature PR, preserving the accepted Audio 1 architectur
 - [Playback guide](../playback.md), [Accepted ADR 0006](../adrs/0006-separate-notation-from-playback.md) and [Audio 1 plan](audio-1-basic-melodic-playback.md).
 - [Editor interactions](../editor-interactions.md), [architecture](../architecture.md), [domain model](../domain-model.md), [layout and rendering](../layout-and-rendering.md), and [testing guide](../testing.md).
 - [Stable-ID ADR 0003](../adrs/0003-use-stable-semantic-identities.md), [mora ADR 0018](../adrs/0018-conventional-mora-patterns.md), and the existing clef/accidental decisions referenced by the playback guide.
-- Inspect the *current* code before editing: playback Performance, Proofreading Playback, controller, Web Audio scheduler, React hook and controls; editor selection helpers; ChantEditor; ScoreSvg/NeumeControl; focus/reveal helpers; sticky toolbar and verification runner.
+- Inspect the _current_ code before editing: playback Performance, Proofreading Playback, controller, Web Audio scheduler, React hook and controls; editor selection helpers; ChantEditor; ScoreSvg/NeumeControl; focus/reveal helpers; sticky toolbar and verification runner.
 
 ## Agreed product behavior
 
@@ -53,7 +53,7 @@ Keep this one reviewable feature PR, preserving the accepted Audio 1 architectur
 ### D. Adjustable audition speed
 
 - Provide a small, accessible playback speed choice: **0.5×, 0.75×, 1× (default), 1.25×, 1.5×**.
-- This is a **playback-only multiplier**: scale note durations *and* their relative start times, mora lengthening, division silence and total duration consistently. Pitches do not change.
+- This is a **playback-only multiplier**: scale note durations _and_ their relative start times, mora lengthening, division silence and total duration consistently. Pitches do not change.
 - Selecting the speed **before Play** is sufficient for Audio 2. Do not attempt mid-play time stretching or redesign AudioContext scheduling. While playing, keep the control visibly disabled or explicitly make changes take effect only on the next playback, with clear feedback.
 - Speed is transient UI preference only. No document, native-schema, localStorage or history changes.
 - Keep Play/Stop reachable in the sticky toolbar. The speed control and any secondary start action must not create height/overflow or keyboard-navigation regressions, especially at 320px. A compact responsive arrangement is preferable to changing existing palette focus navigation.
@@ -84,7 +84,7 @@ The current separation remains authoritative:
 - Start/Stop/restart, pending resume, failed context, natural end, edit/replacement and unmount clear the presentation cue and cannot leak old-playhead callbacks.
 - A selected note in the middle of a neume plays from that note; a selection across a system boundary starts and tracks in semantic order. An existing selection remains intact and keyboard focus does not jump.
 - The score-follow cue is visible, noninteractive and distinct from the editing selection in Chromium and Firefox. It advances on the **actual audio time**, including pauses and mora extension.
-- In *Dies Irae* and another long example, auto-reveal crosses system boundaries and handles a narrow 320px viewport with horizontal score overflow, sticky toolbar, and browser zoom. It does not obscure the target beneath the toolbar or break existing pointer hit-testing and keyboard focus recovery.
+- In _Dies Irae_ and another long example, auto-reveal crosses system boundaries and handles a narrow 320px viewport with horizontal score overflow, sticky toolbar, and browser zoom. It does not obscure the target beneath the toolbar or break existing pointer hit-testing and keyboard focus recovery.
 - Play/Stop remain reachable; test compact speed/start controls at narrow and normal widths and verify no unintended sticky-toolbar growth or horizontal page overflow.
 - Do not claim audible correctness from merely checking DOM or waveform output. The owner should manually listen and confirm correct start, slower/faster rate, timing continuity and visual synchronization in Firefox and Chromium.
 
