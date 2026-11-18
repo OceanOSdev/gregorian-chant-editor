@@ -512,9 +512,34 @@ try {
   );
 
   // A selected middle note of the Podatus starts playback on itself.
+  // Selection changes are not announced: the live status does not change,
+  // while the toggle's (non-live) description says where Play starts.
+  await ev(
+    `(()=>{window.statusChanges=0;const s=document.querySelector('.editor-playback [role="status"]');new MutationObserver(()=>statusChanges++).observe(s,{subtree:true,childList:true,characterData:true})})()`,
+  );
+  const startHint = () =>
+    ev(
+      `(()=>{const t=document.querySelector('.editor-playback__toggle');const ids=t.getAttribute('aria-describedby').split(' ');const hint=document.querySelector('.editor-playback__hint');return {described:ids.includes(hint.id),text:hint.textContent,live:hint.getAttribute('role')||hint.getAttribute('aria-live')||null}})()`,
+    );
+  assert.deepEqual(await startHint(), {
+    described: true,
+    text: '',
+    live: null,
+  });
   await clickNote('p1');
   assert.equal((await noteState('p1')).pressed, 'true');
-  assert.equal((await playback()).text, 'Plays from the selection');
+  assert.deepEqual(await startHint(), {
+    described: true,
+    text: 'Plays from the selection',
+    live: null,
+  });
+  await selectNote('a-n');
+  await ev(`document.activeElement.blur()`);
+  await key('Escape');
+  assert.equal((await startHint()).text, '', 'no hint without a selection');
+  assert.equal(await ev('statusChanges'), 0, 'selection changes not announced');
+  assert.equal((await playback()).text, '', 'live status unchanged');
+  await clickNote('p1');
   await startCueLog();
   await click('Play');
   await waitFor((p) => p.status === 'playing', 'from selection');

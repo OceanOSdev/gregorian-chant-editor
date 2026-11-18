@@ -22,10 +22,13 @@ function unplayableReason(result: PerformanceResult): string | null {
 
 const speedLabel = (speed: PlaybackSpeed) => `${speed}×`;
 
+/**
+ * The live status: playback state only. Selection changes never change it,
+ * so editing does not trigger announcements; the start hint is separate.
+ */
 function statusText(
   state: PlaybackState,
   unplayable: string | null,
-  fromSelection: boolean,
   speed: PlaybackSpeed,
 ) {
   switch (state.status) {
@@ -36,7 +39,7 @@ function statusText(
     case 'failed':
       return state.message;
     case 'idle':
-      return unplayable ?? (fromSelection ? 'Plays from the selection' : '');
+      return unplayable ?? '';
   }
 }
 
@@ -98,6 +101,7 @@ export function PlaybackControls({
   soundingNotes,
 }: PlaybackControlsProps) {
   const statusId = useId();
+  const startHintId = useId();
   const panelId = useId();
   const { state, interpretation, play, stop } = usePlayback(
     document,
@@ -196,7 +200,7 @@ export function PlaybackControls({
           className="editor-playback__toggle"
           data-playback-action={active ? 'stop' : 'play'}
           aria-disabled={!active && !canPlay}
-          aria-describedby={statusId}
+          aria-describedby={`${startHintId} ${statusId}`}
           title={
             active
               ? 'Stop playback'
@@ -286,13 +290,18 @@ export function PlaybackControls({
             </div>
           ) : null}
         </div>
+        {/* Not live: read with the toggle's description, never announced
+            when the selection changes. */}
+        <span id={startHintId} className="editor-playback__hint">
+          {!active && startNoteId ? 'Plays from the selection' : ''}
+        </span>
         <span
           id={statusId}
           className="editor-playback__status"
           role="status"
           data-playback-status={state.status}
         >
-          {statusText(state, unplayable, startNoteId !== null, speed)}
+          {statusText(state, unplayable, speed)}
         </span>
       </div>
     </div>

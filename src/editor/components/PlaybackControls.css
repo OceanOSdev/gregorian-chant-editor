@@ -85,14 +85,19 @@
   margin: 0;
   color: #675f55;
 }
+.editor-playback__hint,
 .editor-playback__status {
   margin-inline-start: 0.25rem;
   color: #675f55;
   white-space: nowrap;
 }
+.editor-playback__hint:empty {
+  display: none;
+}
 @media (max-width: 48rem) {
   .editor-playback__label,
   .editor-playback__speed,
+  .editor-playback__hint,
   .editor-playback__status:not([data-playback-status='failed']) {
     position: absolute;
     width: 1px;
