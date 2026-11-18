@@ -58,7 +58,10 @@ import {
  * - `system-layout-assembly.ts`: rebuild at resolved origins, semantic IDs,
  *   lyrics, hyphens, hit clips, insertion slots and canvas bounds.
  *
- * Callers import types, constants and helpers from this module only.
+ * Score-layout consumers import `layoutChant`, its result types and the
+ * layout helpers from this module; the phase modules above are internal.
+ * Lower-level geometry modules (lyric metrics, vertical metrics, neume,
+ * clef and division geometry) are imported directly where needed.
  */
 
 export {
@@ -290,7 +293,11 @@ function prepareGeometryInputs(
   });
 }
 
-/** Whether any syllable is anchored to a neume on the system (Stage 11B). */
+/**
+ * Whether any syllable is anchored to a neume on the system (Stage 11B), so
+ * measurement reserves a lyric row. `attachLyrics` places lyrics by the same
+ * rule; change both together.
+ */
 function systemHasLyricRow(
   system: PositionedSystem,
   document: ChantDocument,
@@ -378,6 +385,9 @@ export function layoutChant(
     document,
     lyricMetrics.alignments,
   );
+  // Only a fully measured snapshot drives hyphens. It also gates hit
+  // clipping: gaps below interNeumeInkGap come only from measured same-word
+  // or intra-syllable compaction, so without it clipping has nothing to do.
   if (lyricMetrics.ready && lyricMetrics.hyphenExtents) {
     addContinuationHyphens(
       systems,

@@ -47,16 +47,22 @@ import {
 } from './system-vertical-layout';
 
 /*
- * Final layout assembly: everything after horizontal composition and
- * vertical stacking. Each phase consumes composed geometry and never revisits
- * a horizontal decision (ADR 0028):
+ * Consumer side of horizontal composition. Each phase consumes composed
+ * geometry and never revisits a horizontal decision (ADR 0028):
  *
- * 1. `positionedMusicInk` — the ink `measureSystemVertical` measures;
- * 2. `positionComposedSystem` — translate a system to its resolved origin;
+ * 1. `positionedMusicInk` — the ink `measureSystemVertical` measures, before
+ *    stacking;
+ * 2. `positionComposedSystem` — after stacking, translate a system to its
+ *    resolved origin;
  * 3. `buildSystemLayout` — staff, clef and semantic IDs on the geometry;
  * 4. `attachLyrics`, `addContinuationHyphens`, `clipCompactNeumeHitAreas`;
  * 5. `buildScoreSlots` — semantic insertion boundaries per system;
  * 6. `measureCanvas` — score-absolute viewBox.
+ *
+ * Mutation: `attachLyrics` returns new systems (fresh lyric and hyphen
+ * arrays); `addContinuationHyphens` pushes into those `hyphens` arrays and
+ * `clipCompactNeumeHitAreas` sets `hitClip` on those neumes, in place. All
+ * mutated objects are created by this layout call, never semantic input.
  */
 
 export const scoreWidth = 720;
@@ -285,7 +291,10 @@ export function buildSystemLayout(
 
 /**
  * Places each syllable under its anchor neume's vowel-alignment x on that
- * neume's system, at the system's shared lyric baseline.
+ * neume's system, at the system's shared lyric baseline. The vertical lyric
+ * row was reserved by `systemHasLyricRow` (`layout-chant.ts`) with the same
+ * rule (anchor neume on the system with a finite alignment x); change both
+ * together. Returns new systems; the inputs are not modified.
  */
 export function attachLyrics(
   systems: readonly ChantSystemLayout[],
@@ -345,6 +354,12 @@ export function getNeumeLyricAlignmentX(
  * Draws a hyphen for every continuation whose measured gap exceeds the join
  * threshold: centered in the gap on one system, or as an outgoing mark after
  * the source system's last ink when the word breaks across systems.
+ *
+ * `composeSystemsHorizontally` reserved room for exactly these hyphens
+ * (`placeCandidate` for separated continuations, `reservedRight` for outgoing
+ * marks) with the same `lyricJoinThreshold` and `hyphenClearance`; the rules
+ * must agree or a hyphen is drawn without room. Pushes into each system's
+ * `hyphens` array in place.
  */
 export function addContinuationHyphens(
   systems: readonly AssembledSystem[],
@@ -404,7 +419,8 @@ export function addContinuationHyphens(
 /**
  * Splits external pointer padding at the midpoint between compactly spaced
  * neumes. Ink, anchors and internal note ownership remain untouched;
- * midpoint intervals are disjoint.
+ * midpoint intervals are disjoint. Sets `hitClip` on the neume layouts in
+ * place.
  */
 export function clipCompactNeumeHitAreas(systems: readonly AssembledSystem[]) {
   for (const system of systems) {

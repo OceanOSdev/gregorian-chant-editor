@@ -104,6 +104,12 @@ export interface LyricRequirement {
 /**
  * One composed system in the canonical local frame: system membership and
  * order plus geometry whose x positions are final.
+ *
+ * A new field must also be considered by every consumer in
+ * `system-layout-assembly.ts`: `positionComposedSystem` (translate or declare
+ * vertical-free), `positionedMusicInk` (vertical measurement), and, for ink,
+ * `buildSystemLayout` (staff extension), `addContinuationHyphens` (outgoing
+ * mark obstacles), `buildScoreSlots` and `measureCanvas`.
  */
 export interface PositionedSystem {
   leadingClef: Clef;
@@ -122,7 +128,10 @@ export interface HorizontalCompositionInput {
   usableRightBoundary?: number;
   /** Measured lyric requirements keyed by anchor neume index. */
   lyrics?: ReadonlyMap<number, LyricRequirement>;
-  /** Measured hyphen advance; 0 when the font snapshot is not ready. */
+  /**
+   * Measured hyphen advance; 0 when the hyphen itself is unmeasured. Only
+   * used for reservations of measured `lyrics`.
+   */
   hyphenWidth?: number;
   /**
    * Clef changes and divisions after each neume index, in score order;
@@ -130,7 +139,11 @@ export interface HorizontalCompositionInput {
    */
   followingEvents?: ReadonlyMap<number, readonly BoundaryEvent[]>;
   initialClef?: Clef;
-  /** Effective clef of each neume; drives custodes at clef changes. */
+  /**
+   * Effective clef of each neume. Every custos (outgoing at a system break,
+   * anticipated before a clef change) needs it; when omitted, no custodes are
+   * placed or reserved.
+   */
   noteClefs?: readonly Clef[];
 }
 
@@ -421,6 +434,9 @@ export function composeSystemsHorizontally({
       );
       // Decide from the safe placement once; adding mark clearance never
       // changes the decision back to joined (no iterative threshold loop).
+      // `addContinuationHyphens` later draws a hyphen in exactly the gaps
+      // that exceed lyricJoinThreshold, so this reservation must use the
+      // same threshold and clearance or a drawn hyphen would lack room.
       const separated =
         lyric.boundaryBefore === 'continuation' &&
         previousLyricRight !== null &&
@@ -494,6 +510,8 @@ export function composeSystemsHorizontally({
       );
     // Reserve a possible outgoing mark while its source lyric is on this
     // system. On acceptance of the next syllable this reservation is released.
+    // It must cover the outgoing hyphen `addContinuationHyphens` draws after
+    // the system's last ink (hyphenClearance before it).
     const reservedRight = (geometry: NeumeGeometry) =>
       Math.max(
         groupRight(geometry) + outgoingWidth(inputIndex + 1),
