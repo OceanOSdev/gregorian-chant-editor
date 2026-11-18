@@ -136,34 +136,50 @@ Vitest:
     across pauses, during a mora hold, at the end, for repeated pitches,
     for an empty performance and for a rebased slowed performance.
 - `sounding-note.test.ts`: change-only notification and the playback count.
-- `follow-sounding-note.test.ts`: the follow policy.
+- `follow-sounding-note.test.ts`: the follow policy's decision.
+- `focus-visibility.test.ts`: `zoomFactor` (exactly 1 without zoom,
+  including sub-pixel rounding, and 1.5 under 150% CSS zoom).
+- `sticky-visibility.test.ts`: `unobstructedViewportBottom`, which applies
+  only under the pinned controls' columns.
 - `playback-controller.test.ts` and `web-audio-synth.test.ts`:
   `elapsedSeconds` on the audio clock for the current session only (null
   after stop, natural end and dispose), and the scheduler's `startTime`.
 
 Browser driver `audio-playback/follow-along-check.mjs` (runner driver
-`audio-follow-along`; production preview; Chromium/CDP and Firefox/BiDi;
-real pointer clicks for Play, options, speed and note selection):
+`audio-follow-along`; production preview; Chromium/CDP and Firefox/BiDi).
+It uses real pointer clicks and key presses throughout, with one exception:
+three selection changes use a dispatched click on the note, because the
+selected note's context panel can cover neighbouring notes.
 
 - **Reference.** A seeded one-system score (a, Podatus p0–p1, minor pause,
   mora m, b, finalis pause, c) plays from the beginning with scheduled gaps
   of 1, 1, 2, 2 and 4 base notes.
-- **Start from a mid-neume note.** With p1 selected, the status reads "Plays
-  from the selection"; the scheduled frequencies are exactly the tail from
-  p1, with gaps 2, 2 and 4 and no inherited pause. Focus stays on the
+- **Announcements.** Selecting and clearing a selection cause no mutation of
+  the live status. The toggle's `aria-describedby` includes a non-live hint
+  that reads "Plays from the selection" only while a start applies.
+- **Start from a mid-neume note.** The scheduled frequencies are exactly the
+  tail from p1, with gaps 2, 2 and 4 and no inherited pause. Focus stays on the
   toggle, the selection stays, and the selected sounding note shows both the
   selection outline and the cue. The cue takes no pointer hits and has no
   role.
-- **Cue against the audio clock.** About 100 samples over 3.2 s compare the
-  cue with the note whose scheduled interval contains `currentTime`,
-  allowing one frame of lag. There is never more than one cue, and no cue in
-  the finalis pause (about 45 silent samples). The cue clears at the natural
-  end.
+- **Cue against the audio clock.** A MutationObserver on the score records
+  the audio-clock time of every cue change. The cue must:
+  - visit each scheduled note in order;
+  - never run ahead (allowing 10 ms of clock granularity);
+  - lag each note's scheduled start or end by a median of at most 25 ms.
+
+  A cue offset by the full 50 ms scheduling headroom fails; this was checked
+  by temporarily subtracting it a second time, which gives a median of
+  57 ms. The finalis pause is checked explicitly: after b the cue clears,
+  and nothing is cued until c, 1.2 s later. The cue clears at the natural
+  end and when the document is replaced during playback.
+
 - **Play from beginning** in the options plays the whole score while the
   selection stays. Selecting another note during playback does not restart
   it. Stop clears the cue.
 - **Speed.** At 0.5× every gap doubles, the speed choice is disabled while
-  playing, and the cue follows the slowed timeline. An initial-clef edit
+  playing, and the cue keeps to the slowed audio clock under the same
+  timing rules. An initial-clef edit
   during playback stops it and clears the cue.
 - **Follow scrolling.** At 1.5× from the last note of the third system, whose
   next notes start below the viewport, in four cases:
@@ -182,13 +198,35 @@ real pointer clicks for Play, options, speed and note selection):
   scrolls sideways, and every note starts off to the right. Play reveals the
   first sounding note inside the score viewport (`scrollLeft > 0`) without
   page overflow or moving focus.
+- **Pinned controls at 320×600.** The toolbar is too tall to stick, so the
+  controls pin during playback. Playing Dies Irae from the seventh system:
+  - a note beside the pinned controls keeps the full height (its bottom is
+    below their top);
+  - a note under their columns is revealed above them and is topmost.
+- **Reveal under 150% CSS zoom** in the sideways score at 320px:
+  - keyboard focus reveal (select a note, then transpose it so the app
+    restores focus);
+  - follow reveal.
+
+  Both leave the note 8 ± 2 px inside the score viewport's right edge. That
+  is minimal: no overshoot, and not hidden.
+
+- **Options dismissal:**
+  - a score click in select mode and with a placement tool armed (nothing
+    selected, placed or edited; focus kept);
+  - Tab and Shift+Tab departure;
+  - plain Escape (selection kept);
+  - Escape during a clef draft, a pending accidental placement and a lyric
+    move: the first Escape closes only the options, and the editor's next
+    Escape cancels the pending interaction.
 
 The Audio 1 driver (`audio-playback`) was updated for the toggle and the
 options. During playback, "Play from beginning" is inert and creates no
 second session.
 
-### Audio 2 results (2026-11-18)
+### Audio 2 results, first submission (2026-11-18)
 
+Superseded by the [review follow-up results](#audio-2-review-follow-up-results-2026-11-18).
 Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0,
 headless, runner-owned preview servers, at implementation commit `2c3ad16`
 (with docs `6825930`).
@@ -196,14 +234,16 @@ headless, runner-owned preview servers, at implementation commit `2c3ad16`
 - `audio-follow-along`: **Chromium pass, Firefox pass** in three consecutive
   runs after the last driver change.
   - About 100 cue samples per run matched the audio clock, with about 45 in
-    silences.
+    silences. The sampling allowed 50 ms of lag, equal to the scheduling
+    headroom, so it could not detect a headroom offset. The review
+    follow-up replaced it.
   - All five follow cases revealed the next note: Dies Irae at 1440 and 320,
     Salve Regina at 320, Dies Irae at 150% zoom, and the sideways score.
 - `audio-playback` (updated): **Chromium pass, Firefox pass**. Toolbar
   heights are Chromium 238/423/468 px and Firefox 246/431/476 px at
   1440/390/320.
-- **Toolbar height vs current `master` (`6209eec`):** a temporary probe in
-  both browsers at 1440, 1024, 768, 600, 480, 390, 352 and 320 px, with the
+- **Toolbar height vs current `master` (`6209eec`):** a one-off manual
+  measurement with an uncommitted temporary probe, in both browsers at 1440, 1024, 768, 600, 480, 390, 352 and 320 px, with the
   starter score and Kyrie XI, found 0 differences in 32 comparisons. The
   Quilisma label stays on one line, the controls clear the palette and the
   action bar, and there is no horizontal scroll.

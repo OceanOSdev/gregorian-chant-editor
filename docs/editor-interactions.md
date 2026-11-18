@@ -845,8 +845,8 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 
 A **Playback** group sits at the end of the sticky toolbar's Quilisma figure
 row, after the notation palette and before the action bar in both visual and
-focus order. It holds a **Play/Stop toggle**, a **Playback options** button
-and a polite status (`role="status"`). It is not a palette tool and takes no
+focus order. It holds a **Play/Stop toggle**, a **Playback options** button,
+a start hint and a polite status (`role="status"`). It is not a palette tool and takes no
 part in the palette's roving focus. That row already had unused width at
 every size, so the toolbar keeps its height.
 
@@ -856,20 +856,32 @@ every size, so the toolbar keeps its height.
   tooltip say why.
 - **Play starts at the selection.** A selected note (even mid-neume), a
   neume, a neume range (its earliest neume) or an anchored lyric syllable
-  starts playback there. Any other selection starts at the beginning. When a
-  start applies, the status reads "Plays from the selection".
+  starts playback there. Any other selection starts at the beginning.
+- **Announcements:** the live status carries playback state only (starting,
+  playing, failure, unplayable score), so selecting and editing never trigger
+  announcements. When a start applies, a separate, non-live hint reads
+  "Plays from the selection". It is part of the toggle's `aria-describedby`,
+  so it is read with the toggle, and it is visible at wide widths.
 - **Playback options** (a disclosure, `aria-expanded`): "Play from beginning",
   which ignores the selection, and a Speed radio group (0.5×, 0.75×, 1×,
   1.25×, 1.5×). While playing, Play from beginning is inert and the speed
-  choice is disabled with "Change the speed after Stop". Escape closes the
-  options and returns focus to their button, without clearing the editor
-  selection; a pointer press outside also closes them. The speed shows on
+  choice is disabled with "Change the speed after Stop". The speed shows on
   the button at wide widths and is always part of its accessible name
   ("Playback options, speed 1×").
-- **Wide layouts (above 48rem):** icons with text, the speed, and visible
-  status.
+- **Dismissing the options** follows the `NeumeFamilyMenu` contract:
+  - A press on the score only closes them, keeping focus. It selects,
+    places or edits nothing, even with a placement tool armed.
+  - A press on another control closes them and that control acts as usual.
+  - Focus leaving them (Tab, Shift+Tab) closes them.
+  - Escape closes them and returns focus to their button. It is handled in
+    the window capture phase while they are open, so it closes only the
+    options: a pending clef draft, accidental placement, lyric move or the
+    selection is left as it was, and the next Escape reaches the editor as
+    usual.
+- **Wide layouts (above 48rem):** icons with text, the speed, the visible
+  hint and status.
 - **Narrow layouts:** 32px icon-only buttons with visually hidden names. The
-  status is announced but visually hidden, and the toggle is outlined in blue
+  hint and status are visually hidden (the status is still announced), and the toggle is outlined in blue
   while playing. A failure message is shown visibly, and only then may the
   row wrap.
 - **Height:**
@@ -885,7 +897,8 @@ every size, so the toolbar keeps its height.
   sticking (taller than half the viewport, or a viewport 600px or shorter) and
   the controls scroll out of view during playback, the same group pins to the
   viewport's bottom-right corner, below dialogs and contextual panels. Its slot
-  keeps its size, so nothing reflows.
+  keeps its size, so nothing reflows. Follow scrolling keeps the sounding
+  note clear of the pinned group where it covers the note's columns.
 
 No keyboard shortcuts are added, and the group carries no
 `data-notation-shortcuts`, so notation shortcuts do not fire from it.

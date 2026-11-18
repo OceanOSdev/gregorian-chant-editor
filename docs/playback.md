@@ -250,24 +250,41 @@ selection outline, so the two remain distinct when they coincide. It has
 
 ### Follow scrolling
 
-`useFollowSoundingNote` (rendering layer) reveals the sounding note with the
-shared `revealElement`. The same measured, minimal, container-by-container
-reveal underlies keyboard focus, but it never focuses or selects.
+`useFollowSoundingNote` (rendering layer) looks the sounding note up within
+the editor's score and reveals it with the shared `revealElement`. The same
+measured, minimal, container-by-container reveal underlies keyboard focus,
+but it never focuses or selects.
 
 - **Usable area:** the page area below the sticky toolbar (when it sticks)
-  and the horizontally scrollable score viewport.
+  and the horizontally scrollable score viewport, inset by 8px. While the
+  playback controls are pinned to the viewport corner, a target in the
+  columns they cover must also clear them (`scoreViewportBottom`). Targets
+  beside them keep the full height.
 - **First note:** the first sounding note of each playback is revealed.
 - **Later notes:** the next note is revealed only while the previous sounding
   note is at least partly on screen (`isElementOnScreen`). If the reader
   scrolls the sounding note away, following pauses instead of fighting them,
   and resumes when it is visible again. Division-pause silences do not reset
-  this.
+  this. The pinned controls are not subtracted from this check, because they
+  can appear over a note that was revealed before they pinned.
 - **Behaviour:** reveals are instant, so there is no animation for
-  reduced-motion preferences to affect. Notes already visible cause no scroll.
+  reduced-motion preferences to affect. A note already inside the usable
+  area causes no scroll. A note within 8px of an edge, or under pinned
+  controls, scrolls just enough to clear it.
 
-`revealElement` converts a container's client box with its measured CSS
-`zoom` factor. Without zoom the factor is 1 and behaviour is unchanged. This
-also corrects keyboard focus reveal inside a zoomed score viewport.
+**CSS zoom.** Under CSS `zoom` on an ancestor, a scroll container's client
+rect is zoomed while its client metrics and scroll offsets are not.
+`revealElement` measures that factor (`zoomFactor`) and converts both the
+container's bounds and the scroll delta. A size within 1px of the layout
+size counts as factor 1, so without zoom the geometry is identical to
+`master`.
+
+This affects keyboard focus reveal too, and is a behaviour change only under
+CSS zoom. On `master`, focus reveal in the score viewport at 150% CSS zoom
+scrolled the note out of view. It is now minimal in Chromium and Firefox.
+Real browser zoom (Ctrl +) keeps rects and metrics in the same pixels and is
+unaffected. The app itself never sets CSS `zoom`; the verification drivers
+do, to emulate zoom.
 
 ## Simplifications
 
