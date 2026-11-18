@@ -124,7 +124,7 @@ retain an obvious seam for alternative interpretation engines later.
 - Tests cover relative degree -> semitone conversion across octave boundaries,
   **negative degrees**, C/F clef changes, and melody-preserving clef edits.
 - Tests cover scoped B-flat/natural behavior, octave/register isolation, reset
-  at word/division boundaries, and *earlier-placed* accidental signs.
+  at word/division boundaries, and _earlier-placed_ accidental signs.
 - Divisions and explicit clef events are not synthesized as notes. Playback
   ordering comes from semantic score data rather than SVG or layout.
 - Every valid supported neume kind is handled generically through its ordered
