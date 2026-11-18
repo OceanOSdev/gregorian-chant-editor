@@ -2,7 +2,8 @@
 
 Branch: `feat/audio-1-basic-playback`
 Target: `master`
-Status: implementation handoff (plan only; no audio code or tests run yet)
+Status: implemented in PR #101; scope revised after owner review (see
+[Owner review revision](#owner-review-revision-pr-101))
 
 ## Problem and user-visible goal
 
@@ -55,8 +56,15 @@ testing guides before implementation.
   is suitable; exact value is an implementation choice. Do not infer durations
   from mora, horizontal/vertical episema, liquescence, lyric accent, or glyph
   shape in this milestone.
+- **Simple deterministic pauses at divisions** (added in owner review): each
+  division kind adds a fixed silence between the surrounding notes, longer for
+  heavier divisions. These are playback-only proofreading aids, not historical
+  performance claims. Timing walks the existing semantic score order
+  (`deriveScoreOrder`); no second interpretation of divisions.
 - Minimal **Play** and **Stop** controls in an appropriate editor UI location;
-  show playback state and prevent overlapping sessions. Do not add conflicting
+  show playback state and prevent overlapping sessions. Stop must stay
+  conveniently reachable while listening to a long chant without making the
+  sticky toolbar taller on narrow screens (added in owner review). Do not add conflicting
   keyboard shortcuts in Audio 1. Tempo/speed control is optional only if it can
   be included without complicating this slice; otherwise defer.
 - The browser **Web Audio API** is the audio backend. Prefer a simple,
@@ -109,7 +117,9 @@ retain an obvious seam for alternative interpretation engines later.
 - Vocal/monastic choir synthesis, syllable singing, speech synthesis, samples,
   audio export, MIDI export, live microphone or conducted performance.
 - Authentic rhythm, duration inference from mora/episemata, phrase rubato,
-  division pauses, ornament interpretation or expressive timing.
+  ornament interpretation or expressive timing. **Mora** stays without effect
+  in Audio 1; a separate follow-up milestone will establish an explicit
+  rhythmic interpretation policy.
 - Play from selection, pause/resume, seek, note-by-note highlighting, scrolling
   during playback, looping, and persistence of audio preferences.
 - Native-format/schema migrations, new notation concepts, and broad editor
@@ -125,8 +135,10 @@ retain an obvious seam for alternative interpretation engines later.
   **negative degrees**, C/F clef changes, and melody-preserving clef edits.
 - Tests cover scoped B-flat/natural behavior, octave/register isolation, reset
   at word/division boundaries, and _earlier-placed_ accidental signs.
-- Divisions and explicit clef events are not synthesized as notes. Playback
-  ordering comes from semantic score data rather than SVG or layout.
+- Divisions and explicit clef events are not synthesized as notes. Each
+  division kind adds its deterministic pause between notes; clefs add no time.
+  Playback ordering and timing come from semantic score data rather than SVG or
+  layout.
 - Every valid supported neume kind is handled generically through its ordered
   `notes` tuple (not an incomplete `switch` over seven original kinds).
 - Start/Stop/restart, empty score, document change, unmount, and audio-context
@@ -150,3 +162,21 @@ falsely claim audible correctness from a DOM-only test.
 Implement **on this branch**, commit and push, then open a PR against
 `master`. Do not merge. Stop and present evidence/options for material ADR or
 architectural conflicts rather than silently changing the agreed scope.
+
+## Owner review revision (PR #101)
+
+Agreed after the owner reviewed and listened to the first implementation:
+
+1. **Division pauses** are in scope (see Agreed product behavior). Values and
+   boundary rules are owned by the [playback guide](../playback.md).
+2. **Stop reachability:** keep Stop reachable during long playback with a
+   small responsive solution that does not enlarge the sticky toolbar; no
+   broad UI redesign.
+3. **Firefox `dynamic-vertical-layout` at 320px:** determine whether it is an
+   interaction regression or a test scrolling problem and resolve it without
+   weakening hit-testing assertions, verified against `master` and the branch.
+4. **Mora** remains without playback effect; deferred to a separate rhythmic
+   interpretation milestone.
+5. **ADR 0006** is accepted for its separation of notation, performance and
+   rendering, updated to describe the agreed Audio 1 behavior without adding
+   premature abstractions (no engine interface or registry yet).

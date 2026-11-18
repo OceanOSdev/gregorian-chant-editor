@@ -62,8 +62,8 @@ Read the guide that owns a subsystem before changing its documented contract:
   [explicit neume types](docs/adrs/0004-use-explicit-neume-types-and-ordered-tuples.md),
   [combined music/lyric wrapping](docs/adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md)
   (superseding [ADR 0005](docs/adrs/0005-derive-wrapping-from-rendered-geometry.md)),
-  the **Proposed**
-  [playback boundary](docs/adrs/0006-separate-notation-from-playback.md), and the accepted
+  and the accepted
+  [playback boundary](docs/adrs/0006-separate-notation-from-playback.md),
   [engraving geometry](docs/adrs/0007-share-derived-neume-engraving-geometry.md)
   and [lyric anchors](docs/adrs/0008-anchor-lyrics-to-neumes.md) decisions
 

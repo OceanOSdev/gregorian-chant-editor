@@ -4,7 +4,7 @@ Date: 2026-07-28
 
 ## Status
 
-Proposed
+Accepted (2026-11-17, with Audio 1 in PR #101). Proposed 2026-07-28.
 
 ## Context
 
@@ -70,29 +70,38 @@ Conceptually:
 Each playback engine is responsible for determining how the notation should be
 interpreted for performance.
 
-## Initial implementation
+## Initial implementation (Audio 1)
 
-If this proposal is accepted, the initial playback engine is expected to
-prioritize simplicity over musical realism.
+The first engine is **Equal Note Playback** (`interpretEqualNotes`), a pure
+function from a `ChantDocument` to a `Performance` for melodic proofreading.
+It prioritizes simplicity and determinism over musical realism:
 
-The current idea is to implement an **Equal Note Playback** engine that assigns
-a uniform base duration to notes while introducing only minimal rhythmic
-interpretation, such as pauses at bar lines.
+- one event per authored note, in semantic score order and each neume's tuple
+  order, carrying stable note and neume IDs;
+- pitch and B flat/natural taken from the existing effective-pitch resolver,
+  mapped to sound through a playback-only register convention;
+- the same base duration for every note;
+- a fixed silence at each division between notes, longer for heavier
+  divisions, derived from the same semantic score order. These are playback
+  aids, not claims about historical performance;
+- no time for clefs, and no timing from mora, episemata, liquescence, note
+  forms or lyrics.
 
-The specific behavior of this engine is intentionally left unspecified by this
-ADR and can evolve independently as implementation begins.
+A separate Web Audio renderer schedules the `Performance`. The
+[playback guide](../playback.md) owns the exact values, register convention,
+event shape and lifecycle, so they can change without amending this ADR.
 
 ## Future playback engines
 
 Separating notation from playback should make it possible to experiment with
 additional playback engines without changing the document model.
 
-Potential future engines include:
+Potential engines include:
 
 ### Equal Note Playback
 
 A deterministic engine intended primarily for development, testing, and basic
-listening.
+listening. Implemented in Audio 1 (see above).
 
 ### Semiological Playback
 
@@ -117,21 +126,12 @@ notes within each syllable.
 Applies subtle timing variation and expressive nuance to approximate live
 performance.
 
-## Possible interface
+## Engine interface
 
-One possible abstraction could resemble:
-
-```ts
-interface PlaybackEngine {
-  generatePerformance(document: ChantDocument): Performance;
-}
-```
-
-where `Performance` represents a timeline of musical events consumed by an
-audio renderer.
-
-The exact shape of this interface is intentionally left open until playback
-work begins.
+Audio 1 has a single engine, so no `PlaybackEngine` interface, registry or
+plugin mechanism is introduced. The engine already has the shape such an
+interface would take (`ChantDocument → Performance`). Introduce the
+abstraction when a second engine actually exists, and shape it from both.
 
 ## Consequences
 
@@ -153,47 +153,18 @@ work begins.
 
 ## Open questions
 
-The following questions remain intentionally unresolved:
+Answered by Audio 1:
 
-- What intermediate representation should `Performance` use?
-- Should playback engines operate primarily on notes, syllables, phrases, or a
-  combination?
-- Should playback preferences be stored per user, per document, or elsewhere?
-- How closely should future playback attempt to model specific chant
-  traditions?
-- Should real-time "conducted" playback eventually be supported alongside
-  automatic playback?
+- The `Performance` representation is an ordered list of per-note events with
+  stable IDs, resolved pitch and start/duration in seconds; silence is
+  represented by gaps between events.
+- The initial engine operates on notes, with divisions contributing pauses.
 
-## Audio 1 review (2026-11-17)
+Still open:
 
-Status is intentionally left **Proposed**: owner approval of the Audio 1 plan
-is not by itself treated as acceptance of this ADR. The Audio 1 implementation
-(issue #100, [playback guide](../playback.md)) follows the decision as written:
-
-- `ChantDocument` and its native schema gain no playback, timing, tempo or
-  absolute-pitch fields.
-- One engine, Equal Note Playback (`interpretEqualNotes`), is a pure function
-  from a document to a `Performance` timeline; a separate Web Audio renderer
-  consumes it.
-- For Audio 1 the first open question is answered narrowly: `Performance` is
-  an ordered list of per-note events with stable note/neume IDs, resolved
-  degree and alteration, an audition MIDI note, and start/duration in seconds.
-- Engines operate on notes. Syllables and phrases are not yet used.
-
-Points for the owner before acceptance:
-
-1. **Division pauses.** The Initial implementation section mentions pauses at
-   bar lines. The Audio 1 plan excludes them, so Equal Note Playback adds no
-   time at divisions. Accepting as written leaves this as a possible engine
-   refinement and not a requirement.
-2. **Engine interface.** No `PlaybackEngine` interface or registry exists yet.
-   `interpretEqualNotes` has the proposed `generatePerformance` shape and is
-   the seam for later engines. Formalizing it is deferred until a second
-   engine exists.
-3. **Register convention.** Degree 0 = C4 is a playback-only policy owned by
-   the playback guide. It is not a notation decision.
-4. **Still open:** where playback preferences live, how closely future engines
-   model specific traditions, and conducted playback.
-
-If the owner accepts this ADR, change Status to Accepted and record that
-points 1–3 are accepted as described.
+- How mora, episemata and other rhythmic signs are interpreted (a separate
+  milestone will set an explicit rhythmic interpretation policy).
+- Whether later engines operate on syllables or phrases.
+- Where playback preferences, such as tempo, should be stored.
+- How closely future playback should model specific chant traditions.
+- Whether real-time conducted playback should be supported.
