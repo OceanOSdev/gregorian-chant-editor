@@ -1,0 +1,82 @@
+/*
+ * Play/Stop sit at the end of the sticky toolbar's Quilisma figure row, which
+ * must not grow. The 2rem buttons extend 0.4375rem into the row's existing
+ * 0.5rem vertical margins, so their layout box (1.125rem) stays below the
+ * label's one-line height. At 320px the compact pair (2 × 2rem plus a
+ * 0.25rem gap) fits beside the one-line label in Chromium and Firefox.
+ */
+/* Keeps the compact pair's footprint while the group is pinned, so the row
+   never reflows. */
+.editor-playback-slot {
+  min-width: 4.25rem;
+  min-height: 1.125rem;
+}
+.editor-playback {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+.chant-editor .editor-playback button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  margin-block: -0.4375rem;
+  padding: 0.2rem 0.45rem;
+}
+.editor-playback svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+.editor-playback button[aria-disabled='true'] {
+  color: #71695f;
+  opacity: 0.65;
+  cursor: default;
+}
+/* Playing: Play is inert but shows the current state. */
+.editor-playback[data-playback-status='playing'] .editor-playback__play,
+.editor-playback[data-playback-status='starting'] .editor-playback__play {
+  color: #1e64d2;
+  border-color: #1e64d2;
+  opacity: 1;
+}
+.editor-playback__status {
+  margin-inline-start: 0.25rem;
+  color: #675f55;
+  white-space: nowrap;
+}
+@media (max-width: 48rem) {
+  .editor-playback__label,
+  .editor-playback__status:not([data-playback-status='failed']) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* A failure message needs room: only then may the row wrap. */
+  .quilisma-figure-row:has([data-playback-status='failed']) {
+    flex-wrap: wrap;
+  }
+  .editor-playback__status[data-playback-status='failed'] {
+    white-space: normal;
+  }
+}
+/* Only when the toolbar is not sticky and the controls scrolled away. */
+.editor-playback--pinned {
+  position: fixed;
+  z-index: 15;
+  right: 1rem;
+  bottom: 1rem;
+  max-width: calc(100vw - 2rem);
+  box-sizing: border-box;
+  padding: 0.6rem;
+  background: #faf8f4;
+  border: 1px solid #a79e90;
+  border-radius: 0.4rem;
+  box-shadow: 0 0.2rem 0.75rem #28231e30;
+}

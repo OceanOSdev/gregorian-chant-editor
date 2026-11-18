@@ -336,6 +336,37 @@ issue), unrelated to `click()`; that is why it has fewer 320 px calls. The
 uninstrumented driver then passed in both browsers, and again in the full
 run below. No application behaviour depends on native `scrollIntoView`.
 
+### Firefox stale scroll range under 150% CSS zoom (Audio 1 follow-up)
+
+Found while verifying Audio 1 (PR #101), Firefox 146, headless, 320 px. In
+section 7, Firefox reported the zoomed `scrollHeight` but clamped page
+scrolling to a smaller, stale extent. The driver's `scrollBy` was then undone
+by a native scroll event, with no script involved: an instrumented run logged
+only the driver's call, then two scroll events, the second back to the start.
+Measured by scrolling to the end and waiting:
+
+- **`master` (`f033976`), ordinary case:** reachable maximum 1433 vs reported 2185.
+- **Audio 1 branch, all three cases:** for example safe-integer, 1565 vs
+  2751, which left the safe-integer clef below the reachable page.
+- **Without zoom on both trees:** the ranges matched and the clef was
+  reachable.
+- **Toggling the zoom off and on** restored a correct range.
+
+Focusing the clef changes the page height and can make the range stale again.
+This is test-environment behaviour, not an application interaction
+regression: it requires CSS `zoom` on `main` and does not occur at 100%.
+
+The driver now applies the zoom through `applyZoom()`. It re-applies the zoom
+until the reachable extent equals `scrollHeight − innerHeight` and fails
+explicitly after three attempts. It checks again just before the
+rendered-location scroll, and records `staleRangeAfterFocus` in the `zoom`
+evidence. The hit-testing, pointer, keyboard and focus assertions are
+unchanged.
+
+With the patched driver, both trees pass in both browsers. Firefox reported
+`staleRangeAfterFocus` for ordinary and high at 320 px on `master`, and for
+all three cases on the branch. Chromium never reported it.
+
 ### Lyric font evidence
 
 The lyric stack is `Georgia, 'Times New Roman', serif`. The driver now

@@ -4,7 +4,7 @@ Date: 2026-07-28
 
 ## Status
 
-Proposed
+Accepted (2026-11-17, with Audio 1 in PR #101). Proposed 2026-07-28.
 
 ## Context
 
@@ -70,34 +70,50 @@ Conceptually:
 Each playback engine is responsible for determining how the notation should be
 interpreted for performance.
 
-## Initial implementation
+## Initial implementation (Audio 1)
 
-If this proposal is accepted, the initial playback engine is expected to
-prioritize simplicity over musical realism.
+The first engine is **Proofreading Playback** (`interpretProofreadingPlayback`),
+a pure function from a `ChantDocument` to a `Performance` for melodic
+proofreading. It was first planned as "Equal Note Playback"; it was renamed
+when a basic mora interpretation made note lengths unequal.
+It prioritizes simplicity and determinism over musical realism:
 
-The current idea is to implement an **Equal Note Playback** engine that assigns
-a uniform base duration to notes while introducing only minimal rhythmic
-interpretation, such as pauses at bar lines.
+- one event per authored note, in semantic score order and each neume's tuple
+  order, carrying stable note and neume IDs;
+- pitch and B flat/natural taken from the existing effective-pitch resolver,
+  mapped to sound through a playback-only register convention;
+- one base duration per note, doubled for a note marked with a mora. Each
+  marked note is lengthened individually, so an auctum duplex lengthens its
+  two notes with no group multiplier, consistent with note-owned marks
+  ([ADR 0018](0018-conventional-mora-patterns.md));
+- a fixed silence at each division between notes, longer for heavier
+  divisions, derived from the same semantic score order. These are playback
+  aids, not claims about historical performance;
+- no time for clefs, and no timing from episemata, liquescence, note forms or
+  lyrics.
 
-The specific behavior of this engine is intentionally left unspecified by this
-ADR and can evolve independently as implementation begins.
+A separate Web Audio renderer schedules the `Performance`. The
+[playback guide](../playback.md) owns the exact values, register convention,
+event shape and lifecycle, so they can change without amending this ADR.
 
 ## Future playback engines
 
 Separating notation from playback should make it possible to experiment with
 additional playback engines without changing the document model.
 
-Potential future engines include:
+Potential engines include:
 
-### Equal Note Playback
+### Proofreading Playback (originally "Equal Note Playback")
 
 A deterministic engine intended primarily for development, testing, and basic
-listening.
+listening. Implemented in Audio 1 (see above), including basic mora doubling
+and division pauses.
 
 ### Semiological Playback
 
-Interprets rhythmic markings such as morae and episemata while remaining
-deterministic.
+Interprets rhythmic markings such as morae and episemata, beyond Proofreading
+Playback's simple doubling, under an explicit semiological policy, while
+remaining deterministic.
 
 ### Solesmes-inspired Playback
 
@@ -117,21 +133,12 @@ notes within each syllable.
 Applies subtle timing variation and expressive nuance to approximate live
 performance.
 
-## Possible interface
+## Engine interface
 
-One possible abstraction could resemble:
-
-```ts
-interface PlaybackEngine {
-  generatePerformance(document: ChantDocument): Performance;
-}
-```
-
-where `Performance` represents a timeline of musical events consumed by an
-audio renderer.
-
-The exact shape of this interface is intentionally left open until playback
-work begins.
+Audio 1 has a single engine, so no `PlaybackEngine` interface, registry or
+plugin mechanism is introduced. The engine already has the shape such an
+interface would take (`ChantDocument → Performance`). Introduce the
+abstraction when a second engine actually exists, and shape it from both.
 
 ## Consequences
 
@@ -153,13 +160,19 @@ work begins.
 
 ## Open questions
 
-The following questions remain intentionally unresolved:
+Answered by Audio 1:
 
-- What intermediate representation should `Performance` use?
-- Should playback engines operate primarily on notes, syllables, phrases, or a
-  combination?
-- Should playback preferences be stored per user, per document, or elsewhere?
-- How closely should future playback attempt to model specific chant
-  traditions?
-- Should real-time "conducted" playback eventually be supported alongside
-  automatic playback?
+- The `Performance` representation is an ordered list of per-note events with
+  stable IDs, resolved pitch and start/duration in seconds; silence is
+  represented by gaps between events.
+- The initial engine operates on notes, with divisions contributing pauses
+  and morae lengthening individual notes.
+
+Still open:
+
+- A fuller rhythmic interpretation policy: episemata, liquescence and any
+  refinement of mora beyond simple doubling.
+- Whether later engines operate on syllables or phrases.
+- Where playback preferences, such as tempo, should be stored.
+- How closely future playback should model specific chant traditions.
+- Whether real-time conducted playback should be supported.

@@ -183,6 +183,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'audio-playback',
+    script: 'audio-playback/browser-check.mjs',
+    server: 'preview',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'vertical-episemata',
     script: 'vertical-episemata/browser-check.mjs',
     server: 'preview',

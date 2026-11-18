@@ -1,5 +1,6 @@
 import { EditorActionBar } from './EditorActionBar';
 import { EditorStickyToolbar } from './EditorStickyToolbar';
+import { PlaybackControls } from './PlaybackControls';
 import { NotationPalette, type NotationPaletteHandle } from './NotationPalette';
 import {
   AccidentalContextToolbar,
@@ -859,6 +860,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           onArmTool={armTool}
           onSelectTool={selectEditingTool}
           onFocusRequestHandled={acknowledgeFocusRequest}
+          figureRowEnd={<PlaybackControls document={history.present} />}
         />
         <EditorActionBar
           clipboardFeedback={session.clipboardFeedback}

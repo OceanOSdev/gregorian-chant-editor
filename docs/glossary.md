@@ -140,3 +140,15 @@ terminal, narrower than the Clivis.
 
 An augmentative-descending Podatus drawn as two offset full heads with a thin
 descending tail, after the 1949 Dominican _Completorium_ (Eia).
+
+### Performance
+
+The playback-only timeline derived from a `ChantDocument`: one ordered event
+per authored note with stable IDs, resolved pitch and start/duration in
+seconds. It is never stored in the document. See [playback](playback.md).
+
+### Playback register convention
+
+The audition mapping from relative degree to sounding pitch (degree 0 = C4,
+MIDI 60). It is a playback choice, not semantic pitch. See
+[playback](playback.md#register-convention).
