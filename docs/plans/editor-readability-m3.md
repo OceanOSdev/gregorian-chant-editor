@@ -3,7 +3,7 @@
 Branch: `refactor/layout-orchestration-m3`
 Target: `master`
 Base: `1972c105258a4def9596f22f072e08b19e75fbfe` (M2 / PR #95 merged)
-Status: **Plan and handoff only**. No implementation or verification has been performed on this branch.
+Status: **Completed** (historical record). Implemented and verified in [PR #97](https://github.com/OceanOSdev/gregorian-chant-editor/pull/97) and accepted by the owner; see [Closeout](#closeout). The starting inventory below describes the base, not the current tree.
 
 ## Problem and goal
 
@@ -148,3 +148,12 @@ The implementation PR should show a comprehensible orchestration path without pr
 Implement only on `refactor/layout-orchestration-m3`; preserve unrelated local changes. Update authoritative `docs/architecture.md`, `docs/layout-and-rendering.md` and relevant tests/verification records **in place** (avoid duplicate permanent guides); do not edit accepted ADR decisions for a mechanical refactor.
 
 Commit, push and open a PR targeting `master`. Report the exact final SHA, changed files, design choices, structural parity/differential evidence, verification results, baseline exceptions, manual acceptance and deviations. **Do not merge.** The owner will decide whether to remove the one-off plan before merge or retain it with a completed historical status.
+
+## Closeout
+
+Completed 2026-11-17 in PR #97 (implementation `aa60bf7`, review follow-up `667590e`). The PR holds the actual verification; the [layout pipeline ownership](../layout-and-rendering.md#layout-pipeline-ownership) section and the [architecture module map](../architecture.md#srceditorlayout) own the resulting contract.
+
+- Delivered as planned: `horizontal-system-composition.ts`, `system-layout-assembly.ts` and `chant-layout-types.ts`, with `layout-chant.ts` as the public entry point and orchestrator. No new ADR; no behavior change. A scratch differential (not committed) found byte-identical layout output against the base.
+- **Print preview was not part of this milestone's acceptance.** No print, print-preview, foreground visual or assistive-technology checks were run or accepted; the identical layout output supports, but does not prove, unchanged printed rendering.
+- Open from verification: the Firefox `mid-score-clefs` 150% zoom failure (the existing known intermittent issue) failed 2 of 6 branch runs and 0 of 6 base runs. That sample cannot distinguish the rates, and it was not reproduced on the base.
+- Remaining stages: M4 (optional reducer refactoring) is not started and needs its own plan.
