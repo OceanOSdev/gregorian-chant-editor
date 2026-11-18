@@ -169,4 +169,38 @@ describe('playback controller', () => {
     controller.play(testPerformance([60]));
     expect(contexts).toHaveLength(2);
   });
+
+  it('reports elapsed audio-clock time for the current session only', async () => {
+    const { controller, contexts } = setup();
+    expect(controller.elapsedSeconds()).toBeNull();
+    controller.play(testPerformance([60, 62]));
+    expect(controller.elapsedSeconds()).toBeNull();
+    contexts[0].allowResume();
+    await flushPromises();
+    const [oscillator] = contexts[0].oscillators;
+    const start = oscillator.startTime ?? NaN;
+    // During the scheduling headroom the performance has not begun.
+    expect(controller.elapsedSeconds()).toBeCloseTo(
+      contexts[0].currentTime - start,
+      9,
+    );
+    expect(controller.elapsedSeconds()).toBeLessThan(0);
+    contexts[0].currentTime = start + 0.5;
+    expect(controller.elapsedSeconds()).toBeCloseTo(0.5, 9);
+    controller.stop();
+    expect(controller.elapsedSeconds()).toBeNull();
+  });
+
+  it('stops reporting time after the natural end and after dispose', async () => {
+    const { controller, contexts } = setup();
+    controller.play(testPerformance([60]));
+    contexts[0].allowResume();
+    await flushPromises();
+    contexts[0].oscillators[0].end();
+    expect(controller.elapsedSeconds()).toBeNull();
+    controller.play(testPerformance([60]));
+    await flushPromises();
+    controller.dispose();
+    expect(controller.elapsedSeconds()).toBeNull();
+  });
 });

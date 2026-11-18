@@ -184,7 +184,7 @@ async function navigate() {
 }
 const playback = () =>
   ev(
-    `(()=>{const g=document.querySelector('[role="group"][aria-label="Playback"]');const [play,stop]=g.querySelectorAll('button');const s=g.querySelector('[role="status"]');return {status:s.dataset.playbackStatus,text:s.textContent,play:play.getAttribute('aria-disabled'),stop:stop.getAttribute('aria-disabled')}})()`,
+    `(()=>{const g=document.querySelector('[role="group"][aria-label="Playback"]');const t=g.querySelector('.editor-playback__toggle');const s=g.querySelector('[role="status"]');return {status:s.dataset.playbackStatus,text:s.textContent,action:t.dataset.playbackAction,disabled:t.getAttribute('aria-disabled')}})()`,
   );
 const log = () =>
   ev(
@@ -260,8 +260,8 @@ try {
   assert.deepEqual(await playback(), {
     status: 'idle',
     text: '',
-    play: 'false',
-    stop: 'true',
+    action: 'play',
+    disabled: 'false',
   });
   await click('Play');
   await waitFor((p) => p.status === 'playing', 'Kyrie playing');
@@ -272,10 +272,16 @@ try {
   assert.ok(audio.oscillators[0].frequencies.every(Number.isFinite));
   results.kyriePeak = await peakOver(600);
   assert.ok(results.kyriePeak > 0.02, `Kyrie is audible: ${results.kyriePeak}`);
-  assert.equal((await playback()).play, 'true');
-  await click('Play');
+  // While playing the toggle is Stop, and Play from beginning is inert.
+  assert.equal((await playback()).action, 'stop');
+  await click('Playback options, speed 1×');
+  await click('Play from beginning');
   await sleep(100);
   assert.equal((await log()).oscillators.length, 1, 'no overlapping session');
+  assert.equal((await playback()).status, 'playing');
+  await ev(
+    `document.querySelector('.editor-playback__options-button').click()`,
+  );
   await screenshot('playing-1440');
 
   const stopAt = Date.now();
@@ -351,7 +357,7 @@ try {
   // viewport). Playback never changes the toolbar's height.
   const pinState = () =>
     ev(
-      `(()=>{const bar=document.querySelector('.editor-sticky-toolbar');const t=bar.getBoundingClientRect();const g=document.querySelector('[role="group"][aria-label="Playback"]');const stop=[...g.querySelectorAll('button')].find(b=>b.textContent.trim()==='Stop');const r=stop.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {sticky:bar.dataset.tooTall!=='true'&&getComputedStyle(bar).position==='sticky',inToolbar:bar.contains(g),pinned:g.classList.contains('editor-playback--pinned'),stopInsideToolbar:r.top>=t.top&&r.bottom<=t.bottom,stopVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth,stopTopmost:!!hit&&stop.contains(hit),toolbar:Math.round(t.height),noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth}})()`,
+      `(()=>{const bar=document.querySelector('.editor-sticky-toolbar');const t=bar.getBoundingClientRect();const g=document.querySelector('[role="group"][aria-label="Playback"]');const stop=g.querySelector('.editor-playback__toggle');const r=stop.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {sticky:bar.dataset.tooTall!=='true'&&getComputedStyle(bar).position==='sticky',inToolbar:bar.contains(g),pinned:g.classList.contains('editor-playback--pinned'),stopInsideToolbar:r.top>=t.top&&r.bottom<=t.bottom,stopVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth,stopTopmost:!!hit&&stop.contains(hit),toolbar:Math.round(t.height),noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth}})()`,
     );
   for (const [width, height] of [
     [1440, 1000],
@@ -474,7 +480,7 @@ try {
     `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='New').click()`,
   );
   await waitFor((p) => p.text === 'No notes to play.', 'empty score');
-  assert.equal((await playback()).play, 'true');
+  assert.equal((await playback()).disabled, 'true');
   await click('Play');
   await sleep(100);
   assert.equal((await log()).oscillators.length, 1, 'empty score is silent');

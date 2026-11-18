@@ -1,8 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
 import type { PerformanceResult } from '../playback/performance';
+import {
+  playbackSpeeds,
+  resolvePlaybackStart,
+  type PlaybackSpeed,
+} from '../playback/performance-navigation';
 import type { PlaybackState } from '../playback/playback-controller';
+import type { SoundingNoteStore } from '../playback/sounding-note';
 import { usePlayback } from '../playback/use-playback';
+import type { EditorSelection } from '../state/selection';
 import './PlaybackControls.css';
 
 function unplayableReason(result: PerformanceResult): string | null {
@@ -13,16 +20,23 @@ function unplayableReason(result: PerformanceResult): string | null {
   return result.performance.notes.length ? null : 'No notes to play.';
 }
 
-function statusText(state: PlaybackState, unplayable: string | null) {
+const speedLabel = (speed: PlaybackSpeed) => `${speed}×`;
+
+function statusText(
+  state: PlaybackState,
+  unplayable: string | null,
+  fromSelection: boolean,
+  speed: PlaybackSpeed,
+) {
   switch (state.status) {
     case 'starting':
       return 'Starting audio…';
     case 'playing':
-      return 'Playing';
+      return speed === 1 ? 'Playing' : `Playing at ${speedLabel(speed)}`;
     case 'failed':
       return state.message;
     case 'idle':
-      return unplayable ?? '';
+      return unplayable ?? (fromSelection ? 'Plays from the selection' : '');
   }
 }
 
@@ -30,6 +44,16 @@ function PlayIcon() {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <path d="M4 2.5v11l9-5.5z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function OptionsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="3.5" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+      <circle cx="8" cy="12.5" r="1.5" fill="currentColor" />
     </svg>
   );
 }
@@ -42,30 +66,55 @@ function StopIcon() {
   );
 }
 
+interface PlaybackControlsProps {
+  document: ChantDocument;
+  /** Read only when Play is pressed, to choose the starting note. */
+  selection: EditorSelection;
+  soundingNotes: SoundingNoteStore;
+}
+
 /**
- * Play and Stop for the whole score, at the end of the sticky toolbar's
- * Quilisma figure row. Playback stays separate from document editing and
- * history; it reads the current document and never changes it.
+ * Playback controls at the end of the sticky toolbar's Quilisma figure row: a
+ * Play/Stop toggle and a Playback options disclosure ("Play from beginning"
+ * and the audition speed). Playback stays separate from document editing and
+ * history; it reads the document and selection and never changes them.
  *
- * Narrow layouts show only the icons; the button text stays in the
- * accessible name. The polite status is always announced, and is shown where
- * there is room and whenever playback failed.
+ * Play starts at the current musical selection (`resolvePlaybackStart`), or
+ * at the beginning. Changing the selection during playback does not move it.
+ * Speed is chosen before Play and is transient UI state.
  *
- * The buttons use `aria-disabled` rather than `disabled` so keyboard focus is
- * not lost when playback starts or ends.
+ * The toggle is one button whose name changes between Play and Stop, so
+ * keyboard focus stays put when playback starts or ends. Narrow layouts show
+ * icons only; names stay in visually hidden text.
  *
  * The sticky toolbar stops sticking when it is too tall or the viewport is
  * short. If the controls then scroll out of view during playback, the same
  * group pins itself to the bottom corner of the viewport so Stop stays
  * reachable; its slot keeps its size, so nothing shifts.
  */
-export function PlaybackControls({ document }: { document: ChantDocument }) {
+export function PlaybackControls({
+  document,
+  selection,
+  soundingNotes,
+}: PlaybackControlsProps) {
   const statusId = useId();
-  const { state, interpretation, play, stop } = usePlayback(document);
+  const panelId = useId();
+  const { state, interpretation, play, stop } = usePlayback(
+    document,
+    soundingNotes,
+  );
+  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const active = state.status === 'starting' || state.status === 'playing';
   const unplayable = unplayableReason(interpretation);
   const canPlay = !active && !unplayable;
+  const startNoteId = unplayable
+    ? null
+    : resolvePlaybackStart(document, selection);
+
   const slot = useRef<HTMLDivElement>(null);
+  const options = useRef<HTMLDivElement>(null);
+  const optionsButton = useRef<HTMLButtonElement>(null);
   const [slotVisible, setSlotVisible] = useState(true);
   useEffect(() => {
     const element = slot.current;
@@ -78,6 +127,25 @@ export function PlaybackControls({ document }: { document: ChantDocument }) {
     return () => observer.disconnect();
   }, []);
   const pinned = active && !slotVisible;
+
+  // A pointer press outside the options closes them.
+  useEffect(() => {
+    if (!optionsOpen) return;
+    const close = (event: PointerEvent) => {
+      if (!(
+        event.target instanceof Node && options.current?.contains(event.target)
+      ))
+        setOptionsOpen(false);
+    };
+    window.addEventListener('pointerdown', close, true);
+    return () => window.removeEventListener('pointerdown', close, true);
+  }, [optionsOpen]);
+
+  function closeOptions() {
+    setOptionsOpen(false);
+    optionsButton.current?.focus();
+  }
+
   return (
     <div className="editor-playback-slot" ref={slot}>
       <div
@@ -88,36 +156,99 @@ export function PlaybackControls({ document }: { document: ChantDocument }) {
       >
         <button
           type="button"
-          className="editor-playback__play"
-          aria-disabled={!canPlay}
+          className="editor-playback__toggle"
+          data-playback-action={active ? 'stop' : 'play'}
+          aria-disabled={!active && !canPlay}
           aria-describedby={statusId}
-          title={unplayable ?? 'Play the whole score from the beginning'}
-          onClick={() => {
-            if (canPlay) play();
-          }}
-        >
-          <PlayIcon />
-          <span className="editor-playback__label">Play</span>
-        </button>
-        <button
-          type="button"
-          className="editor-playback__stop"
-          aria-disabled={!active}
-          title="Stop playback"
+          title={
+            active
+              ? 'Stop playback'
+              : (unplayable ??
+                (startNoteId
+                  ? 'Play from the selection'
+                  : 'Play the whole score from the beginning'))
+          }
           onClick={() => {
             if (active) stop();
+            else if (canPlay) play({ from: startNoteId, speed });
           }}
         >
-          <StopIcon />
-          <span className="editor-playback__label">Stop</span>
+          {active ? <StopIcon /> : <PlayIcon />}
+          <span className="editor-playback__label">
+            {active ? 'Stop' : 'Play'}
+          </span>
         </button>
+        <div
+          className="editor-playback__options"
+          ref={options}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape' || !optionsOpen) return;
+            // Keep the editor's own Escape (clear selection) from running.
+            event.preventDefault();
+            event.stopPropagation();
+            closeOptions();
+          }}
+        >
+          <button
+            type="button"
+            ref={optionsButton}
+            className="editor-playback__options-button"
+            aria-expanded={optionsOpen}
+            aria-controls={panelId}
+            title="Playback options"
+            onClick={() => setOptionsOpen((open) => !open)}
+          >
+            <OptionsIcon />
+            <span className="editor-sr-only">Playback options, speed </span>
+            <span className="editor-playback__speed">{speedLabel(speed)}</span>
+          </button>
+          {optionsOpen ? (
+            <div
+              id={panelId}
+              className="editor-playback__panel"
+              role="group"
+              aria-label="Playback options"
+            >
+              <button
+                type="button"
+                aria-disabled={!canPlay}
+                onClick={() => {
+                  if (!canPlay) return;
+                  closeOptions();
+                  play({ from: null, speed });
+                }}
+              >
+                Play from beginning
+              </button>
+              <fieldset disabled={active}>
+                <legend>Speed</legend>
+                {playbackSpeeds.map((value) => (
+                  <label key={value}>
+                    <input
+                      type="radio"
+                      name={`${panelId}-speed`}
+                      checked={speed === value}
+                      onChange={() => setSpeed(value)}
+                    />
+                    {speedLabel(value)}
+                  </label>
+                ))}
+              </fieldset>
+              {active ? (
+                <p className="editor-playback__note">
+                  Change the speed after Stop.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
         <span
           id={statusId}
           className="editor-playback__status"
           role="status"
           data-playback-status={state.status}
         >
-          {statusText(state, unplayable)}
+          {statusText(state, unplayable, startNoteId !== null, speed)}
         </span>
       </div>
     </div>
