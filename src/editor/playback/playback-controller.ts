@@ -19,9 +19,14 @@ export type PlaybackState =
   | { status: 'failed'; message: string };
 
 export interface PlaybackController {
-  /** Stops any current playback, then plays from the beginning. */
+  /** Stops any current playback, then plays this performance from its 0 s. */
   play(performance: Performance): void;
   stop(): void;
+  /**
+   * Seconds of the current performance elapsed on the audio clock (negative
+   * during the scheduling headroom), or null when nothing is scheduled.
+   */
+  elapsedSeconds(): number | null;
   /** Stops and closes the audio context; later calls do nothing. */
   dispose(): void;
 }
@@ -128,6 +133,11 @@ export function createPlaybackController(
     stop() {
       silence();
       report({ status: 'idle' });
+    },
+    elapsedSeconds() {
+      return scheduled && context
+        ? context.currentTime - scheduled.startTime
+        : null;
     },
     dispose() {
       if (disposed) return;

@@ -1,5 +1,8 @@
 import { expect, it } from 'vitest';
-import { occupiedViewportTop } from './sticky-visibility';
+import {
+  occupiedViewportTop,
+  unobstructedViewportBottom,
+} from './sticky-visibility';
 import { getVisibilityAdjustment } from './focus-visibility';
 
 it('reserves measured occupied space and reveals a covered note minimally', () => {
@@ -39,4 +42,40 @@ it('ignores absent, scrolled-away and below-viewport toolbars', () => {
       800,
     ),
   ).toBe(10);
+});
+
+it('raises the usable bottom only under a floating box that covers the target', () => {
+  // Pinned playback controls in the bottom-right corner.
+  const box = { left: 220, right: 304, top: 820, bottom: 884 };
+  expect(unobstructedViewportBottom(box, { left: 250, right: 262 }, 900)).toBe(
+    820,
+  );
+  expect(unobstructedViewportBottom(box, { left: 210, right: 225 }, 900)).toBe(
+    820,
+  );
+  // Beside the box the full height stays usable.
+  expect(unobstructedViewportBottom(box, { left: 40, right: 52 }, 900)).toBe(
+    900,
+  );
+  expect(unobstructedViewportBottom(box, { left: 205, right: 220 }, 900)).toBe(
+    900,
+  );
+  // No box, a box below the bottom, or an empty box changes nothing.
+  expect(unobstructedViewportBottom(null, { left: 250, right: 262 }, 900)).toBe(
+    900,
+  );
+  expect(
+    unobstructedViewportBottom(
+      { ...box, top: 905, bottom: 960 },
+      { left: 250, right: 262 },
+      900,
+    ),
+  ).toBe(900);
+  expect(
+    unobstructedViewportBottom(
+      { ...box, bottom: box.top },
+      { left: 250, right: 262 },
+      900,
+    ),
+  ).toBe(900);
 });

@@ -152,3 +152,9 @@ seconds. It is never stored in the document. See [playback](playback.md).
 The audition mapping from relative degree to sounding pitch (degree 0 = C4,
 MIDI 60). It is a playback choice, not semantic pitch. See
 [playback](playback.md#register-convention).
+
+### Sounding note
+
+The note whose performance event contains the current audio-clock time during
+playback. It is shown by a presentation-only cue and is never selection,
+focus or document state. See [playback](playback.md#sounding-note).

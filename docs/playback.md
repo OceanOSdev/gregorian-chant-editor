@@ -12,44 +12,52 @@ performance.
 
 - [Architecture](architecture.md)
 - [Domain model](domain-model.md)
-- [Editor interactions](editor-interactions.md#playback-controls-audio-1)
+- [Editor interactions](editor-interactions.md#playback-controls)
 - [Testing](testing.md)
 - [ADR 0006: Separate notation from playback](adrs/0006-separate-notation-from-playback.md)
   (Accepted)
 - [ADR 0014: relative diatonic degrees](adrs/0014-preserve-melody-on-initial-clef-edit.md),
   [ADR 0015: score order](adrs/0015-order-clef-changes-at-score-boundaries.md),
   [ADR 0021: B accidentals](adrs/0021-author-b-accidentals-at-neume-boundaries.md)
-- [Audio 1 plan](plans/audio-1-basic-melodic-playback.md)
+- [Audio 1 plan](plans/audio-1-basic-melodic-playback.md) and
+  [Audio 2 plan](plans/audio-2-navigation-and-follow-along.md)
 
 ## Data flow
 
 ```text
-ChantDocument
+ChantDocument (+ editor selection, read when Play is pressed)
     ↓  interpretProofreadingPlayback (pure; reuses resolveEffectivePitches)
 PerformanceResult → Performance (ordered PerformanceNote timeline)
+    ↓  performanceFrom + performanceAtSpeed (pure; Audio 2)
+Performance actually played
     ↓  PlaybackController (one AudioContext, one session at a time)
 schedulePerformance (Web Audio, scheduled on AudioContext.currentTime)
+    ↓  elapsedSeconds() on the audio clock → activeNoteAt (pure)
+SoundingNoteStore → note cue (NoteControl) and follow scrolling
 ```
 
-Playback reads the current document and never changes it. Nothing is added to
-`ChantDocument`, its native schema, document history or the editor session.
-Playback never reads layout, SVG or the DOM.
+Playback reads the current document and selection and never changes them.
+Nothing is added to `ChantDocument`, its native schema, document history or
+the editor session. Musical timing never reads layout, SVG or the DOM; only
+the follow scrolling measures rendered note geometry, by stable note ID.
 
 ## Modules
 
 All playback code lives in `src/editor/playback/`.
 
-| Module                        | Owns                                                                                       |
-| ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `performance.ts`              | `Performance`/`PerformanceNote`/`PerformanceResult` types and the register convention      |
-| `proofreading-performance.ts` | Proofreading Playback: the pure document-to-performance interpreter                        |
-| `web-audio-synth.ts`          | Scheduling one performance on a minimal structural subset of the Web Audio API             |
-| `playback-controller.ts`      | Audio context creation/resume, session invalidation, stop, dispose and reported state      |
-| `use-playback.ts`             | React glue: interprets the current document, stops on document change, disposes on unmount |
+| Module                        | Owns                                                                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `performance.ts`              | `Performance`/`PerformanceNote`/`PerformanceResult` types and the register convention                                                                   |
+| `proofreading-performance.ts` | Proofreading Playback: the pure document-to-performance interpreter                                                                                     |
+| `web-audio-synth.ts`          | Scheduling one performance on a minimal structural subset of the Web Audio API                                                                          |
+| `playback-controller.ts`      | Audio context creation/resume, session invalidation, stop, dispose and reported state                                                                   |
+| `performance-navigation.ts`   | Pure Audio 2 transforms: start from a selection, rebase, speed scaling, sounding-note lookup                                                            |
+| `sounding-note.ts`            | Per-editor presentation store of the sounding note ID and the per-note subscription hook                                                                |
+| `use-playback.ts`             | React glue: interprets the current document, plays a rebased/scaled performance, samples the audio clock, stops on document change, disposes on unmount |
 
 `components/PlaybackControls.tsx` renders Play, Stop and the status text at
 the end of the sticky toolbar's Quilisma figure row (see
-[editor interactions](editor-interactions.md#playback-controls-audio-1)).
+[editor interactions](editor-interactions.md#playback-controls)).
 `ChantEditor` passes it the current document through the palette's
 `figureRowEnd` slot.
 
@@ -162,8 +170,9 @@ then stops the oscillator.
 - The `AudioContext` is created lazily and resumed inside the Play click, so
   browsers' autoplay rules are met. One context is reused for later plays and
   replaced only if it was closed.
-- Play first stops any current session; at most one session sounds. Play is
-  inert while playback is starting or playing.
+- Play first stops any current session; at most one session sounds. While
+  playback is starting or playing, the toggle is Stop and "Play from
+  beginning" is inert.
 - Every play or stop invalidates earlier sessions, so a late `resume()` or
   `ended` callback cannot start sound or change the status.
 - Any change of the current document (edit, undo/redo, load, import or New)
@@ -173,12 +182,117 @@ then stops the oscillator.
   suspended, or a scheduling exception is reported as a status message.
   Nothing is thrown to the editor.
 
-## Audio 1 simplifications
+## Navigation and follow-along (Audio 2)
+
+### Starting point
+
+`resolvePlaybackStart(document, selection)` reads the editor selection once,
+when Play is pressed:
+
+| Selection                   | Starts on                                                   |
+| --------------------------- | ----------------------------------------------------------- |
+| Note                        | That note, even in the middle of a neume                    |
+| Neume                       | Its first note                                              |
+| Neume range                 | The first note of its earliest neume in score order         |
+| Lyric syllable              | The first note of the neume it is anchored to (`findNeume`) |
+| Anything else, or stale IDs | The beginning                                               |
+
+`performanceFrom(performance, noteId)` keeps the events from that note on and
+rebases them so it starts at 0 s. Nothing before it sounds, including a
+division pause that preceded it. Later notes keep their exact relative
+timing (mora lengths and division pauses).
+
+The Playback options include "Play from beginning", which ignores the
+selection. Changing the selection during playback does not move the audio;
+Stop and Play picks up the new start. A document change still stops playback.
+
+### Speed
+
+The options offer 0.5×, 0.75×, 1× (default), 1.25× and 1.5×.
+`performanceAtSpeed` divides every start, duration and the total by the
+speed, so notes, mora lengths and division silences scale together; pitches
+and IDs are unchanged.
+
+- The speed is chosen before Play. While playing, the choice is disabled with
+  a note; nothing is time-stretched mid-playback.
+- It is transient UI state: not stored in the document, history,
+  localStorage or anywhere else.
+
+### Sounding note
+
+- **Timing source.** `ScheduledPerformance.startTime` is the audio-clock time
+  of the performance's 0 s. It is the only place the 50 ms scheduling
+  headroom lives.
+- **Elapsed time.** `PlaybackController.elapsedSeconds()` returns
+  `currentTime − startTime` for the current session, or null when nothing is
+  scheduled. After stop, natural end, failure or dispose it is null.
+- **Sampling.** While playing, `usePlayback` runs one `requestAnimationFrame`
+  loop that samples this time and calls `activeNoteAt(performance, elapsed)`
+  on the performance actually played.
+- **Lookup.** `activeNoteAt` is a binary search over half-open note
+  intervals. It returns null before the first note, in silences between
+  events (division pauses) and after the end. A 1 ns tolerance closes
+  floating-point seams between back-to-back notes, so the cue never blinks
+  off there.
+- **Store.** The result goes into a per-editor `SoundingNoteStore`, which
+  notifies only on change. Each `NoteControl` subscribes, through
+  `useSyncExternalStore`, to whether _it_ is sounding, so a change re-renders
+  only two notes and never recomputes the layout. Repeated notes advance by
+  stable note ID.
+- **Clearing.** Stop, natural end, document change, failure and unmount end
+  the loop and clear the store. A later session cannot revive an old cue,
+  because time comes only from the current session.
+
+The cue is a broad translucent halo on the notehead, drawn under the thin
+selection outline, so the two remain distinct when they coincide. It has
+`pointer-events: none` and `aria-hidden`, and adds no role, focus,
+`aria-pressed` or history entry. It is hidden in print.
+
+### Follow scrolling
+
+`useFollowSoundingNote` (rendering layer) looks the sounding note up within
+the editor's score and reveals it with the shared `revealElement`. The same
+measured, minimal, container-by-container reveal underlies keyboard focus,
+but it never focuses or selects.
+
+- **Usable area:** the page area below the sticky toolbar (when it sticks)
+  and the horizontally scrollable score viewport, inset by 8px. While the
+  playback controls are pinned to the viewport corner, a target in the
+  columns they cover must also clear them (`scoreViewportBottom`). Targets
+  beside them keep the full height.
+- **First note:** the first sounding note of each playback is revealed.
+- **Later notes:** the next note is revealed only while the previous sounding
+  note is at least partly on screen (`isElementOnScreen`). If the reader
+  scrolls the sounding note away, following pauses instead of fighting them,
+  and resumes when it is visible again. Division-pause silences do not reset
+  this. The pinned controls are not subtracted from this check, because they
+  can appear over a note that was revealed before they pinned.
+- **Behaviour:** reveals are instant, so there is no animation for
+  reduced-motion preferences to affect. A note already inside the usable
+  area causes no scroll. A note within 8px of an edge, or under pinned
+  controls, scrolls just enough to clear it.
+
+**CSS zoom.** Under CSS `zoom` on an ancestor, a scroll container's client
+rect is zoomed while its client metrics and scroll offsets are not.
+`revealElement` measures that factor (`zoomFactor`) and converts both the
+container's bounds and the scroll delta. A size within 1px of the layout
+size counts as factor 1, so without zoom the geometry is identical to
+`master`.
+
+This affects keyboard focus reveal too, and is a behaviour change only under
+CSS zoom. On `master`, focus reveal in the score viewport at 150% CSS zoom
+scrolled the note out of view. It is now minimal in Chromium and Firefox.
+Real browser zoom (Ctrl +) keeps rects and metrics in the same pixels and is
+unaffected. The app itself never sets CSS `zoom`; the verification drivers
+do, to emulate zoom.
+
+## Simplifications
 
 Deliberately not interpreted: horizontal and vertical episemata, liquescence,
-quilisma and other note forms, lyric accents, phrasing and tempo. Mora is
-limited to the doubling above. There is no speed control, pause/resume, seek, play from
-selection, note highlighting, looping, or stored audio preference.
+quilisma and other note forms, lyric accents, phrasing and rubato. Mora is
+limited to the doubling above. There is no pause/resume, seeking, looping,
+mid-playback speed change, playback position persistence or stored audio
+preference.
 
 If the operating system or browser suspends a running context mid-playback,
 the status remains "Playing" until Stop is pressed.

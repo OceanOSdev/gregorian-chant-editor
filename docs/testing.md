@@ -287,9 +287,12 @@ and consult the owning record for feature-specific assertions and manual checks.
 - [Audio playback](verification/audio-playback/README.md):
   `proofreading-performance.test.ts` (register, order, clefs, accidentals, mora,
   invalid scores, bundled examples), `web-audio-synth.test.ts` and
-  `playback-controller.test.ts` (fake Web Audio); runner driver
-  `audio-playback`. Automated checks never prove what is heard; record actual
-  listening separately.
+  `playback-controller.test.ts` (fake Web Audio, including the audio-clock
+  `elapsedSeconds` seam), `performance-navigation.test.ts` (start from
+  selection, rebasing, speed, sounding-note lookup), `sounding-note.test.ts`
+  and `follow-sounding-note.test.ts`; runner drivers `audio-playback` and
+  `audio-follow-along`. Automated checks never prove what is heard or that
+  the cue looks in sync; record actual listening separately.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 

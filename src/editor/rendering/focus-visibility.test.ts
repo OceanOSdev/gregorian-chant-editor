@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getVisibilityAdjustment } from './focus-visibility';
+import { getVisibilityAdjustment, zoomFactor } from './focus-visibility';
 
 const viewport = { left: 8, right: 712, top: 8, bottom: 892 };
 describe('nearest necessary focus reveal', () => {
@@ -54,5 +54,20 @@ describe('nearest necessary focus reveal', () => {
         { left: 100, right: 120, top: -40, bottom: -10 },
       ),
     ).toEqual({ x: 0, y: -48 });
+  });
+});
+
+describe('zoomFactor', () => {
+  it('is exactly 1 without zoom, including sub-pixel rounding', () => {
+    expect(zoomFactor(273, 273)).toBe(1);
+    expect(zoomFactor(300.4, 300)).toBe(1);
+    expect(zoomFactor(299.6, 300)).toBe(1);
+  });
+  it('measures CSS zoom from rendered over layout size', () => {
+    expect(zoomFactor(256.5, 171)).toBeCloseTo(1.5, 9);
+    expect(zoomFactor(100, 200)).toBe(0.5);
+  });
+  it('treats an unlaid-out container as unzoomed', () => {
+    expect(zoomFactor(0, 0)).toBe(1);
   });
 });

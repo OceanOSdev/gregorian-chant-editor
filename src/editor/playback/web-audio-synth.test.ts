@@ -34,6 +34,12 @@ describe('schedulePerformance', () => {
     };
   }
 
+  it('exposes the audio-clock time of the performance start', () => {
+    const { context, handle, oscillator } = scheduled([60, 62]);
+    expect(handle.startTime).toBe(oscillator.startTime);
+    expect(handle.startTime).toBeGreaterThan(context.currentTime);
+  });
+
   it('schedules every note on the audio clock with one oscillator', () => {
     const { context, oscillator, envelope, output } = scheduled([60, 62, 62]);
     expect(context.oscillators).toHaveLength(1);

@@ -36,9 +36,12 @@ semantic documents without mutation. `layoutChant` derives positioned,
 renderable data, including automatic system assignment. `ScoreSvg` renders
 that data and delegates semantic edits back to editor callbacks.
 
-Playback is a separate read-only branch from the same document:
-`ChantDocument → interpretProofreadingPlayback → Performance → Web Audio`. It never reads
-layout or SVG and never changes the document; see [playback](playback.md).
+Playback is a separate read-only branch from the same document, which also
+reads the editor selection once when Play is pressed to choose a starting
+note: `ChantDocument (+ selection) → interpretProofreadingPlayback → Performance
+→ Web Audio`. Its timing never reads layout or SVG, and it changes neither the
+document nor the selection. Rendering reads one playback value, the sounding
+note, to draw the cue and follow it; see [playback](playback.md).
 
 `ChantEditor` orchestrates the pipeline. It owns document history and
 transient interface state, calls commands and interaction resolvers, derives a
@@ -173,16 +176,39 @@ reducer. `ScoreSvg` only forwards them from its props, unchanged, so every edit
 still goes through `ChantEditor`. Controls have no runtime dependency on
 commands, the reducer, or layout derivation. Their only import from `commands/`
 is the type `StaffPositionDelta`, which is erased at build time.
-They also do not create IDs. No React context or generic controller is used.
+They also do not create IDs. The one React context they read is
+`SoundingNoteContext` from `playback/`: `NoteControl` calls
+`useIsNoteSounding(noteId)` to draw the presentation-only sounding-note cue.
+It carries no editing state or callbacks. No other context or generic
+controller is used.
 These are component boundaries only: they add no SVG elements, and the
 rendered DOM, sibling order and clip hierarchy are unchanged.
 
 ### `src/editor/playback/`
 
-Audio 1 playback (see [playback](playback.md)): the pure Proofreading Playback
-interpreter and its performance types, the Web Audio scheduler, the audio
-context/session controller and the `usePlayback` hook. Only the hook depends on
-React; only the scheduler and the hook's context factory touch Web Audio.
+Playback (see [playback](playback.md)): the pure Proofreading Playback
+interpreter and its performance types; the pure Audio 2 navigation transforms
+(start from a selection, rebase, speed, sounding-note lookup); the Web Audio
+scheduler; the audio context/session controller; the per-editor
+`SoundingNoteStore` with its React context; and the `usePlayback` hook.
+React is used only by `usePlayback` and by `sounding-note.ts`
+(`SoundingNoteContext` and `useIsNoteSounding`). Only the scheduler and the
+hook's context factory touch Web Audio. Nothing here reads the DOM.
+
+Dependencies:
+
+- Playback imports `domain/` and, for start resolution only,
+  `state/selection` (the `EditorSelection` type and `resolveNeumeRange`).
+- Rendering imports playback in two places: `NeumeControl` uses the
+  `useIsNoteSounding` hook (a runtime import), and
+  `rendering/follow-sounding-note.ts` uses the `SoundingNoteStore` type.
+  Playback never imports rendering.
+- `ChantEditor` creates the store, provides the context and passes the store
+  to `PlaybackControls`.
+
+`rendering/follow-sounding-note.ts` scrolls the sounding note, looked up
+within the editor's score workspace, into view with the shared
+`revealElement` (also used by `focusAndReveal`), which never focuses.
 
 ### `src/editor/components/`
 
@@ -193,13 +219,13 @@ controls. Component state is not a second score model.
 
 The editor toolbar is split by ownership (readability M1):
 
-| Module                      | Owns                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                            |
-| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure  |
-| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button       |
-| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                              |
-| `PlaybackControls.tsx`      | Play/Stop and playback status, in the Quilisma figure row via the palette's `figureRowEnd` slot; uses `usePlayback` |
+| Module                      | Owns                                                                                                                                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EditorStickyToolbar.tsx`   | The sticky region and its `data-too-tall` ResizeObserver                                                                                                    |
+| `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure                                          |
+| `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button                                               |
+| `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                                                                      |
+| `PlaybackControls.tsx`      | Play/Stop toggle, Playback options (from beginning, speed) and status, in the Quilisma figure row via the palette's `figureRowEnd` slot; uses `usePlayback` |
 
 The palette and action bar receive session values and narrowly named callbacks;
 they never dispatch arbitrary actions, hold document state or derive clipboard

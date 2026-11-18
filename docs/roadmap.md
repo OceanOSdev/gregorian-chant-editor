@@ -462,3 +462,14 @@ clefs and B accidentals; the audition register maps do to C4.
 [ADR 0006](adrs/0006-separate-notation-from-playback.md) is Accepted. A fuller rhythmic
 interpretation policy (episemata, liquescence, refined mora) is future work. Tempo, pause/seek, play from selection, note highlighting
 and audio preferences remain future work.
+
+## Audio 2 — playback navigation and follow-along (implemented; owner acceptance pending)
+
+Play starts at the selected note, neume, range or anchored syllable (with
+"Play from beginning" in the Playback options). The sounding note shows a
+cue and is kept in view across systems; audition speed is 0.5×–1.5×
+([plan](plans/audio-2-navigation-and-follow-along.md),
+[contract](playback.md#navigation-and-follow-along-audio-2),
+[record](verification/audio-playback/README.md#audio-2-follow-along)). Play
+and Stop became one toggle to make room in the toolbar at 320px. Pause/resume,
+seeking, looping and stored audio preferences remain future work.

@@ -36,6 +36,11 @@ export interface ToneContext {
 }
 
 export interface ScheduledPerformance {
+  /**
+   * Audio-clock time (`context.currentTime`) at which the performance's 0 s
+   * falls, including the scheduling headroom. The only source of that offset.
+   */
+  readonly startTime: number;
   /** Silences promptly; `onEnded` is not guaranteed after a stop. */
   stop(): void;
 }
@@ -102,6 +107,7 @@ export function schedulePerformance(
   oscillator.stop(start + performance.durationSeconds);
 
   return {
+    startTime: start,
     stop() {
       if (finished) return;
       // A short fade on the constant output gain avoids a click; the

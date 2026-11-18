@@ -1,9 +1,10 @@
 /*
- * Play/Stop sit at the end of the sticky toolbar's Quilisma figure row, which
- * must not grow. The 2rem buttons extend 0.4375rem into the row's existing
- * 0.5rem vertical margins, so their layout box (1.125rem) stays below the
- * label's one-line height. At 320px the compact pair (2 × 2rem plus a
- * 0.25rem gap) fits beside the one-line label in Chromium and Firefox.
+ * The Play/Stop toggle and the Playback options button sit at the end of the
+ * sticky toolbar's Quilisma figure row, which must not grow. The 2rem buttons
+ * extend 0.4375rem into the row's existing 0.5rem vertical margins, so their
+ * layout box (1.125rem) stays below the label's one-line height. At 320px the
+ * compact pair (2 × 2rem plus a 0.25rem gap) fits beside the one-line label in
+ * Chromium and Firefox. The options panel floats and never adds height.
  */
 /* Keeps the compact pair's footprint while the group is pinned, so the row
    never reflows. */
@@ -17,7 +18,8 @@
   gap: 0.25rem;
   font-size: 0.875rem;
 }
-.chant-editor .editor-playback button {
+.chant-editor .editor-playback__toggle,
+.chant-editor .editor-playback__options-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -36,20 +38,66 @@
   opacity: 0.65;
   cursor: default;
 }
-/* Playing: Play is inert but shows the current state. */
-.editor-playback[data-playback-status='playing'] .editor-playback__play,
-.editor-playback[data-playback-status='starting'] .editor-playback__play {
+/* While playing the toggle is Stop; outline it to show the active state. */
+.editor-playback[data-playback-status='playing'] .editor-playback__toggle,
+.editor-playback[data-playback-status='starting'] .editor-playback__toggle {
   color: #1e64d2;
   border-color: #1e64d2;
-  opacity: 1;
 }
+.editor-playback__options {
+  /* Flex, not block: no line box around the button to add height. */
+  display: flex;
+  position: relative;
+}
+.editor-playback__options-button[aria-expanded='true'] {
+  border-color: #1e64d2;
+}
+.editor-playback__panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  display: grid;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 2rem));
+  padding: 0.6rem;
+  background: #fffdf8;
+  border: 1px solid #a79e90;
+  border-radius: 0.4rem;
+  box-shadow: 0 0.2rem 0.75rem #28231e30;
+}
+.editor-playback__panel fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  margin: 0;
+  padding: 0.3rem 0.5rem 0.5rem;
+  border: 1px solid #d9d3c9;
+}
+.editor-playback__panel label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+}
+.editor-playback__note {
+  margin: 0;
+  color: #675f55;
+}
+.editor-playback__hint,
 .editor-playback__status {
   margin-inline-start: 0.25rem;
   color: #675f55;
   white-space: nowrap;
 }
+.editor-playback__hint:empty {
+  display: none;
+}
 @media (max-width: 48rem) {
   .editor-playback__label,
+  .editor-playback__speed,
+  .editor-playback__hint,
   .editor-playback__status:not([data-playback-status='failed']) {
     position: absolute;
     width: 1px;
@@ -79,4 +127,9 @@
   border: 1px solid #a79e90;
   border-radius: 0.4rem;
   box-shadow: 0 0.2rem 0.75rem #28231e30;
+}
+/* Pinned to the bottom of the viewport: open the options upward. */
+.editor-playback--pinned .editor-playback__panel {
+  top: auto;
+  bottom: calc(100% + 0.6rem);
 }

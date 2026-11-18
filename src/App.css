@@ -234,6 +234,20 @@ kbd {
   stroke-width: 2.5;
   vector-effect: non-scaling-stroke;
 }
+/* Playback follow cue: a broad translucent halo, distinct in shape and
+   weight from the thin selection outline drawn above it. */
+.score__note-sounding {
+  fill: rgb(25 135 84 / 22%);
+  stroke: rgb(25 135 84 / 55%);
+  stroke-width: 7;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+@media print {
+  .score__note-sounding {
+    display: none;
+  }
+}
 
 .score--placing:focus {
   outline: none;

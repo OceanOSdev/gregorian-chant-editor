@@ -189,6 +189,12 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
+    id: 'audio-follow-along',
+    script: 'audio-playback/follow-along-check.mjs',
+    server: 'preview',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'vertical-episemata',
     script: 'vertical-episemata/browser-check.mjs',
     server: 'preview',

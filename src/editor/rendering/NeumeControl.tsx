@@ -6,6 +6,7 @@ import type {
   NoteLayout,
 } from '../layout/layout-chant';
 import type { VerticalBand } from '../layout/system-vertical-layout';
+import { useIsNoteSounding } from '../playback/sounding-note';
 import type { EditorSelection } from '../state/selection';
 import { getAccidentalAccessibleLabel } from './accidental-accessible-label';
 import { neumeSelectionBounds } from './neume-selection-bounds';
@@ -348,6 +349,7 @@ function NoteControl({
   registerElement,
   focusNote,
 }: NoteControlProps) {
+  const sounding = useIsNoteSounding(note.noteId);
   const isAccidentalTarget =
     accidentalPlacement?.noteIds.includes(note.noteId) ?? false;
   const notAccidentalTarget = !!accidentalPlacement && !isAccidentalTarget;
@@ -529,6 +531,12 @@ function NoteControl({
           pointerEvents="none"
           aria-hidden="true"
         />
+      ) : null}
+      {sounding ? (
+        // Playback presentation only: no hit area, focus or ARIA state.
+        <g pointerEvents="none" aria-hidden="true">
+          <InkShapeView shape={note.head} className="score__note-sounding" />
+        </g>
       ) : null}
       {isNoteSelected ? (
         <g pointerEvents="none" aria-hidden="true">

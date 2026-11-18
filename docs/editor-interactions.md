@@ -841,45 +841,87 @@ selection, tools and drafts, plus palette presentation memory (see
 Recovery and conflicting-cache operations also require explicit confirmation;
 see [persistence](persistence.md) for their authoritative workflow and limitations.
 
-## Playback controls (Audio 1)
+## Playback controls
 
-A **Playback** group holds Play, Stop and a polite status (`role="status"`)
-at the end of the sticky toolbar's Quilisma figure row, after the notation
-palette and before the action bar in both visual and focus order. It is not a
-palette tool and takes no part in the palette's roving focus. That row already
-had unused width at every size, so the toolbar keeps its height:
+A **Playback** group sits at the end of the sticky toolbar's Quilisma figure
+row, after the notation palette and before the action bar in both visual and
+focus order. It holds a **Play/Stop toggle**, a **Playback options** button,
+a start hint and a polite status (`role="status"`). It is not a palette tool and takes no
+part in the palette's roving focus. That row already had unused width at
+every size, so the toolbar keeps its height.
 
-- **Wide layouts (above 48rem):** the buttons show icon and text, and the
-  status text is visible.
-- **Narrow layouts:** the buttons are icon-only (32px), keeping "Play"/"Stop"
-  as visually hidden text in their accessible names. The status stays
-  announced but is visually hidden; Play shows a blue outline while playback
-  is active. A failure message is shown visibly, and only then may the row
-  wrap.
-- **Height:** the 32px buttons extend into the row's existing vertical
-  margins, so their layout box stays below the label's one-line height. The
-  label never wraps beside them; on unusually wide fonts the select gives up
-  a few pixels instead. Measured against `master` in Chromium and Firefox at
-  eight widths from 1440 to 320px, the toolbar height is identical (see the
-  [verification record](verification/audio-playback/README.md)).
+- **Toggle:** one button whose name and icon switch between Play and Stop, so
+  keyboard focus stays on it when playback starts or ends. It uses
+  `aria-disabled` when the score is empty or unplayable; the status and
+  tooltip say why.
+- **Play starts at the selection.** A selected note (even mid-neume), a
+  neume, a neume range (its earliest neume) or an anchored lyric syllable
+  starts playback there. Any other selection starts at the beginning.
+- **Announcements:** the live status carries playback state only (starting,
+  playing, failure, unplayable score), so selecting and editing never trigger
+  announcements. When a start applies, a separate, non-live hint reads
+  "Plays from the selection". It is part of the toggle's `aria-describedby`,
+  so it is read with the toggle, and it is visible at wide widths.
+- **Playback options** (a disclosure, `aria-expanded`): "Play from beginning",
+  which ignores the selection, and a Speed radio group (0.5×, 0.75×, 1×,
+  1.25×, 1.5×). While playing, Play from beginning is inert and the speed
+  choice is disabled with "Change the speed after Stop". The speed shows on
+  the button at wide widths and is always part of its accessible name
+  ("Playback options, speed 1×").
+- **Dismissing the options** follows the `NeumeFamilyMenu` contract:
+  - A press on the score only closes them, keeping focus. It selects,
+    places or edits nothing, even with a placement tool armed.
+  - A press on another control closes them and that control acts as usual.
+  - Focus leaving them (Tab, Shift+Tab) closes them.
+  - Escape closes them and returns focus to their button. It is handled in
+    the window capture phase while they are open, so it closes only the
+    options: a pending clef draft, accidental placement, lyric move or the
+    selection is left as it was, and the next Escape reaches the editor as
+    usual.
+- **Wide layouts (above 48rem):** icons with text, the speed, the visible
+  hint and status.
+- **Narrow layouts:** 32px icon-only buttons with visually hidden names. The
+  hint and status are visually hidden (the status is still announced), and the toggle is outlined in blue
+  while playing. A failure message is shown visibly, and only then may the
+  row wrap.
+- **Height:**
+  - The 32px buttons extend into the row's existing vertical margins.
+  - The label never wraps beside them; on unusually wide fonts the select
+    gives up a few pixels instead.
+  - The options panel floats below the button (above it when pinned), so it
+    never adds height.
+  - Measured against `master` in Chromium and Firefox at eight widths from
+    1440 to 320px, the toolbar height is identical (see the
+    [verification record](verification/audio-playback/README.md)).
 - **Non-sticky fallback:** when the toolbar's existing safeguards stop it
   sticking (taller than half the viewport, or a viewport 600px or shorter) and
   the controls scroll out of view during playback, the same group pins to the
   viewport's bottom-right corner, below dialogs and contextual panels. Its slot
-  keeps its size, so nothing reflows.
+  keeps its size, so nothing reflows. Follow scrolling keeps the sounding
+  note clear of the pinned group where it covers the note's columns.
 
-Play sounds the whole score from the beginning; Stop
-ends it promptly. They use `aria-disabled` instead of `disabled` so keyboard
-focus stays on the pressed button when playback starts or ends: Play is inert
-while starting/playing or when the score is empty or unplayable (the status
-says why), and Stop is inert when nothing is playing. Audio 1 adds no keyboard
-shortcuts, and the group carries no `data-notation-shortcuts`, so notation
-shortcuts do not fire from it.
+No keyboard shortcuts are added, and the group carries no
+`data-notation-shortcuts`, so notation shortcuts do not fire from it.
+
+**Follow-along.** During playback the sounding note shows a translucent halo
+on its notehead. The cue:
+
+- coexists with, and stays distinct from, the selection outline, focus ring
+  and caret;
+- takes no pointer events and has no role or ARIA state;
+- never focuses, selects or edits anything.
+
+The page and the score viewport scroll just enough to keep the sounding note
+in view below the sticky toolbar, across systems and sideways. If the reader
+scrolls away, following pauses until the sounding note is visible again.
+Selecting something else during playback changes the editing selection only;
+the audio does not move.
 
 Playback is not an editing command and does not touch history or the session.
 Any change of the current document, including undo/redo and replacement, stops
-it. Playback stays available during lyric entry and other pending edits. See
-[playback](playback.md) for the interpretation and audio lifecycle.
+it and clears the cue. Playback stays available during lyric entry and other
+pending edits. See [playback](playback.md) for the interpretation, timing and
+lifecycle.
 
 ## Selected note modifiers (Stage 8A)
 
