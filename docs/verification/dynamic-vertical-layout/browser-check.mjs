@@ -734,6 +734,32 @@ try {
       accidentals: [],
     },
   });
+  // Firefox can keep clamping the page scroll to a stale extent after a CSS
+  // zoom change while reporting the zoomed scrollHeight (seen on master and
+  // this branch at 320px). Scroll and hit checks then measure an unreachable
+  // page, not the app. Re-apply the zoom until the reachable extent matches the
+  // reported one, and fail loudly if it never does.
+  async function scrollRangeMatches() {
+    await ev('scrollTo(0,1e9)');
+    await pause();
+    const [reachable, reported] = await ev(
+      '[scrollY, document.documentElement.scrollHeight - innerHeight]',
+    );
+    await ev('scrollTo(0,0)');
+    await pause();
+    return Math.abs(reachable - reported) <= 1;
+  }
+  async function applyZoom(zoom, label) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await ev(`document.querySelector('main').style.zoom=''`);
+      await pause();
+      await ev(`document.querySelector('main').style.zoom='${zoom}'`);
+      await pause();
+      await pause();
+      if (await scrollRangeMatches()) return;
+    }
+    assert.fail(`${label}: page scroll range never matched scrollHeight`);
+  }
   const zoomEvidence = [];
   for (const width of [1440, 320]) {
     await send('Emulation.setDeviceMetricsOverride', {
@@ -750,9 +776,7 @@ try {
       const fixture = zoomFixture(name, farPitch);
       await navigate();
       await importText(JSON.stringify(fixture));
-      await ev(`(()=>{document.querySelector('main').style.zoom='1.5';})()`);
-      await pause();
-      await pause();
+      await applyZoom('1.5', `${name} ${width}`);
       const clefSel = '[data-clef-change-id="zoom-clef"]';
       const frame = await ev(
         `(()=>{const g=document.querySelector(${JSON.stringify(clefSel)}).closest('[data-system-index]');return {index:+g.dataset.systemIndex,height:+g.dataset.systemHeight}})()`,
@@ -805,6 +829,11 @@ try {
       }
       // The client rect is the rendered location: bring it into view by a
       // page scroll from that rect and confirm it is the topmost target.
+      // Focusing the clef changes the page height, which can leave Firefox's
+      // zoomed scroll range stale again.
+      const staleRangeAfterFocus = !(await scrollRangeMatches());
+      if (staleRangeAfterFocus)
+        await applyZoom('1.5', `${name} ${width} after focus`);
       await ev(
         `(()=>{const r=document.querySelector(${JSON.stringify(clefSel)}).getBoundingClientRect();scrollBy(0,r.top+r.height/2-innerHeight/2)})()`,
       );
@@ -873,6 +902,7 @@ try {
         documentFocused,
         tabRevealInView: revealed.inView && revealed.hitsClef,
         clefTopAfterEdit: after.top,
+        staleRangeAfterFocus,
       });
     }
   }
