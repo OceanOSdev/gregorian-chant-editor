@@ -238,6 +238,62 @@ async function screenshot(name) {
   );
 }
 
+// Real key presses (CDP key events / BiDi key actions), as in sibling drivers.
+async function key(key, code = key, shift = false) {
+  if (firefox) {
+    const value =
+      {
+        Enter: '\uE007',
+        Delete: '\uE017',
+        Tab: '\uE004',
+        Escape: '\uE00C',
+        ArrowUp: '\uE013',
+        ArrowDown: '\uE015',
+        ArrowRight: '\uE014',
+        Home: '\uE011',
+        End: '\uE010',
+        ' ': '\uE00D',
+      }[key] ?? key;
+    await rawSend('input.performActions', {
+      context,
+      actions: [
+        {
+          type: 'key',
+          id: 'keyboard',
+          actions: [
+            ...(shift ? [{ type: 'keyDown', value: '\uE008' }] : []),
+            { type: 'keyDown', value },
+            { type: 'keyUp', value },
+            ...(shift ? [{ type: 'keyUp', value: '\uE008' }] : []),
+          ],
+        },
+      ],
+    });
+  } else
+    for (const type of ['keyDown', 'keyUp'])
+      await rawSend('Input.dispatchKeyEvent', {
+        type,
+        key,
+        code,
+        modifiers: shift ? 8 : 0,
+        ...(type === 'keyDown' && (key === 'Enter' || key === ' ')
+          ? { text: key === 'Enter' ? '\r' : ' ' }
+          : {}),
+        windowsVirtualKeyCode: {
+          Tab: 9,
+          Escape: 27,
+          Enter: 13,
+          ArrowUp: 38,
+          ArrowDown: 40,
+          ArrowRight: 39,
+          Home: 36,
+          End: 35,
+          Delete: 46,
+          ' ': 32,
+        }[key],
+      });
+  await pause();
+}
 const base = 0.4;
 /** Audio-clock time and the note the cue shows, sampled together. */
 const cueSample = () =>
@@ -646,6 +702,57 @@ try {
   await screenshot('follow-wide-320');
   await waitFor((p) => p.status === 'idle', 'wide end', 4000);
   results.followHorizontal = 'revealed';
+  // Shared reveal geometry under 150% CSS zoom, in the sideways-scrolling
+  // score viewport: keyboard browsing (focusAndReveal) and follow scrolling
+  // (revealElement) must both reveal minimally, with the target's right edge
+  // 8px inside the viewport's right edge, not past it (overshoot).
+  await ev(`document.querySelector('main').style.zoom='1.5'`);
+  await sleep(300);
+  const minimalRight = (id) =>
+    ev(
+      `(()=>{const v=document.querySelector('.score-viewport');const r=document.querySelector('.score__note[data-note-id="${id}"]').getBoundingClientRect();const vr=v.getBoundingClientRect();return {scrollLeft:Math.round(v.scrollLeft),inside:r.left>=vr.left&&r.right<=vr.right,gap:+(vr.right-r.right).toFixed(1)}})()`,
+    );
+  // Keyboard: select w0 (Enter), scroll it out of view, then transpose it
+  // (ArrowUp); the app restores focus through focusAndReveal. Undo after.
+  await ev(
+    `(()=>{document.querySelector('.score-viewport').scrollLeft=0;document.querySelector('.score__note[data-note-id="w0-n"]').focus({preventScroll:true})})()`,
+  );
+  await key('Enter');
+  await ev(`document.querySelector('.score-viewport').scrollLeft=0`);
+  await sleep(100);
+  await key('ArrowUp');
+  await sleep(300);
+  const keyboard = await minimalRight('w0-n');
+  results.zoomKeyboardReveal = keyboard;
+  assert.ok(
+    keyboard.inside,
+    `zoomed keyboard reveal: ${JSON.stringify(keyboard)}`,
+  );
+  assert.ok(
+    Math.abs(keyboard.gap - 8) <= 2,
+    `zoomed keyboard reveal is minimal: ${JSON.stringify(keyboard)}`,
+  );
+  await ev(`document.querySelector('[aria-label="Undo last edit"]').click()`);
+  await sleep(200);
+  // Follow scrolling: from the left edge, Play reveals the first note.
+  await ev(
+    `document.activeElement.blur();document.querySelector('.score-viewport').scrollLeft=0`,
+  );
+  await sleep(100);
+  await click('Play');
+  await waitFor((p) => p.status === 'playing', 'zoomed wide playing');
+  await sleep(300);
+  const follow = await minimalRight('w0-n');
+  results.zoomFollowReveal = follow;
+  assert.ok(follow.inside, `zoomed follow reveal: ${JSON.stringify(follow)}`);
+  assert.ok(
+    Math.abs(follow.gap - 8) <= 2,
+    `zoomed follow reveal is minimal: ${JSON.stringify(follow)}`,
+  );
+  await click('Stop');
+  await waitFor((p) => p.status === 'idle', 'zoomed wide stop');
+  await ev(`document.querySelector('main').style.zoom=''`);
+
   assert.deepEqual((await log()).errors, []);
   console.log(
     JSON.stringify({

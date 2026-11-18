@@ -66,33 +66,48 @@ function scrollContainers(target: Element): HTMLElement[] {
   return containers;
 }
 
+/**
+ * A scroll container's CSS `zoom` factor. Under `zoom` (on it or an ancestor)
+ * its client rect is in zoomed viewport pixels, while its client metrics and
+ * scroll offsets stay in its own CSS pixels. A rendered size within a pixel
+ * of the layout size is sub-pixel rounding of `offsetWidth`/`offsetHeight`,
+ * not zoom, and counts as exactly 1.
+ */
+export function zoomFactor(rendered: number, layout: number): number {
+  return layout && Math.abs(rendered - layout) >= 1 ? rendered / layout : 1;
+}
+
+function containerZoom(container: HTMLElement) {
+  const rect = container.getBoundingClientRect();
+  return {
+    rect,
+    x: zoomFactor(rect.width, container.offsetWidth),
+    y: zoomFactor(rect.height, container.offsetHeight),
+  };
+}
+
 /** Usable bounds of a container (or the page, below the sticky toolbar). */
 function usableViewport(
   target: Element,
   container: HTMLElement | undefined,
   margin: number,
 ): VisibleBounds {
-  const rect = container?.getBoundingClientRect();
-  // Client metrics are in the container's own CSS pixels; under CSS `zoom`
-  // they differ from its client rect. Convert them with the measured factor
-  // (exactly 1 without zoom).
-  const scaleX =
-    rect && container?.offsetWidth ? rect.width / container.offsetWidth : 1;
-  const scaleY =
-    rect && container?.offsetHeight ? rect.height / container.offsetHeight : 1;
-  const top = rect ? rect.top + (container?.clientTop ?? 0) * scaleY : 0;
-  const left = rect ? rect.left + (container?.clientLeft ?? 0) * scaleX : 0;
-  const bottom = container
-    ? top + container.clientHeight * scaleY
-    : window.innerHeight;
-  const right = container
-    ? left + container.clientWidth * scaleX
-    : document.documentElement.clientWidth;
+  if (!container)
+    return {
+      left: margin,
+      right: document.documentElement.clientWidth - margin,
+      top: scoreViewportTop(target, 0) + margin,
+      bottom: window.innerHeight - margin,
+    };
+  // Convert the container's own CSS-pixel metrics into viewport pixels.
+  const { rect, x, y } = containerZoom(container);
+  const top = rect.top + container.clientTop * y;
+  const left = rect.left + container.clientLeft * x;
   return {
     left: left + margin,
-    right: right - margin,
-    top: (container ? top : scoreViewportTop(target, top)) + margin,
-    bottom: bottom - margin,
+    right: left + container.clientWidth * x - margin,
+    top: top + margin,
+    bottom: top + container.clientHeight * y - margin,
   };
 }
 
@@ -116,12 +131,14 @@ function adjustmentIn(
 export function revealElement(target: Element, anchor: Element = target) {
   const reveal = (container?: HTMLElement) => {
     const delta = adjustmentIn(target, anchor, container);
-    if (delta.x || delta.y)
-      (container ?? window).scrollBy({
-        left: delta.x,
-        top: delta.y,
-        behavior: 'instant',
-      });
+    if (!delta.x && !delta.y) return;
+    // The delta is in viewport pixels; a zoomed container scrolls in its own.
+    const zoom = container ? containerZoom(container) : { x: 1, y: 1 };
+    (container ?? window).scrollBy({
+      left: delta.x / zoom.x,
+      top: delta.y / zoom.y,
+      behavior: 'instant',
+    });
   };
   scrollContainers(target).forEach((container) => reveal(container));
   reveal();
