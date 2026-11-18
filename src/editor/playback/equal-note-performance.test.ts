@@ -21,6 +21,7 @@ import {
   loadBundledExample,
 } from '../examples/bundled-examples';
 import {
+  divisionPauseNotes,
   equalNoteDurationSeconds,
   interpretEqualNotes,
 } from './equal-note-performance';
@@ -220,29 +221,6 @@ describe('equal note performance', () => {
     ).toEqual([47, 59, 60, 72, 76]);
   });
 
-  it('does not sound divisions or clef changes and leaves no gap for them', () => {
-    const d = score([punctum('a', 0), punctum('b', 0), punctum('c', 0)]);
-    d.divisions = [
-      { id: 'bar', kind: 'maior', beforeNeumeId: 'b' },
-      { id: 'end', kind: 'finalis', beforeNeumeId: null },
-    ];
-    d.clefChanges = [
-      {
-        id: 'clef',
-        clef: { type: 'f', staffLine: 3 },
-        beforeNeumeId: 'c',
-        beforeDivisionId: null,
-      },
-    ];
-    const p = performance(d);
-    expect(p.notes.map((n) => n.noteId)).toEqual(['an', 'bn', 'cn']);
-    expect(p.notes.map((n) => n.startSeconds)).toEqual([
-      0,
-      equalNoteDurationSeconds,
-      2 * equalNoteDurationSeconds,
-    ]);
-  });
-
   it('follows initial and mid-score C and F clefs', () => {
     // C clef on line 4: the top line is do (C4).
     const c4 = {
@@ -302,6 +280,102 @@ describe('equal note performance', () => {
     expect(
       performance(d).notes.map((n) => [n.noteId, n.degree, n.alteration]),
     ).toEqual(resolved.map((p) => [p.note.id, p.degree, p.alteration]));
+  });
+});
+
+describe('division pauses', () => {
+  const d = equalNoteDurationSeconds;
+  /** Start times, in note lengths, of a three-punctum score. */
+  function starts(
+    divisions: ChantDocument['divisions'],
+    clefChanges: ChantDocument['clefChanges'] = [],
+  ) {
+    const doc = score([punctum('a', 0), punctum('b', 1), punctum('c', 2)]);
+    doc.divisions = divisions;
+    doc.clefChanges = clefChanges;
+    const p = performance(doc);
+    expect(p.notes.map((n) => n.noteId)).toEqual(['an', 'bn', 'cn']);
+    expect(p.notes.every((n) => n.durationSeconds === d)).toBe(true);
+    return {
+      starts: p.notes.map((n) => +(n.startSeconds / d).toFixed(9)),
+      total: +(p.durationSeconds / d).toFixed(9),
+    };
+  }
+
+  it('grows with division weight', () => {
+    expect(divisionPauseNotes).toEqual({
+      minima: 0.5,
+      minor: 1,
+      maior: 2,
+      finalis: 3,
+    });
+  });
+
+  it.each(['minima', 'minor', 'maior', 'finalis'] as const)(
+    'a %s between notes adds its pause before the next note',
+    (kind) => {
+      const pause = divisionPauseNotes[kind];
+      expect(starts([{ id: 'bar', kind, beforeNeumeId: 'b' }])).toEqual({
+        starts: [0, 1 + pause, 2 + pause],
+        total: 3 + pause,
+      });
+    },
+  );
+
+  it('adds nothing for divisions before the first or after the last note', () => {
+    expect(
+      starts([
+        { id: 'lead', kind: 'maior', beforeNeumeId: 'a' },
+        { id: 'end', kind: 'finalis', beforeNeumeId: null },
+      ]),
+    ).toEqual({ starts: [0, 1, 2], total: 3 });
+  });
+
+  it('pauses once, for the longest, when divisions share a boundary', () => {
+    expect(
+      starts([
+        { id: 'quarter', kind: 'minima', beforeNeumeId: 'b' },
+        { id: 'full', kind: 'maior', beforeNeumeId: 'b' },
+      ]),
+    ).toEqual({ starts: [0, 3, 4], total: 5 });
+  });
+
+  it('accumulates separate pauses and gives clef changes no time', () => {
+    expect(
+      starts(
+        [
+          { id: 'half', kind: 'minor', beforeNeumeId: 'b' },
+          { id: 'quarter', kind: 'minima', beforeNeumeId: 'c' },
+        ],
+        [
+          {
+            id: 'clef',
+            clef: { type: 'c', staffLine: 1 },
+            beforeNeumeId: 'c',
+            beforeDivisionId: 'quarter',
+          },
+        ],
+      ),
+    ).toEqual({ starts: [0, 2, 3.5], total: 4.5 });
+  });
+
+  it('places a pause before the whole following neume, never inside one', () => {
+    const doc = score([
+      { id: 'pes', kind: 'podatus', notes: [note('p0', 0), note('p1', 2)] },
+      { id: 'cl', kind: 'clivis', notes: [note('c0', 2), note('c1', 1)] },
+    ]);
+    doc.divisions = [{ id: 'bar', kind: 'minor', beforeNeumeId: 'cl' }];
+    expect(
+      performance(doc).notes.map((n) => [
+        n.noteId,
+        +(n.startSeconds / d).toFixed(9),
+      ]),
+    ).toEqual([
+      ['p0', 0],
+      ['p1', 1],
+      ['c0', 3],
+      ['c1', 4],
+    ]);
   });
 });
 
@@ -454,7 +528,16 @@ describe('bundled examples', () => {
         d.neumes.flatMap((neume) => neume.notes.map((n) => n.id)),
       );
       expect(p.notes.every((n) => Number.isInteger(n.midiNote))).toBe(true);
-      expect(p.durationSeconds).toBe(p.notes.length * equalNoteDurationSeconds);
+      // Notes never overlap; any extra time is silence at divisions.
+      for (const [i, n] of p.notes.slice(1).entries())
+        expect(n.startSeconds).toBeGreaterThanOrEqual(
+          p.notes[i].startSeconds + p.notes[i].durationSeconds - 1e-9,
+        );
+      const last = p.notes.at(-1);
+      expect(p.durationSeconds).toBeCloseTo(
+        last ? last.startSeconds + last.durationSeconds : 0,
+        9,
+      );
     },
   );
 });

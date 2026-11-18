@@ -15,7 +15,7 @@ performance.
 - [Editor interactions](editor-interactions.md#playback-controls-audio-1)
 - [Testing](testing.md)
 - [ADR 0006: Separate notation from playback](adrs/0006-separate-notation-from-playback.md)
-  (**Proposed**; see its Audio 1 review)
+  (Accepted)
 - [ADR 0014: relative diatonic degrees](adrs/0014-preserve-melody-on-initial-clef-edit.md),
   [ADR 0015: score order](adrs/0015-order-clef-changes-at-score-boundaries.md),
   [ADR 0021: B accidentals](adrs/0021-author-b-accidentals-at-neume-boundaries.md)
@@ -48,7 +48,10 @@ All playback code lives in `src/editor/playback/`.
 | `use-playback.ts`           | React glue: interprets the current document, stops on document change, disposes on unmount |
 
 `components/PlaybackControls.tsx` renders Play, Stop and the status text just
-above the sticky toolbar, in normal page flow. `ChantEditor` only passes it the current document.
+above the sticky toolbar, in normal page flow, and pins them to the viewport
+while playing if that place is scrolled away (see
+[editor interactions](editor-interactions.md#playback-controls-audio-1)).
+`ChantEditor` only passes it the current document.
 
 ## Performance model
 
@@ -66,8 +69,30 @@ Each note carries its stable `noteId` and `neumeId`, the resolved relative
 - takes degree and alteration only from `resolveEffectivePitches`, so initial
   and mid-score clefs, register-specific B flats/naturals, scope resets at
   words and divisions, and earlier-placed signs match the editor exactly;
-- does not sound clefs or divisions and adds no time for them;
-- gives every note `equalNoteDurationSeconds` (0.4 s), back to back.
+- gives every note `equalNoteDurationSeconds` (0.4 s);
+- does not sound clefs or divisions. Clefs add no time; divisions add a
+  pause, below.
+
+### Division pauses
+
+Walking the same `deriveScoreOrder`, each division between two notes adds
+silence before the next note, in note lengths (`divisionPauseNotes`):
+
+| Division         | Pause (note lengths) | At 0.4 s per note |
+| ---------------- | -------------------- | ----------------- |
+| Minima (quarter) | 0.5                  | 0.2 s             |
+| Minor (half)     | 1                    | 0.4 s             |
+| Maior (full)     | 2                    | 0.8 s             |
+| Finalis (double) | 3                    | 1.2 s             |
+
+- Several divisions at one boundary pause once, for the longest of them.
+  Separate boundaries each add their own pause.
+- Divisions before the first note or after the last note add nothing, so
+  playback starts and ends without silence.
+- A pause always falls between neumes, never inside one.
+
+These are deterministic playback aids that make phrase structure audible.
+They are not claims about historical performance practice.
 
 It returns an explicit failure rather than a partial or adjusted performance:
 
@@ -127,8 +152,9 @@ then stops the oscillator.
 ## Audio 1 simplifications
 
 Deliberately not interpreted: mora, horizontal and vertical episemata,
-liquescence, quilisma and other note forms, lyric accents, division pauses,
-phrasing and tempo. There is no speed control, pause/resume, seek, play from
+liquescence, quilisma and other note forms, lyric accents, phrasing and tempo.
+Mora and other rhythmic signs await a separate milestone with an explicit
+rhythmic interpretation policy. There is no speed control, pause/resume, seek, play from
 selection, note highlighting, looping, or stored audio preference.
 
 If the operating system or browser suspends a running context mid-playback,

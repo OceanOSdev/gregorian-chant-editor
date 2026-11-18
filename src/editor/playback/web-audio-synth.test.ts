@@ -79,6 +79,29 @@ describe('schedulePerformance', () => {
     }
   });
 
+  it('keeps silence through a division pause', () => {
+    const context = new FakeAudioContext();
+    const base = testPerformance([60, 62]);
+    const paused = {
+      notes: [base.notes[0], { ...base.notes[1], startSeconds: 1.2 }],
+      durationSeconds: 1.6,
+    };
+    schedulePerformance(context, paused, () => {});
+    const [oscillator] = context.oscillators;
+    const [envelope] = context.gains;
+    const start = oscillator.startTime ?? NaN;
+    expect(oscillator.frequency.events.map((e) => e[2])).toEqual([
+      start,
+      start + 1.2,
+    ]);
+    expect(oscillator.stopTimes).toEqual([start + 1.6]);
+    // The first note's release reaches silence before the pause begins, and
+    // nothing is scheduled again until the second note starts.
+    const times = envelope.gain.events.map((e) => e.at(-1) ?? NaN);
+    expect(times[3]).toBeLessThanOrEqual(start + 0.4);
+    expect(times[4]).toBeCloseTo(start + 1.2, 9);
+  });
+
   it('reports the natural end once and releases its nodes', () => {
     const { oscillator, envelope, output, ended } = scheduled([60]);
     oscillator.end();

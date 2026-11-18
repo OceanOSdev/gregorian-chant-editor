@@ -845,9 +845,13 @@ see [persistence](persistence.md) for their authoritative workflow and limitatio
 ## Playback controls (Audio 1)
 
 A **Playback** group just above the sticky toolbar holds Play, Stop and a
-polite status (`role="status"`). It scrolls with the page: adding it to the
-sticky region would make that region one row taller at narrow widths, covering
-more of the score. Play sounds the whole score from the beginning; Stop
+polite status (`role="status"`). It is not part of the sticky region, which
+would grow a row at narrow widths and cover more of the score. Instead, while
+playback is starting or playing and the group's place in the page is not fully
+visible, the same group pins to the viewport's bottom-right corner (below
+dialogs and contextual panels). It returns to its place when playback ends or
+its place scrolls back into view. Its slot keeps its height, so nothing
+shifts, and focus stays on the same buttons. Play sounds the whole score from the beginning; Stop
 ends it promptly. They use `aria-disabled` instead of `disabled` so keyboard
 focus stays on the pressed button when playback starts or ends: Play is inert
 while starting/playing or when the score is empty or unplayable (the status

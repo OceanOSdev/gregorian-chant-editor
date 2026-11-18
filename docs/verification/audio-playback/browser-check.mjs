@@ -150,13 +150,13 @@ const instrument = `(()=>{
     }
     createOscillator() {
       const o = super.createOscillator();
-      const record = { stops: [], frequencies: [], ended: false };
+      const record = { stops: [], frequencies: [], times: [], ended: false };
       audio.oscillators.push(record);
       const start = o.start.bind(o), stop = o.stop.bind(o),
         set = o.frequency.setValueAtTime.bind(o.frequency);
       o.start = (t) => { record.start = t; return start(t); };
       o.stop = (t) => { record.stops.push(t); return stop(t); };
-      o.frequency.setValueAtTime = (v, t) => { record.frequencies.push(v); return set(v, t); };
+      o.frequency.setValueAtTime = (v, t) => { record.frequencies.push(v); record.times.push(t); return set(v, t); };
       o.addEventListener('ended', () => { record.ended = true; });
       return o;
     }
@@ -320,27 +320,67 @@ try {
   await click('Play');
   await waitFor((p) => p.status === 'playing', 'Dies Irae playing');
   audio = await log();
-  assert.equal(audio.oscillators.at(-1).frequencies.length, noteCount(dies));
+  const diesOscillator = audio.oscillators.at(-1);
+  assert.equal(diesOscillator.frequencies.length, noteCount(dies));
+  // Each gap is one note (0.4 s) or a note plus one division pause (0.5, 1,
+  // 2 or 3 note lengths); Dies Irae has divisions, so some gaps are pauses.
+  const gaps = diesOscillator.times
+    .slice(1)
+    .map((t, i) => +((t - diesOscillator.times[i]) / 0.4).toFixed(6));
+  assert.ok(
+    gaps.every((g) => [1, 1.5, 2, 3, 4].includes(g)),
+    `note gaps ${[...new Set(gaps)]}`,
+  );
+  results.diesPauseGaps = gaps.filter((g) => g > 1).length;
+  assert.ok(results.diesPauseGaps > 0, 'Dies Irae pauses at divisions');
   results.diesPeak = await peakOver(600);
   assert.ok(
     results.diesPeak > 0.02,
     `Dies Irae is audible: ${results.diesPeak}`,
   );
-  await send('Emulation.setDeviceMetricsOverride', {
-    width: 320,
-    height: 900,
-    deviceScaleFactor: 1,
-    mobile: false,
-  });
-  await sleep(150);
-  assert.equal(
-    await ev(`document.documentElement.scrollWidth<=innerWidth`),
-    true,
-    'no horizontal scroll at 320px',
-  );
-  await screenshot('playing-320');
+  // Scrolled away from the controls during playback, the Playback group
+  // pins to the viewport so Stop stays reachable; the sticky toolbar keeps
+  // its height. Checked at desktop and narrow widths.
+  const pinState = () =>
+    ev(
+      `(()=>{const g=document.querySelector('[role="group"][aria-label="Playback"]');const stop=[...g.querySelectorAll('button')].find(b=>b.textContent.trim()==='Stop');const r=stop.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {pinned:g.classList.contains('editor-playback--pinned'),stopVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth,stopTopmost:!!hit&&stop.contains(hit),toolbar:Math.round(document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().height),noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth}})()`,
+    );
+  for (const [width, height] of [
+    [1440, 1000],
+    [320, 900],
+  ]) {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await ev('scrollTo(0,0)');
+    await sleep(200);
+    const top = await pinState();
+    assert.equal(top.pinned, false, `${width}: in place while visible`);
+    await ev('scrollTo(0,document.documentElement.scrollHeight)');
+    await sleep(300);
+    const scrolled = await pinState();
+    assert.deepEqual(
+      { ...scrolled, toolbar: undefined },
+      {
+        pinned: true,
+        stopVisible: true,
+        stopTopmost: true,
+        toolbar: undefined,
+        noHorizontalScroll: true,
+      },
+      `${width}: pinned Stop`,
+    );
+    assert.equal(scrolled.toolbar, top.toolbar, `${width}: toolbar height`);
+    results[`toolbarHeight${width}`] = top.toolbar;
+    await screenshot(`pinned-${width}`);
+  }
   await click('Stop');
   await waitFor((p) => p.status === 'idle', 'Dies Irae stop');
+  await sleep(150);
+  assert.equal((await pinState()).pinned, false, 'unpinned after Stop');
   await send('Emulation.setDeviceMetricsOverride', {
     width: 1440,
     height: 1000,
