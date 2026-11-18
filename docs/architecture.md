@@ -14,6 +14,7 @@ architecture decision records.
 - [Editor interactions](editor-interactions.md)
 - [Testing](testing.md)
 - [Glossary](glossary.md)
+- [Playback](playback.md)
 - [Architecture decisions](adrs/README.md)
 
 ## Primary data flow
@@ -35,6 +36,10 @@ semantic documents without mutation. `layoutChant` derives positioned,
 renderable data, including automatic system assignment. `ScoreSvg` renders
 that data and delegates semantic edits back to editor callbacks.
 
+Playback is a separate read-only branch from the same document:
+`ChantDocument → interpretEqualNotes → Performance → Web Audio`. It never reads
+layout or SVG and never changes the document; see [playback](playback.md).
+
 `ChantEditor` orchestrates the pipeline. It owns document history and
 transient interface state, calls commands and interaction resolvers, derives a
 fresh layout from the current document, and passes layout plus callbacks to the
@@ -52,6 +57,7 @@ renderer. Neither the React tree nor the SVG is authoritative musical state.
 | Derived layout         | Systems, wrapping, absolute geometry, bounds, connectors, lyrics, score dimensions                                                       | Authoritative musical meaning              |
 | SVG rendering          | Visual elements, accessible controls/descriptions, pointer and keyboard event surfaces                                                   | Canonical score data                       |
 | Browser state          | Actual DOM focus, pointer coordinates, event propagation                                                                                 | Persisted or undoable notation             |
+| Playback               | Pure performance interpretation, audio scheduling and its lifecycle                                                                      | Notation, timing fields, layout, history   |
 
 The semantic document deliberately excludes pixels, SVG geometry, systems,
 automatic wrapping assignments, React or DOM objects, selection, active tools,
@@ -171,6 +177,13 @@ They also do not create IDs. No React context or generic controller is used.
 These are component boundaries only: they add no SVG elements, and the
 rendered DOM, sibling order and clip hierarchy are unchanged.
 
+### `src/editor/playback/`
+
+Audio 1 playback (see [playback](playback.md)): the pure Equal Note Playback
+interpreter and its performance types, the Web Audio scheduler, the audio
+context/session controller and the `usePlayback` hook. Only the hook depends on
+React; only the scheduler and the hook's context factory touch Web Audio.
+
 ### `src/editor/components/`
 
 `ChantEditor` is the editor shell. It acquires the single persisted session,
@@ -186,6 +199,7 @@ The editor toolbar is split by ownership (readability M1):
 | `NotationPalette.tsx`       | Palette roving focus, button refs, remembered Division kind, palette focus requests, family menus, Quilisma figure |
 | `notation-palette-tools.ts` | Pure palette model: controls in `paletteTools` order, labels, pressed/active state, tool armed by each button      |
 | `EditorActionBar.tsx`       | View of passage/clipboard feedback and Lyrics, Insert, Copy, Paste, Undo, Redo buttons                             |
+| `PlaybackControls.tsx`      | Play/Stop and playback status for the current document, via `usePlayback`; separate from editing actions           |
 
 The palette and action bar receive session values and narrowly named callbacks;
 they never dispatch arbitrary actions, hold document state or derive clipboard

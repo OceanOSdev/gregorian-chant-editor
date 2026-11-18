@@ -450,3 +450,14 @@ The Et Jesum low A in the bundled Dominican Salve Regina now clears its
 lyric. Low accidentals no longer reserve horizontal lyric or hyphen room,
 which can make such passages more compact. No manual system breaks,
 pagination or print-specific layout were added.
+
+## Audio 1 — basic melodic playback (implemented; owner acceptance pending)
+
+Play and Stop sound the whole score as equal-length notes for melodic
+proofreading ([plan](plans/audio-1-basic-melodic-playback.md),
+[contract](playback.md), [record](verification/audio-playback/README.md)).
+Pitch follows the editor's clefs and B accidentals; the audition register maps
+do to C4. [ADR 0006](adrs/0006-separate-notation-from-playback.md) remains
+**Proposed** pending the owner's decision. Rhythm (mora, episemata,
+liquescence), division pauses, tempo, pause/seek, play from selection, note
+highlighting and audio preferences remain future work.

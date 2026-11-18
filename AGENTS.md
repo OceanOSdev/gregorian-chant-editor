@@ -52,6 +52,7 @@ Read the guide that owns a subsystem before changing its documented contract:
 - [Layout and rendering](docs/layout-and-rendering.md)
 - [Editor interactions](docs/editor-interactions.md)
 - [Commands and history](docs/commands-and-history.md)
+- [Playback](docs/playback.md)
 - [Testing](docs/testing.md)
 - [Glossary](docs/glossary.md)
 - [Roadmap and limitations](docs/roadmap.md)
@@ -186,7 +187,8 @@ Do not add the following unless explicitly requested:
 - A backend
 - Cloud storage
 - Collaboration
-- Audio or MIDI playback
+- Audio or MIDI playback beyond the basic Audio 1 melodic playback
+  ([playback](docs/playback.md))
 - PDF export
 - Every Gregorian neume
 - Every historical notation tradition

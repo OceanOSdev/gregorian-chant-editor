@@ -650,7 +650,8 @@ for geometry, reservation and fallback policy.
 
 ## Sticky editing tools
 
-Document controls, initial clef and lyric language scroll normally. The notation
+Document controls, initial clef, lyric language and playback controls scroll
+normally. The notation
 palette, Quilisma figure and Lyrics/Insert/Undo/Redo remain in one opaque CSS
 sticky region in the page scroll. At viewport heights of 600px or less it
 returns to normal flow; it also does so when its measured height exceeds half
@@ -840,6 +841,24 @@ selection, tools and drafts, plus palette presentation memory (see
 [palette ownership](#palette-and-action-bar-ownership)). Export names the committed snapshot explicitly.
 Recovery and conflicting-cache operations also require explicit confirmation;
 see [persistence](persistence.md) for their authoritative workflow and limitations.
+
+## Playback controls (Audio 1)
+
+A **Playback** group just above the sticky toolbar holds Play, Stop and a
+polite status (`role="status"`). It scrolls with the page: adding it to the
+sticky region would make that region one row taller at narrow widths, covering
+more of the score. Play sounds the whole score from the beginning; Stop
+ends it promptly. They use `aria-disabled` instead of `disabled` so keyboard
+focus stays on the pressed button when playback starts or ends: Play is inert
+while starting/playing or when the score is empty or unplayable (the status
+says why), and Stop is inert when nothing is playing. Audio 1 adds no keyboard
+shortcuts, and the group carries no `data-notation-shortcuts`, so notation
+shortcuts do not fire from it.
+
+Playback is not an editing command and does not touch history or the session.
+Any change of the current document, including undo/redo and replacement, stops
+it. Playback stays available during lyric entry and other pending edits. See
+[playback](playback.md) for the interpretation and audio lifecycle.
 
 ## Selected note modifiers (Stage 8A)
 

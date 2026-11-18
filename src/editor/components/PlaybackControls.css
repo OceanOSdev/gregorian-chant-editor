@@ -1,0 +1,16 @@
+.editor-playback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+.editor-playback button[aria-disabled='true'] {
+  color: #71695f;
+  opacity: 0.65;
+  cursor: default;
+}
+.editor-playback__status {
+  color: #675f55;
+}

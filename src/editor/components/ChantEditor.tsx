@@ -1,5 +1,6 @@
 import { EditorActionBar } from './EditorActionBar';
 import { EditorStickyToolbar } from './EditorStickyToolbar';
+import { PlaybackControls } from './PlaybackControls';
 import { NotationPalette, type NotationPaletteHandle } from './NotationPalette';
 import {
   AccidentalContextToolbar,
@@ -848,6 +849,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         Lyrics provide minimum spacing between neumes. Oversized syllables can
         be viewed by scrolling the score.
       </p>
+      <PlaybackControls document={history.present} />
       <EditorStickyToolbar>
         <NotationPalette
           ref={notationPalette}

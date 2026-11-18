@@ -163,3 +163,37 @@ The following questions remain intentionally unresolved:
   traditions?
 - Should real-time "conducted" playback eventually be supported alongside
   automatic playback?
+
+## Audio 1 review (2026-11-17)
+
+Status is intentionally left **Proposed**: owner approval of the Audio 1 plan
+is not by itself treated as acceptance of this ADR. The Audio 1 implementation
+(issue #100, [playback guide](../playback.md)) follows the decision as written:
+
+- `ChantDocument` and its native schema gain no playback, timing, tempo or
+  absolute-pitch fields.
+- One engine, Equal Note Playback (`interpretEqualNotes`), is a pure function
+  from a document to a `Performance` timeline; a separate Web Audio renderer
+  consumes it.
+- For Audio 1 the first open question is answered narrowly: `Performance` is
+  an ordered list of per-note events with stable note/neume IDs, resolved
+  degree and alteration, an audition MIDI note, and start/duration in seconds.
+- Engines operate on notes. Syllables and phrases are not yet used.
+
+Points for the owner before acceptance:
+
+1. **Division pauses.** The Initial implementation section mentions pauses at
+   bar lines. The Audio 1 plan excludes them, so Equal Note Playback adds no
+   time at divisions. Accepting as written leaves this as a possible engine
+   refinement and not a requirement.
+2. **Engine interface.** No `PlaybackEngine` interface or registry exists yet.
+   `interpretEqualNotes` has the proposed `generatePerformance` shape and is
+   the seam for later engines. Formalizing it is deferred until a second
+   engine exists.
+3. **Register convention.** Degree 0 = C4 is a playback-only policy owned by
+   the playback guide. It is not a notation decision.
+4. **Still open:** where playback preferences live, how closely future engines
+   model specific traditions, and conducted playback.
+
+If the owner accepts this ADR, change Status to Accepted and record that
+points 1–3 are accepted as described.

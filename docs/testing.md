@@ -284,6 +284,12 @@ and consult the owning record for feature-specific assertions and manual checks.
 - [Score focus reparenting](verification/score-focus-reparenting/README.md):
   note and lyric focus across uncommanded reflow (readability M2); runner
   driver `score-focus-reparenting`.
+- [Audio playback](verification/audio-playback/README.md):
+  `equal-note-performance.test.ts` (register, order, clefs, accidentals,
+  invalid scores, bundled examples), `web-audio-synth.test.ts` and
+  `playback-controller.test.ts` (fake Web Audio); runner driver
+  `audio-playback`. Automated checks never prove what is heard; record actual
+  listening separately.
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 
