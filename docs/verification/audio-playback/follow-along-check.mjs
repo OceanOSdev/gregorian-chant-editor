@@ -286,11 +286,6 @@ async function key(key, code = key, shift = false) {
   await pause();
 }
 const base = 0.4;
-/** Audio-clock time and the note the cue shows, sampled together. */
-const cueSample = () =>
-  ev(
-    `({t:audioLog.contexts.at(-1)?.currentTime ?? null,cue:[...document.querySelectorAll('.score__note-sounding')].map(e=>e.closest('[data-note-id]').dataset.noteId)})`,
-  );
 const latestOscillator = async () => (await log()).oscillators.at(-1);
 const noteState = (id) =>
   ev(
@@ -360,35 +355,71 @@ const gapsOf = (o) =>
   o.times.slice(1).map((t, i) => +((t - o.times[i]) / base).toFixed(4));
 
 /**
- * Checks the cue against the scheduled audio clock for `ms`: at every sample
- * it shows the note whose event contains the audio time (allowing one frame
- * of presentation lag), and nothing in a gap. Returns how many samples fell
- * in a gap.
+ * Records every cue change as it happens: a MutationObserver on the score
+ * logs the audio-clock time whenever the sounding note (or none) changes.
+ * Install before Play so the first change is captured.
  */
-async function checkCue(ids, lengths, ms, scale = 1) {
-  const o = await latestOscillator();
-  const expected = (t) => {
-    for (const [i, start] of o.times.entries())
-      if (t >= start && t < start + lengths[i] * base * scale) return ids[i];
-    return null;
-  };
-  let silences = 0;
-  let samples = 0;
-  for (const end = Date.now() + ms; Date.now() < end; await sleep(30)) {
-    const { t, cue } = await cueSample();
-    if (t === null) continue;
-    assert.ok(cue.length <= 1, 'at most one sounding note');
-    const shown = cue[0] ?? null;
-    const now = expected(t);
-    const lagged = expected(t - 0.05);
-    assert.ok(
-      shown === now || shown === lagged,
-      `cue ${shown} at ${t.toFixed(3)}: expected ${now} (or ${lagged})`,
-    );
-    if (now === null && lagged === null && shown === null) silences++;
-    samples++;
+const startCueLog = () =>
+  ev(
+    `(()=>{window.cueObserver?.disconnect();window.cueLog=[];let last=null;const svg=document.querySelector('svg.score');window.cueObserver=new MutationObserver(()=>{const c=svg.querySelector('.score__note-sounding');const id=c?c.closest('[data-note-id]').dataset.noteId:null;if(id!==last){last=id;cueLog.push({t:audioLog.contexts.at(-1)?.currentTime??null,id});}});cueObserver.observe(svg,{subtree:true,childList:true})})()`,
+  );
+const readCueLog = () => ev(`(cueObserver.disconnect(),cueLog)`);
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+};
+/** Largest median cue lag accepted: a frame or two, well under the 50 ms headroom. */
+const maxMedianLag = 0.025;
+/** The cue must never run ahead of the audio clock beyond clock granularity. */
+const maxEarly = 0.01;
+
+/**
+ * Compares the logged cue changes with the scheduled audio clock. The cue
+ * must visit each scheduled note in order; each change's lag after the note's
+ * scheduled start (or end, when the cue clears) must be non-negative within
+ * clock granularity, with a median under `maxMedianLag`. A cue offset by the
+ * full 50 ms scheduling headroom fails the median check on every note.
+ */
+function checkCueTiming(log, o, ids, lengths, scale = 1) {
+  const starts = o.times;
+  const ends = starts.map((s, i) => s + lengths[i] * base * scale);
+  const changes = log.filter((e) => e.t !== null);
+  const shown = changes.filter((e) => e.id !== null).map((e) => e.id);
+  assert.ok(shown.length > 0, 'the cue appeared');
+  assert.deepEqual(
+    shown,
+    ids.slice(0, shown.length),
+    'cue visits each note in order',
+  );
+  const startLags = changes
+    .filter((e) => e.id !== null)
+    .map((e) => e.t - starts[ids.indexOf(e.id)]);
+  const endLags = [];
+  let previous = null;
+  for (const e of changes) {
+    if (e.id === null && previous !== null)
+      endLags.push(e.t - ends[ids.indexOf(previous)]);
+    previous = e.id;
   }
-  return { samples, silences };
+  for (const [name, lags] of [
+    ['start', startLags],
+    ['end', endLags],
+  ]) {
+    if (!lags.length) continue;
+    assert.ok(
+      Math.min(...lags) >= -maxEarly,
+      `cue ${name} never early: ${lags.map((l) => l.toFixed(3))}`,
+    );
+    assert.ok(
+      median(lags) <= maxMedianLag,
+      `cue ${name} median lag ${median(lags).toFixed(3)} s ≤ ${maxMedianLag} s: ${lags.map((l) => l.toFixed(3))}`,
+    );
+  }
+  return {
+    notes: shown.length,
+    startLagMs: startLags.map((l) => Math.round(l * 1000)),
+    endLagMs: endLags.map((l) => Math.round(l * 1000)),
+  };
 }
 
 /** Real pointer click at an element's centre (selector or button text). */
@@ -484,6 +515,7 @@ try {
   await clickNote('p1');
   assert.equal((await noteState('p1')).pressed, 'true');
   assert.equal((await playback()).text, 'Plays from the selection');
+  await startCueLog();
   await click('Play');
   await waitFor((p) => p.status === 'playing', 'from selection');
   const fromSelection = await latestOscillator();
@@ -505,12 +537,30 @@ try {
     true,
     'cue takes no pointer hits and has no role',
   );
-  const sync = await checkCue(ids.slice(2), lengths.slice(2), 3200);
-  results.cueSamples = sync.samples;
-  results.cueSilences = sync.silences;
-  assert.ok(sync.silences > 0, 'no cue during the finalis pause');
-  await waitFor((p) => p.status === 'idle', 'natural end', 4000);
+  await waitFor((p) => p.status === 'idle', 'natural end', 5000);
   await sleep(100);
+  const fromLog = await readCueLog();
+  results.cueTiming = checkCueTiming(
+    fromLog,
+    fromSelection,
+    ids.slice(2),
+    lengths.slice(2),
+  );
+  assert.equal(results.cueTiming.notes, 4, 'every note from p1 was cued');
+  // The finalis pause after b is silent: the cue clears at b's end and
+  // nothing is cued until c, a scheduled 1.2 s later.
+  const bIndex = fromLog.findIndex((e) => e.id === 'b-n');
+  assert.deepEqual(
+    fromLog.slice(bIndex + 1, bIndex + 3).map((e) => e.id),
+    [null, 'c-n'],
+    'silence between b and c',
+  );
+  const silence = fromLog[bIndex + 2].t - fromLog[bIndex + 1].t;
+  results.finalisSilence = +silence.toFixed(3);
+  assert.ok(
+    Math.abs(silence - 3 * base) <= 0.04,
+    `finalis silence ${silence.toFixed(3)} s ≈ ${3 * base} s`,
+  );
   assert.equal(
     await ev(`document.querySelectorAll('.score__note-sounding').length`),
     0,
@@ -539,6 +589,7 @@ try {
   // 0.5×: every gap doubles; the speed is locked while playing.
   await selectNote('a-n');
   await chooseSpeed('0.5×');
+  await startCueLog();
   await click('Play');
   await waitFor((p) => p.status === 'playing', 'half speed');
   const slow = await latestOscillator();
@@ -553,8 +604,17 @@ try {
   await ev(
     `document.querySelector('.editor-playback__options-button').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`,
   );
-  const slowSync = await checkCue(ids, lengths, 1500, 2);
-  results.slowCueSamples = slowSync.samples;
+  // Partway through (before the edit below stops it), the slowed cue keeps
+  // to the slowed audio clock.
+  await sleep(2600);
+  results.slowCueTiming = checkCueTiming(
+    await readCueLog(),
+    slow,
+    ids,
+    lengths,
+    2,
+  );
+  assert.ok(results.slowCueTiming.notes >= 3, 'several slowed notes cued');
   // An edit during playback stops it and clears the cue.
   await ev(
     `(()=>{const s=document.querySelector('[aria-label="Initial clef type"]');s.value=s.value==='c'?'f':'c';s.dispatchEvent(new Event('change',{bubbles:true}))})()`,
@@ -568,6 +628,30 @@ try {
   );
   await ev(`document.querySelector('[aria-label="Undo last edit"]').click()`);
   await chooseSpeed('1×');
+
+  // Replacing the document during playback stops it and clears the cue.
+  await click('Playback options, speed 1×');
+  await click('Play from beginning');
+  await waitFor((p) => p.status === 'playing', 'before replacement');
+  await sleep(200);
+  assert.equal(
+    await ev(`document.querySelectorAll('.score__note-sounding').length`),
+    1,
+    'cue shown before replacement',
+  );
+  await loadExample('/Kyrie/');
+  await waitFor((p) => p.status === 'idle', 'stop on replacement');
+  await sleep(100);
+  assert.equal(
+    await ev(`document.querySelectorAll('.score__note-sounding').length`),
+    0,
+    'cleared on document replacement',
+  );
+  assert.equal(
+    (await log()).oscillators.at(-1).ended,
+    true,
+    'replaced playback silenced',
+  );
 
   // Options dismissal (NeumeFamilyMenu contract): closing the panel never
   // edits the score, places notation, changes the selection or cancels a
