@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type RefObject } from 'react';
 import type { SoundingNoteStore } from '../playback/sounding-note';
 import { isElementOnScreen, revealElement } from './focus-visibility';
 
@@ -15,9 +15,10 @@ export function shouldRevealSoundingNote(previous: {
   return !previous.exists || previous.onScreen;
 }
 
-function noteElement(noteId: string): Element | null {
-  return document.querySelector(
-    `.score__note[data-note-id="${CSS.escape(noteId)}"]`,
+function noteElement(root: Element | null, noteId: string): Element | null {
+  return (
+    root?.querySelector(`.score__note[data-note-id="${CSS.escape(noteId)}"]`) ??
+    null
   );
 }
 
@@ -25,8 +26,12 @@ function noteElement(noteId: string): Element | null {
  * Keeps the sounding note on screen during playback, across systems and the
  * horizontally scrollable score, below the sticky toolbar. It scrolls only
  * (minimal, instant reveal); it never focuses, selects or changes the score.
+ * Notes are looked up within `scoreRoot`, this editor's score.
  */
-export function useFollowSoundingNote(store: SoundingNoteStore) {
+export function useFollowSoundingNote(
+  store: SoundingNoteStore,
+  scoreRoot: RefObject<Element | null>,
+) {
   useEffect(() => {
     let playback = store.playbackCount();
     let previous: string | null = null;
@@ -38,8 +43,10 @@ export function useFollowSoundingNote(store: SoundingNoteStore) {
       }
       // Silences between notes (division pauses) keep the previous note.
       if (!next) return;
-      const target = noteElement(next);
-      const previousElement = previous ? noteElement(previous) : null;
+      const target = noteElement(scoreRoot.current, next);
+      const previousElement = previous
+        ? noteElement(scoreRoot.current, previous)
+        : null;
       previous = next;
       if (!target) return;
       if (
@@ -52,5 +59,5 @@ export function useFollowSoundingNote(store: SoundingNoteStore) {
       )
         revealElement(target);
     });
-  }, [store]);
+  }, [store, scoreRoot]);
 }

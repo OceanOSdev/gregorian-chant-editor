@@ -150,7 +150,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const persistence = usePersistedSession(initialDocument);
   // Presentation-only playback cue; stable for the editor's lifetime.
   const [soundingNotes] = useState(createSoundingNoteStore);
-  useFollowSoundingNote(soundingNotes);
   const { session, dispatch } = persistence;
   const { history, selection, activeTool, rememberedKind } = session;
   const accidentalTarget = session.accidentalTargetId;
@@ -170,6 +169,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   }
   const rememberedName = entryName(rememberedKind, session.rememberedForm);
   const scoreWorkspace = useRef<HTMLDivElement>(null);
+  useFollowSoundingNote(soundingNotes, scoreWorkspace);
   const noteToolbar = useRef<NoteContextToolbarHandle>(null);
   const accidentalToolbar = useRef<AccidentalContextToolbarHandle>(null);
   const accidentalAnchorList = useRef<HTMLSelectElement>(null);
