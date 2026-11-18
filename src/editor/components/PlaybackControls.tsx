@@ -128,23 +128,60 @@ export function PlaybackControls({
   }, []);
   const pinned = active && !slotVisible;
 
-  // A pointer press outside the options closes them.
-  useEffect(() => {
-    if (!optionsOpen) return;
-    const close = (event: PointerEvent) => {
-      if (!(
-        event.target instanceof Node && options.current?.contains(event.target)
-      ))
-        setOptionsOpen(false);
-    };
-    window.addEventListener('pointerdown', close, true);
-    return () => window.removeEventListener('pointerdown', close, true);
-  }, [optionsOpen]);
-
   function closeOptions() {
     setOptionsOpen(false);
     optionsButton.current?.focus();
   }
+
+  // Dismissal follows the NeumeFamilyMenu contract: a press on the score only
+  // closes the options (it selects, places or edits nothing and keeps focus);
+  // a press on another control closes them and acts as usual. Escape is taken
+  // in the window capture phase, ahead of the editor's own Escape handling
+  // (pending clef or accidental placement, lyric move, clearing the
+  // selection), so it closes the options and nothing else.
+  useEffect(() => {
+    if (!optionsOpen) return;
+    const keepScoreFocus = (event: PointerEvent) => {
+      if (event.target instanceof Element && event.target.closest('.score'))
+        event.preventDefault();
+    };
+    const dismiss = (event: MouseEvent) => {
+      if (
+        !(event.target instanceof Node) ||
+        options.current?.contains(event.target)
+      )
+        return;
+      if (event.target instanceof Element && event.target.closest('.score')) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeOptions();
+        return;
+      }
+      setOptionsOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (
+        event.key !== 'Escape' ||
+        event.isComposing ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      )
+        return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeOptions();
+    };
+    // `document` is this component's score prop; the DOM is window.document.
+    window.document.addEventListener('pointerdown', keepScoreFocus, true);
+    window.document.addEventListener('click', dismiss, true);
+    window.addEventListener('keydown', escape, true);
+    return () => {
+      window.document.removeEventListener('pointerdown', keepScoreFocus, true);
+      window.document.removeEventListener('click', dismiss, true);
+      window.removeEventListener('keydown', escape, true);
+    };
+  }, [optionsOpen]);
 
   return (
     <div className="editor-playback-slot" ref={slot}>
@@ -181,12 +218,19 @@ export function PlaybackControls({
         <div
           className="editor-playback__options"
           ref={options}
+          // Focus leaving the options (Tab, Shift+Tab, a click elsewhere)
+          // closes them, as for NeumeFamilyMenu.
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget))
+              setOptionsOpen(false);
+          }}
           onKeyDown={(event) => {
-            if (event.key !== 'Escape' || !optionsOpen) return;
-            // Keep the editor's own Escape (clear selection) from running.
-            event.preventDefault();
-            event.stopPropagation();
-            closeOptions();
+            if (event.key !== 'Tab' || !optionsOpen) return;
+            // Firefox automation can move focus without a React blur.
+            requestAnimationFrame(() => {
+              if (!options.current?.contains(window.document.activeElement))
+                setOptionsOpen(false);
+            });
           }}
         >
           <button
@@ -194,7 +238,7 @@ export function PlaybackControls({
             ref={optionsButton}
             className="editor-playback__options-button"
             aria-expanded={optionsOpen}
-            aria-controls={panelId}
+            aria-controls={optionsOpen ? panelId : undefined}
             title="Playback options"
             onClick={() => setOptionsOpen((open) => !open)}
           >

@@ -214,13 +214,6 @@ async function waitFor(predicate, what, timeout = 3000) {
     `Timed out waiting for ${what}: ${JSON.stringify(await playback())}`,
   );
 }
-/** Highest output sample seen over a window of analyser reads. */
-async function peakOver(ms) {
-  let peak = 0;
-  for (const end = Date.now() + ms; Date.now() < end; await sleep(20))
-    peak = Math.max(peak, await ev('outputPeak()'));
-  return peak;
-}
 async function loadExample(pattern) {
   await ev(
     `window.confirm=()=>true;(()=>{const e=document.querySelector('[aria-label="Load example"]');const o=[...e.options].find(o=>${pattern}.test(o.textContent));if(!o)throw Error('Missing example');e.value=o.value;e.dispatchEvent(new Event('change',{bubbles:true}));})()`,
@@ -228,8 +221,6 @@ async function loadExample(pattern) {
   await sleep(300);
   return JSON.parse(await raw()).document;
 }
-const noteCount = (document) =>
-  document.neumes.reduce((n, neume) => n + neume.notes.length, 0);
 async function screenshot(name) {
   const { data } = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile(
@@ -400,6 +391,28 @@ async function checkCue(ids, lengths, ms, scale = 1) {
   return { samples, silences };
 }
 
+/** Real pointer click at an element's centre (selector or button text). */
+async function realClick(selector, { text = null } = {}) {
+  const point = await ev(
+    `(()=>{const e=${text ? `[...document.querySelectorAll('button')].find(b=>b.textContent.trim().startsWith(${JSON.stringify(text)}))` : `document.querySelector(${JSON.stringify(selector)})`};if(!e)throw Error('missing ${text ?? selector}');e.scrollIntoView({block:'nearest'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+  );
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+}
+const panelOpen = () =>
+  ev(`!!document.querySelector('.editor-playback__panel')`);
+const openOptions = async () => {
+  await realClick('.editor-playback__options-button');
+  assert.equal(await panelOpen(), true, 'options open');
+};
+const focusInOptions = () =>
+  ev(`!!document.activeElement?.closest('.editor-playback__options')`);
 const results = {};
 try {
   if (firefox) {
@@ -555,6 +568,191 @@ try {
   );
   await ev(`document.querySelector('[aria-label="Undo last edit"]').click()`);
   await chooseSpeed('1×');
+
+  // Options dismissal (NeumeFamilyMenu contract): closing the panel never
+  // edits the score, places notation, changes the selection or cancels a
+  // pending editor interaction.
+  await seed({
+    title: 'Dismiss',
+    clef: { type: 'c', staffLine: 4 },
+    neumes: [
+      punctum('da', 2),
+      punctum('bb', 5),
+      punctum('dc', 3),
+      punctum('dd', 2),
+    ],
+    accidentals: [{ id: 'fl', kind: 'flat', ownerNoteId: 'bb-n' }],
+    clefChanges: [
+      {
+        id: 'zc',
+        // Line 3, so an ArrowUp draft (to line 4) is a legal move.
+        clef: { type: 'f', staffLine: 3 },
+        beforeNeumeId: 'dd',
+        beforeDivisionId: null,
+      },
+    ],
+    syllables: [
+      { id: 's1', text: 'Ky', startsAtNeumeId: 'da', boundaryBefore: 'word' },
+      { id: 's2', text: 'ri', startsAtNeumeId: 'dc', boundaryBefore: 'word' },
+    ],
+    divisions: [],
+  });
+  const before = await raw();
+  // Select mode: a score click only closes the options.
+  await clickNote('dc-n');
+  await openOptions();
+  // Another note that is topmost (the selected note's context panel may
+  // cover its neighbours).
+  const other = await ev(
+    `['da-n','bb-n','dd-n'].find(id=>{const g=document.querySelector('.score__note[data-note-id="'+id+'"]');const r=g.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit&&g.contains(hit)})`,
+  );
+  assert.ok(other, 'a clickable neighbouring note');
+  await clickNote(other);
+  assert.equal(await panelOpen(), false, 'score click closes options');
+  assert.equal((await noteState('dc-n')).pressed, 'true', 'selection kept');
+  assert.equal((await noteState(other)).pressed, 'false', 'no new selection');
+  assert.equal(
+    await ev(
+      `document.activeElement===document.querySelector('.editor-playback__options-button')`,
+    ),
+    true,
+    'focus returns to the options button',
+  );
+  // Placement armed: a score click closes the options and places nothing.
+  await realClick('[data-tool="punctum"]');
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-tool="punctum"]').getAttribute('aria-pressed')`,
+    ),
+    'true',
+  );
+  await openOptions();
+  const staff = await ev(
+    `(()=>{const svg=document.querySelector('svg.score');const line=svg.querySelector('.score__staff-line');const r=line.getBoundingClientRect();return {x:r.right-30,y:r.top}})()`,
+  );
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
+    await send('Input.dispatchMouseEvent', {
+      type,
+      ...staff,
+      button: 'left',
+      clickCount: 1,
+    });
+  await pause();
+  assert.equal(await panelOpen(), false, 'placement click closes options');
+  assert.equal(await raw(), before, 'nothing placed or edited');
+  assert.equal(
+    await ev(
+      `document.querySelector('[data-tool="punctum"]').getAttribute('aria-pressed')`,
+    ),
+    'true',
+    'tool still armed',
+  );
+  await realClick('[data-tool="select"]');
+  // Tab and Shift+Tab leaving the options close them.
+  await openOptions();
+  for (let i = 0; i < 3 && (await focusInOptions()); i++) await key('Tab');
+  await sleep(100);
+  assert.equal(await focusInOptions(), false, 'Tab left the options');
+  assert.equal(await panelOpen(), false, 'Tab departure closes options');
+  await openOptions();
+  await key('Tab', 'Tab', true);
+  await sleep(100);
+  assert.equal(await panelOpen(), false, 'Shift+Tab departure closes options');
+  // Escape closes only the options, keeping the selection.
+  await openOptions();
+  await key('Escape');
+  assert.equal(await panelOpen(), false, 'Escape closes options');
+  assert.equal(
+    (await noteState('dc-n')).pressed,
+    'true',
+    'Escape keeps the selection',
+  );
+  // Escape during pending editor interactions: the first Escape closes only
+  // the options; the editor's own Escape then cancels the interaction.
+  const pending = {
+    // The draft marker in the clef's name ("clef, draft staff line …").
+    clefDraft: () =>
+      ev(
+        `/clef, draft /.test(document.querySelector('[data-clef-change-id="zc"]').getAttribute('aria-label'))`,
+      ),
+    accidental: () =>
+      ev(
+        `[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Place above earlier note')?.disabled===true`,
+      ),
+    lyricMove: () => ev(`!!document.querySelector('#lyric-move-help')`),
+  };
+  results.escapeStates = {};
+  for (const [name, start, cancelFrom] of [
+    [
+      'clefDraft',
+      async () => {
+        // Pointer-select the clef (as dynamic-vertical-layout does), then
+        // an Arrow on the focused clef stages a draft. First clear the note
+        // selection, whose context panel can cover the clef.
+        await ev(`document.activeElement.blur()`);
+        await key('Escape');
+        await realClick('[data-clef-change-id="zc"]');
+        assert.equal(
+          await ev(
+            `document.querySelector('[data-clef-change-id="zc"]').getAttribute('aria-pressed')`,
+          ),
+          'true',
+          'pointer selects the clef',
+        );
+        await ev(
+          `document.querySelector('[data-clef-change-id="zc"]').focus({preventScroll:true})`,
+        );
+        await key('ArrowUp');
+      },
+      `document.querySelector('[data-clef-change-id="zc"]')`,
+    ],
+    [
+      'accidental',
+      async () => {
+        await realClick('[data-accidental-id="fl"]');
+        await realClick(null, { text: 'Place above earlier note' });
+      },
+      null,
+    ],
+    [
+      'lyricMove',
+      async () => {
+        // Lyric entry on the neume that carries a syllable, then Move.
+        await ev(`document.activeElement.blur()`);
+        await key('Escape');
+        await selectNote('dc-n');
+        await realClick(null, { text: 'Lyrics' });
+        await realClick(null, { text: 'Move syllable' });
+      },
+      null,
+    ],
+  ]) {
+    await start();
+    assert.equal(await pending[name](), true, `${name} pending`);
+    await openOptions();
+    assert.equal(
+      await pending[name](),
+      true,
+      `${name} survives opening options`,
+    );
+    await key('Escape');
+    assert.equal(await panelOpen(), false, `${name}: Escape closes options`);
+    assert.equal(
+      await pending[name](),
+      true,
+      `${name}: still pending after first Escape`,
+    );
+    // The editor's own Escape, from where the reader was working.
+    if (cancelFrom) await ev(`${cancelFrom}.focus()`);
+    await key('Escape');
+    assert.equal(
+      await pending[name](),
+      false,
+      `${name}: editor Escape cancels it`,
+    );
+    results.escapeStates[name] = 'options closed first, then cancelled';
+  }
+  assert.equal(await raw(), before, 'dismissal tests left the score unchanged');
 
   // Follow-along across systems: two long examples, desktop and 320px, and
   // 150% CSS zoom; then a score that scrolls sideways.
