@@ -107,10 +107,18 @@ spacing and conditional/system-break hyphens under
 [Accepted ADR 0011](adrs/0011-word-aware-chant-engraving.md), which narrowly
 qualifies but does not replace [ADR 0010](adrs/0010-derive-wrapping-from-music-and-lyric-geometry.md).
 
-`layout-chant.ts` owns canonical score layout and wrapping;
+`layout-chant.ts` is the public layout API and the `layoutChant` orchestrator.
+The horizontal walker (wrapping, spacing, lyric clearance, custodes and boundary
+events) lives in `horizontal-system-composition.ts`; vertical measurement and
+stacking in `system-vertical-layout.ts`; rebuilding at resolved origins,
+lyrics, hyphens, hit clips, insertion slots and canvas bounds in
+`system-layout-assembly.ts`; public result types in `chant-layout-types.ts`.
 `graphical-placement.ts` owns transient fit, snapping and ghost/caret geometry.
-Their shared staff metrics live in `staff-metrics.ts`. The existing public layout
-API remains available through re-exports. This preserves the accepted ADRs;
+Shared staff metrics live in `staff-metrics.ts`. Score-layout consumers import
+`layoutChant`, its result types and layout helpers through `layout-chant.ts`;
+the phase modules are internal to the layout directory, while lower-level
+engraving values (lyric metrics, vertical metrics, neume, clef and division
+geometry) are imported from their owning modules where needed; see [layout pipeline ownership](layout-and-rendering.md#layout-pipeline-ownership). This preserves the accepted ADRs;
 no new decision record is needed.
 
 See [layout and rendering](layout-and-rendering.md).
