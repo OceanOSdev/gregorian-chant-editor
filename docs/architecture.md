@@ -114,9 +114,11 @@ stacking in `system-vertical-layout.ts`; rebuilding at resolved origins,
 lyrics, hyphens, hit clips, insertion slots and canvas bounds in
 `system-layout-assembly.ts`; public result types in `chant-layout-types.ts`.
 `graphical-placement.ts` owns transient fit, snapping and ghost/caret geometry.
-Shared staff metrics live in `staff-metrics.ts`. Callers import only through
-`layout-chant.ts`, which re-exports the public types, constants and helpers;
-see [layout pipeline ownership](layout-and-rendering.md#layout-pipeline-ownership). This preserves the accepted ADRs;
+Shared staff metrics live in `staff-metrics.ts`. Score-layout consumers import
+`layoutChant`, its result types and layout helpers through `layout-chant.ts`;
+the phase modules are internal to the layout directory, while lower-level
+engraving values (lyric metrics, vertical metrics, neume, clef and division
+geometry) are imported from their owning modules where needed; see [layout pipeline ownership](layout-and-rendering.md#layout-pipeline-ownership). This preserves the accepted ADRs;
 no new decision record is needed.
 
 See [layout and rendering](layout-and-rendering.md).

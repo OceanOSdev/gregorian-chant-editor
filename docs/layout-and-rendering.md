@@ -333,9 +333,14 @@ resolution remains in the interaction layer.
 
 ### Layout pipeline ownership
 
-`layoutChant` in `layout-chant.ts` is the only score layout pipeline and the
-only public layout module: callers import every layout type, constant and
-helper from it, while the phases live in internal modules. It reads as the
+`layoutChant` in `layout-chant.ts` is the only score layout pipeline.
+Score-layout consumers (the editor, renderer, interaction resolvers and
+graphical placement) import `layoutChant`, the `ChantLayout` result types and
+the layout helpers from `layout-chant.ts`; the phase modules below are
+internal to `src/editor/layout/`. Modules that need lower-level engraving
+values intentionally import them from their owners (for example
+`lyric-text-metrics.ts`, `system-vertical-layout.ts`, `neume-geometry.ts`,
+`clef-geometry.ts` and `division-geometry.ts`). The pipeline reads as the
 [ADR 0028](adrs/0028-compose-before-vertical-lyric-clearance.md) sequence:
 
 1. **Prepare input** (`layout-chant.ts`): lyric alignments and the
@@ -359,8 +364,9 @@ helper from it, while the phases live in internal modules. It reads as the
 
 Public result types live in `chant-layout-types.ts` so the phases share them
 without importing the entry point; staff-frame helpers (`clefX`,
-`staffLineSpacing`, `staffLineY`) live in `staff-metrics.ts`. The import
-graph is acyclic: the entry point depends on the phases, assembly depends on
+`staffLineSpacing`, `staffLineY`) live in `staff-metrics.ts`. The runtime
+import graph is acyclic (the only cycle is the existing type-only import of
+layout records by `graphical-placement.ts`): the entry point depends on the phases, assembly depends on
 composition's records and constants, and neither phase imports
 `layout-chant.ts`.
 
