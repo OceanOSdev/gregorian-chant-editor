@@ -1,4 +1,4 @@
-import { scoreViewportTop } from './sticky-visibility';
+import { scoreViewportBottom, scoreViewportTop } from './sticky-visibility';
 export interface VisibleBounds {
   left: number;
   right: number;
@@ -86,18 +86,26 @@ function containerZoom(container: HTMLElement) {
   };
 }
 
-/** Usable bounds of a container (or the page, below the sticky toolbar). */
+/**
+ * Usable bounds of a container, or of the page below the sticky toolbar.
+ * `avoidPinned` also keeps a revealed target clear of pinned playback
+ * controls where they cover its columns.
+ */
 function usableViewport(
   target: Element,
   container: HTMLElement | undefined,
   margin: number,
+  avoidPinned = false,
 ): VisibleBounds {
   if (!container)
     return {
       left: margin,
       right: document.documentElement.clientWidth - margin,
       top: scoreViewportTop(target, 0) + margin,
-      bottom: window.innerHeight - margin,
+      bottom:
+        (avoidPinned
+          ? scoreViewportBottom(target, window.innerHeight)
+          : window.innerHeight) - margin,
     };
   // Convert the container's own CSS-pixel metrics into viewport pixels.
   const { rect, x, y } = containerZoom(container);
@@ -119,7 +127,7 @@ function adjustmentIn(
 ) {
   return getVisibilityAdjustment(
     target.getBoundingClientRect(),
-    usableViewport(target, container, 8),
+    usableViewport(target, container, 8, true),
     anchor.getBoundingClientRect(),
   );
 }
@@ -146,7 +154,9 @@ export function revealElement(target: Element, anchor: Element = target) {
 
 /**
  * Whether any part of the target is visible: inside every scroll container
- * and the page's usable area below the sticky toolbar.
+ * and the page's usable area below the sticky toolbar. Pinned playback
+ * controls are not subtracted: they can appear over an already revealed
+ * note, which the reader has not scrolled away from.
  */
 export function isElementOnScreen(target: Element): boolean {
   const r = target.getBoundingClientRect();

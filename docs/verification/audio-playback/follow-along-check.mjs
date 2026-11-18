@@ -834,6 +834,65 @@ try {
   await followAcrossSystems('Salve Regina', 320, 900);
   await followAcrossSystems('Dies Ir', 1440, 1000, '1.5');
 
+  // 320×600: the toolbar is too tall to stick, so the controls pin to the
+  // bottom-right corner during playback. A note revealed beside them may use
+  // the full height; a note under their columns must be lifted clear.
+  {
+    await send('Emulation.setDeviceMetricsOverride', {
+      width: 320,
+      height: 600,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await loadExample('/Dies Ir/');
+    await sleep(400);
+    const start = await ev(
+      `(()=>{const notes=[...document.querySelectorAll('g[data-system-index="6"] .score__note')];const g=notes.at(-1);const r=g.getBoundingClientRect();scrollBy(0,r.bottom-(innerHeight-40));return g.dataset.noteId})()`,
+    );
+    await sleep(150);
+    await ev(`document.activeElement.blur()`);
+    await clickNote(start);
+    await click('Play');
+    await waitFor((p) => p.status === 'playing', 'pinned follow playing');
+    // Far down the score the controls have scrolled away and are pinned.
+    await sleep(200);
+    assert.equal(
+      await ev(`!!document.querySelector('.editor-playback--pinned')`),
+      true,
+      'controls pinned',
+    );
+    const cueState = () =>
+      ev(
+        `(()=>{const c=document.querySelector('.score__note-sounding');const box=document.querySelector('.editor-playback--pinned');if(!c||!box)return null;const g=c.closest('.score__note');const r=g.getBoundingClientRect();const b=box.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {system:g.closest('[data-system-index]').dataset.systemIndex,underColumns:r.right>b.left&&r.left<b.right,bottom:r.bottom,boxTop:b.top,innerHeight,topmost:!!hit&&g.contains(hit),inView:r.top>=0&&r.bottom<=innerHeight}})()`,
+      );
+    let beside = null;
+    let under = null;
+    for (let i = 0; i < 200 && !under; i++) {
+      await sleep(40);
+      const state = await cueState();
+      if (!state || state.system !== '7') continue;
+      if (!beside && !state.underColumns) beside = state;
+      if (state.underColumns) {
+        await sleep(80);
+        under = await cueState();
+      }
+    }
+    assert.ok(beside, 'cue reached the next system beside the pinned controls');
+    assert.ok(
+      beside.inView && beside.bottom > beside.boxTop,
+      `a note beside the pinned controls keeps the full height: ${JSON.stringify(beside)}`,
+    );
+    assert.ok(under, 'cue reached a note under the pinned controls');
+    assert.ok(
+      under.inView && under.topmost && under.bottom <= under.boxTop,
+      `a note under the pinned controls is revealed above them: ${JSON.stringify(under)}`,
+    );
+    results.pinnedOcclusion = { beside, under };
+    await screenshot('follow-pinned-320x600');
+    await click('Stop');
+    await waitFor((p) => p.status === 'idle', 'pinned follow stop');
+  }
+
   // An oversized syllable makes the score scroll sideways at 320px: the next
   // sounding note, off to the right, is revealed inside the score viewport.
   await send('Emulation.setDeviceMetricsOverride', {
