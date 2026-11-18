@@ -285,7 +285,7 @@ and consult the owning record for feature-specific assertions and manual checks.
   note and lyric focus across uncommanded reflow (readability M2); runner
   driver `score-focus-reparenting`.
 - [Audio playback](verification/audio-playback/README.md):
-  `equal-note-performance.test.ts` (register, order, clefs, accidentals,
+  `proofreading-performance.test.ts` (register, order, clefs, accidentals, mora,
   invalid scores, bundled examples), `web-audio-synth.test.ts` and
   `playback-controller.test.ts` (fake Web Audio); runner driver
   `audio-playback`. Automated checks never prove what is heard; record actual

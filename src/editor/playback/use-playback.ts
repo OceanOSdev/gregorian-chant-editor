@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
-import { interpretEqualNotes } from './equal-note-performance';
+import { interpretProofreadingPlayback } from './proofreading-performance';
 import {
   createPlaybackController,
   type PlaybackAudioContext,
@@ -23,7 +23,7 @@ export function usePlayback(document: ChantDocument) {
   const [state, setState] = useState<PlaybackState>({ status: 'idle' });
   const controller = useRef<PlaybackController | null>(null);
   const interpretation = useMemo(
-    () => interpretEqualNotes(document),
+    () => interpretProofreadingPlayback(document),
     [document],
   );
 

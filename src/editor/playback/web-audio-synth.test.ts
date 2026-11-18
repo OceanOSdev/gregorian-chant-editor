@@ -79,6 +79,32 @@ describe('schedulePerformance', () => {
     }
   });
 
+  it('holds a mora-lengthened note for its whole doubled duration', () => {
+    const context = new FakeAudioContext();
+    const base = testPerformance([60, 62]);
+    const lengthened = {
+      notes: [
+        { ...base.notes[0], durationSeconds: 0.8 },
+        { ...base.notes[1], startSeconds: 0.8 },
+      ],
+      durationSeconds: 1.2,
+    };
+    schedulePerformance(context, lengthened, () => {});
+    const [oscillator] = context.oscillators;
+    const [envelope] = context.gains;
+    const start = oscillator.startTime ?? NaN;
+    expect(oscillator.frequency.events.map((e) => e[2])).toEqual([
+      start,
+      start + 0.8,
+    ]);
+    expect(oscillator.stopTimes).toEqual([start + 1.2]);
+    // Silence, attack, hold until near the end, then release before 0.8 s.
+    const times = envelope.gain.events.map((e) => Number(e.at(-1)));
+    expect(times[2]).toBeGreaterThan(start + 0.6);
+    expect(times[3]).toBeLessThan(start + 0.8);
+    expect(times[3]).toBeGreaterThan(times[2]);
+  });
+
   it('keeps silence through a division pause', () => {
     const context = new FakeAudioContext();
     const base = testPerformance([60, 62]);
@@ -97,7 +123,7 @@ describe('schedulePerformance', () => {
     expect(oscillator.stopTimes).toEqual([start + 1.6]);
     // The first note's release reaches silence before the pause begins, and
     // nothing is scheduled again until the second note starts.
-    const times = envelope.gain.events.map((e) => e.at(-1) ?? NaN);
+    const times = envelope.gain.events.map((e) => Number(e.at(-1)));
     expect(times[3]).toBeLessThanOrEqual(start + 0.4);
     expect(times[4]).toBeCloseTo(start + 1.2, 9);
   });

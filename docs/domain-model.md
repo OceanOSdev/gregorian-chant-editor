@@ -121,7 +121,8 @@ length; four- and five-note Scandicus/Climacus and the four compound
 directional kinds allow none/final note. The shared pure pattern validator governs
 commands and native decoding. A final pair marks two distinct note IDs and
 derives an auctum duplex; no second persisted sign object exists. Episema stays
-independent. Movement and normalization retain marks on surviving note IDs.
+independent. Playback derives its own duration from each note's flag; the
+document stores none ([playback](playback.md#mora)). Movement and normalization retain marks on surviving note IDs.
 See [ADR 0018](adrs/0018-conventional-mora-patterns.md) and
 [persistence](persistence.md) for protected recovery of incompatible draft v2.
 

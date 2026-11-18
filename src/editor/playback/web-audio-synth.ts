@@ -57,7 +57,7 @@ export function midiToFrequency(midiNote: number): number {
  * Schedules a whole performance on the context clock with one monophonic
  * triangle oscillator: each note sets the frequency at its start and gets its
  * own attack/release envelope. Note durations must exceed the envelope
- * (about 0.1 s); Equal Note Playback uses 0.4 s.
+ * (about 0.1 s); Proofreading Playback uses 0.4 s or more.
  */
 export function schedulePerformance(
   context: ToneContext,

@@ -2,8 +2,9 @@
 
 Branch: `feat/audio-1-basic-playback`
 Target: `master`
-Status: implemented in PR #101; scope revised after owner review (see
-[Owner review revision](#owner-review-revision-pr-101))
+Status: implemented in PR #101; scope revised twice after owner review (see
+[Owner review revision](#owner-review-revision-pr-101) and
+[second revision](#second-owner-review-revision-pr-101))
 
 ## Problem and user-visible goal
 
@@ -116,10 +117,9 @@ retain an obvious seam for alternative interpretation engines later.
 
 - Vocal/monastic choir synthesis, syllable singing, speech synthesis, samples,
   audio export, MIDI export, live microphone or conducted performance.
-- Authentic rhythm, duration inference from mora/episemata, phrase rubato,
-  ornament interpretation or expressive timing. **Mora** stays without effect
-  in Audio 1; a separate follow-up milestone will establish an explicit
-  rhythmic interpretation policy.
+- Authentic rhythm, duration inference from episemata, phrase rubato,
+  ornament interpretation or expressive timing. Mora is limited to the simple
+  doubling in the second revision.
 - Play from selection, pause/resume, seek, note-by-note highlighting, scrolling
   during playback, looping, and persistence of audio preferences.
 - Native-format/schema migrations, new notation concepts, and broad editor
@@ -180,3 +180,21 @@ Agreed after the owner reviewed and listened to the first implementation:
 5. **ADR 0006** is accepted for its separation of notation, performance and
    rendering, updated to describe the agreed Audio 1 behavior without adding
    premature abstractions (no engine interface or registry yet).
+
+## Second owner review revision (PR #101)
+
+Agreed after the owner reviewed the first revision. Each supersedes the
+corresponding item above.
+
+1. **Division pauses** keep the implemented 0.5 / 1 / 2 / 3 base-note values.
+2. **Mora** is in Audio 1 (superseding item 4 above): a note with `mora: 1`
+   lasts twice the base duration. An auctum duplex lengthens each of its two
+   marked notes individually, with no additional group multiplier. This is
+   derived only in the pure playback interpreter, respecting
+   [ADR 0018](../adrs/0018-conventional-mora-patterns.md): marks stay
+   note-owned presence flags, and no timing enters the document. The engine
+   is renamed **Proofreading Playback**, because notes are no longer equal.
+3. **Play and Stop belong in the sticky editor toolbar** (superseding item 2
+   above), in a compact responsive arrangement that adds no row at narrow
+   widths. The toolbar's height safeguards, accessibility and score
+   hit-testing are preserved.

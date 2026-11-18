@@ -7,6 +7,7 @@ import {
 } from '../domain/chant-document';
 import { resolveEffectivePitches } from '../domain/accidentals';
 import { blankDocument } from '../persistence/native-document';
+import { updateMoraScope } from '../commands/update-note-modifiers';
 import {
   placeAccidental,
   updateAccidental,
@@ -21,10 +22,11 @@ import {
   loadBundledExample,
 } from '../examples/bundled-examples';
 import {
-  divisionPauseNotes,
-  equalNoteDurationSeconds,
-  interpretEqualNotes,
-} from './equal-note-performance';
+  baseNoteSeconds,
+  divisionPauseNoteLengths,
+  interpretProofreadingPlayback,
+  moraNoteLengths,
+} from './proofreading-performance';
 import { playbackMidiNote, type Performance } from './performance';
 
 function note(id: string, position: number): ChantNote {
@@ -38,10 +40,12 @@ function score(neumes: Neume[]): ChantDocument {
   return { ...blankDocument(), clef: { type: 'c', staffLine: 1 }, neumes };
 }
 function performance(document: ChantDocument): Performance {
-  const result = interpretEqualNotes(document);
+  const result = interpretProofreadingPlayback(document);
   if (!result.ok) throw Error(`Expected a performance, got ${result.reason}`);
   return result.performance;
 }
+const noteIdsOf = (document: ChantDocument) =>
+  performance(document).notes.map((n) => n.noteId);
 const midiNotes = (document: ChantDocument) =>
   performance(document).notes.map((n) => n.midiNote);
 
@@ -78,7 +82,7 @@ describe('playback register convention', () => {
   });
 });
 
-describe('equal note performance', () => {
+describe('proofreading performance', () => {
   it('sounds a one-note chant once', () => {
     expect(performance(score([punctum('a', 0)]))).toEqual({
       notes: [
@@ -89,15 +93,15 @@ describe('equal note performance', () => {
           alteration: 0,
           midiNote: 60,
           startSeconds: 0,
-          durationSeconds: equalNoteDurationSeconds,
+          durationSeconds: baseNoteSeconds,
         },
       ],
-      durationSeconds: equalNoteDurationSeconds,
+      durationSeconds: baseNoteSeconds,
     });
   });
 
   it('plays an empty score as an empty performance', () => {
-    expect(interpretEqualNotes(blankDocument())).toEqual({
+    expect(interpretProofreadingPlayback(blankDocument())).toEqual({
       ok: true,
       performance: { notes: [], durationSeconds: 0 },
     });
@@ -184,7 +188,7 @@ describe('equal note performance', () => {
     );
   });
 
-  it('keeps repeated notes as distinct, back-to-back equal events', () => {
+  it('keeps repeated notes as distinct, back-to-back events', () => {
     const p = performance(
       score([
         {
@@ -197,14 +201,14 @@ describe('equal note performance', () => {
     );
     expect(p.notes.map((n) => [n.noteId, n.midiNote, n.startSeconds])).toEqual([
       ['t0', 67, 0],
-      ['t1', 67, equalNoteDurationSeconds],
-      ['t2', 67, 2 * equalNoteDurationSeconds],
-      ['againn', 67, 3 * equalNoteDurationSeconds],
+      ['t1', 67, baseNoteSeconds],
+      ['t2', 67, 2 * baseNoteSeconds],
+      ['againn', 67, 3 * baseNoteSeconds],
     ]);
     expect(new Set(p.notes.map((n) => n.durationSeconds))).toEqual(
-      new Set([equalNoteDurationSeconds]),
+      new Set([baseNoteSeconds]),
     );
-    expect(p.durationSeconds).toBe(4 * equalNoteDurationSeconds);
+    expect(p.durationSeconds).toBe(4 * baseNoteSeconds);
   });
 
   it('sounds pitches above and below the staff across octave boundaries', () => {
@@ -284,7 +288,7 @@ describe('equal note performance', () => {
 });
 
 describe('division pauses', () => {
-  const d = equalNoteDurationSeconds;
+  const d = baseNoteSeconds;
   /** Start times, in note lengths, of a three-punctum score. */
   function starts(
     divisions: ChantDocument['divisions'],
@@ -303,7 +307,7 @@ describe('division pauses', () => {
   }
 
   it('grows with division weight', () => {
-    expect(divisionPauseNotes).toEqual({
+    expect(divisionPauseNoteLengths).toEqual({
       minima: 0.5,
       minor: 1,
       maior: 2,
@@ -314,7 +318,7 @@ describe('division pauses', () => {
   it.each(['minima', 'minor', 'maior', 'finalis'] as const)(
     'a %s between notes adds its pause before the next note',
     (kind) => {
-      const pause = divisionPauseNotes[kind];
+      const pause = divisionPauseNoteLengths[kind];
       expect(starts([{ id: 'bar', kind, beforeNeumeId: 'b' }])).toEqual({
         starts: [0, 1 + pause, 2 + pause],
         total: 3 + pause,
@@ -376,6 +380,168 @@ describe('division pauses', () => {
       ['c0', 3],
       ['c1', 4],
     ]);
+  });
+});
+
+describe('mora', () => {
+  const d = baseNoteSeconds;
+  function marked(id: string, position: number): ChantNote {
+    return { ...note(id, position), mora: 1 };
+  }
+  /** [noteId, start, duration] in base note lengths. */
+  const timeline = (doc: ChantDocument) =>
+    performance(doc).notes.map((n) => [
+      n.noteId,
+      +(n.startSeconds / d).toFixed(9),
+      +(n.durationSeconds / d).toFixed(9),
+    ]);
+
+  it('doubles a marked note', () => {
+    expect(moraNoteLengths).toBe(2);
+    const doc = score([
+      punctum('a', 0),
+      { id: 'b', kind: 'punctum', notes: [marked('bn', 1)] },
+      punctum('c', 2),
+    ]);
+    expect(timeline(doc)).toEqual([
+      ['an', 0, 1],
+      ['bn', 1, 2],
+      ['cn', 3, 1],
+    ]);
+    expect(performance(doc).durationSeconds / d).toBeCloseTo(4, 9);
+  });
+
+  it.each([
+    ['first', [true, false], [2, 1]],
+    ['second', [false, true], [1, 2]],
+    ['both', [true, true], [2, 2]],
+  ] as const)(
+    'lengthens the %s note of a two-note neume',
+    (_s, marks, lengths) => {
+      for (const kind of ['podatus', 'clivis'] as const) {
+        const positions = kind === 'podatus' ? [0, 2] : [2, 0];
+        const notes = positions.map((p, i) =>
+          marks[i] ? marked(`n${i}`, p) : note(`n${i}`, p),
+        );
+        const doc = score([
+          { id: kind, kind, notes: [notes[0], notes[1]] } as Neume,
+        ]);
+        expect(timeline(doc).map((e) => e[2])).toEqual(lengths);
+      }
+    },
+  );
+
+  it.each(['torculus', 'porrectus', 'scandicus', 'climacus'] as const)(
+    'an auctum duplex on a %s lengthens each marked note once, with no group multiplier',
+    (kind) => {
+      const positions = {
+        torculus: [0, 2, 1],
+        porrectus: [2, 0, 1],
+        scandicus: [0, 1, 2],
+        climacus: [2, 1, 0],
+      }[kind];
+      const doc = score([
+        {
+          id: kind,
+          kind,
+          notes: [
+            note('n0', positions[0]),
+            marked('n1', positions[1]),
+            marked('n2', positions[2]),
+          ],
+        } as Neume,
+        punctum('after', 3),
+      ]);
+      expect(timeline(doc)).toEqual([
+        ['n0', 0, 1],
+        ['n1', 1, 2],
+        ['n2', 3, 2],
+        ['aftern', 5, 1],
+      ]);
+    },
+  );
+
+  it('matches the editor command for marking the final two notes', () => {
+    const doc = score([
+      {
+        id: 'to',
+        kind: 'torculus',
+        notes: [note('t0', 0), note('t1', 2), note('t2', 1)],
+      },
+    ]);
+    const edited = updateMoraScope(doc, 'to', 'final-two');
+    expect(edited).not.toBe(doc);
+    expect(timeline(edited).map((e) => e[2])).toEqual([1, 2, 2]);
+  });
+
+  it('adds a division pause after a lengthened note', () => {
+    const doc = score([
+      { id: 'a', kind: 'punctum', notes: [marked('an', 0)] },
+      punctum('b', 1),
+    ]);
+    doc.divisions = [{ id: 'bar', kind: 'maior', beforeNeumeId: 'b' }];
+    expect(timeline(doc)).toEqual([
+      ['an', 0, 2],
+      ['bn', 4, 1],
+    ]);
+  });
+
+  it('keeps pitch and order unchanged', () => {
+    const plain = score([punctum('a', 0), punctum('b', 4)]);
+    const doc = score([
+      { id: 'a', kind: 'punctum', notes: [marked('an', 0)] },
+      punctum('b', 4),
+    ]);
+    expect(midiNotes(doc)).toEqual(midiNotes(plain));
+    expect(noteIdsOf(doc)).toEqual(noteIdsOf(plain));
+  });
+
+  it('ignores episemata, note forms and liquescence', () => {
+    const doc = score([
+      {
+        id: 'a',
+        kind: 'punctum',
+        notes: [{ ...note('an', 0), episema: true, verticalEpisema: true }],
+      },
+      {
+        id: 'b',
+        kind: 'punctum',
+        notes: [{ ...note('bn', 1), form: 'quilisma' }],
+      },
+      {
+        id: 'c',
+        kind: 'podatus',
+        notes: [note('c0', 0), note('c1', 2)],
+        liquescence: 'diminutive',
+      },
+    ]);
+    expect(timeline(doc).map((e) => e[2])).toEqual([1, 1, 1, 1]);
+  });
+
+  it('rejects unsupported mora data instead of reinterpreting it', () => {
+    const counted = score([
+      {
+        id: 'a',
+        kind: 'punctum',
+        notes: [{ ...note('an', 0), mora: 2 } as unknown as ChantNote],
+      },
+    ]);
+    expect(interpretProofreadingPlayback(counted)).toEqual({
+      ok: false,
+      reason: 'invalid-score',
+    });
+    // A Torculus first-note mora is outside the supported profile (ADR 0018).
+    const unsupported = score([
+      {
+        id: 't',
+        kind: 'torculus',
+        notes: [marked('t0', 0), note('t1', 2), note('t2', 1)],
+      },
+    ]);
+    expect(interpretProofreadingPlayback(unsupported)).toEqual({
+      ok: false,
+      reason: 'invalid-score',
+    });
   });
 });
 
@@ -473,7 +639,7 @@ describe('unplayable scores', () => {
   it('rejects a score whose semantic order cannot be derived', () => {
     const d = score([punctum('a', 0)]);
     d.divisions = [{ id: 'bar', kind: 'minima', beforeNeumeId: 'missing' }];
-    expect(interpretEqualNotes(d)).toEqual({
+    expect(interpretProofreadingPlayback(d)).toEqual({
       ok: false,
       reason: 'invalid-score',
     });
@@ -484,7 +650,7 @@ describe('unplayable scores', () => {
       punctum('a', 0),
       { id: 'b', kind: 'punctum', notes: [note('an', 1)] },
     ]);
-    expect(interpretEqualNotes(d)).toEqual({
+    expect(interpretProofreadingPlayback(d)).toEqual({
       ok: false,
       reason: 'invalid-score',
     });
@@ -493,7 +659,7 @@ describe('unplayable scores', () => {
   it('rejects an accidental that does not belong to a B', () => {
     const d = score([punctum('a', 0)]);
     d.accidentals = [{ id: 'flat', kind: 'flat', ownerNoteId: 'an' }];
-    expect(interpretEqualNotes(d)).toEqual({
+    expect(interpretProofreadingPlayback(d)).toEqual({
       ok: false,
       reason: 'invalid-score',
     });
@@ -501,7 +667,7 @@ describe('unplayable scores', () => {
 
   it('reports a pitch outside the playable range instead of clamping it', () => {
     const d = score([punctum('a', 0), punctum('far', 200)]);
-    expect(interpretEqualNotes(d)).toEqual({
+    expect(interpretProofreadingPlayback(d)).toEqual({
       ok: false,
       reason: 'pitch-out-of-range',
       noteId: 'farn',
@@ -511,7 +677,7 @@ describe('unplayable scores', () => {
   it('rejects an unsafe staff position', () => {
     const d = score([punctum('a', Number.MAX_SAFE_INTEGER)]);
     d.clef = { type: 'f', staffLine: 1 };
-    expect(interpretEqualNotes(d)).toEqual({
+    expect(interpretProofreadingPlayback(d)).toEqual({
       ok: false,
       reason: 'invalid-score',
     });
@@ -528,6 +694,16 @@ describe('bundled examples', () => {
         d.neumes.flatMap((neume) => neume.notes.map((n) => n.id)),
       );
       expect(p.notes.every((n) => Number.isInteger(n.midiNote))).toBe(true);
+      const marked = new Set(
+        d.neumes.flatMap((neume) =>
+          neume.notes.filter((n) => n.mora === 1).map((n) => n.id),
+        ),
+      );
+      for (const n of p.notes)
+        expect(n.durationSeconds).toBeCloseTo(
+          (marked.has(n.noteId) ? 2 : 1) * baseNoteSeconds,
+          9,
+        );
       // Notes never overlap; any extra time is silence at divisions.
       for (const [i, n] of p.notes.slice(1).entries())
         expect(n.startSeconds).toBeGreaterThanOrEqual(

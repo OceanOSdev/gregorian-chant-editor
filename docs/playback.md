@@ -25,7 +25,7 @@ performance.
 
 ```text
 ChantDocument
-    ↓  interpretEqualNotes (pure; reuses resolveEffectivePitches)
+    ↓  interpretProofreadingPlayback (pure; reuses resolveEffectivePitches)
 PerformanceResult → Performance (ordered PerformanceNote timeline)
     ↓  PlaybackController (one AudioContext, one session at a time)
 schedulePerformance (Web Audio, scheduled on AudioContext.currentTime)
@@ -39,19 +39,19 @@ Playback never reads layout, SVG or the DOM.
 
 All playback code lives in `src/editor/playback/`.
 
-| Module                      | Owns                                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| `performance.ts`            | `Performance`/`PerformanceNote`/`PerformanceResult` types and the register convention      |
-| `equal-note-performance.ts` | Equal Note Playback: the pure document-to-performance interpreter                          |
-| `web-audio-synth.ts`        | Scheduling one performance on a minimal structural subset of the Web Audio API             |
-| `playback-controller.ts`    | Audio context creation/resume, session invalidation, stop, dispose and reported state      |
-| `use-playback.ts`           | React glue: interprets the current document, stops on document change, disposes on unmount |
+| Module                        | Owns                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| `performance.ts`              | `Performance`/`PerformanceNote`/`PerformanceResult` types and the register convention      |
+| `proofreading-performance.ts` | Proofreading Playback: the pure document-to-performance interpreter                        |
+| `web-audio-synth.ts`          | Scheduling one performance on a minimal structural subset of the Web Audio API             |
+| `playback-controller.ts`      | Audio context creation/resume, session invalidation, stop, dispose and reported state      |
+| `use-playback.ts`             | React glue: interprets the current document, stops on document change, disposes on unmount |
 
-`components/PlaybackControls.tsx` renders Play, Stop and the status text just
-above the sticky toolbar, in normal page flow, and pins them to the viewport
-while playing if that place is scrolled away (see
+`components/PlaybackControls.tsx` renders Play, Stop and the status text at
+the end of the sticky toolbar's Quilisma figure row (see
 [editor interactions](editor-interactions.md#playback-controls-audio-1)).
-`ChantEditor` only passes it the current document.
+`ChantEditor` passes it the current document through the palette's
+`figureRowEnd` slot.
 
 ## Performance model
 
@@ -60,7 +60,7 @@ Each note carries its stable `noteId` and `neumeId`, the resolved relative
 `degree` and `alteration`, an audition `midiNote`, and `startSeconds` and
 `durationSeconds` relative to the start of the performance.
 
-`interpretEqualNotes(document)`:
+`interpretProofreadingPlayback(document)` (**Proofreading Playback**):
 
 - emits exactly one event per authored note, in semantic score order
   (`deriveScoreOrder`) and each neume's `notes` tuple order, so repeated-note
@@ -69,21 +69,23 @@ Each note carries its stable `noteId` and `neumeId`, the resolved relative
 - takes degree and alteration only from `resolveEffectivePitches`, so initial
   and mid-score clefs, register-specific B flats/naturals, scope resets at
   words and divisions, and earlier-placed signs match the editor exactly;
-- gives every note `equalNoteDurationSeconds` (0.4 s);
+- gives every note one base note (`baseNoteSeconds`, 0.4 s), or two when that
+  note carries a mora (below);
 - does not sound clefs or divisions. Clefs add no time; divisions add a
   pause, below.
 
 ### Division pauses
 
 Walking the same `deriveScoreOrder`, each division between two notes adds
-silence before the next note, in note lengths (`divisionPauseNotes`):
+silence before the next note, in base note lengths
+(`divisionPauseNoteLengths`):
 
-| Division         | Pause (note lengths) | At 0.4 s per note |
-| ---------------- | -------------------- | ----------------- |
-| Minima (quarter) | 0.5                  | 0.2 s             |
-| Minor (half)     | 1                    | 0.4 s             |
-| Maior (full)     | 2                    | 0.8 s             |
-| Finalis (double) | 3                    | 1.2 s             |
+| Division         | Pause (base notes) | At 0.4 s per note |
+| ---------------- | ------------------ | ----------------- |
+| Minima (quarter) | 0.5                | 0.2 s             |
+| Minor (half)     | 1                  | 0.4 s             |
+| Maior (full)     | 2                  | 0.8 s             |
+| Finalis (double) | 3                  | 1.2 s             |
 
 - Several divisions at one boundary pause once, for the longest of them.
   Separate boundaries each add their own pause.
@@ -93,6 +95,28 @@ silence before the next note, in note lengths (`divisionPauseNotes`):
 
 These are deterministic playback aids that make phrase structure audible.
 They are not claims about historical performance practice.
+
+### Mora
+
+A note with `mora: 1` lasts `moraNoteLengths` (2) base notes, 0.8 s. Marks
+belong to individual note IDs ([ADR 0018](adrs/0018-conventional-mora-patterns.md)),
+so the interpreter reads each note's own flag:
+
+- an auctum duplex (a final pair of marked notes) lengthens each of its two
+  notes individually. There is no additional group multiplier, and the
+  unmarked notes of the neume are unchanged;
+- a division pause after a lengthened note follows its full doubled length;
+- pitch, order and identities are unchanged;
+- a neume whose mora data is outside the supported profile (`getMoraScope`
+  returns null, e.g. `mora: 2` or an unsupported pattern) makes the score
+  `invalid-score`. It is never coerced.
+
+The document still stores only the presence flag; the doubling is a
+playback-only policy owned here.
+
+The engine is named **Proofreading Playback**: a deterministic interpretation
+for checking a melody, not the semiological or performance-practice engines
+ADR 0006 anticipates.
 
 It returns an explicit failure rather than a partial or adjusted performance:
 
@@ -151,10 +175,9 @@ then stops the oscillator.
 
 ## Audio 1 simplifications
 
-Deliberately not interpreted: mora, horizontal and vertical episemata,
-liquescence, quilisma and other note forms, lyric accents, phrasing and tempo.
-Mora and other rhythmic signs await a separate milestone with an explicit
-rhythmic interpretation policy. There is no speed control, pause/resume, seek, play from
+Deliberately not interpreted: horizontal and vertical episemata, liquescence,
+quilisma and other note forms, lyric accents, phrasing and tempo. Mora is
+limited to the doubling above. There is no speed control, pause/resume, seek, play from
 selection, note highlighting, looping, or stored audio preference.
 
 If the operating system or browser suspends a running context mid-playback,

@@ -72,20 +72,25 @@ interpreted for performance.
 
 ## Initial implementation (Audio 1)
 
-The first engine is **Equal Note Playback** (`interpretEqualNotes`), a pure
-function from a `ChantDocument` to a `Performance` for melodic proofreading.
+The first engine is **Proofreading Playback** (`interpretProofreadingPlayback`),
+a pure function from a `ChantDocument` to a `Performance` for melodic
+proofreading. It was first planned as "Equal Note Playback"; it was renamed
+when a basic mora interpretation made note lengths unequal.
 It prioritizes simplicity and determinism over musical realism:
 
 - one event per authored note, in semantic score order and each neume's tuple
   order, carrying stable note and neume IDs;
 - pitch and B flat/natural taken from the existing effective-pitch resolver,
   mapped to sound through a playback-only register convention;
-- the same base duration for every note;
+- one base duration per note, doubled for a note marked with a mora. Each
+  marked note is lengthened individually, so an auctum duplex lengthens its
+  two notes with no group multiplier, consistent with note-owned marks
+  ([ADR 0018](0018-conventional-mora-patterns.md));
 - a fixed silence at each division between notes, longer for heavier
   divisions, derived from the same semantic score order. These are playback
   aids, not claims about historical performance;
-- no time for clefs, and no timing from mora, episemata, liquescence, note
-  forms or lyrics.
+- no time for clefs, and no timing from episemata, liquescence, note forms or
+  lyrics.
 
 A separate Web Audio renderer schedules the `Performance`. The
 [playback guide](../playback.md) owns the exact values, register convention,
@@ -98,15 +103,17 @@ additional playback engines without changing the document model.
 
 Potential engines include:
 
-### Equal Note Playback
+### Proofreading Playback (originally "Equal Note Playback")
 
 A deterministic engine intended primarily for development, testing, and basic
-listening. Implemented in Audio 1 (see above).
+listening. Implemented in Audio 1 (see above), including basic mora doubling
+and division pauses.
 
 ### Semiological Playback
 
-Interprets rhythmic markings such as morae and episemata while remaining
-deterministic.
+Interprets rhythmic markings such as morae and episemata, beyond Proofreading
+Playback's simple doubling, under an explicit semiological policy, while
+remaining deterministic.
 
 ### Solesmes-inspired Playback
 
@@ -158,12 +165,13 @@ Answered by Audio 1:
 - The `Performance` representation is an ordered list of per-note events with
   stable IDs, resolved pitch and start/duration in seconds; silence is
   represented by gaps between events.
-- The initial engine operates on notes, with divisions contributing pauses.
+- The initial engine operates on notes, with divisions contributing pauses
+  and morae lengthening individual notes.
 
 Still open:
 
-- How mora, episemata and other rhythmic signs are interpreted (a separate
-  milestone will set an explicit rhythmic interpretation policy).
+- A fuller rhythmic interpretation policy: episemata, liquescence and any
+  refinement of mora beyond simple doubling.
 - Whether later engines operate on syllables or phrases.
 - Where playback preferences, such as tempo, should be stored.
 - How closely future playback should model specific chant traditions.

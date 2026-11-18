@@ -4,6 +4,7 @@ import {
 } from '../domain/accidentals';
 import type { ChantDocument, DivisionKind } from '../domain/chant-document';
 import { deriveScoreOrder } from '../domain/divisions';
+import { getMoraScope } from '../domain/mora';
 import {
   isPlayableMidiNote,
   playbackMidiNote,
@@ -11,15 +12,18 @@ import {
   type PerformanceResult,
 } from './performance';
 
-/** Audio 1 sounds every note for the same length of time. */
-export const equalNoteDurationSeconds = 0.4;
+/** Length of one unmarked note; every other duration is a multiple of it. */
+export const baseNoteSeconds = 0.4;
+
+/** A note marked with a mora (`mora: 1`) lasts this many base notes. */
+export const moraNoteLengths = 2;
 
 /**
- * Silence after a division, in note lengths. A playback-only proofreading
- * aid that grows with the division's weight; not a claim about historical
- * performance practice.
+ * Silence after a division, in base note lengths. A playback-only
+ * proofreading aid that grows with the division's weight; not a claim about
+ * historical performance practice.
  */
-export const divisionPauseNotes = {
+export const divisionPauseNoteLengths = {
   minima: 0.5,
   minor: 1,
   maior: 2,
@@ -27,18 +31,21 @@ export const divisionPauseNotes = {
 } as const satisfies Record<DivisionKind, number>;
 
 /**
- * Equal Note Playback (ADR 0006): one event per authored note, in semantic
- * score order, each lasting `equalNoteDurationSeconds`. Divisions between
- * notes add silence (`divisionPauseNotes`); several divisions at one boundary
- * pause for the longest of them, and divisions before the first or after the
- * last note add nothing. Clefs add no time. Rhythmic marks (mora, episemata),
+ * Proofreading Playback (ADR 0006): one event per authored note, in semantic
+ * score order. Each note lasts one base note, or `moraNoteLengths` when the
+ * note itself carries a mora. Marks belong to individual notes (ADR 0018), so
+ * an auctum duplex lengthens each of its two marked notes and nothing else.
+ *
+ * Divisions between notes add silence (`divisionPauseNoteLengths`); several
+ * divisions at one boundary pause for the longest, and divisions before the
+ * first or after the last note add nothing. Clefs add no time. Episemata,
  * liquescence, note forms and lyrics are deliberately ignored.
  *
  * Pitch and accidental meaning come entirely from `resolveEffectivePitches`,
  * and timing walks the same `deriveScoreOrder`, so clef changes, divisions
  * and B flat/natural scopes match the editor.
  */
-export function interpretEqualNotes(
+export function interpretProofreadingPlayback(
   document: ChantDocument,
 ): PerformanceResult {
   if (!hasValidAccidentals(document))
@@ -54,7 +61,7 @@ export function interpretEqualNotes(
     return { ok: false, reason: 'invalid-score' };
 
   const notes: PerformanceNote[] = [];
-  // Time in note lengths; a pending pause applies only before a later note.
+  // Time in base note lengths; a pending pause applies only before a later note.
   let time = 0;
   let pendingPause = 0;
   for (const item of order) {
@@ -62,17 +69,21 @@ export function interpretEqualNotes(
       if (notes.length)
         pendingPause = Math.max(
           pendingPause,
-          divisionPauseNotes[item.entity.kind],
+          divisionPauseNoteLengths[item.entity.kind],
         );
       continue;
     }
     if (item.type !== 'neume') continue;
+    // Unsupported mora data (for example `mora: 2`) is rejected, never coerced.
+    if (getMoraScope(item.entity) === null)
+      return { ok: false, reason: 'invalid-score' };
     for (const note of item.entity.notes) {
       const pitch = pitches.get(note.id);
       if (!pitch) return { ok: false, reason: 'invalid-score' };
       const midiNote = playbackMidiNote(pitch.degree, pitch.alteration);
       if (!isPlayableMidiNote(midiNote))
         return { ok: false, reason: 'pitch-out-of-range', noteId: note.id };
+      const length = note.mora === 1 ? moraNoteLengths : 1;
       time += pendingPause;
       pendingPause = 0;
       notes.push({
@@ -81,14 +92,14 @@ export function interpretEqualNotes(
         degree: pitch.degree,
         alteration: pitch.alteration,
         midiNote,
-        startSeconds: time * equalNoteDurationSeconds,
-        durationSeconds: equalNoteDurationSeconds,
+        startSeconds: time * baseNoteSeconds,
+        durationSeconds: length * baseNoteSeconds,
       });
-      time += 1;
+      time += length;
     }
   }
   return {
     ok: true,
-    performance: { notes, durationSeconds: time * equalNoteDurationSeconds },
+    performance: { notes, durationSeconds: time * baseNoteSeconds },
   };
 }
