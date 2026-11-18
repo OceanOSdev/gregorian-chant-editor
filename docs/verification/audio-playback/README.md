@@ -187,6 +187,53 @@ The Audio 1 driver (`audio-playback`) was updated for the toggle and the
 options. During playback, "Play from beginning" is inert and creates no
 second session.
 
+### Audio 2 results (2026-11-18)
+
+Linux x64, Node 24.12.0, Chromium 157.0.8103.38 (snap), Firefox 146.0,
+headless, runner-owned preview servers, at implementation commit `2c3ad16`
+(with docs `6825930`).
+
+- `audio-follow-along`: **Chromium pass, Firefox pass** in three consecutive
+  runs after the last driver change.
+  - About 100 cue samples per run matched the audio clock, with about 45 in
+    silences.
+  - All five follow cases revealed the next note: Dies Irae at 1440 and 320,
+    Salve Regina at 320, Dies Irae at 150% zoom, and the sideways score.
+- `audio-playback` (updated): **Chromium pass, Firefox pass**. Toolbar
+  heights are Chromium 238/423/468 px and Firefox 246/431/476 px at
+  1440/390/320.
+- **Toolbar height vs current `master` (`6209eec`):** a temporary probe in
+  both browsers at 1440, 1024, 768, 600, 480, 390, 352 and 320 px, with the
+  starter score and Kyrie XI, found 0 differences in 32 comparisons. The
+  Quilisma label stays on one line, the controls clear the palette and the
+  action bar, and there is no horizontal scroll.
+- Vitest: 112 files, 2,565 tests pass. `format:check`, `lint`, `build` and
+  `git diff --check` pass.
+- Full matrix (`--preset full --browser both -j 2`, 756 s) at `6825930`:
+  **49 passed, 5 failed, 6 unsupported.** All five failures fail identically
+  on current `master` `6209eec`: `lyric-move`, `lyric-spacing` and
+  `word-composition` in Chromium, and `lyric-spacing-selection-cue` and
+  `word-composition` in Firefox. The new `audio-follow-along` and every
+  focus, scrolling and toolbar driver (`dynamic-vertical-layout`,
+  `score-focus-reparenting`, `editor-toolbar`, `contiguous-selection`,
+  `extended-scandicus-climacus`, `vertical-episemata-context`) pass in both
+  browsers.
+- Found and fixed during implementation:
+  - The options button's block wrapper added a line box (+1.2 px in
+    Chromium); it is now a flex container.
+  - The follow policy treated a note within 8 px of the viewport edge as
+    "scrolled away"; it now uses on-screen overlap.
+  - Under CSS zoom, reveal mixed zoomed rects with unzoomed client metrics;
+    container metrics are now converted by the measured zoom factor.
+
+**Listening and visual sync: not done by the implementing agent.** Owner
+checks in Chromium and Firefox:
+
+- the start note is correct (including mid-neume);
+- 0.5× and 1.5× sound slower and faster without pitch change;
+- the cue moves with the sound, including mora holds and pauses;
+- following feels right on a long score and when you scroll away.
+
 ## Listening (manual)
 
 **Not run by the implementing agent**, which cannot hear audio. The owner
