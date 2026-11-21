@@ -133,6 +133,16 @@ shrinkage can still cause native scroll-range clamping. Native score focus
 traversal settles, accounting for the sticky tools without changing selection
 or intercepting traversal.
 
+A pointer press is the exception. The focus it gives the pressed control is not
+revealed, because the control is already visible under the pointer, and
+scrolling it before release would make the click miss. `ScoreSvg` keeps the
+pressed element only until the end of the input task in which the press moves
+focus. Keyboard, programmatic and later focus therefore always reveal, and
+neither pointer cancellation nor a missing release can leave stale state. A
+selection made by that click can still request its own focus and reveal after
+release. The `divisions` driver covers the top and bottom window edges with
+real press and release timing.
+
 Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
 while armed), never a disabled constituent note. Its concise accessible name is
 “Score placement”; its description gives kind, target syllable and Escape. The

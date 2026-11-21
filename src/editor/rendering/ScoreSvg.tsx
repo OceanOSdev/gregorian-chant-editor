@@ -184,6 +184,21 @@ export function ScoreSvg({
   } | null>(null);
   useLayoutEffect(() => {
     let revealFrame = 0;
+    // A pointer press focuses its own visible target before release. Revealing
+    // that focus would scroll the page under the held button, so the release
+    // misses and the click never activates the control. The pressed element is
+    // kept only until the input task that dispatches the press (and its focus)
+    // ends, so no state outlives it: cancellation, a lost release or touch focus
+    // after the tap never suppress a later keyboard or programmatic reveal.
+    let pressed: Node | null = null;
+    let pressTimer = 0;
+    const notePress = (event: Event) => {
+      pressed = event.target instanceof Node ? event.target : null;
+      clearTimeout(pressTimer);
+      pressTimer = window.setTimeout(() => {
+        pressed = null;
+      });
+    };
     const track = (event: FocusEvent) => {
       cancelAnimationFrame(revealFrame);
       const target = event.target;
@@ -194,7 +209,12 @@ export function ScoreSvg({
         focusedEntity.current = null;
         return;
       }
-      if (target instanceof SVGElement && target !== scoreElement.current) {
+      const pointerFocus = pressed !== null && target.contains(pressed);
+      if (
+        target instanceof SVGElement &&
+        target !== scoreElement.current &&
+        !pointerFocus
+      ) {
         // Native Tab/Shift+Tab may leave focus under sticky chrome. Let browser
         // traversal settle, then reveal only the still-focused mounted control.
         revealFrame = requestAnimationFrame(() => {
@@ -219,9 +239,12 @@ export function ScoreSvg({
                 ? { kind: 'lyric', id: syllableId, element: target }
                 : null;
     };
+    document.addEventListener('pointerdown', notePress, true);
     document.addEventListener('focusin', track);
     return () => {
       cancelAnimationFrame(revealFrame);
+      clearTimeout(pressTimer);
+      document.removeEventListener('pointerdown', notePress, true);
       document.removeEventListener('focusin', track);
     };
   }, []);
