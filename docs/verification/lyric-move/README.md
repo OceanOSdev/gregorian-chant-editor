@@ -85,3 +85,27 @@ screen-reader checks remain outstanding as described above.
 
 Owner-accepted 2026-11-13 in PR #77 (verified implementation revision
 `49012eb`).
+
+## Maintenance D repair (2026-11-21)
+
+From 2026-11-14 (PR #86) the driver failed at the first `startMove()` with
+`Missing button Move syllable`. There were two causes; see the
+[handoff plan](../../plans/maintenance-d-lyric-move-driver-repair.md).
+
+1. **Stale driver assumption.** Since `7062268`, the note-properties panel
+   opened by `note(3)` avoids the sticky tools. It opens below note 3, over
+   the `middle` lyric, so the pointer click hit the panel's Mora scope select.
+   The driver now closes the panel with its own Close button, keeping note 3
+   selected and asserting both. Its click helpers also refuse a target covered
+   by another element, apart from the target's own neume group, whose
+   lyric-move destination owns pointer input.
+2. **Application regression, fixed in PR #107.** `e3fb1fd` revealed
+   pointer-press focus, which scrolled an edge lyric out from under the held
+   button. This affected the 320 px section. That section is unchanged here.
+
+No assertion, case or input method was removed or loosened, and no delay was
+added. The complete driver passed three consecutive times in headless Chromium
+(runner) on 2026-11-21 against `2875471`, reaching its final success line:
+pointer, keyboard, rejection, history, drafts, focus, multi-system and narrow
+viewport. Foreground Firefox and spoken screen-reader checks remain
+outstanding as described above.
