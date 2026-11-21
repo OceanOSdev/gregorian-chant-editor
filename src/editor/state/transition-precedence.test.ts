@@ -18,14 +18,6 @@ import {
   type EditorSession,
 } from './editor-session';
 
-/*
- * Characterizes the order in which reduceEditorSession hands an action to its
- * owner: clipboard → passage selection → accidental placement → clef
- * transaction → lyric move → pending history → lyric entry → ordinary actions,
- * followed by cross-cutting document effects. Each test fails if an owner
- * moves earlier or later in that order.
- */
-
 function punctum(id: string, position: number): Neume {
   return {
     id,
@@ -93,9 +85,16 @@ const retitle: EditorAction = {
   edit: (d) => ({ ...d, title: 'Retitled' }),
 };
 
+/** A session with one undoable edit, so Undo would change the document. */
+function edited(document: ChantDocument): EditorSession {
+  const s = reduce(createEditorSession(document), retitle);
+  expect(s.history.past).toHaveLength(1);
+  return s;
+}
+
 /** A dirty lyric draft at the free neume after one earlier undoable edit. */
 function dirtyDraft(): EditorSession {
-  let s = reduce(createEditorSession(plain()), retitle);
+  let s = edited(plain());
   s = reduce(s, startLyrics);
   s = reduce(s, {
     type: 'lyrics',
@@ -123,9 +122,21 @@ function acknowledge(state: EditorSession): EditorSession {
   return acknowledged;
 }
 
+/*
+ * Characterizes the order in which reduceEditorSession hands an action to its
+ * owner: clipboard → passage selection → accidental placement → clef
+ * transaction → lyric move → pending history → lyric entry → ordinary actions.
+ * Each test below starts in a reachable mode and dispatches at least one
+ * action that a later phase would accept (an edit, Undo with history to undo,
+ * a selection, or a lyric or move start), so the test fails if that mode's
+ * owner moved after the phase that accepts it. Some listed actions are also
+ * refused by their own handler's guard; those document the outcome rather
+ * than discriminate the order. Phases 5 and 6 cannot be distinguished this
+ * way: reduceLyricMove itself refuses to start while a prompt is pending.
+ */
 describe('editor session transition precedence', () => {
   it('an accidental placement owns every action but clipboard feedback and focus acknowledgement', () => {
-    const s = reduce(createEditorSession(placedFlat()), {
+    const s = reduce(edited(placedFlat()), {
       type: 'start-accidental-placement',
       id: 'flat',
     });
@@ -201,8 +212,8 @@ describe('editor session transition precedence', () => {
     expect(restored.history).toBe(stale.history);
   });
 
-  it('a lyric move precedes ordinary edits and is itself blocked by a pending history prompt', () => {
-    const s = reduce(createEditorSession(placedFlat()), startMove);
+  it('a lyric move precedes lyric entry, history and ordinary edits', () => {
+    const s = reduce(edited(placedFlat()), startMove);
     expect(s.lyricMove?.syllableId).toBe('snext');
     const blocked: EditorAction[] = [
       startLyrics,
@@ -222,11 +233,6 @@ describe('editor session transition precedence', () => {
       reduce(s, { type: 'copy-passage' }).clipboardFeedback,
     ).not.toBeNull();
     acknowledge(s);
-    const pending: EditorSession = {
-      ...createEditorSession(plain()),
-      pendingHistory: { direction: 'undo', focusedNoteId: null },
-    };
-    expect(reduce(pending, startMove)).toBe(pending);
   });
 
   it('a dirty lyric draft turns history into a prompt that owns every other action', () => {
@@ -304,6 +310,14 @@ describe('editor session transition precedence', () => {
     expect(clef.lyrics).toBe(draft.lyrics);
     expect(clef.history).toBe(draft.history);
     expect(clef.activeTool).toEqual({ kind: 'place-clef', clefType: 'c' });
+    const inserted = reduce(draft, { ...insert, lyricCommitId: 'committed' });
+    expect(inserted.lyrics).toBeNull();
+    // The saved syllable and the inserted neume are separate undo steps.
+    expect(inserted.history.past).toHaveLength(draft.history.past.length + 2);
+    expect(inserted.history.past.at(-1)?.syllables.map((s) => s.id)).toContain(
+      'committed',
+    );
+    expect(inserted.history.present.neumes.map((n) => n.id)).toContain('new');
   });
 
   it('a passage selection rejects single-target insertion and lyric start before any mode owner', () => {
@@ -324,6 +338,30 @@ describe('editor session transition precedence', () => {
     const lyric = reduce(r, startLyrics);
     expect(lyric.lyrics).toBeNull();
     expect(lyric.announcement.text).toBe('Select one lyric target first.');
+  });
+
+  it('a passage selected during lyric entry rejects insertion before the draft is saved', () => {
+    const draft = dirtyDraft();
+    // Selecting stays ordinary during lyric entry, so a range and a dirty
+    // draft coexist through reducer actions alone.
+    const r = reduce(draft, {
+      type: 'select',
+      selection: {
+        kind: 'neume-range',
+        anchorNeumeId: 'f',
+        endpointNeumeId: 'next',
+      },
+    });
+    expect(r.selection.kind).toBe('neume-range');
+    expect(r.lyrics).toBe(draft.lyrics);
+    expect(r.history).toBe(draft.history);
+    const inserted = reduce(r, { ...insert, lyricCommitId: 'committed' });
+    expect(inserted.announcement.text).toBe(
+      'Select one insertion target first.',
+    );
+    expect(inserted.history).toBe(r.history);
+    expect(inserted.lyrics).toBe(r.lyrics);
+    expect(inserted.selection).toBe(r.selection);
   });
 });
 
