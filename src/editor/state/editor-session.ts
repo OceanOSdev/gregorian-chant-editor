@@ -311,6 +311,45 @@ type ActionOf<T extends EditorAction['type']> = Extract<
   { type: T }
 >;
 
+/*
+ * Actions claimed by an owner phase of reduceEditorSession (see its comment)
+ * before ordinary handling. Each phase handles its own actions whether or not
+ * its mode is active, so none of these ever reaches reduceOrdinaryAction.
+ */
+/** Phases 1–2: clipboard and passage extension. */
+type SelectionPhaseActionType =
+  'copy-passage' | 'paste-passage' | 'extend-selection';
+/** Phase 3: accidental deletion and explicit placement. */
+type AccidentalActionType =
+  | 'delete-accidental'
+  | 'start-accidental-placement'
+  | 'cancel-accidental-placement'
+  | 'commit-accidental-placement';
+/** Phase 4: clef transactions and in-score clef placement. */
+type ClefActionType =
+  | 'clef-insertion-policy'
+  | 'clef-keyboard'
+  | 'place-clef'
+  | 'step-clef-change'
+  | 'start-clef-change'
+  | 'draft-clef-change'
+  | 'apply-clef-change'
+  | 'cancel-clef-change'
+  | 'confirm-clef-change';
+/** Phases 5–7: lyric move, pending-history resolution and lyric entry. */
+type LyricPhaseActionType =
+  'lyric-move' | 'resolve-history' | 'start-lyrics-at-focus' | 'lyrics';
+/** What reaches phase 4 once phases 1–3 have declined an action. */
+type ModeAction = Exclude<
+  EditorAction,
+  { type: SelectionPhaseActionType | AccidentalActionType }
+>;
+/** Phase 8: tools, selection, insertion, divisions, edits, history and focus. */
+type OrdinaryEditorAction = Exclude<
+  ModeAction,
+  { type: ClefActionType | LyricPhaseActionType }
+>;
+
 /** Document replacement starts a new session but may keep the app clipboard. */
 export function createEditorSession(
   document: ChantDocument,
@@ -424,34 +463,18 @@ export function getSelectFocusRequest(
     : { kind: 'palette', tool: 'select' };
 }
 
-/** Pure event transitions: no browser work or ID generation in React updaters. */
-function reduceSessionAction(
+/**
+ * Phase 8 of reduceEditorSession: ordinary actions once no exclusive mode has
+ * claimed them. Pure event transitions: no browser work or ID generation in
+ * React updaters.
+ */
+function reduceOrdinaryAction(
   state: EditorSession,
-  action: EditorAction,
+  action: OrdinaryEditorAction,
 ): EditorSession {
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
-    case 'copy-passage':
-    case 'paste-passage':
-    case 'delete-accidental':
-    case 'start-accidental-placement':
-    case 'cancel-accidental-placement':
-    case 'commit-accidental-placement':
-    case 'clef-insertion-policy':
-    case 'place-clef':
-    case 'clef-keyboard':
-    case 'step-clef-change':
-    case 'start-clef-change':
-    case 'draft-clef-change':
-    case 'apply-clef-change':
-    case 'cancel-clef-change':
-    case 'confirm-clef-change':
-    case 'lyric-move':
-    case 'start-lyrics-at-focus':
-    case 'lyrics':
-    case 'resolve-history':
-      return state;
     case 'arm': {
       const kind = getGraphicalNeumeKind(action.tool);
       if (
@@ -527,8 +550,6 @@ function reduceSessionAction(
             },
             'Select tool.',
           );
-    case 'extend-selection':
-      return state;
     case 'select': {
       if (placing) return state;
       const next: EditorSession = {
@@ -1194,12 +1215,7 @@ function extendPassageSelection(
 /** Phase 3: sign deletion and the explicit placement-target mode. */
 function reduceAccidentalAction(
   state: EditorSession,
-  action: ActionOf<
-    | 'delete-accidental'
-    | 'start-accidental-placement'
-    | 'cancel-accidental-placement'
-    | 'commit-accidental-placement'
-  >,
+  action: ActionOf<AccidentalActionType>,
 ): EditorSession {
   switch (action.type) {
     case 'delete-accidental': {
@@ -1359,7 +1375,7 @@ function applyDocumentChangeEffects(
  */
 function reduceModeAction(
   state: EditorSession,
-  action: EditorAction,
+  action: ModeAction,
 ): EditorSession {
   // 4. Clef: these actions may open or adjust a transaction themselves.
   if (action.type === 'step-clef-change') return stepClefChange(state, action);
@@ -1371,7 +1387,7 @@ function reduceModeAction(
   const transaction = state.clefTransaction;
   if (transaction)
     return action.type === 'focus-handled'
-      ? reduceSessionAction(state, action)
+      ? reduceOrdinaryAction(state, action)
       : resolveClefTransaction(state, transaction, action);
   // These resolve an open transaction and are inert without one.
   if (
@@ -1392,7 +1408,7 @@ function reduceModeAction(
   // 6. Pending history: the Save / Discard / Cancel prompt owns editing.
   if (state.pendingHistory) {
     if (action.type === 'focus-handled')
-      return reduceSessionAction(state, action);
+      return reduceOrdinaryAction(state, action);
     return action.type === 'resolve-history'
       ? resolvePendingHistory(state, state.pendingHistory, action)
       : state;
@@ -1428,10 +1444,10 @@ function reduceModeAction(
     );
     // Fresh lyric IDs, like musical IDs, enter through event handling.
     if (resolved.lyrics) return resolved;
-    return reduceSessionAction(resolved, action);
+    return reduceOrdinaryAction(resolved, action);
   }
   // 8. Ordinary actions
-  const next = reduceSessionAction(state, action);
+  const next = reduceOrdinaryAction(state, action);
   if (next.lyrics?.kind === 'recovery' && state.lyrics?.kind !== 'recovery')
     return announce(
       { ...next, focusRequest: { kind: 'lyrics' } },
@@ -1548,36 +1564,22 @@ function startClefChange(
 }
 
 /**
- * Resolve an action while a clef transaction is open: cancel or a stale
- * document restores the prior context; draft, apply and confirm stage or
- * commit one candidate; every other action is a no-op.
+ * Resolve an action while a clef transaction is open. Cancel, or any action
+ * after the document changed underneath the transaction, restores the prior
+ * context. Draft edits the pending clef, Apply builds the candidate and
+ * Confirm answers its pitch or accidental-loss prompt; every other action is
+ * a no-op until the transaction resolves.
  */
 function resolveClefTransaction(
   state: EditorSession,
   transaction: ClefTransaction,
-  action: EditorAction,
+  action: ModeAction,
 ): EditorSession {
-  const restore = (): EditorSession => {
-    const selection = reconcileSelection(
-      state.history.present,
-      transaction.previousSelection,
-    );
-    return {
-      ...state,
-      clefTransaction: null,
-      selection,
-      focusRequest: transaction.placementTool
-        ? { kind: 'clef-placement' }
-        : !transaction.boundary &&
-            state.history.present.clefChanges.some(
-              (c) => c.id === transaction.id,
-            )
-          ? { kind: 'clef-change', clefChangeId: transaction.id }
-          : getSelectFocusRequest({ ...state, selection }),
-    };
-  };
-  if (action.type === 'cancel-clef-change') return restore();
-  if (transaction.original !== state.history.present) return restore();
+  if (
+    action.type === 'cancel-clef-change' ||
+    transaction.original !== state.history.present
+  )
+    return restoreClefTransaction(state, transaction);
   if (
     action.type === 'draft-clef-change' &&
     !transaction.candidate &&
@@ -1591,118 +1593,186 @@ function resolveClefTransaction(
         policyError: undefined,
       },
     };
-  let candidate: ChantDocument | null = null;
-  let finalized = false;
-  let preservationFailure: ReturnType<
-    typeof preserveClefMelodyResult
-  >['reason'] = null;
-  if (action.type === 'apply-clef-change' && !transaction.candidate) {
-    candidate = action.remove
-      ? deleteClefChangeCandidate(transaction.original, transaction.id)
-      : transaction.boundary
-        ? insertClefChangeCandidate(
-            transaction.original,
-            {
-              id: transaction.id,
-              clef: transaction.clef,
-              beforeNeumeId: transaction.boundary.beforeNeumeId,
-              beforeDivisionId: transaction.boundary.beforeDivisionId,
-            },
-            transaction.boundary,
-          )
-        : updateClefChangeCandidate(
-            transaction.original,
-            transaction.id,
-            transaction.clef,
-          );
-    if (candidate === transaction.original) return restore();
-    if (!hasValidClefCandidate(candidate) && transaction.placementTool) {
-      const message =
-        'Cannot insert clef: existing note positions are unsafe. Correct the score and retry.';
-      return announce({ ...restore(), clefInsertionError: message }, message);
-    }
-    if (!hasValidClefCandidate(candidate)) {
-      const message =
-        'Clef change rejected: unsafe note positions. Cancel or revise the draft.';
+  if (action.type === 'apply-clef-change' && !transaction.candidate)
+    return applyClefTransaction(state, transaction, action.remove);
+  if (action.type === 'confirm-clef-change' && transaction.candidate)
+    return confirmClefTransaction(
+      state,
+      transaction,
+      transaction.candidate,
+      action.preserve,
+    );
+  return state;
+}
+
+/** Close without an edit and return to the invoking selection and control. */
+function restoreClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+): EditorSession {
+  const selection = reconcileSelection(
+    state.history.present,
+    transaction.previousSelection,
+  );
+  return {
+    ...state,
+    clefTransaction: null,
+    selection,
+    focusRequest: transaction.placementTool
+      ? { kind: 'clef-placement' }
+      : !transaction.boundary &&
+          state.history.present.clefChanges.some((c) => c.id === transaction.id)
+        ? { kind: 'clef-change', clefChangeId: transaction.id }
+        : getSelectFocusRequest({ ...state, selection }),
+  };
+}
+
+/**
+ * Build the insertion, update or removal candidate. Placement-tool insertions
+ * and authored-clef edits apply the shared pitch policy at once; a removal or
+ * boundary insertion that changes effective pitches waits for Confirm.
+ */
+function applyClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  remove: boolean | undefined,
+): EditorSession {
+  const candidate = remove
+    ? deleteClefChangeCandidate(transaction.original, transaction.id)
+    : transaction.boundary
+      ? insertClefChangeCandidate(
+          transaction.original,
+          {
+            id: transaction.id,
+            clef: transaction.clef,
+            beforeNeumeId: transaction.boundary.beforeNeumeId,
+            beforeDivisionId: transaction.boundary.beforeDivisionId,
+          },
+          transaction.boundary,
+        )
+      : updateClefChangeCandidate(
+          transaction.original,
+          transaction.id,
+          transaction.clef,
+        );
+  if (candidate === transaction.original)
+    return restoreClefTransaction(state, transaction);
+  if (!hasValidClefCandidate(candidate) && transaction.placementTool) {
+    const message =
+      'Cannot insert clef: existing note positions are unsafe. Correct the score and retry.';
+    return announce(
+      {
+        ...restoreClefTransaction(state, transaction),
+        clefInsertionError: message,
+      },
+      message,
+    );
+  }
+  if (!hasValidClefCandidate(candidate)) {
+    const message =
+      'Clef change rejected: unsafe note positions. Cancel or revise the draft.';
+    return announce(
+      { ...state, clefTransaction: { ...transaction, policyError: message } },
+      message,
+    );
+  }
+  if (transaction.placementTool || (!remove && !transaction.boundary)) {
+    const preservation =
+      state.clefInsertionPolicy === 'melody'
+        ? preserveClefMelodyResult(transaction.original, candidate)
+        : { document: candidate, reason: null };
+    const selected = preservation.document;
+    if (!selected || !hasValidClefCandidate(selected)) {
+      const reason = preservationFailureText(preservation.reason);
+      const message = transaction.placementTool
+        ? `Cannot insert with Keep pitches: ${reason}. Choose Keep note positions or a different clef and retry.`
+        : `Cannot apply Keep pitches: ${reason}. Choose Keep note positions or revise the draft and retry Apply.`;
       return announce(
-        {
-          ...state,
-          clefTransaction: { ...transaction, policyError: message },
-        },
+        transaction.placementTool
+          ? {
+              ...restoreClefTransaction(state, transaction),
+              clefInsertionError: message,
+            }
+          : {
+              ...state,
+              clefTransaction: { ...transaction, policyError: message },
+            },
         message,
       );
     }
-    if (
-      transaction.placementTool ||
-      (!action.remove && !transaction.boundary)
-    ) {
-      const preservation =
-        state.clefInsertionPolicy === 'melody'
-          ? preserveClefMelodyResult(transaction.original, candidate)
-          : { document: candidate, reason: null };
-      const selected = preservation.document;
-      preservationFailure = preservation.reason;
-      if (!selected || !hasValidClefCandidate(selected)) {
-        const message = transaction.placementTool
-          ? `Cannot insert with Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or a different clef and retry.`
-          : `Cannot apply Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or revise the draft and retry Apply.`;
-        return announce(
-          transaction.placementTool
-            ? { ...restore(), clefInsertionError: message }
-            : {
-                ...state,
-                clefTransaction: { ...transaction, policyError: message },
-              },
-          message,
-        );
-      }
-      candidate = selected;
-      finalized = state.clefInsertionPolicy === 'melody';
-    } else if (hasChangedEffectivePitches(transaction.original, candidate)) {
-      const repaired = reconcileAccidentals(transaction.original, candidate);
-      return {
-        ...state,
-        clefTransaction: {
-          ...transaction,
-          candidate,
-          noteheadCandidate: repaired ?? undefined,
-          noteheadLossCount: repaired
-            ? transaction.original.accidentals.length -
-              repaired.accidentals.length
-            : 0,
-        },
-      };
-    }
-  } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
-    if (transaction.accidentalLossCount && action.preserve !== 'noteheads')
-      return state;
-    if (action.preserve === 'melody') {
-      const preservation = preserveClefMelodyResult(
-        transaction.original,
-        transaction.candidate,
-      );
-      candidate = preservation.document;
-      preservationFailure = preservation.reason;
-    } else if (action.preserve === 'noteheads') {
-      candidate = transaction.noteheadCandidate ?? transaction.candidate;
-      finalized = !!transaction.noteheadCandidate;
-    }
+    return commitClefCandidate(state, transaction, selected, {
+      finalized: state.clefInsertionPolicy === 'melody',
+      lossConfirmed: false,
+    });
   }
-  finalized ||=
-    action.type === 'confirm-clef-change' && action.preserve === 'melody';
-  if (!candidate) {
-    if (
-      action.type !== 'confirm-clef-change' ||
-      !transaction.candidate ||
-      action.preserve !== 'melody'
-    )
-      return state;
-    const policyError = `Cannot preserve melody: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Preserve noteheads or cancel.`;
-    return announce(
-      { ...state, clefTransaction: { ...transaction, policyError } },
-      policyError,
+  if (hasChangedEffectivePitches(transaction.original, candidate)) {
+    const repaired = reconcileAccidentals(transaction.original, candidate);
+    return {
+      ...state,
+      clefTransaction: {
+        ...transaction,
+        candidate,
+        noteheadCandidate: repaired ?? undefined,
+        noteheadLossCount: repaired
+          ? transaction.original.accidentals.length -
+            repaired.accidentals.length
+          : 0,
+      },
+    };
+  }
+  return commitClefCandidate(state, transaction, candidate, {
+    finalized: false,
+    lossConfirmed: false,
+  });
+}
+
+/** Answer the pending Preserve melody / Preserve noteheads (or loss) prompt. */
+function confirmClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  pending: ChantDocument,
+  preserve: 'melody' | 'noteheads',
+): EditorSession {
+  // Accidental loss can only be accepted by keeping note positions.
+  if (transaction.accidentalLossCount && preserve !== 'noteheads') return state;
+  if (preserve === 'melody') {
+    const preservation = preserveClefMelodyResult(
+      transaction.original,
+      pending,
     );
+    if (!preservation.document) {
+      const policyError = `Cannot preserve melody: ${preservationFailureText(preservation.reason)}. Choose Preserve noteheads or cancel.`;
+      return announce(
+        { ...state, clefTransaction: { ...transaction, policyError } },
+        policyError,
+      );
+    }
+    return commitClefCandidate(state, transaction, preservation.document, {
+      finalized: true,
+      lossConfirmed: true,
+    });
   }
+  if (preserve === 'noteheads')
+    return commitClefCandidate(
+      state,
+      transaction,
+      transaction.noteheadCandidate ?? pending,
+      { finalized: !!transaction.noteheadCandidate, lossConfirmed: true },
+    );
+  return state;
+}
+
+/**
+ * The one history entry of a clef transaction. A candidate that is not yet
+ * finalized is repaired here; unconfirmed accidental loss stages a prompt
+ * instead of committing.
+ */
+function commitClefCandidate(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  candidate: ChantDocument,
+  { finalized, lossConfirmed }: { finalized: boolean; lossConfirmed: boolean },
+): EditorSession {
   if (!hasValidClefCandidate(candidate)) return state;
   const repaired = finalized
     ? candidate
@@ -1714,7 +1784,7 @@ function resolveClefTransaction(
     );
   const lost =
     transaction.original.accidentals.length - repaired.accidentals.length;
-  if (lost > 0 && action.type !== 'confirm-clef-change')
+  if (lost > 0 && !lossConfirmed)
     return {
       ...state,
       clefTransaction: {
@@ -1724,9 +1794,8 @@ function resolveClefTransaction(
         noteheadCandidate: repaired,
       },
     };
-  candidate = repaired;
-  const surviving = candidate.clefChanges.some((c) => c.id === transaction.id);
-  const committedOrder = deriveScoreOrder(candidate) ?? [];
+  const surviving = repaired.clefChanges.some((c) => c.id === transaction.id);
+  const committedOrder = deriveScoreOrder(repaired) ?? [];
   const nextKeyboardBoundary = scoreBoundaryAt(
     committedOrder,
     committedOrder.findIndex((i) => i.entity.id === transaction.id) + 1,
@@ -1736,7 +1805,7 @@ function resolveClefTransaction(
       ...state,
       clefTransaction: null,
       clefInsertionError: null,
-      history: applyDocumentEdit(state.history, () => candidate),
+      history: applyDocumentEdit(state.history, () => repaired),
       keyboardClefPlacement:
         transaction.placementTool && state.keyboardClefPlacement
           ? { ...state.keyboardClefPlacement, boundary: nextKeyboardBoundary }
@@ -1752,6 +1821,14 @@ function resolveClefTransaction(
     }),
     surviving ? 'Clef change applied.' : 'Clef change removed.',
   );
+}
+
+function preservationFailureText(
+  reason: ReturnType<typeof preserveClefMelodyResult>['reason'],
+): string {
+  return reason === 'overflow'
+    ? 'note positions would overflow'
+    : 'pitches or written accidentals cannot be preserved safely';
 }
 
 /** Move the keyboard clef-placement cursor between score slots and staff lines. */
@@ -1998,7 +2075,7 @@ function resolvePendingHistory(
       ? applyLyrics(state, { type: 'done' }, action.newId)
       : { ...state, lyrics: null };
   if (resolved.lyrics) return resolved;
-  return reduceSessionAction(
+  return reduceOrdinaryAction(
     { ...resolved, pendingHistory: null },
     { type: 'history', ...pending },
   );
