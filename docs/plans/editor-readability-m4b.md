@@ -4,8 +4,10 @@ Branch: `docs/editor-readability-m4b-plan` (this plan only). Each milestone
 below uses its own branch and PR.
 Target: `master`
 Base: `1ba1de5ec3c58af1492dc07d2fb887fd154d9268` (M4A / PR #105 merged)
-Status: Owner-agreed direction (Approach A). Plan under owner review; **no
-milestone is authorized or implemented yet**.
+Status: Owner-approved direction and milestone boundaries (Approach A). This
+plan is merged to `master` through a documentation-only PR before any
+milestone begins. **No milestone is authorized or implemented yet.** The
+lyric-move driver repair comes first.
 
 ## Goal and rationale
 
@@ -152,12 +154,19 @@ and the relevant accepted ADRs before each milestone.
 
 ## Milestones
 
-Each implementation milestone is a separate, independently reviewable PR
-against `master` on its own branch, with its own committed handoff plan or
-plan section per the [AI workflow](../ai-workflow.md). No milestone starts
-until the owner authorizes it.
+Order: **maintenance task 0 (driver repair) first**, then M4B-1, M4B-2,
+M4B-3a, M4B-3b and M4B-4.
 
-### 0. Maintenance (prerequisite for M4B-2): repair the lyric-move driver
+Each task below is a separate, independently reviewable PR against `master`
+on its own branch, created from a `master` that already contains this plan.
+Each has its own short committed handoff plan under `docs/plans/`, per the
+[AI workflow](../ai-workflow.md). A handoff plan references this plan for
+background, decisions, behavior preservation, verification and stop
+conditions instead of repeating them, and records only that milestone's
+scope, specifics and any deviations. No task starts until the owner
+authorizes it.
+
+### 0. Maintenance (first; prerequisite for M4B-1 onward): repair the lyric-move driver
 
 The `lyric-move` browser driver fails on `master` (`1ba1de5`) with
 `Missing button Move syllable`. The same failure occurred at M4A's base
@@ -170,13 +179,16 @@ The `lyric-move` browser driver fails on `master` (`1ba1de5`) with
   report it with evidence and options. **Do not change application behavior
   to make the driver pass** without separate authorization.
 - This is a separate maintenance task and PR, not part of an M4B refactor.
-- It must be complete before M4B-2, because M4B-2 changes lyric-move keyboard
-  routing and needs this driver as regression evidence.
+- It comes before M4B-1, so every M4B milestone starts with a working
+  lyric-move driver. It is especially required for M4B-2, which changes
+  lyric-move keyboard routing and needs this driver as regression evidence.
 - The pre-existing `word-composition` failure
   (`punctum selected whole-neume cue must be clipped`) is out of scope unless
   the owner adds it.
 
 ### M4B-1: Pure availability rules, accidental projection, explicit toolbar origin
+
+**Prerequisite:** maintenance task 0 is merged.
 
 - Introduce the presentation-availability module. Each rule has a name, a
   one-line reason and the exact current condition. Replace each inline
@@ -252,8 +264,10 @@ The `lyric-move` browser driver fails on `master` (`1ba1de5`) with
 
 ### Dependencies
 
-- Maintenance task 0 must be merged before M4B-2.
-- M4B-1 comes first because later milestones use its named rules. M4B-3a and
+- This plan is merged to `master` before any task begins.
+- Maintenance task 0 is done first and merged before M4B-1 begins.
+- M4B-1 is the first refactor milestone because later milestones use its
+  named rules. M4B-3a and
   M4B-3b consume availability rules from M4B-1.
 - M4B-2 and M4B-3a are otherwise independent and may be reordered only with
   owner approval.
@@ -305,7 +319,9 @@ The `lyric-move` browser driver fails on `master` (`1ba1de5`) with
   - states: idle, clef selected, clef transaction, division selected,
     accidental selected and placing;
   - diff the two captures and report the result;
-  - the capture tooling is throwaway unless the owner asks to keep it.
+  - the capture tooling stays temporary and uncommitted. No permanent
+    browser-runner infrastructure is added without separate owner approval.
+    Whether to keep it can be discussed after the panel milestones.
 - **Manual checks:** record only checks actually performed. Keyboard focus and
   Escape behavior in a real browser are expected for M4B-2.
 
@@ -387,7 +403,15 @@ Stop and report evidence and options, without proceeding, if:
 
 ## Delivery
 
-This branch contains only this plan. After owner review, the owner authorizes
-milestones one at a time, starting with maintenance task 0 or M4B-1. Each is
-implemented on its own branch with a PR against `master`, and the owner merges
-each PR. The M4A status-line correction is part of M4B-1's documentation work.
+This branch contains only this plan, delivered as a documentation-only PR
+against `master`. The owner reviews and merges it.
+
+After the merge, the owner authorizes tasks one at a time:
+
+1. maintenance task 0 (driver repair);
+2. M4B-1;
+3. then each later milestone in order.
+
+Each task gets its own handoff plan, branch and PR against `master`, and the
+owner merges each PR. The M4A status-line correction is part of M4B-1's
+documentation work.
