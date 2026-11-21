@@ -673,6 +673,89 @@ try {
     visibleScroll,
     'visible native focus does not scroll',
   );
+  // A pointer press focuses its own visible target. Revealing that focus would
+  // scroll the page under the held button, so release misses the target and the
+  // click never activates it. Use real press/release input with human timing on
+  // a small lyric inside the reveal margin at the bottom edge of the window and
+  // at the top edge, just below the sticky tools. A shorter window leaves scroll
+  // range for both edges. The press lands 2 px inside the lyric's edge nearest
+  // the window edge, so any scroll during the press moves it from under the
+  // pointer.
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 700,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await mount({
+    ...fixture(100),
+    syllables: [
+      ...fixture(100).syllables,
+      {
+        id: 'edge',
+        text: 'ta',
+        startsAtNeumeId: 'n50',
+        boundaryBefore: 'word',
+      },
+    ],
+  });
+  const edgeLyric = `document.querySelector('.score__lyric[data-syllable-id="edge"]')`;
+  for (const edge of ['bottom', 'top']) {
+    await ev(`(document.activeElement?.blur(), true)`);
+    // The sticky tools stay pinned once scrolled, so settle twice.
+    for (let pass = 0; pass < 2; pass++) {
+      await ev(
+        `(()=>{const r=${edgeLyric}.getBoundingClientRect(),stickyBottom=document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom;window.scrollTo(0,${edge === 'bottom' ? 'r.bottom+scrollY-innerHeight+3' : 'r.top+scrollY-stickyBottom-3'})})()`,
+      );
+      await pause();
+    }
+    const press = await ev(
+      `(()=>{const e=${edgeLyric},r=e.getBoundingClientRect(),x=r.x+r.width/2,y=${edge === 'bottom' ? 'r.bottom-2' : 'r.top+2'},hit=document.elementFromPoint(x,y);return {x,y,onTarget:hit===e||e.contains(hit),inMargin:${edge === 'bottom' ? 'innerHeight-r.bottom<8' : "r.top-document.querySelector('.editor-sticky-toolbar').getBoundingClientRect().bottom<8"},scrollY}})()`,
+    );
+    assert.equal(
+      press.onTarget,
+      true,
+      `${edge}-edge lyric is the pointer target`,
+    );
+    assert.equal(
+      press.inMargin,
+      true,
+      `${edge}-edge lyric is inside the reveal margin`,
+    );
+    const point = { x: press.x, y: press.y };
+    await send('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      ...point,
+      button: 'none',
+    });
+    await send('Input.dispatchMouseEvent', {
+      type: 'mousePressed',
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+    await new Promise((r) => setTimeout(r, 120)); // a human press duration
+    assert.equal(
+      await ev('scrollY'),
+      press.scrollY,
+      `${edge}-edge pointer focus does not scroll before release`,
+    );
+    await send('Input.dispatchMouseEvent', {
+      type: 'mouseReleased',
+      ...point,
+      button: 'left',
+      clickCount: 1,
+    });
+    await pause();
+    assert.equal(
+      await ev(
+        `document.querySelector('.score__lyric[aria-pressed="true"]')?.dataset.syllableId ?? null`,
+      ),
+      'edge',
+      `${edge}-edge pointer click selects the lyric, not only focuses it`,
+    );
+  }
+  await viewport(1440);
   console.log(
     firefox
       ? 'PASS: native Tab reaches both explicit insertion-side buttons. NOT RUN: Firefox headless HTML Enter activation; owner foreground check pending.'
