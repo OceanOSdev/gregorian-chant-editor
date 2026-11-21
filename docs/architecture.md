@@ -101,6 +101,19 @@ reconciliation, placement lifecycle, ID-based focus requests, and event
 notifications. Its history field contains semantic snapshots only; tools,
 remembered neume kind, hover, selection, focus, and announcements remain outside history.
 
+`reduceEditorSession` is the only public transition. It gives each action to
+one owner in a fixed order: clipboard, passage selection, accidental placement,
+clef transaction, lyric move, pending history, lyric entry and then ordinary
+actions, followed by shared document-change effects. The numbered comment on
+`reduceEditorSession` is the authoritative map. To change a transition rule,
+edit the function for its phase (for example `resolveClefTransaction`,
+`reduceLyricMove` or `reduceOrdinaryAction`). Do not add guards in a later
+phase. An active mode's early return is what keeps later actions from running,
+so moving a phase changes behavior; `transition-precedence.test.ts` pins this
+order. A new action type belongs in the action group of the phase that owns it.
+Otherwise it is ordinary and must be handled by `reduceOrdinaryAction`'s
+exhaustive switch.
+
 ### `src/editor/interaction/`
 
 Contains pure bridges between tools, rendered systems, pointer positions, and
