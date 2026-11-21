@@ -306,6 +306,50 @@ export type EditorAction =
     }
   | { type: 'focus-handled'; request: EditorFocusRequest };
 
+type ActionOf<T extends EditorAction['type']> = Extract<
+  EditorAction,
+  { type: T }
+>;
+
+/*
+ * Actions claimed by an owner phase of reduceEditorSession (see its comment)
+ * before ordinary handling. Each phase handles its own actions whether or not
+ * its mode is active, so none of these ever reaches reduceOrdinaryAction.
+ */
+/** Phases 1–2: clipboard and passage extension. */
+type SelectionPhaseActionType =
+  'copy-passage' | 'paste-passage' | 'extend-selection';
+/** Phase 3: accidental deletion and explicit placement. */
+type AccidentalActionType =
+  | 'delete-accidental'
+  | 'start-accidental-placement'
+  | 'cancel-accidental-placement'
+  | 'commit-accidental-placement';
+/** Phase 4: clef transactions and in-score clef placement. */
+type ClefActionType =
+  | 'clef-insertion-policy'
+  | 'clef-keyboard'
+  | 'place-clef'
+  | 'step-clef-change'
+  | 'start-clef-change'
+  | 'draft-clef-change'
+  | 'apply-clef-change'
+  | 'cancel-clef-change'
+  | 'confirm-clef-change';
+/** Phases 5–7: lyric move, pending-history resolution and lyric entry. */
+type LyricPhaseActionType =
+  'lyric-move' | 'resolve-history' | 'start-lyrics-at-focus' | 'lyrics';
+/** What reaches phase 4 once phases 1–3 have declined an action. */
+type ModeAction = Exclude<
+  EditorAction,
+  { type: SelectionPhaseActionType | AccidentalActionType }
+>;
+/** Phase 8: tools, selection, insertion, divisions, edits, history and focus. */
+type OrdinaryEditorAction = Exclude<
+  ModeAction,
+  { type: ClefActionType | LyricPhaseActionType }
+>;
+
 /** Document replacement starts a new session but may keep the app clipboard. */
 export function createEditorSession(
   document: ChantDocument,
@@ -419,34 +463,18 @@ export function getSelectFocusRequest(
     : { kind: 'palette', tool: 'select' };
 }
 
-/** Pure event transitions: no browser work or ID generation in React updaters. */
-function reduceSessionAction(
+/**
+ * Phase 8 of reduceEditorSession: ordinary actions once no exclusive mode has
+ * claimed them. Pure event transitions: no browser work or ID generation in
+ * React updaters.
+ */
+function reduceOrdinaryAction(
   state: EditorSession,
-  action: EditorAction,
+  action: OrdinaryEditorAction,
 ): EditorSession {
   const placing = isPlacementTool(state.activeTool);
   const neumePlacing = getGraphicalNeumeKind(state.activeTool);
   switch (action.type) {
-    case 'copy-passage':
-    case 'paste-passage':
-    case 'delete-accidental':
-    case 'start-accidental-placement':
-    case 'cancel-accidental-placement':
-    case 'commit-accidental-placement':
-    case 'clef-insertion-policy':
-    case 'place-clef':
-    case 'clef-keyboard':
-    case 'step-clef-change':
-    case 'start-clef-change':
-    case 'draft-clef-change':
-    case 'apply-clef-change':
-    case 'cancel-clef-change':
-    case 'confirm-clef-change':
-    case 'lyric-move':
-    case 'start-lyrics-at-focus':
-    case 'lyrics':
-    case 'resolve-history':
-      return state;
     case 'arm': {
       const kind = getGraphicalNeumeKind(action.tool);
       if (
@@ -522,8 +550,6 @@ function reduceSessionAction(
             },
             'Select tool.',
           );
-    case 'extend-selection':
-      return state;
     case 'select': {
       if (placing) return state;
       const next: EditorSession = {
@@ -926,21 +952,104 @@ function applyLyrics(
   return next.message ? announce(updated, next.message) : updated;
 }
 
-/** Coordinates semantic history and the single transient lyric draft. */
+/**
+ * The single public editor transition. It offers each action to one owner in
+ * a fixed order: the first owner that claims the action decides the result,
+ * and an active exclusive mode swallows the actions of every later phase.
+ * Change a rule inside the phase that owns it and keep this order intact:
+ *
+ * 1. Clipboard: `copy-passage` and `paste-passage` always answer, with visible
+ *    feedback when `clipboardBlocked` reports an exclusive mode.
+ * 2. Passage selection: `extend-selection` (lyric recovery keeps one
+ *    whole-neume Retry target); a selected range rejects single-target
+ *    `insert` and lyric `start`.
+ * 3. Accidental placement: the four accidental actions; an active placement
+ *    then swallows every action except `focus-handled`.
+ * 4. Clef: step, policy and start may open or adjust a transaction; an active
+ *    transaction owns every action except `focus-handled`, and any other
+ *    action on a stale document restores it (an acknowledgement does not);
+ *    without one, keyboard and pointer clef placement open and apply a
+ *    transaction.
+ * 5. Lyric move: anchor correction; an active move swallows every action
+ *    except `focus-handled`.
+ * 6. Pending history: only `resolve-history` and `focus-handled` answer.
+ * 7. Lyric entry: `start-lyrics-at-focus` and `lyrics`; a dirty draft turns
+ *    Undo/Redo into the pending prompt, and arming a non-clef tool or
+ *    inserting (except from an end-of-score entry) saves the draft first.
+ * 8. Ordinary actions: `reduceOrdinaryAction` (tools, selection, insertion,
+ *    divisions, engraving edits, history and focus acknowledgement).
+ *
+ * After phases 4–8, `applyDocumentChangeEffects` reports restored accidental
+ * placements, refocuses a removed selected accidental and clears a stale
+ * engraving error. After every phase, a resized passage selection is
+ * announced and stale clipboard feedback is cleared. Step and place clef
+ * actions re-enter this reducer for their start, draft or apply step, so each
+ * step receives the same effects.
+ *
+ * Ordering is not the only exclusion. Several earlier-phase handlers also
+ * refuse while a later exclusive mode is active: `clipboardBlocked`,
+ * `extendPassageSelection`, the accidental actions and the clef start, step,
+ * policy and placement actions each check the lyric move, pending history or
+ * clef transaction themselves. A new exclusive mode may therefore need the
+ * same check in those earlier handlers, not only a guard in its own phase.
+ */
 export function reduceEditorSession(
   state: EditorSession,
   action: EditorAction,
 ): EditorSession {
   const next = announceRangeReconciliation(
     state,
-    reduceEditorSessionAction(state, action),
+    reduceOwnedAction(state, action),
   );
-  // A failed copy/paste explanation goes stale once music or selection moves on.
+  return clearStaleClipboardFeedback(state, action, next);
+}
+
+/**
+ * Phases 1–3 answer here and return their own result unchanged; phases 4–8
+ * run in `reduceModeAction`, and only that result passes through
+ * `applyDocumentChangeEffects`. The split marks where those effects apply, not
+ * which phases are exclusive modes (accidental placement, phase 3, is one).
+ */
+function reduceOwnedAction(
+  state: EditorSession,
+  action: EditorAction,
+): EditorSession {
+  // 1. Clipboard
+  if (action.type === 'copy-passage') return copyPassage(state);
+  if (action.type === 'paste-passage') return pastePassage(state, action.ids);
+  // 2. Passage selection
+  if (action.type === 'extend-selection')
+    return extendPassageSelection(state, action);
+  if (state.selection.kind === 'neume-range') {
+    if (action.type === 'insert')
+      return announce(state, 'Select one insertion target first.');
+    if (action.type === 'lyrics' && action.action.type === 'start')
+      return announce(state, 'Select one lyric target first.');
+  }
+  // 3. Accidental placement
+  if (
+    action.type === 'delete-accidental' ||
+    action.type === 'start-accidental-placement' ||
+    action.type === 'cancel-accidental-placement' ||
+    action.type === 'commit-accidental-placement'
+  )
+    return reduceAccidentalAction(state, action);
+  if (state.accidentalTargetId && action.type !== 'focus-handled') return state;
+  // 4–8
+  return applyDocumentChangeEffects(state, reduceModeAction(state, action));
+}
+
+/** A failed copy/paste explanation goes stale once music or selection moves on. */
+function clearStaleClipboardFeedback(
+  previous: EditorSession,
+  action: EditorAction,
+  next: EditorSession,
+): EditorSession {
   return next.clipboardFeedback !== null &&
     action.type !== 'copy-passage' &&
     action.type !== 'paste-passage' &&
-    (next.history.present !== state.history.present ||
-      next.selection !== state.selection)
+    (next.history.present !== previous.history.present ||
+      next.selection !== previous.selection)
     ? { ...next, clipboardFeedback: null }
     : next;
 }
@@ -1066,166 +1175,179 @@ function pastePassage(
   );
 }
 
-function reduceEditorSessionAction(
+/** Phase 2: grow, shrink or step a passage selection from a note. */
+function extendPassageSelection(
   state: EditorSession,
-  action: EditorAction,
+  action: ActionOf<'extend-selection'>,
 ): EditorSession {
-  if (action.type === 'copy-passage') return copyPassage(state);
-  if (action.type === 'paste-passage') return pastePassage(state, action.ids);
-  if (action.type === 'extend-selection') {
-    // Recovery keeps its established Shift activation: one whole-neume Retry
-    // target, never a range.
-    if (state.lyrics?.kind === 'recovery' && !action.direction) {
-      const note = findNote(state.history.present, action.noteId);
-      return note
-        ? reduceEditorSessionAction(state, {
-            type: 'select',
-            selection: selectNeume(note.neume.id),
-            focusNoteId: action.noteId,
-          })
-        : state;
-    }
-    if (
-      state.activeTool.kind !== 'select' ||
-      state.lyrics ||
-      state.lyricMove ||
-      state.pendingHistory ||
-      state.clefTransaction ||
-      state.accidentalTargetId
-    )
-      return state;
-    const document = state.history.present;
-    if (!findNote(document, action.noteId)) return state;
-    const result = action.direction
-      ? stepSelection(
-          document,
-          state.selection,
-          action.noteId,
-          action.direction,
-        )
-      : {
-          selection: extendSelection(document, state.selection, action.noteId),
+  // Recovery keeps its established Shift activation: one whole-neume Retry
+  // target, never a range.
+  if (state.lyrics?.kind === 'recovery' && !action.direction) {
+    const note = findNote(state.history.present, action.noteId);
+    return note
+      ? reduceOwnedAction(state, {
+          type: 'select',
+          selection: selectNeume(note.neume.id),
           focusNoteId: action.noteId,
-        };
-    if (!result) return state;
-    const range = resolveNeumeRange(document, result.selection);
-    return announce(
-      {
-        ...state,
-        selection: result.selection,
-        noteFormError: null,
-        focusRequest: result.focusNoteId
-          ? { kind: 'note', noteId: result.focusNoteId }
-          : null,
-      },
-      range
-        ? `${range.neumes.length} neumes selected. Escape clears selection.`
-        : 'Whole neume selected.',
-    );
-  }
-  if (state.selection.kind === 'neume-range') {
-    if (action.type === 'insert')
-      return announce(state, 'Select one insertion target first.');
-    if (action.type === 'lyrics' && action.action.type === 'start')
-      return announce(state, 'Select one lyric target first.');
-  }
-  if (action.type === 'delete-accidental') {
-    // Like note and division edits, this leaves any lyric entry and its draft
-    // intact; it cannot change the syllables or neumes that the entry targets.
-    if (
-      state.accidentalTargetId ||
-      state.clefTransaction ||
-      state.lyricMove ||
-      state.pendingHistory
-    )
-      return state;
-    const sign = state.history.present.accidentals.find(
-      (a) => a.id === action.id,
-    );
-    if (!sign) return state;
-    const document = deleteAccidental(state.history.present, action.id);
-    return announce(
-      {
-        ...state,
-        history: applyDocumentEdit(state.history, () => document),
-        selection: reconcileSelection(document, state.selection),
-        focusRequest: { kind: 'note', noteId: sign.ownerNoteId },
-      },
-      'Accidental deleted.',
-    );
-  }
-  if (action.type === 'start-accidental-placement') {
-    if (
-      state.accidentalTargetId ||
-      state.clefTransaction ||
-      state.lyricMove ||
-      state.pendingHistory ||
-      state.lyrics ||
-      state.activeTool.kind !== 'select'
-    )
-      return state;
-    const ids = eligibleAccidentalAnchors(state.history.present, action.id);
-    return ids.length
-      ? announce(
-          {
-            ...state,
-            selection:
-              state.selection.kind === 'neume-range'
-                ? { kind: 'accidental', accidentalId: action.id }
-                : state.selection,
-            accidentalTargetId: action.id,
-            focusRequest: { kind: 'note', noteId: ids[0] },
-          },
-          'Choose an eligible earlier note. Enter places the accidental; Escape cancels.',
-        )
-      : announce(state, 'No eligible earlier note.');
-  }
-  if (action.type === 'cancel-accidental-placement')
-    return state.accidentalTargetId
-      ? announce(
-          {
-            ...state,
-            accidentalTargetId: null,
-            focusRequest: {
-              kind: 'accidental',
-              accidentalId: state.accidentalTargetId,
-            },
-          },
-          'Accidental placement canceled.',
-        )
+        })
       : state;
-  if (action.type === 'commit-accidental-placement') {
-    if (!state.accidentalTargetId) return state;
-    const id = state.accidentalTargetId;
-    const candidate = placeAccidental(state.history.present, id, action.noteId);
-    if (candidate === state.history.present) {
-      if (
-        state.history.present.accidentals.some(
-          (a) => a.id === id && a.placement?.noteId === action.noteId,
-        )
-      )
-        return announce(
-          {
-            ...state,
-            accidentalTargetId: null,
-            focusRequest: { kind: 'accidental', accidentalId: id },
-          },
-          'Accidental placement unchanged.',
-        );
-      return announce(state, 'That note is not an eligible placement target.');
-    }
-    return announce(
-      {
-        ...state,
-        accidentalTargetId: null,
-        history: applyDocumentEdit(state.history, () => candidate),
-        focusRequest: { kind: 'accidental', accidentalId: id },
-      },
-      'Accidental placement updated.',
-    );
   }
-  if (state.accidentalTargetId && action.type !== 'focus-handled') return state;
-  let next = transitionEditorSession(state, action);
+  if (
+    state.activeTool.kind !== 'select' ||
+    state.lyrics ||
+    state.lyricMove ||
+    state.pendingHistory ||
+    state.clefTransaction ||
+    state.accidentalTargetId
+  )
+    return state;
+  const document = state.history.present;
+  if (!findNote(document, action.noteId)) return state;
+  const result = action.direction
+    ? stepSelection(document, state.selection, action.noteId, action.direction)
+    : {
+        selection: extendSelection(document, state.selection, action.noteId),
+        focusNoteId: action.noteId,
+      };
+  if (!result) return state;
+  const range = resolveNeumeRange(document, result.selection);
+  return announce(
+    {
+      ...state,
+      selection: result.selection,
+      noteFormError: null,
+      focusRequest: result.focusNoteId
+        ? { kind: 'note', noteId: result.focusNoteId }
+        : null,
+    },
+    range
+      ? `${range.neumes.length} neumes selected. Escape clears selection.`
+      : 'Whole neume selected.',
+  );
+}
+
+/** Phase 3: sign deletion and the explicit placement-target mode. */
+function reduceAccidentalAction(
+  state: EditorSession,
+  action: ActionOf<AccidentalActionType>,
+): EditorSession {
+  switch (action.type) {
+    case 'delete-accidental': {
+      // Like note and division edits, this leaves any lyric entry and its draft
+      // intact; it cannot change the syllables or neumes that the entry targets.
+      if (
+        state.accidentalTargetId ||
+        state.clefTransaction ||
+        state.lyricMove ||
+        state.pendingHistory
+      )
+        return state;
+      const sign = state.history.present.accidentals.find(
+        (a) => a.id === action.id,
+      );
+      if (!sign) return state;
+      const document = deleteAccidental(state.history.present, action.id);
+      return announce(
+        {
+          ...state,
+          history: applyDocumentEdit(state.history, () => document),
+          selection: reconcileSelection(document, state.selection),
+          focusRequest: { kind: 'note', noteId: sign.ownerNoteId },
+        },
+        'Accidental deleted.',
+      );
+    }
+    case 'start-accidental-placement': {
+      if (
+        state.accidentalTargetId ||
+        state.clefTransaction ||
+        state.lyricMove ||
+        state.pendingHistory ||
+        state.lyrics ||
+        state.activeTool.kind !== 'select'
+      )
+        return state;
+      const ids = eligibleAccidentalAnchors(state.history.present, action.id);
+      return ids.length
+        ? announce(
+            {
+              ...state,
+              selection:
+                state.selection.kind === 'neume-range'
+                  ? { kind: 'accidental', accidentalId: action.id }
+                  : state.selection,
+              accidentalTargetId: action.id,
+              focusRequest: { kind: 'note', noteId: ids[0] },
+            },
+            'Choose an eligible earlier note. Enter places the accidental; Escape cancels.',
+          )
+        : announce(state, 'No eligible earlier note.');
+    }
+    case 'cancel-accidental-placement':
+      return state.accidentalTargetId
+        ? announce(
+            {
+              ...state,
+              accidentalTargetId: null,
+              focusRequest: {
+                kind: 'accidental',
+                accidentalId: state.accidentalTargetId,
+              },
+            },
+            'Accidental placement canceled.',
+          )
+        : state;
+    case 'commit-accidental-placement': {
+      if (!state.accidentalTargetId) return state;
+      const id = state.accidentalTargetId;
+      const candidate = placeAccidental(
+        state.history.present,
+        id,
+        action.noteId,
+      );
+      if (candidate === state.history.present) {
+        if (
+          state.history.present.accidentals.some(
+            (a) => a.id === id && a.placement?.noteId === action.noteId,
+          )
+        )
+          return announce(
+            {
+              ...state,
+              accidentalTargetId: null,
+              focusRequest: { kind: 'accidental', accidentalId: id },
+            },
+            'Accidental placement unchanged.',
+          );
+        return announce(
+          state,
+          'That note is not an eligible placement target.',
+        );
+      }
+      return announce(
+        {
+          ...state,
+          accidentalTargetId: null,
+          history: applyDocumentEdit(state.history, () => candidate),
+          focusRequest: { kind: 'accidental', accidentalId: id },
+        },
+        'Accidental placement updated.',
+      );
+    }
+  }
+}
+
+/**
+ * Effects shared by every phase 4–8 transition that changes the document:
+ * announce placements restored by accidental reconciliation, refocus the
+ * owner when the selected accidental disappears, and clear a stale engraving
+ * error.
+ */
+function applyDocumentChangeEffects(
+  state: EditorSession,
+  transitioned: EditorSession,
+): EditorSession {
+  let next = transitioned;
   if (next.history.present !== state.history.present) {
     const before = state.history.present,
       after = next.history.present;
@@ -1260,306 +1382,30 @@ function reduceEditorSessionAction(
     : next;
 }
 
-function transitionEditorSession(
+/**
+ * Phases 4–8: clef, lyric move, pending history, lyric entry, then ordinary
+ * actions. Each early `return state` below either lets an active mode claim an
+ * action that a later phase would otherwise handle, or drops a phase's own
+ * action while its mode is inactive (clef resolution without a transaction,
+ * `resolve-history` without a prompt).
+ */
+function reduceModeAction(
   state: EditorSession,
-  action: EditorAction,
+  action: ModeAction,
 ): EditorSession {
+  // 4. Clef: these actions may open or adjust a transaction themselves.
+  if (action.type === 'step-clef-change') return stepClefChange(state, action);
+  if (action.type === 'clef-insertion-policy')
+    return setClefInsertionPolicy(state, action);
+  if (action.type === 'start-clef-change')
+    return startClefChange(state, action);
+  // An open transaction owns all editing until it is applied or canceled.
   const transaction = state.clefTransaction;
-  if (action.type === 'step-clef-change') {
-    if (
-      (action.direction !== 1 && action.direction !== -1) ||
-      isPlacementTool(state.activeTool) ||
-      state.pendingHistory ||
-      state.lyricMove ||
-      (transaction &&
-        (transaction.id !== action.id ||
-          transaction.boundary ||
-          transaction.candidate ||
-          transaction.original !== state.history.present))
-    )
-      return state;
-    const clef =
-      transaction?.clef ??
-      state.history.present.clefChanges.find((c) => c.id === action.id)?.clef;
-    if (!clef) return state;
-    const staffLine = clef.staffLine + action.direction;
-    if (
-      staffLine !== 1 &&
-      staffLine !== 2 &&
-      staffLine !== 3 &&
-      staffLine !== 4
-    )
-      return state;
-    const pending = transaction
-      ? state
-      : reduceEditorSession(state, {
-          type: 'start-clef-change',
-          id: action.id,
-          keepScoreFocus: true,
-        });
-    return announce(
-      reduceEditorSession(pending, {
-        type: 'draft-clef-change',
-        clef: { ...clef, staffLine },
-      }),
-      `Draft ${clef.type.toUpperCase()} clef, staff line ${staffLine}. Apply commits; Escape cancels.`,
-    );
-  }
-  if (action.type === 'clef-insertion-policy') {
-    if (
-      transaction?.candidate ||
-      state.pendingHistory ||
-      state.lyricMove ||
-      (action.preserve !== 'melody' && action.preserve !== 'noteheads')
-    )
-      return state;
-    return {
-      ...state,
-      clefInsertionPolicy: action.preserve,
-      clefInsertionError: null,
-      clefTransaction: transaction
-        ? { ...transaction, policyError: undefined }
-        : null,
-    };
-  }
-  if (action.type === 'start-clef-change') {
-    if (
-      transaction ||
-      state.pendingHistory ||
-      state.lyricMove ||
-      isPlacementTool(state.activeTool)
-    )
-      return state;
-    const document = state.history.present;
-    const existing = document.clefChanges.find((c) => c.id === action.id);
-    if (
-      action.boundary
-        ? !resolveScoreBoundary(document, action.boundary)
-        : !existing
-    )
-      return state;
-    // Preserve the exact lyric draft; the transaction owns all editing until resolved.
-    return {
-      ...state,
-      activeTool: selectTool(),
-      hoveredPoint: null,
-      focusRequest: null,
-      selection:
-        state.selection.kind === 'neume-range'
-          ? { kind: 'clef-change', clefChangeId: action.id }
-          : state.selection,
-      clefTransaction: {
-        keepScoreFocus: action.keepScoreFocus,
-        original: document,
-        previousSelection: state.selection,
-        id: action.id,
-        boundary: action.boundary ?? null,
-        clef: existing?.clef ?? { type: 'c', staffLine: 3 },
-        candidate: null,
-      },
-    };
-  }
-  if (transaction) {
-    if (action.type === 'focus-handled')
-      return reduceSessionAction(state, action);
-    const restore = (): EditorSession => {
-      const selection = reconcileSelection(
-        state.history.present,
-        transaction.previousSelection,
-      );
-      return {
-        ...state,
-        clefTransaction: null,
-        selection,
-        focusRequest: transaction.placementTool
-          ? { kind: 'clef-placement' }
-          : !transaction.boundary &&
-              state.history.present.clefChanges.some(
-                (c) => c.id === transaction.id,
-              )
-            ? { kind: 'clef-change', clefChangeId: transaction.id }
-            : getSelectFocusRequest({ ...state, selection }),
-      };
-    };
-    if (action.type === 'cancel-clef-change') return restore();
-    if (transaction.original !== state.history.present) return restore();
-    if (
-      action.type === 'draft-clef-change' &&
-      !transaction.candidate &&
-      isValidClef(action.clef)
-    )
-      return {
-        ...state,
-        clefTransaction: {
-          ...transaction,
-          clef: { ...action.clef },
-          policyError: undefined,
-        },
-      };
-    let candidate: ChantDocument | null = null;
-    let finalized = false;
-    let preservationFailure: ReturnType<
-      typeof preserveClefMelodyResult
-    >['reason'] = null;
-    if (action.type === 'apply-clef-change' && !transaction.candidate) {
-      candidate = action.remove
-        ? deleteClefChangeCandidate(transaction.original, transaction.id)
-        : transaction.boundary
-          ? insertClefChangeCandidate(
-              transaction.original,
-              {
-                id: transaction.id,
-                clef: transaction.clef,
-                beforeNeumeId: transaction.boundary.beforeNeumeId,
-                beforeDivisionId: transaction.boundary.beforeDivisionId,
-              },
-              transaction.boundary,
-            )
-          : updateClefChangeCandidate(
-              transaction.original,
-              transaction.id,
-              transaction.clef,
-            );
-      if (candidate === transaction.original) return restore();
-      if (!hasValidClefCandidate(candidate) && transaction.placementTool) {
-        const message =
-          'Cannot insert clef: existing note positions are unsafe. Correct the score and retry.';
-        return announce({ ...restore(), clefInsertionError: message }, message);
-      }
-      if (!hasValidClefCandidate(candidate)) {
-        const message =
-          'Clef change rejected: unsafe note positions. Cancel or revise the draft.';
-        return announce(
-          {
-            ...state,
-            clefTransaction: { ...transaction, policyError: message },
-          },
-          message,
-        );
-      }
-      if (
-        transaction.placementTool ||
-        (!action.remove && !transaction.boundary)
-      ) {
-        const preservation =
-          state.clefInsertionPolicy === 'melody'
-            ? preserveClefMelodyResult(transaction.original, candidate)
-            : { document: candidate, reason: null };
-        const selected = preservation.document;
-        preservationFailure = preservation.reason;
-        if (!selected || !hasValidClefCandidate(selected)) {
-          const message = transaction.placementTool
-            ? `Cannot insert with Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or a different clef and retry.`
-            : `Cannot apply Keep pitches: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Keep note positions or revise the draft and retry Apply.`;
-          return announce(
-            transaction.placementTool
-              ? { ...restore(), clefInsertionError: message }
-              : {
-                  ...state,
-                  clefTransaction: { ...transaction, policyError: message },
-                },
-            message,
-          );
-        }
-        candidate = selected;
-        finalized = state.clefInsertionPolicy === 'melody';
-      } else if (hasChangedEffectivePitches(transaction.original, candidate)) {
-        const repaired = reconcileAccidentals(transaction.original, candidate);
-        return {
-          ...state,
-          clefTransaction: {
-            ...transaction,
-            candidate,
-            noteheadCandidate: repaired ?? undefined,
-            noteheadLossCount: repaired
-              ? transaction.original.accidentals.length -
-                repaired.accidentals.length
-              : 0,
-          },
-        };
-      }
-    } else if (action.type === 'confirm-clef-change' && transaction.candidate) {
-      if (transaction.accidentalLossCount && action.preserve !== 'noteheads')
-        return state;
-      if (action.preserve === 'melody') {
-        const preservation = preserveClefMelodyResult(
-          transaction.original,
-          transaction.candidate,
-        );
-        candidate = preservation.document;
-        preservationFailure = preservation.reason;
-      } else if (action.preserve === 'noteheads') {
-        candidate = transaction.noteheadCandidate ?? transaction.candidate;
-        finalized = !!transaction.noteheadCandidate;
-      }
-    }
-    finalized ||=
-      action.type === 'confirm-clef-change' && action.preserve === 'melody';
-    if (!candidate) {
-      if (
-        action.type !== 'confirm-clef-change' ||
-        !transaction.candidate ||
-        action.preserve !== 'melody'
-      )
-        return state;
-      const policyError = `Cannot preserve melody: ${preservationFailure === 'overflow' ? 'note positions would overflow' : 'pitches or written accidentals cannot be preserved safely'}. Choose Preserve noteheads or cancel.`;
-      return announce(
-        { ...state, clefTransaction: { ...transaction, policyError } },
-        policyError,
-      );
-    }
-    if (!hasValidClefCandidate(candidate)) return state;
-    const repaired = finalized
-      ? candidate
-      : reconcileAccidentals(transaction.original, candidate);
-    if (!repaired)
-      return announce(
-        state,
-        'Clef change rejected: relative pitch arithmetic is unsafe or distinct written accidentals would merge. Revise the clef or remove a conflicting sign.',
-      );
-    const lost =
-      transaction.original.accidentals.length - repaired.accidentals.length;
-    if (lost > 0 && action.type !== 'confirm-clef-change')
-      return {
-        ...state,
-        clefTransaction: {
-          ...transaction,
-          candidate: repaired,
-          accidentalLossCount: lost,
-          noteheadCandidate: repaired,
-        },
-      };
-    candidate = repaired;
-    const surviving = candidate.clefChanges.some(
-      (c) => c.id === transaction.id,
-    );
-    const committedOrder = deriveScoreOrder(candidate) ?? [];
-    const nextKeyboardBoundary = scoreBoundaryAt(
-      committedOrder,
-      committedOrder.findIndex((i) => i.entity.id === transaction.id) + 1,
-    );
-    return announce(
-      reconcile({
-        ...state,
-        clefTransaction: null,
-        clefInsertionError: null,
-        history: applyDocumentEdit(state.history, () => candidate),
-        keyboardClefPlacement:
-          transaction.placementTool && state.keyboardClefPlacement
-            ? { ...state.keyboardClefPlacement, boundary: nextKeyboardBoundary }
-            : state.keyboardClefPlacement,
-        selection: surviving
-          ? { kind: 'clef-change', clefChangeId: transaction.id }
-          : clearSelection(),
-        focusRequest: transaction.placementTool
-          ? { kind: 'clef-placement', clefChangeId: transaction.id }
-          : surviving
-            ? { kind: 'clef-change', clefChangeId: transaction.id }
-            : { kind: 'palette', tool: 'select' },
-      }),
-      surviving ? 'Clef change applied.' : 'Clef change removed.',
-    );
-  }
+  if (transaction)
+    return action.type === 'focus-handled'
+      ? reduceOrdinaryAction(state, action)
+      : resolveClefTransaction(state, transaction, action);
+  // These resolve an open transaction and are inert without one.
   if (
     action.type === 'draft-clef-change' ||
     action.type === 'apply-clef-change' ||
@@ -1567,283 +1413,30 @@ function transitionEditorSession(
     action.type === 'cancel-clef-change'
   )
     return state;
-  if (action.type === 'clef-keyboard') {
-    if (
-      state.activeTool.kind !== 'place-clef' ||
-      state.pendingHistory ||
-      state.lyricMove
-    )
-      return state;
-    const order = deriveScoreOrder(state.history.present);
-    if (!order) return state;
-    const cursor = state.keyboardClefPlacement ?? {
-      boundary: scoreBoundaryAt(order, 0),
-      staffLine: 3 as const,
-    };
-    const resolved = resolveScoreBoundary(
-      state.history.present,
-      cursor.boundary,
-    );
-    if (!resolved)
-      return announce(
-        { ...state, keyboardClefPlacement: null },
-        'Placement target changed. Start keyboard placement again.',
-      );
-    let index = resolved.scoreIndex;
-    if (action.command === 'previous') index = Math.max(0, index - 1);
-    if (action.command === 'next') index = Math.min(order.length, index + 1);
-    if (action.command === 'first') index = 0;
-    if (action.command === 'last') index = order.length;
-    const line =
-      cursor.staffLine +
-      (action.command === 'up' ? 1 : action.command === 'down' ? -1 : 0);
-    const staffLine =
-      line === 1 || line === 2 || line === 3 || line === 4
-        ? line
-        : cursor.staffLine;
-    return announce(
-      {
-        ...state,
-        keyboardClefPlacement: {
-          boundary: scoreBoundaryAt(order, index),
-          staffLine,
-        },
-        hoveredPoint: null,
-        focusRequest: { kind: 'clef-placement' },
-      },
-      `${state.activeTool.clefType.toUpperCase()} clef, line ${staffLine}. ${index === order.length ? 'End of score' : 'Before ' + (order[index].type === 'clef' ? 'an authored clef' : 'a ' + order[index].type)}. Left/Right chooses a slot; Up/Down chooses a line; Enter inserts.`,
-    );
-  }
-  if (action.type === 'place-clef') {
-    if (
-      state.activeTool.kind !== 'place-clef' ||
-      state.activeTool.clefType !== action.clefType ||
-      state.pendingHistory ||
-      state.lyricMove
-    )
-      return state;
-    const layout = layoutChant(state.history.present, action.measureLyrics);
-    const placement = action.point
-      ? resolveGraphicalClefPlacement(layout, action.clefType, action.point)
-      : state.keyboardClefPlacement
-        ? resolveKeyboardClefPlacement(
-            layout,
-            action.clefType,
-            state.keyboardClefPlacement,
-          )
-        : null;
-    if (
-      !placement ||
-      insertClefChangeCandidate(
-        state.history.present,
-        {
-          id: action.id,
-          clef: placement.clef,
-          beforeNeumeId: placement.boundary.beforeNeumeId,
-          beforeDivisionId: placement.boundary.beforeDivisionId,
-        },
-        placement.boundary,
-      ) === state.history.present
-    )
-      return state;
-    const pending: EditorSession = {
-      ...state,
-      hoveredPoint: null,
-      clefTransaction: {
-        original: state.history.present,
-        previousSelection: state.selection,
-        id: action.id,
-        boundary: placement.boundary,
-        clef: placement.clef,
-        candidate: null,
-        placementTool: state.activeTool,
-      },
-    };
-    return reduceEditorSession(pending, { type: 'apply-clef-change' });
-  }
-  if (action.type === 'lyric-move') {
-    const move = state.lyricMove;
-    const intent = action.action;
-    if (state.pendingHistory) return state;
-    if (intent.type === 'start') {
-      if (
-        move ||
-        !state.history.present.syllables.some((s) => s.id === intent.syllableId)
-      )
-        return state;
-      // Done uses the established commit-on-navigation policy, including stale recovery.
-      const resolved = state.lyrics
-        ? applyLyrics(state, { type: 'done' }, intent.newId)
-        : state;
-      if (resolved.lyrics) return resolved;
-      const syllable = resolved.history.present.syllables.find(
-        (s) => s.id === intent.syllableId,
-      );
-      if (!syllable) return state;
-      const previousLyrics = state.lyrics
-        ? reconcileLyricEntry(
-            resolved.history.present,
-            state.lyrics.kind === 'draft'
-              ? state.lyrics.original || state.lyrics.text !== ''
-                ? {
-                    kind: 'selected',
-                    syllableId: state.lyrics.original?.id ?? intent.newId,
-                  }
-                : state.lyrics
-              : state.lyrics,
-          )
-        : null;
-      const anchorNote = findNeume(
-        resolved.history.present,
-        syllable.startsAtNeumeId,
-      )?.neume.notes[0];
-      return announce(
-        {
-          ...resolved,
-          lyrics: previousLyrics,
-          lyricMove: {
-            syllableId: syllable.id,
-            candidateId: syllable.startsAtNeumeId,
-            previousLyrics,
-            previousSelection: state.selection,
-          },
-          selection: selectSyllable(syllable.id),
-          activeTool: selectTool(),
-          hoveredPoint: null,
-          focusRequest: anchorNote
-            ? { kind: 'note', noteId: anchorNote.id }
-            : null,
-        },
-        `${resolved.announcement !== state.announcement ? resolved.announcement.text + ' ' : ''}Moving ${syllable.text} from neume ${resolved.history.present.neumes.findIndex((n) => n.id === syllable.startsAtNeumeId) + 1}. Click a highlighted destination to move immediately, or use Previous/Next or Left/Right then Enter. Escape cancels.`,
-      );
-    }
-    if (!move) return state;
-    const document = state.history.present;
-    const syllable = document.syllables.find((s) => s.id === move.syllableId);
-    if (intent.type === 'cancel')
-      return announce(
-        {
-          ...state,
-          lyricMove: null,
-          lyrics: reconcileLyricEntry(document, move.previousLyrics),
-          selection: reconcileSelection(document, move.previousSelection),
-          focusRequest: getSelectFocusRequest({
-            ...state,
-            selection: reconcileSelection(document, move.previousSelection),
-          }),
-        },
-        'Move canceled. Anchor unchanged.',
-      );
-    if (intent.type === 'browse') {
-      const targets = lyricMoveTargets(document, move.syllableId);
-      const current = document.neumes.findIndex(
-        (n) => n.id === move.candidateId,
-      );
-      const ordered = intent.direction === 1 ? targets : [...targets].reverse();
-      const candidateId = ordered.find(
-        (id) =>
-          (document.neumes.findIndex((n) => n.id === id) - current) *
-            intent.direction >
-          0,
-      );
-      if (!candidateId)
-        return announce(
-          state,
-          'No further legal destination in this direction.',
-        );
-      const note = findNeume(document, candidateId)?.neume.notes[0];
-      return announce(
-        {
-          ...state,
-          lyricMove: { ...move, candidateId },
-          focusRequest: note ? { kind: 'note', noteId: note.id } : null,
-        },
-        `Destination neume ${document.neumes.findIndex((n) => n.id === candidateId) + 1}. Enter moves ${syllable?.text ?? 'syllable'} here.`,
-      );
-    }
-    const neumeId = intent.neumeId ?? move.candidateId;
-    const next = reassignLyricSyllable(document, move.syllableId, neumeId);
-    if (next === document) {
-      const reason = !findNeume(document, neumeId)
-        ? 'Destination no longer exists.'
-        : syllable?.startsAtNeumeId === neumeId
-          ? 'This is the current anchor; choose another destination.'
-          : document.syllables.some((s) => s.startsAtNeumeId === neumeId)
-            ? 'Destination already starts another syllable.'
-            : 'Destination would cross a neighboring syllable anchor.';
-      return announce(
-        state,
-        `${reason} Choose a highlighted neume, or Escape to cancel.`,
-      );
-    }
-    return announce(
-      {
-        ...state,
-        history: applyDocumentEdit(state.history, () => next),
-        lyricMove: null,
-        lyrics: reconcileLyricEntry(next, move.previousLyrics),
-        selection: selectSyllable(move.syllableId),
-        focusRequest: { kind: 'lyric', syllableId: move.syllableId },
-      },
-      `Moved ${syllable?.text ?? 'syllable'} to neume ${document.neumes.findIndex((n) => n.id === neumeId) + 1}.`,
-    );
-  }
+  if (action.type === 'clef-keyboard')
+    return moveKeyboardClefCursor(state, action);
+  if (action.type === 'place-clef') return placeClef(state, action);
+  // 5. Lyric move
+  if (action.type === 'lyric-move')
+    return reduceLyricMove(state, action.action);
   // Temporary reassignment owns editing until explicit commit or cancellation.
   if (state.lyricMove && action.type !== 'focus-handled') return state;
+  // 6. Pending history: the Save / Discard / Cancel prompt owns editing.
   if (state.pendingHistory) {
     if (action.type === 'focus-handled')
-      return reduceSessionAction(state, action);
-    if (action.type !== 'resolve-history') return state;
-    if (action.choice === 'cancel')
-      return {
-        ...state,
-        pendingHistory: null,
-        focusRequest: { kind: 'lyrics' },
-      };
-    const pending = state.pendingHistory;
-    const resolved =
-      action.choice === 'save'
-        ? applyLyrics(state, { type: 'done' }, action.newId)
-        : { ...state, lyrics: null };
-    if (resolved.lyrics) return resolved;
-    return reduceSessionAction(
-      { ...resolved, pendingHistory: null },
-      { type: 'history', ...pending },
-    );
+      return reduceOrdinaryAction(state, action);
+    return action.type === 'resolve-history'
+      ? resolvePendingHistory(state, state.pendingHistory, action)
+      : state;
   }
-  if (action.type === 'start-lyrics-at-focus') {
-    const document = state.history.present;
-    const target = action.target;
-    const neumeId =
-      target.kind === 'note'
-        ? findNote(document, target.noteId)?.neume.id
-        : document.syllables.find((s) => s.id === target.syllableId)
-            ?.startsAtNeumeId;
-    if (!neumeId || !findNeume(document, neumeId)) return state;
-    let next = applyLyrics(
-      state,
-      { type: state.lyrics ? 'navigate' : 'start', neumeId },
-      action.newId,
-    );
-    // Explicit L expresses editing intent; sequential navigation still pauses.
-    if (next.lyrics?.kind === 'occupied')
-      next = applyLyrics(
-        next,
-        { type: 'edit', syllableId: next.lyrics.syllableId },
-        action.newId,
-      );
-    // Mode activation uses focus as context, not as an implicit selection command.
-    return {
-      ...next,
-      selection:
-        state.selection.kind === 'neume-range' && next.lyrics
-          ? next.selection
-          : reconcileSelection(next.history.present, state.selection),
-    };
-  }
+  // 7. Lyric entry
+  if (action.type === 'start-lyrics-at-focus')
+    return startLyricsAtFocus(state, action);
   if (action.type === 'lyrics')
     return applyLyrics(state, action.action, action.newId);
+  // Resolution answers only a pending prompt (phase 6).
   if (action.type === 'resolve-history') return state;
+  // A dirty draft defers Undo/Redo into the Save / Discard / Cancel prompt.
   if (action.type === 'history' && isDirtyLyricEntry(state.lyrics))
     return {
       ...state,
@@ -1854,6 +1447,7 @@ function transitionEditorSession(
       },
       focusRequest: null,
     };
+  // Arming a non-clef tool or inserting saves the draft first.
   if (
     ((action.type === 'arm' && action.tool.kind !== 'place-clef') ||
       (action.type === 'insert' && state.lyrics?.kind !== 'end')) &&
@@ -1866,15 +1460,676 @@ function transitionEditorSession(
     );
     // Fresh lyric IDs, like musical IDs, enter through event handling.
     if (resolved.lyrics) return resolved;
-    return reduceSessionAction(resolved, action);
+    return reduceOrdinaryAction(resolved, action);
   }
-  const next = reduceSessionAction(state, action);
+  // 8. Ordinary actions
+  const next = reduceOrdinaryAction(state, action);
   if (next.lyrics?.kind === 'recovery' && state.lyrics?.kind !== 'recovery')
     return announce(
       { ...next, focusRequest: { kind: 'lyrics' } },
       'Draft target changed. Your text is preserved; retry at a free neume or discard.',
     );
   return next;
+}
+
+/** Arrow-key line changes draft an authored clef, opening a transaction when needed. */
+function stepClefChange(
+  state: EditorSession,
+  action: ActionOf<'step-clef-change'>,
+): EditorSession {
+  const transaction = state.clefTransaction;
+  if (
+    (action.direction !== 1 && action.direction !== -1) ||
+    isPlacementTool(state.activeTool) ||
+    state.pendingHistory ||
+    state.lyricMove ||
+    (transaction &&
+      (transaction.id !== action.id ||
+        transaction.boundary ||
+        transaction.candidate ||
+        transaction.original !== state.history.present))
+  )
+    return state;
+  const clef =
+    transaction?.clef ??
+    state.history.present.clefChanges.find((c) => c.id === action.id)?.clef;
+  if (!clef) return state;
+  const staffLine = clef.staffLine + action.direction;
+  if (staffLine !== 1 && staffLine !== 2 && staffLine !== 3 && staffLine !== 4)
+    return state;
+  const pending = transaction
+    ? state
+    : reduceEditorSession(state, {
+        type: 'start-clef-change',
+        id: action.id,
+        keepScoreFocus: true,
+      });
+  return announce(
+    reduceEditorSession(pending, {
+      type: 'draft-clef-change',
+      clef: { ...clef, staffLine },
+    }),
+    `Draft ${clef.type.toUpperCase()} clef, staff line ${staffLine}. Apply commits; Escape cancels.`,
+  );
+}
+
+/** Keep pitches or Keep note positions; fixed once a candidate awaits confirmation. */
+function setClefInsertionPolicy(
+  state: EditorSession,
+  action: ActionOf<'clef-insertion-policy'>,
+): EditorSession {
+  const transaction = state.clefTransaction;
+  if (
+    transaction?.candidate ||
+    state.pendingHistory ||
+    state.lyricMove ||
+    (action.preserve !== 'melody' && action.preserve !== 'noteheads')
+  )
+    return state;
+  return {
+    ...state,
+    clefInsertionPolicy: action.preserve,
+    clefInsertionError: null,
+    clefTransaction: transaction
+      ? { ...transaction, policyError: undefined }
+      : null,
+  };
+}
+
+/** Open a transaction for an authored clef or a new clef at a boundary. */
+function startClefChange(
+  state: EditorSession,
+  action: ActionOf<'start-clef-change'>,
+): EditorSession {
+  const transaction = state.clefTransaction;
+  if (
+    transaction ||
+    state.pendingHistory ||
+    state.lyricMove ||
+    isPlacementTool(state.activeTool)
+  )
+    return state;
+  const document = state.history.present;
+  const existing = document.clefChanges.find((c) => c.id === action.id);
+  if (
+    action.boundary
+      ? !resolveScoreBoundary(document, action.boundary)
+      : !existing
+  )
+    return state;
+  // Preserve the exact lyric draft; the transaction owns all editing until resolved.
+  return {
+    ...state,
+    activeTool: selectTool(),
+    hoveredPoint: null,
+    focusRequest: null,
+    selection:
+      state.selection.kind === 'neume-range'
+        ? { kind: 'clef-change', clefChangeId: action.id }
+        : state.selection,
+    clefTransaction: {
+      keepScoreFocus: action.keepScoreFocus,
+      original: document,
+      previousSelection: state.selection,
+      id: action.id,
+      boundary: action.boundary ?? null,
+      clef: existing?.clef ?? { type: 'c', staffLine: 3 },
+      candidate: null,
+    },
+  };
+}
+
+/**
+ * Resolve an action while a clef transaction is open. Cancel, or any action
+ * after the document changed underneath the transaction, restores the prior
+ * context. Draft edits the pending clef, Apply builds the candidate and
+ * Confirm answers its pitch or accidental-loss prompt; every other action is
+ * a no-op until the transaction resolves.
+ */
+function resolveClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  action: ModeAction,
+): EditorSession {
+  if (
+    action.type === 'cancel-clef-change' ||
+    transaction.original !== state.history.present
+  )
+    return restoreClefTransaction(state, transaction);
+  if (
+    action.type === 'draft-clef-change' &&
+    !transaction.candidate &&
+    isValidClef(action.clef)
+  )
+    return {
+      ...state,
+      clefTransaction: {
+        ...transaction,
+        clef: { ...action.clef },
+        policyError: undefined,
+      },
+    };
+  if (action.type === 'apply-clef-change' && !transaction.candidate)
+    return applyClefTransaction(state, transaction, action.remove);
+  if (action.type === 'confirm-clef-change' && transaction.candidate)
+    return confirmClefTransaction(
+      state,
+      transaction,
+      transaction.candidate,
+      action.preserve,
+    );
+  return state;
+}
+
+/** Close without an edit and return to the invoking selection and control. */
+function restoreClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+): EditorSession {
+  const selection = reconcileSelection(
+    state.history.present,
+    transaction.previousSelection,
+  );
+  return {
+    ...state,
+    clefTransaction: null,
+    selection,
+    focusRequest: transaction.placementTool
+      ? { kind: 'clef-placement' }
+      : !transaction.boundary &&
+          state.history.present.clefChanges.some((c) => c.id === transaction.id)
+        ? { kind: 'clef-change', clefChangeId: transaction.id }
+        : getSelectFocusRequest({ ...state, selection }),
+  };
+}
+
+/**
+ * Build the insertion, update or removal candidate. Placement-tool insertions
+ * and authored-clef edits apply the shared pitch policy at once; a removal or
+ * boundary insertion that changes effective pitches waits for Confirm.
+ */
+function applyClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  remove: boolean | undefined,
+): EditorSession {
+  const candidate = remove
+    ? deleteClefChangeCandidate(transaction.original, transaction.id)
+    : transaction.boundary
+      ? insertClefChangeCandidate(
+          transaction.original,
+          {
+            id: transaction.id,
+            clef: transaction.clef,
+            beforeNeumeId: transaction.boundary.beforeNeumeId,
+            beforeDivisionId: transaction.boundary.beforeDivisionId,
+          },
+          transaction.boundary,
+        )
+      : updateClefChangeCandidate(
+          transaction.original,
+          transaction.id,
+          transaction.clef,
+        );
+  if (candidate === transaction.original)
+    return restoreClefTransaction(state, transaction);
+  if (!hasValidClefCandidate(candidate) && transaction.placementTool) {
+    const message =
+      'Cannot insert clef: existing note positions are unsafe. Correct the score and retry.';
+    return announce(
+      {
+        ...restoreClefTransaction(state, transaction),
+        clefInsertionError: message,
+      },
+      message,
+    );
+  }
+  if (!hasValidClefCandidate(candidate)) {
+    const message =
+      'Clef change rejected: unsafe note positions. Cancel or revise the draft.';
+    return announce(
+      { ...state, clefTransaction: { ...transaction, policyError: message } },
+      message,
+    );
+  }
+  if (transaction.placementTool || (!remove && !transaction.boundary)) {
+    const preservation =
+      state.clefInsertionPolicy === 'melody'
+        ? preserveClefMelodyResult(transaction.original, candidate)
+        : { document: candidate, reason: null };
+    const selected = preservation.document;
+    if (!selected || !hasValidClefCandidate(selected)) {
+      const reason = preservationFailureText(preservation.reason);
+      const message = transaction.placementTool
+        ? `Cannot insert with Keep pitches: ${reason}. Choose Keep note positions or a different clef and retry.`
+        : `Cannot apply Keep pitches: ${reason}. Choose Keep note positions or revise the draft and retry Apply.`;
+      return announce(
+        transaction.placementTool
+          ? {
+              ...restoreClefTransaction(state, transaction),
+              clefInsertionError: message,
+            }
+          : {
+              ...state,
+              clefTransaction: { ...transaction, policyError: message },
+            },
+        message,
+      );
+    }
+    return commitClefCandidate(state, transaction, selected, {
+      finalized: state.clefInsertionPolicy === 'melody',
+      lossConfirmed: false,
+    });
+  }
+  if (hasChangedEffectivePitches(transaction.original, candidate)) {
+    const repaired = reconcileAccidentals(transaction.original, candidate);
+    return {
+      ...state,
+      clefTransaction: {
+        ...transaction,
+        candidate,
+        noteheadCandidate: repaired ?? undefined,
+        noteheadLossCount: repaired
+          ? transaction.original.accidentals.length -
+            repaired.accidentals.length
+          : 0,
+      },
+    };
+  }
+  return commitClefCandidate(state, transaction, candidate, {
+    finalized: false,
+    lossConfirmed: false,
+  });
+}
+
+/** Answer the pending Preserve melody / Preserve noteheads (or loss) prompt. */
+function confirmClefTransaction(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  pending: ChantDocument,
+  preserve: 'melody' | 'noteheads',
+): EditorSession {
+  // Accidental loss can only be accepted by keeping note positions.
+  if (transaction.accidentalLossCount && preserve !== 'noteheads') return state;
+  if (preserve === 'melody') {
+    const preservation = preserveClefMelodyResult(
+      transaction.original,
+      pending,
+    );
+    if (!preservation.document) {
+      const policyError = `Cannot preserve melody: ${preservationFailureText(preservation.reason)}. Choose Preserve noteheads or cancel.`;
+      return announce(
+        { ...state, clefTransaction: { ...transaction, policyError } },
+        policyError,
+      );
+    }
+    return commitClefCandidate(state, transaction, preservation.document, {
+      finalized: true,
+      lossConfirmed: true,
+    });
+  }
+  if (preserve === 'noteheads')
+    return commitClefCandidate(
+      state,
+      transaction,
+      transaction.noteheadCandidate ?? pending,
+      { finalized: !!transaction.noteheadCandidate, lossConfirmed: true },
+    );
+  return state;
+}
+
+/**
+ * The one history entry of a clef transaction. A candidate that is not yet
+ * finalized is repaired here; unconfirmed accidental loss stages a prompt
+ * instead of committing.
+ */
+function commitClefCandidate(
+  state: EditorSession,
+  transaction: ClefTransaction,
+  candidate: ChantDocument,
+  { finalized, lossConfirmed }: { finalized: boolean; lossConfirmed: boolean },
+): EditorSession {
+  if (!hasValidClefCandidate(candidate)) return state;
+  const repaired = finalized
+    ? candidate
+    : reconcileAccidentals(transaction.original, candidate);
+  if (!repaired)
+    return announce(
+      state,
+      'Clef change rejected: relative pitch arithmetic is unsafe or distinct written accidentals would merge. Revise the clef or remove a conflicting sign.',
+    );
+  const lost =
+    transaction.original.accidentals.length - repaired.accidentals.length;
+  if (lost > 0 && !lossConfirmed)
+    return {
+      ...state,
+      clefTransaction: {
+        ...transaction,
+        candidate: repaired,
+        accidentalLossCount: lost,
+        noteheadCandidate: repaired,
+      },
+    };
+  const surviving = repaired.clefChanges.some((c) => c.id === transaction.id);
+  const committedOrder = deriveScoreOrder(repaired) ?? [];
+  const nextKeyboardBoundary = scoreBoundaryAt(
+    committedOrder,
+    committedOrder.findIndex((i) => i.entity.id === transaction.id) + 1,
+  );
+  return announce(
+    reconcile({
+      ...state,
+      clefTransaction: null,
+      clefInsertionError: null,
+      history: applyDocumentEdit(state.history, () => repaired),
+      keyboardClefPlacement:
+        transaction.placementTool && state.keyboardClefPlacement
+          ? { ...state.keyboardClefPlacement, boundary: nextKeyboardBoundary }
+          : state.keyboardClefPlacement,
+      selection: surviving
+        ? { kind: 'clef-change', clefChangeId: transaction.id }
+        : clearSelection(),
+      focusRequest: transaction.placementTool
+        ? { kind: 'clef-placement', clefChangeId: transaction.id }
+        : surviving
+          ? { kind: 'clef-change', clefChangeId: transaction.id }
+          : { kind: 'palette', tool: 'select' },
+    }),
+    surviving ? 'Clef change applied.' : 'Clef change removed.',
+  );
+}
+
+function preservationFailureText(
+  reason: ReturnType<typeof preserveClefMelodyResult>['reason'],
+): string {
+  return reason === 'overflow'
+    ? 'note positions would overflow'
+    : 'pitches or written accidentals cannot be preserved safely';
+}
+
+/** Move the keyboard clef-placement cursor between score slots and staff lines. */
+function moveKeyboardClefCursor(
+  state: EditorSession,
+  action: ActionOf<'clef-keyboard'>,
+): EditorSession {
+  if (
+    state.activeTool.kind !== 'place-clef' ||
+    state.pendingHistory ||
+    state.lyricMove
+  )
+    return state;
+  const order = deriveScoreOrder(state.history.present);
+  if (!order) return state;
+  const cursor = state.keyboardClefPlacement ?? {
+    boundary: scoreBoundaryAt(order, 0),
+    staffLine: 3 as const,
+  };
+  const resolved = resolveScoreBoundary(state.history.present, cursor.boundary);
+  if (!resolved)
+    return announce(
+      { ...state, keyboardClefPlacement: null },
+      'Placement target changed. Start keyboard placement again.',
+    );
+  let index = resolved.scoreIndex;
+  if (action.command === 'previous') index = Math.max(0, index - 1);
+  if (action.command === 'next') index = Math.min(order.length, index + 1);
+  if (action.command === 'first') index = 0;
+  if (action.command === 'last') index = order.length;
+  const line =
+    cursor.staffLine +
+    (action.command === 'up' ? 1 : action.command === 'down' ? -1 : 0);
+  const staffLine =
+    line === 1 || line === 2 || line === 3 || line === 4
+      ? line
+      : cursor.staffLine;
+  return announce(
+    {
+      ...state,
+      keyboardClefPlacement: {
+        boundary: scoreBoundaryAt(order, index),
+        staffLine,
+      },
+      hoveredPoint: null,
+      focusRequest: { kind: 'clef-placement' },
+    },
+    `${state.activeTool.clefType.toUpperCase()} clef, line ${staffLine}. ${index === order.length ? 'End of score' : 'Before ' + (order[index].type === 'clef' ? 'an authored clef' : 'a ' + order[index].type)}. Left/Right chooses a slot; Up/Down chooses a line; Enter inserts.`,
+  );
+}
+
+/** Open a placement transaction at the resolved slot and apply it at once. */
+function placeClef(
+  state: EditorSession,
+  action: ActionOf<'place-clef'>,
+): EditorSession {
+  if (
+    state.activeTool.kind !== 'place-clef' ||
+    state.activeTool.clefType !== action.clefType ||
+    state.pendingHistory ||
+    state.lyricMove
+  )
+    return state;
+  const layout = layoutChant(state.history.present, action.measureLyrics);
+  const placement = action.point
+    ? resolveGraphicalClefPlacement(layout, action.clefType, action.point)
+    : state.keyboardClefPlacement
+      ? resolveKeyboardClefPlacement(
+          layout,
+          action.clefType,
+          state.keyboardClefPlacement,
+        )
+      : null;
+  if (
+    !placement ||
+    insertClefChangeCandidate(
+      state.history.present,
+      {
+        id: action.id,
+        clef: placement.clef,
+        beforeNeumeId: placement.boundary.beforeNeumeId,
+        beforeDivisionId: placement.boundary.beforeDivisionId,
+      },
+      placement.boundary,
+    ) === state.history.present
+  )
+    return state;
+  const pending: EditorSession = {
+    ...state,
+    hoveredPoint: null,
+    clefTransaction: {
+      original: state.history.present,
+      previousSelection: state.selection,
+      id: action.id,
+      boundary: placement.boundary,
+      clef: placement.clef,
+      candidate: null,
+      placementTool: state.activeTool,
+    },
+  };
+  return reduceEditorSession(pending, { type: 'apply-clef-change' });
+}
+
+/** Phase 5: start, browse, commit or cancel a temporary lyric anchor move. */
+function reduceLyricMove(
+  state: EditorSession,
+  intent: LyricMoveAction,
+): EditorSession {
+  const move = state.lyricMove;
+  if (state.pendingHistory) return state;
+  if (intent.type === 'start') {
+    if (
+      move ||
+      !state.history.present.syllables.some((s) => s.id === intent.syllableId)
+    )
+      return state;
+    // Done uses the established commit-on-navigation policy, including stale recovery.
+    const resolved = state.lyrics
+      ? applyLyrics(state, { type: 'done' }, intent.newId)
+      : state;
+    if (resolved.lyrics) return resolved;
+    const syllable = resolved.history.present.syllables.find(
+      (s) => s.id === intent.syllableId,
+    );
+    if (!syllable) return state;
+    const previousLyrics = state.lyrics
+      ? reconcileLyricEntry(
+          resolved.history.present,
+          state.lyrics.kind === 'draft'
+            ? state.lyrics.original || state.lyrics.text !== ''
+              ? {
+                  kind: 'selected',
+                  syllableId: state.lyrics.original?.id ?? intent.newId,
+                }
+              : state.lyrics
+            : state.lyrics,
+        )
+      : null;
+    const anchorNote = findNeume(
+      resolved.history.present,
+      syllable.startsAtNeumeId,
+    )?.neume.notes[0];
+    return announce(
+      {
+        ...resolved,
+        lyrics: previousLyrics,
+        lyricMove: {
+          syllableId: syllable.id,
+          candidateId: syllable.startsAtNeumeId,
+          previousLyrics,
+          previousSelection: state.selection,
+        },
+        selection: selectSyllable(syllable.id),
+        activeTool: selectTool(),
+        hoveredPoint: null,
+        focusRequest: anchorNote
+          ? { kind: 'note', noteId: anchorNote.id }
+          : null,
+      },
+      `${resolved.announcement !== state.announcement ? resolved.announcement.text + ' ' : ''}Moving ${syllable.text} from neume ${resolved.history.present.neumes.findIndex((n) => n.id === syllable.startsAtNeumeId) + 1}. Click a highlighted destination to move immediately, or use Previous/Next or Left/Right then Enter. Escape cancels.`,
+    );
+  }
+  if (!move) return state;
+  const document = state.history.present;
+  const syllable = document.syllables.find((s) => s.id === move.syllableId);
+  if (intent.type === 'cancel')
+    return announce(
+      {
+        ...state,
+        lyricMove: null,
+        lyrics: reconcileLyricEntry(document, move.previousLyrics),
+        selection: reconcileSelection(document, move.previousSelection),
+        focusRequest: getSelectFocusRequest({
+          ...state,
+          selection: reconcileSelection(document, move.previousSelection),
+        }),
+      },
+      'Move canceled. Anchor unchanged.',
+    );
+  if (intent.type === 'browse') {
+    const targets = lyricMoveTargets(document, move.syllableId);
+    const current = document.neumes.findIndex((n) => n.id === move.candidateId);
+    const ordered = intent.direction === 1 ? targets : [...targets].reverse();
+    const candidateId = ordered.find(
+      (id) =>
+        (document.neumes.findIndex((n) => n.id === id) - current) *
+          intent.direction >
+        0,
+    );
+    if (!candidateId)
+      return announce(state, 'No further legal destination in this direction.');
+    const note = findNeume(document, candidateId)?.neume.notes[0];
+    return announce(
+      {
+        ...state,
+        lyricMove: { ...move, candidateId },
+        focusRequest: note ? { kind: 'note', noteId: note.id } : null,
+      },
+      `Destination neume ${document.neumes.findIndex((n) => n.id === candidateId) + 1}. Enter moves ${syllable?.text ?? 'syllable'} here.`,
+    );
+  }
+  const neumeId = intent.neumeId ?? move.candidateId;
+  const next = reassignLyricSyllable(document, move.syllableId, neumeId);
+  if (next === document) {
+    const reason = !findNeume(document, neumeId)
+      ? 'Destination no longer exists.'
+      : syllable?.startsAtNeumeId === neumeId
+        ? 'This is the current anchor; choose another destination.'
+        : document.syllables.some((s) => s.startsAtNeumeId === neumeId)
+          ? 'Destination already starts another syllable.'
+          : 'Destination would cross a neighboring syllable anchor.';
+    return announce(
+      state,
+      `${reason} Choose a highlighted neume, or Escape to cancel.`,
+    );
+  }
+  return announce(
+    {
+      ...state,
+      history: applyDocumentEdit(state.history, () => next),
+      lyricMove: null,
+      lyrics: reconcileLyricEntry(next, move.previousLyrics),
+      selection: selectSyllable(move.syllableId),
+      focusRequest: { kind: 'lyric', syllableId: move.syllableId },
+    },
+    `Moved ${syllable?.text ?? 'syllable'} to neume ${document.neumes.findIndex((n) => n.id === neumeId) + 1}.`,
+  );
+}
+
+/** Phase 6: Save or Discard the dirty draft, then run the deferred Undo/Redo. */
+function resolvePendingHistory(
+  state: EditorSession,
+  pending: NonNullable<EditorSession['pendingHistory']>,
+  action: ActionOf<'resolve-history'>,
+): EditorSession {
+  if (action.choice === 'cancel')
+    return {
+      ...state,
+      pendingHistory: null,
+      focusRequest: { kind: 'lyrics' },
+    };
+  const resolved =
+    action.choice === 'save'
+      ? applyLyrics(state, { type: 'done' }, action.newId)
+      : { ...state, lyrics: null };
+  if (resolved.lyrics) return resolved;
+  return reduceOrdinaryAction(
+    { ...resolved, pendingHistory: null },
+    { type: 'history', ...pending },
+  );
+}
+
+/** Phase 7: L opens lyric entry at the focused note or syllable. */
+function startLyricsAtFocus(
+  state: EditorSession,
+  action: ActionOf<'start-lyrics-at-focus'>,
+): EditorSession {
+  const document = state.history.present;
+  const target = action.target;
+  const neumeId =
+    target.kind === 'note'
+      ? findNote(document, target.noteId)?.neume.id
+      : document.syllables.find((s) => s.id === target.syllableId)
+          ?.startsAtNeumeId;
+  if (!neumeId || !findNeume(document, neumeId)) return state;
+  let next = applyLyrics(
+    state,
+    { type: state.lyrics ? 'navigate' : 'start', neumeId },
+    action.newId,
+  );
+  // Explicit L expresses editing intent; sequential navigation still pauses.
+  if (next.lyrics?.kind === 'occupied')
+    next = applyLyrics(
+      next,
+      { type: 'edit', syllableId: next.lyrics.syllableId },
+      action.newId,
+    );
+  // Mode activation uses focus as context, not as an implicit selection command.
+  return {
+    ...next,
+    selection:
+      state.selection.kind === 'neume-range' && next.lyrics
+        ? next.selection
+        : reconcileSelection(next.history.present, state.selection),
+  };
 }
 
 /**
