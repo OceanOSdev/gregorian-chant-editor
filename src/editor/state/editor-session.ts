@@ -966,14 +966,16 @@ function applyLyrics(
  * 3. Accidental placement: the four accidental actions; an active placement
  *    then swallows every action except `focus-handled`.
  * 4. Clef: step, policy and start may open or adjust a transaction; an active
- *    transaction owns every action (a stale document restores it); without
- *    one, keyboard and pointer clef placement open and apply a transaction.
+ *    transaction owns every action except `focus-handled`, and any other
+ *    action on a stale document restores it (an acknowledgement does not);
+ *    without one, keyboard and pointer clef placement open and apply a
+ *    transaction.
  * 5. Lyric move: anchor correction; an active move swallows every action
  *    except `focus-handled`.
  * 6. Pending history: only `resolve-history` and `focus-handled` answer.
  * 7. Lyric entry: `start-lyrics-at-focus` and `lyrics`; a dirty draft turns
  *    Undo/Redo into the pending prompt, and arming a non-clef tool or
- *    inserting saves the draft first.
+ *    inserting (except from an end-of-score entry) saves the draft first.
  * 8. Ordinary actions: `reduceOrdinaryAction` (tools, selection, insertion,
  *    divisions, engraving edits, history and focus acknowledgement).
  *
@@ -983,6 +985,13 @@ function applyLyrics(
  * announced and stale clipboard feedback is cleared. Step and place clef
  * actions re-enter this reducer for their start, draft or apply step, so each
  * step receives the same effects.
+ *
+ * Ordering is not the only exclusion. Several earlier-phase handlers also
+ * refuse while a later exclusive mode is active: `clipboardBlocked`,
+ * `extendPassageSelection`, the accidental actions and the clef start, step,
+ * policy and placement actions each check the lyric move, pending history or
+ * clef transaction themselves. A new exclusive mode may therefore need the
+ * same check in those earlier handlers, not only a guard in its own phase.
  */
 export function reduceEditorSession(
   state: EditorSession,
@@ -995,7 +1004,12 @@ export function reduceEditorSession(
   return clearStaleClipboardFeedback(state, action, next);
 }
 
-/** Phases 1–3, then phases 4–8 with their shared document-change effects. */
+/**
+ * Phases 1–3 answer here and return their own result unchanged; phases 4–8
+ * run in `reduceModeAction`, and only that result passes through
+ * `applyDocumentChangeEffects`. The split marks where those effects apply, not
+ * which phases are exclusive modes (accidental placement, phase 3, is one).
+ */
 function reduceOwnedAction(
   state: EditorSession,
   action: EditorAction,
@@ -1370,8 +1384,10 @@ function applyDocumentChangeEffects(
 
 /**
  * Phases 4–8: clef, lyric move, pending history, lyric entry, then ordinary
- * actions. Each early `return state` below is where an active mode claims an
- * action that a later phase would otherwise handle.
+ * actions. Each early `return state` below either lets an active mode claim an
+ * action that a later phase would otherwise handle, or drops a phase's own
+ * action while its mode is inactive (clef resolution without a transaction,
+ * `resolve-history` without a prompt).
  */
 function reduceModeAction(
   state: EditorSession,

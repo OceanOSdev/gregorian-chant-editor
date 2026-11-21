@@ -104,13 +104,27 @@ remembered neume kind, hover, selection, focus, and announcements remain outside
 `reduceEditorSession` is the only public transition. It gives each action to
 one owner in a fixed order: clipboard, passage selection, accidental placement,
 clef transaction, lyric move, pending history, lyric entry and then ordinary
-actions, followed by shared document-change effects. The numbered comment on
-`reduceEditorSession` is the authoritative map. To change a transition rule,
-edit the function for its phase (for example `resolveClefTransaction`,
-`reduceLyricMove` or `reduceOrdinaryAction`). Do not add guards in a later
-phase. An active mode's early return is what keeps later actions from running,
-so moving a phase changes behavior; `transition-precedence.test.ts` pins this
-order. A new action type belongs in the action group of the phase that owns it.
+actions. Shared document-change effects follow phases 4–8 only; the passage
+resize announcement and stale clipboard feedback follow every phase. The
+numbered comment on `reduceEditorSession` is the authoritative map.
+
+To change a transition rule, edit the function for its phase (for example
+`resolveClefTransaction`, `reduceLyricMove` or `reduceOrdinaryAction`). An
+active mode's early return keeps later phases from running, so moving a phase
+changes behavior. `transition-precedence.test.ts` characterizes that order
+from reachable states. It cannot distinguish lyric move from pending history,
+because starting a move refuses on its own while a prompt is pending.
+
+Ordering is not the only exclusion. Some earlier-phase actions refuse while a
+later exclusive mode is active: clipboard and passage extension, the accidental
+actions and the clef start, step, policy and placement actions each check the
+lyric move, pending history or clef transaction themselves. A new exclusive
+mode may therefore need guards in those earlier handlers as well as in its own
+phase. Phase 8's `change-clef` and `engraving-edit` still check pending history
+and lyric moves, which earlier phases already exclude; removing those redundant
+checks is deferred cleanup.
+
+A new action type belongs in the action group of the phase that owns it.
 Otherwise it is ordinary and must be handled by `reduceOrdinaryAction`'s
 exhaustive switch.
 

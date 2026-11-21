@@ -3,7 +3,7 @@
 Branch: `refactor/editor-readability-m4a`
 Target: `master`
 Base: current `master` at branch creation (2026-11-21)
-Status: Committed handoff plan; **no implementation has started**.
+Status: M4A implemented on this branch and in review ([PR #105](https://github.com/OceanOSdev/gregorian-chant-editor/pull/105), pending owner acceptance). The PR holds the actual verification. The starting inventory below describes the base, not the current tree.
 
 ## Why this milestone
 
