@@ -81,7 +81,7 @@ success criterion. Preserve `reduceEditorSession` as the caller's only
 entry point and avoid a broad public API expansion.
 
 The existing deliberate no-op cases in `reduceSessionAction` deserve
-special examination: a maintainer should be able to tell *why* an action
+special examination: a maintainer should be able to tell _why_ an action
 does not belong to ordinary handling, without searching three switches.
 
 ### 3. Characterize existing behavior before restructuring it
@@ -96,7 +96,7 @@ chains. In particular, trace:
 3. A clef change: start/draft/apply or cancel, including preserve-melody
    decisions and the conditions that suppress other actions.
 
-Add targeted *pure* regression tests if necessary to pin down ambiguous
+Add targeted _pure_ regression tests if necessary to pin down ambiguous
 guard precedence, no-ops, and representative outcomes before moving code.
 Favor tests that would fail if the ordering changed.
 
