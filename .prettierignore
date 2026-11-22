@@ -10,3 +10,4 @@ coverage/
 # Preserve bundled musical sources byte-for-byte.
 src/editor/examples/*.chant.json
 .verification-runs/
+.playwright/

@@ -15,9 +15,17 @@ fixtures, regression expectations, and manual browser verification.
 
 ## Test environment
 
-Vitest runs the suite as plain TypeScript. The repository currently has no DOM
-test environment, component testing library, browser automation dependency, or
-coverage requirement.
+Two separate runners own two kinds of test:
+
+- **Vitest** (`npm test`) runs plain TypeScript unit tests co-located with
+  their source modules (`*.test.ts`). It has no DOM test environment,
+  component testing library or coverage requirement.
+- **Playwright Test** (`npm run test:e2e`) runs real-browser end-to-end
+  workflows under `tests/e2e/` (`*.spec.ts`). It is an M1 pilot; see
+  [Playwright end-to-end tests](#playwright-end-to-end-tests-m1-pilot).
+
+`vite.config.ts` excludes `tests/e2e/**` from Vitest, so `npm test` never
+collects a Playwright spec.
 
 Prefer tests at the smallest pure seam:
 
@@ -55,8 +63,9 @@ Assertions should cover more than final values when identity matters:
 
 ## Automated and manual coverage
 
-The automated suite covers pure accessibility descriptions and interaction
-decisions. It does not execute actual React or browser behavior.
+The Vitest suite covers pure accessibility descriptions and interaction
+decisions. It does not execute actual React or browser behavior; the
+standalone browser drivers and the Playwright pilot do, headlessly.
 
 Manually verify important changes involving:
 
@@ -107,6 +116,7 @@ Other available scripts are:
 
 ```bash
 npm run test:watch
+npm run test:e2e
 npm run dev
 npm run preview
 ```
@@ -251,6 +261,88 @@ selection, isolation, outputs and results are in the
 [runner guide](verification/runner/README.md). The runner is local only; the
 standard gate above is unchanged. Individual drivers remain runnable
 standalone with their documented default endpoints.
+
+## Playwright end-to-end tests (M1 pilot)
+
+Playwright Test is being evaluated beside, not instead of, the standalone
+drivers and the runner above; all of them stay in use. Results, the
+scenario-by-scenario crosswalk to the legacy drivers and known differences are
+in the [M1 verification record](verification/playwright-m1/README.md).
+
+### Layout and division of labour
+
+- Vitest keeps pure domain, state, layout and geometry tests. Playwright is
+  for workflows that need a real browser: native pointer and keyboard input,
+  focus, dialogs, file choosers, downloads, storage and refresh.
+- Specs live in `tests/e2e/<area>.spec.ts`; shared code only in
+  `tests/e2e/helpers/`. `playwright.config.ts` is at the repository root and
+  `tsconfig.e2e.json` type-checks both as part of `npm run build`.
+- No page-object layer. Prefer role and label locators, web-first `expect`
+  assertions and `expect.poll`; never fixed sleeps. Use native
+  `page.mouse`/`page.keyboard`/`locator.click` for user actions, not DOM
+  event dispatch. `page.evaluate` is for controlled fixture setup (mounting a
+  document, centring a target) or reading state with no user-facing view
+  (rendered stable IDs, the localStorage cache); say why in a comment.
+- A known product defect is recorded with `test.fail()` and a comment that
+  names the contract it breaks, rather than weakening or skipping the
+  assertion.
+
+### Setup
+
+```bash
+npm ci
+npx playwright install chromium firefox
+```
+
+Playwright downloads its own Chromium and **patched Playwright Firefox**
+(Juggler protocol) into `~/.cache/ms-playwright`, pinned to the exact
+`@playwright/test` version in `package.json`. These are not the installed
+Chromium/Firefox that `npm run verify:browser` discovers on `PATH` (Firefox
+there is driven through WebDriver BiDi), so a result in one does not stand in
+for the other. On a Linux machine missing shared libraries, install them with
+`sudo npx playwright install-deps chromium firefox` (or `install --with-deps`).
+
+### Commands
+
+```bash
+npm run test:e2e                                  # both browsers, all specs
+npm run test:e2e -- --project=firefox             # one browser
+npm run test:e2e -- divisions                     # one spec file
+npm run test:e2e -- -g "Tab traverses"            # tests matching a title
+npm run test:e2e -- --repeat-each=5               # local stability check
+npx playwright show-report .playwright/report     # HTML report
+npx playwright show-trace <trace.zip>             # failure trace
+```
+
+### Servers, isolation and output
+
+Playwright's `webServer` starts two servers for every invocation through the
+runner's existing [`vite-server.mjs`](verification/runner/vite-server.mjs)
+launcher (the repository's own `vite.config.ts`, loopback, strict port):
+
+- the Vite **dev** server at `http://127.0.0.1:5180` with a private dependency
+  cache, for the development-only
+  `docs/verification/placement/browser-fixture.html` fixture;
+- a fresh `vite build` into `.playwright/preview-dist/` served by
+  **`vite preview`** at `http://127.0.0.1:4180`, so preview specs exercise
+  built assets, never the dev server or `dist/`.
+
+Each spec selects its origin with `test.use({ baseURL })` from
+`tests/e2e/helpers/origins.ts`. `reuseExistingServer` is off: if anything
+already listens on either port, the run fails instead of testing it. Every
+test gets a new browser context, so storage starts empty and owner data is
+never touched. Playwright stops both servers after the run, including after
+failures. Reports, traces, failure screenshots, the preview build and the Vite
+cache all go to the ignored `.playwright/` directory; nothing generated is
+committed.
+
+### Limits
+
+The pilot covers a subset of two drivers (see the crosswalk); it retires no
+driver and is not part of the standard gate or hosted CI. Like the drivers,
+it is headless: it does not establish foreground window focus, OS zoom, native
+popups such as the select list, IME or spoken screen-reader output. WebKit,
+visual snapshots and routine CI are later milestones.
 
 ## Feature-specific verification index
 

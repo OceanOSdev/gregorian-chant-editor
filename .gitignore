@@ -27,3 +27,6 @@ run_this_to_resume_codex.sh
 
 # Browser verification runner output (docs/verification/runner)
 .verification-runs/
+
+# Playwright E2E reports, traces, preview build and Vite cache (tests/e2e)
+.playwright/
