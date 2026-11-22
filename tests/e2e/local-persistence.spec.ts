@@ -119,10 +119,10 @@ async function importThroughFileChooser(
 
 // Sets the bytes on the real (hidden) file input, which fires its change
 // event, without a picker. Playwright Firefox 1.65.1 intermittently never
-// reports a third or later Import picker in the same page (after an accepted
-// import or a download; page.bringToFront() did not help), while each page's
-// first two pickers never failed locally. Tests therefore open at most two
-// native pickers per page and use this for later imports. See docs/testing.md.
+// reports a second or later Import picker in the same page, more often under
+// parallel load (page.bringToFront() did not help); no first picker in a page
+// failed locally. Each test therefore opens one native picker and uses this
+// for any later import. See docs/verification/playwright-m1/README.md.
 async function importThroughFileInput(
   page: Page,
   contents: string,
@@ -183,17 +183,11 @@ test('first load saves nothing; a committed edit saves and survives refresh with
   await expect(lyricLanguage(page)).toHaveValue('en');
 });
 
-test('import via the native file chooser with cancel and accept, reject a malformed file, then New with cancel/accept', async ({
+test('import via the native file chooser, cancel a replacement, reject a malformed file, then New with cancel/accept', async ({
   page,
 }) => {
   await lyricLanguage(page).selectOption('el');
-  const beforeImport = await cachedText(page);
-
-  // Cancelling the replacement prompt keeps the cached score.
-  await answerNextConfirm(page, false, () =>
-    importThroughFileChooser(page, JSON.stringify(fixture)),
-  );
-  expect(await cachedText(page)).toBe(beforeImport);
+  await expect.poll(() => cachedText(page)).not.toBeNull();
 
   await answerNextConfirm(page, true, () =>
     importThroughFileChooser(page, JSON.stringify(fixture)),
@@ -205,8 +199,20 @@ test('import via the native file chooser with cancel and accept, reject a malfor
     page.getByRole('button', { name: 'Edit chant title: Salve / Regina' }),
   ).toBeVisible();
 
-  // A malformed file is rejected, announced, and leaves the cache intact.
+  // Cancelling the replacement prompt keeps the cached score.
   const afterImport = await cachedText(page);
+  await answerNextConfirm(page, false, () =>
+    importThroughFileInput(
+      page,
+      JSON.stringify({
+        ...fixture,
+        document: { ...fixture.document, title: 'Canceled' },
+      }),
+    ),
+  );
+  expect(await cachedText(page)).toBe(afterImport);
+
+  // A malformed file is rejected, announced, and leaves the cache intact.
   await importThroughFileInput(page, '{broken');
   await expect(
     page.getByRole('region', { name: 'Document' }).getByRole('alert'),
