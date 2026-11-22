@@ -147,3 +147,23 @@ records all 34 supported jobs passing, including this record's supported browser
 pairs, with six expected unsupported pairs and passing hosted CI. Firefox
 mid-score-clefs 150% CSS-zoom intermittency remains unresolved; a passing run
 does not establish a fix. Existing headless and manual acceptance limits remain.
+
+## Issue #112: note-properties dismissal at 150% CSS zoom (2026-11-22)
+
+From `7062268` through `d1439ed`, `browser-check.mjs` failed in
+`closeNoteProperties()` in its third selected-cue pass (480px at 150% CSS
+zoom). `selection-cue-firefox.mjs` failed at the same step with `move target
+out of bounds`. The Close button's centre was below the 1100px viewport.
+`elementFromPoint()` returned `null`, and every dispatched event reached
+`<html>`. Keyboard activation of Close worked at the same zoom.
+
+The cause was an application defect, not a stale driver. The note panel's
+client-pixel placement was written to its inline CSS pixels, and root
+`zoom` scaled it a second time. `7062268` moved the panel below the note,
+which exposed the defect. Before that commit, the panel sat above the note
+and stayed onscreen by chance.
+
+The fix converts the panel's placement inputs into its own CSS pixels; see
+the [CSS zoom toolbar record](../css-zoom-toolbars/README.md). Neither driver
+in this directory changed. Both pass again at 1440px, 320px and 150% CSS
+zoom.

@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  positionNoteToolbar,
+  positionZoomedNoteToolbar,
   type NoteToolbarPosition,
 } from '../interaction/position-note-toolbar';
 import type { ChantLayout } from '../layout/layout-chant';
@@ -97,11 +97,12 @@ export function AccidentalContextToolbar({
         setPosition(null);
         return null;
       }
-      const next = positionNoteToolbar(b, viewport, {
-        width: Math.min(320, viewport.right - viewport.left - 16),
-        height:
-          surface.scrollHeight + surface.offsetHeight - surface.clientHeight,
-      });
+      const next = positionZoomedNoteToolbar(
+        b,
+        viewport,
+        surface.scrollHeight + surface.offsetHeight - surface.clientHeight,
+        surface.currentCSSZoom,
+      );
       setPosition(next);
       return next;
     };
