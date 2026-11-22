@@ -92,6 +92,52 @@ the marker.
   inside the division's padded hit target. The assertion therefore compares it
   with the division ink, which is the contract.
 
-## Results
+## Results (2026-11-22)
 
-Recorded after implementation; see below.
+Implementation revision `c421a5f` (clean tree). The legacy drivers and the
+Playwright specs ran on that same revision. Linux x64, Node 24.12.0 (the
+repository declares 24.18.0), Playwright 1.65.1 with Chromium `chromium-1255`
+and Firefox 159.0 (`firefox-1572`). The runner used installed Chromium
+157.0.8103.38 (snap) and Firefox 146.0.
+
+Standard gate, all exit 0: `format:check`, `lint`, `test` (117 files /
+2,681 tests, no Playwright spec collected), `build` (including
+`tsconfig.e2e.json`), `git diff --check` and `test:verify-runner` (28/28).
+
+| Check                                                                                                     | Chromium                   | Firefox                    |
+| --------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------- |
+| Legacy `divisions` (`npm run verify:browser -- --driver divisions,local-persistence --browser both -j 2`) | passed, 37.2 s             | passed, 39.1 s             |
+| Legacy `local-persistence` (same run)                                                                     | passed, 12.8 s             | passed, 16.1 s             |
+| `divisions.spec.ts` (9 tests per browser)                                                                 | 9 passed (1 expected fail) | 9 passed (1 expected fail) |
+| `local-persistence.spec.ts` (5 tests per browser)                                                         | 5 passed                   | 5 passed                   |
+
+Legacy run: 55.8 s wall clock, cleanup succeeded, run directory
+`.verification-runs/run-2026-11-22T11-03-49-148Z-Xdq81W/` (ignored, not
+committed). `npm run test:e2e`: 28 passed in 14.0 s with 8 workers (14.4 s wall
+clock including both servers and the preview build). "Expected fail" is the
+`test.fail()` pointer-selection test. Playwright counts it as passed because it
+failed as declared.
+
+The two runners cover different amounts. The legacy drivers run every
+scenario in the crosswalk, and the specs run only the rows marked Ported or
+Partial. Neither run produced an unsupported pair. The only behavioural
+difference between them is the Firefox Enter activation described above.
+
+Stability and lifecycle, at the same spec bytes:
+
+- `npm run test:e2e -- --repeat-each=5`, twice: 140/140 each. Three more
+  single runs: 28/28 each. `local-persistence` with `--repeat-each=10
+--workers=16`: 100/100.
+- Earlier spec revisions (one picker per page not yet enforced) failed
+  intermittently in Firefox only; see
+  [browser differences](#browser-differences). One such failure was in the
+  first single run at `18f5364`; the legacy drivers passed at that revision too.
+- A forced failure run (`--timeout=1`, 28 failed) left no Playwright browser
+  or web-server process. With 127.0.0.1:5180 already in use, the run refused
+  to start ("is already used … set reuseExistingServer") rather than testing
+  the other server.
+- `git status` stayed clean after every run; all output stayed in
+  `.playwright/` and `.verification-runs/`.
+
+Not run: hosted CI (not part of this milestone), WebKit, and foreground
+browser, OS zoom, native popup, IME or screen-reader checks.
