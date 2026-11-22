@@ -16,11 +16,6 @@ import {
   type NoteContextToolbarHandle,
 } from './NoteContextToolbar';
 import {
-  canonicalBOwner,
-  pitchContexts,
-  resolveEffectivePitches,
-} from '../domain/accidentals';
-import {
   eligibleAccidentalAnchors,
   placeAccidental,
   updateAccidental,
@@ -40,7 +35,6 @@ import {
 import { updateDocumentTitle } from '../commands/update-document-title';
 import { DocumentControls } from './DocumentControls';
 import { usePersistedSession } from '../persistence/use-persisted-session';
-import { isDirtyLyricEntry } from '../state/lyric-entry';
 import {
   resolveGraphicalClefPlacement,
   resolveKeyboardClefPlacement,
@@ -98,6 +92,19 @@ import {
   lyricMoveTargets,
   type EditorFocusRequest,
 } from '../state/editor-session';
+import {
+  accidentalToolbarAllowed,
+  documentControlsBlocked,
+  entryTargetingAvailable,
+  exclusiveModeActive,
+  historyButtonAvailable,
+  lyricLanguageBlocked,
+  noteToolbarAllowed,
+  pitchHandlingBlocked,
+  pitchHandlingShown,
+  wholeNeumeToolbarAllowed,
+} from '../state/editor-availability';
+import { projectSelectedNoteAccidental } from '../state/selected-note-accidental';
 import {
   clearSelection,
   resolveNeumeRange,
@@ -209,16 +216,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       : null;
   const selectedNote = selectedNoteLocation?.note;
   const selectedNoteId = selectedNote?.id;
-  const pitch = selectedNoteId
-    ? resolveEffectivePitches(history.present)?.get(selectedNoteId)
-    : null;
-  const contexts = selectedNoteId ? pitchContexts(history.present) : null;
-  const bOwner =
-    selectedNoteId && contexts
-      ? canonicalBOwner(contexts, selectedNoteId)
-      : null;
-  const writtenSign = bOwner
-    ? history.present.accidentals.find((a) => a.ownerNoteId === bOwner.note.id)
+  const selectedNoteAccidental = selectedNoteId
+    ? projectSelectedNoteAccidental(history.present, selectedNoteId)
     : null;
   const getSelectedNoteElement = useCallback(
     () =>
@@ -241,49 +240,60 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   const neumeToolbarOrigin = useRef<{ neumeId: string; noteId: string } | null>(
     null,
   );
-  const getSelectedNeumeElement = useCallback(() => {
-    if (!selectedWholeNeumeId) return null;
-    const group = scoreWorkspace.current?.querySelector<SVGGElement>(
-      `[data-neume-id="${CSS.escape(selectedWholeNeumeId)}"]`,
-    );
+  const getSelectedNeumeGroup = useCallback(
+    () =>
+      selectedWholeNeumeId
+        ? (scoreWorkspace.current?.querySelector<SVGGElement>(
+            `[data-neume-id="${CSS.escape(selectedWholeNeumeId)}"]`,
+          ) ?? null)
+        : null,
+    [selectedWholeNeumeId],
+  );
+  /** The selected whole neume's constituent that has DOM focus, if any. */
+  const getFocusedNeumeConstituent = useCallback(() => {
     const active = document.activeElement;
-    if (
-      active instanceof SVGGElement &&
+    return active instanceof SVGGElement &&
       active.dataset.noteId &&
-      group?.contains(active)
-    ) {
+      getSelectedNeumeGroup()?.contains(active)
+      ? active
+      : null;
+  }, [getSelectedNeumeGroup]);
+  /** Remember a focused constituent as the toolbar's return target. */
+  const recordNeumeToolbarOrigin = useCallback(() => {
+    const focused = getFocusedNeumeConstituent();
+    if (selectedWholeNeumeId && focused?.dataset.noteId)
       neumeToolbarOrigin.current = {
         neumeId: selectedWholeNeumeId,
-        noteId: active.dataset.noteId,
+        noteId: focused.dataset.noteId,
       };
-      return active;
-    }
+  }, [getFocusedNeumeConstituent, selectedWholeNeumeId]);
+  /** Focused constituent, else the remembered origin, else the first note. */
+  const getSelectedNeumeElement = useCallback(() => {
+    const group = getSelectedNeumeGroup();
+    if (!group) return null;
     const origin = neumeToolbarOrigin.current;
     const remembered =
-      origin?.neumeId === selectedWholeNeumeId
-        ? group?.querySelector<SVGGElement>(
+      origin && origin.neumeId === selectedWholeNeumeId
+        ? group.querySelector<SVGGElement>(
             `[data-note-id="${CSS.escape(origin.noteId)}"]`,
           )
         : null;
     return (
-      remembered ?? group?.querySelector<SVGGElement>('[data-note-id]') ?? null
+      getFocusedNeumeConstituent() ??
+      remembered ??
+      group.querySelector<SVGGElement>('[data-note-id]')
     );
-  }, [selectedWholeNeumeId]);
-  const neumeToolbarAvailable = Boolean(
-    selectedWholeNeume &&
-    activeTool.kind === 'select' &&
-    !session.lyrics &&
-    !session.pendingHistory &&
-    !session.lyricMove &&
-    !session.clefTransaction,
-  );
-  const noteToolbarAvailable = Boolean(
-    selectedNote &&
-    activeTool.kind === 'select' &&
-    !session.pendingHistory &&
-    !session.lyricMove &&
-    !session.clefTransaction,
-  );
+  }, [getSelectedNeumeGroup, getFocusedNeumeConstituent, selectedWholeNeumeId]);
+  // The whole-neume toolbar reads its anchor for positioning, focus, Escape
+  // and Tab. Each read first records a focused constituent as the origin.
+  const getNeumeToolbarAnchor = useCallback(() => {
+    recordNeumeToolbarOrigin();
+    return getSelectedNeumeElement();
+  }, [recordNeumeToolbarOrigin, getSelectedNeumeElement]);
+  const neumeToolbarAvailable =
+    Boolean(selectedWholeNeume) && wholeNeumeToolbarAllowed(session);
+  const noteToolbarAvailable =
+    Boolean(selectedNote) && noteToolbarAllowed(session);
   function changeWrittenAccidental(kind: 'flat' | 'natural' | undefined) {
     if (!selectedNote) return;
     const id = crypto.randomUUID();
@@ -407,13 +417,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           draftTransaction.clef,
         )
       : null;
-  // Tool changes wait for a lyric move, history prompt or clef draft to end.
-  const toolChangesBlocked = Boolean(
-    session.lyricMove || session.pendingHistory || session.clefTransaction,
-  );
-  // Lyrics and Insert additionally need a single target, not a passage.
-  const canTargetEntry =
-    selection.kind !== 'neume-range' && !toolChangesBlocked;
+  // Presentation availability; see editor-availability.ts for each rule.
+  const canTargetEntry = entryTargetingAvailable(session);
   const armTool = useCallback(
     (tool: EditorTool) =>
       // The reducer ignores the lyric commit ID when arming a clef.
@@ -754,13 +759,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       >
         <DocumentControls
           document={history.present}
-          blocked={Boolean(
-            isDirtyLyricEntry(session.lyrics) ||
-            session.clefTransaction ||
-            session.lyricMove ||
-            session.pendingHistory ||
-            session.accidentalTargetId,
-          )}
+          blocked={documentControlsBlocked(session)}
           updateTitle={(title) =>
             dispatch({
               type: 'engraving-edit',
@@ -780,13 +779,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           replaceCache={persistence.replaceCache}
           recoverySource={persistence.recoverySource}
         />
-        <fieldset
-          disabled={Boolean(
-            session.clefTransaction ||
-            session.pendingHistory ||
-            session.lyricMove,
-          )}
-        >
+        <fieldset disabled={exclusiveModeActive(session)}>
           <legend>Initial clef</legend>
           <label>
             Clef type{' '}
@@ -836,9 +829,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           <select
             aria-label="Lyric language"
             value={lyricLanguage(history.present.lyricLanguage)}
-            disabled={
-              Boolean(session.lyricMove) || Boolean(session.pendingHistory)
-            }
+            disabled={lyricLanguageBlocked(session)}
             onChange={(event) => {
               const language = lyricLanguage(event.currentTarget.value);
               dispatch({
@@ -864,7 +855,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             activeTool={activeTool}
             rememberedKind={rememberedKind}
             quilismaFigure={session.quilismaFigure}
-            disabled={toolChangesBlocked}
+            disabled={exclusiveModeActive(session)}
             focusRequest={session.focusRequest}
             onArmTool={armTool}
             onSelectTool={selectEditingTool}
@@ -887,8 +878,8 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             canCopy={canCopy}
             canPaste={canPaste}
             copiedNeumeCount={clipboard ? clipboard.neumeCount : null}
-            canUndo={canUndo && !session.lyricMove}
-            canRedo={canRedo && !session.lyricMove}
+            canUndo={historyButtonAvailable(session, 'undo')}
+            canRedo={historyButtonAvailable(session, 'redo')}
             onStartLyrics={startLyricsAtSelection}
             onInsert={() => insertRememberedNeume()}
             onCopy={copyPassage}
@@ -897,16 +888,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             onRedo={() => navigateHistory('redo')}
           />
         </EditorStickyToolbar>
-        {activeTool.kind === 'place-clef' ||
-        session.selection.kind === 'clef-change' ||
-        session.clefTransaction ? (
+        {pitchHandlingShown(session) ? (
           <fieldset
             className="clef-insertion-behavior"
-            disabled={Boolean(
-              session.clefTransaction?.candidate ||
-              session.pendingHistory ||
-              session.lyricMove,
-            )}
+            disabled={pitchHandlingBlocked(session)}
             aria-describedby="clef-insertion-description"
           >
             <legend>Pitch handling</legend>
@@ -960,11 +945,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         {divisionTarget ? (
           <fieldset
             className="division-controls"
-            disabled={Boolean(
-              session.lyricMove ||
-              session.pendingHistory ||
-              session.clefTransaction,
-            )}
+            disabled={exclusiveModeActive(session)}
           >
             <legend>Divisions</legend>
             <div data-notation-shortcuts>
@@ -1095,7 +1076,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 noteToolbarAvailable || neumeToolbarAvailable
                   ? () => {
                       // Record the entry constituent before focus leaves it.
-                      if (neumeToolbarAvailable) getSelectedNeumeElement();
+                      if (neumeToolbarAvailable) recordNeumeToolbarOrigin();
                       return noteToolbar.current?.focus() ?? false;
                     }
                   : undefined
@@ -1306,10 +1287,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               ref={noteToolbar}
               note={selectedNote}
               accidental={
-                bOwner && pitch
+                selectedNoteAccidental
                   ? {
-                      kind: writtenSign?.kind,
-                      pitch: `Effective B${pitch.alteration === -1 ? '-flat' : '-natural'} (${writtenSign ? 'written' : pitch.sourceAccidentalId ? 'inherited' : 'default'}).`,
+                      kind: selectedNoteAccidental.writtenKind,
+                      pitch: selectedNoteAccidental.description,
                       onChange: changeWrittenAccidental,
                     }
                   : undefined
@@ -1334,7 +1315,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               note={null}
               neume={selectedWholeNeume}
               layout={layout}
-              getNoteElement={getSelectedNeumeElement}
+              getNoteElement={getNeumeToolbarAnchor}
               onFormChange={() => undefined}
               formError={session.noteFormError}
               formErrorKey={session.noteFormErrorSequence}
@@ -1346,12 +1327,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               }
             />
           ) : null}
-          {selectedAccidental &&
-          activeTool.kind === 'select' &&
-          !session.clefTransaction &&
-          !session.pendingHistory &&
-          !session.lyrics &&
-          !session.lyricMove ? (
+          {selectedAccidental && accidentalToolbarAllowed(session) ? (
             <AccidentalContextToolbar
               ref={accidentalToolbar}
               key={selectedAccidental.id}
