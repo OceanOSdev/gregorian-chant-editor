@@ -69,7 +69,10 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { deleteNeumeResult } from '../commands/delete-neume';
 import { deleteNoteResult } from '../commands/delete-note';
 import { moveNeumeVerticallyResult } from '../commands/move-neume';
-import { moveNoteVerticallyResult } from '../commands/move-note';
+import {
+  moveNoteVerticallyResult,
+  type StaffPositionDelta,
+} from '../commands/move-note';
 import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
@@ -82,6 +85,10 @@ import {
   getPendingTransactionCancel,
 } from '../interaction/editor-shortcuts';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
+import {
+  resolveNeumeForNoteActivation,
+  resolveNoteActivation,
+} from '../interaction/score-note-activation';
 import {
   layoutChant,
   staffLineSpacing,
@@ -407,17 +414,39 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             )
           : null
       : null;
+  // A clef transaction that is still an editable draft: neither a boundary
+  // review nor a pending candidate. Only such a draft is previewed in the score
+  // and edited in place, so `clefDraftPreview` and `clefEdit` share this rule.
   const draftTransaction = session.clefTransaction;
-  const clefDraftPreview =
+  const editableClefDraft =
     draftTransaction &&
     !draftTransaction.boundary &&
     !draftTransaction.candidate
-      ? layoutClefDraftPreview(
-          layout,
-          draftTransaction.id,
-          draftTransaction.clef,
-        )
+      ? draftTransaction
       : null;
+  const clefDraftPreview = editableClefDraft
+    ? layoutClefDraftPreview(
+        layout,
+        editableClefDraft.id,
+        editableClefDraft.clef,
+      )
+    : null;
+  const clefEdit = editableClefDraft
+    ? { id: editableClefDraft.id, clef: editableClefDraft.clef }
+    : null;
+  // The lyric move as the score shows it: its anchor neume (empty if the
+  // syllable is gone) and the neumes it may legally move to.
+  const activeLyricMove = session.lyricMove;
+  const lyricMoveView = activeLyricMove
+    ? {
+        ...activeLyricMove,
+        anchorId:
+          history.present.syllables.find(
+            (s) => s.id === activeLyricMove.syllableId,
+          )?.startsAtNeumeId ?? '',
+        legalIds: lyricMoveTargets(history.present, activeLyricMove.syllableId),
+      }
+    : null;
   // Presentation availability; see editor-availability.ts for each rule.
   const canTargetEntry = entryTargetingAvailable(session);
   const armTool = useCallback(
@@ -488,6 +517,134 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       point,
       measureLyrics,
       ids: allocateInsertionIds(),
+    });
+  }
+
+  // ScoreSvg handlers. Each maps a score event to session actions; what the
+  // activation of a note means is decided in score-note-activation.ts.
+
+  /** A note was clicked or activated with Enter/Space. */
+  function handleActivateNote(noteId: string) {
+    // Reactivating the selected note re-shows its dismissed toolbar.
+    if (noteId === selectedNoteId) noteToolbar.current?.show();
+    const intent = resolveNoteActivation(
+      history.present,
+      session.lyrics,
+      noteId,
+    );
+    if (intent.type === 'navigate-lyrics')
+      lyricAction({ type: 'navigate', neumeId: intent.neumeId });
+    else dispatch({ type: 'select', selection: selectNote(noteId) });
+  }
+
+  /** A note was Shift-activated: extend the selection to its neume. */
+  function handleActivateNeumeForNote(noteId: string) {
+    const intent = resolveNeumeForNoteActivation(
+      history.present,
+      session.lyrics,
+      noteId,
+    );
+    if (intent?.type === 'navigate-lyrics')
+      lyricAction({ type: 'navigate', neumeId: intent.neumeId });
+    else if (intent?.type === 'extend-selection')
+      dispatch({ type: 'extend-selection', noteId });
+  }
+
+  /** Focus the open note or whole-neume toolbar from the score. */
+  function handleFocusNoteModifiers() {
+    // Record the entry constituent before focus leaves it.
+    if (neumeToolbarAvailable) recordNeumeToolbarOrigin();
+    return noteToolbar.current?.focus() ?? false;
+  }
+
+  function handleMoveNote(noteId: string, delta: StaffPositionDelta) {
+    dispatch({
+      type: 'edit',
+      musicalSelectionEdit: true,
+      edit: (document) => moveNoteVerticallyResult(document, noteId, delta),
+      focusNoteId: noteId,
+      noteMoveId: noteId,
+    });
+  }
+
+  function handleMoveNeume(
+    neumeId: string,
+    delta: StaffPositionDelta,
+    invokingNoteId: string,
+  ) {
+    dispatch({
+      type: 'edit',
+      musicalSelectionEdit: true,
+      edit: (document) => moveNeumeVerticallyResult(document, neumeId, delta),
+      focusNoteId: invokingNoteId,
+    });
+  }
+
+  function handleDeleteNote(noteId: string) {
+    noteToolbar.current?.show();
+    dispatch({
+      type: 'edit',
+      musicalSelectionEdit: true,
+      formDeletionNoteId: noteId,
+      edit: (document) => deleteNoteResult(document, noteId),
+      clearSelection: true,
+    });
+  }
+
+  function handleDeleteNeume(neumeId: string) {
+    dispatch({
+      type: 'edit',
+      musicalSelectionEdit: true,
+      edit: (document) => deleteNeumeResult(document, neumeId),
+      clearSelection: true,
+    });
+  }
+
+  /** Place the armed clef by pointer, or at the keyboard target without a point. */
+  function handlePlaceClef(point?: SvgPoint) {
+    // Invalid pointer intent allocates no ID; the reducer validates again.
+    if (
+      activeTool.kind !== 'place-clef' ||
+      (point &&
+        !resolveGraphicalClefPlacement(layout, activeTool.clefType, point))
+    )
+      return;
+    dispatch({
+      type: 'place-clef',
+      clefType: activeTool.clefType,
+      id: crypto.randomUUID(),
+      point,
+      measureLyrics,
+    });
+  }
+
+  /** Deleting a mid-score clef runs the clef-change transaction to removal. */
+  function handleDeleteClefChange(id: string) {
+    dispatch({ type: 'start-clef-change', id });
+    dispatch({ type: 'apply-clef-change', remove: true });
+  }
+
+  function handleSelectDivision(divisionId: string) {
+    setFocusedDivisionId(divisionId);
+    dispatch({
+      type: 'select',
+      selection: { kind: 'division', divisionId },
+    });
+  }
+
+  function handlePlaceDivision(point: SvgPoint) {
+    // A point outside every caret slot allocates no ID.
+    if (
+      activeTool.kind !== 'place-division' ||
+      !resolveScoreSlot(layout, point)
+    )
+      return;
+    dispatch({
+      type: 'place-division',
+      kind: activeTool.divisionKind,
+      point,
+      id: crypto.randomUUID(),
+      measureLyrics,
     });
   }
 
@@ -904,34 +1061,12 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
               }
               onFocusNoteModifiers={
                 noteToolbarAvailable || neumeToolbarAvailable
-                  ? () => {
-                      // Record the entry constituent before focus leaves it.
-                      if (neumeToolbarAvailable) recordNeumeToolbarOrigin();
-                      return noteToolbar.current?.focus() ?? false;
-                    }
+                  ? handleFocusNoteModifiers
                   : undefined
               }
               clefPreview={clefPlacement?.preview ?? null}
               clefDraftPreview={clefDraftPreview}
-              onPlaceClef={(point) => {
-                if (
-                  activeTool.kind !== 'place-clef' ||
-                  (point &&
-                    !resolveGraphicalClefPlacement(
-                      layout,
-                      activeTool.clefType,
-                      point,
-                    ))
-                )
-                  return;
-                dispatch({
-                  type: 'place-clef',
-                  clefType: activeTool.clefType,
-                  id: crypto.randomUUID(),
-                  point,
-                  measureLyrics,
-                });
-              }}
+              onPlaceClef={handlePlaceClef}
               onClefKeyboard={(command) =>
                 dispatch({ type: 'clef-keyboard', command })
               }
@@ -942,65 +1077,23 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                   selection: { kind: 'clef-change', clefChangeId },
                 })
               }
-              clefEdit={
-                draftTransaction &&
-                !draftTransaction.boundary &&
-                !draftTransaction.candidate
-                  ? { id: draftTransaction.id, clef: draftTransaction.clef }
-                  : null
-              }
+              clefEdit={clefEdit}
               onStepClefChange={(id, direction) =>
                 dispatch({ type: 'step-clef-change', id, direction })
               }
-              onDeleteClefChange={(id) => {
-                dispatch({ type: 'start-clef-change', id });
-                dispatch({ type: 'apply-clef-change', remove: true });
-              }}
+              onDeleteClefChange={handleDeleteClefChange}
               onSelectClef={() =>
                 dispatch({ type: 'select', selection: { kind: 'clef' } })
               }
               onChangeClef={(clef) => dispatch({ type: 'change-clef', clef })}
               layout={layout}
               divisionPreview={divisionPreview}
-              onSelectDivision={(divisionId) => {
-                setFocusedDivisionId(divisionId);
-                dispatch({
-                  type: 'select',
-                  selection: { kind: 'division', divisionId },
-                });
-              }}
+              onSelectDivision={handleSelectDivision}
               onDeleteDivision={(id) =>
                 dispatch({ type: 'delete-division', id })
               }
-              onPlaceDivision={(point) => {
-                if (
-                  activeTool.kind !== 'place-division' ||
-                  !resolveScoreSlot(layout, point)
-                )
-                  return;
-                dispatch({
-                  type: 'place-division',
-                  kind: activeTool.divisionKind,
-                  point,
-                  id: crypto.randomUUID(),
-                  measureLyrics,
-                });
-              }}
-              lyricMove={
-                session.lyricMove
-                  ? {
-                      ...session.lyricMove,
-                      anchorId:
-                        history.present.syllables.find(
-                          (s) => s.id === session.lyricMove?.syllableId,
-                        )?.startsAtNeumeId ?? '',
-                      legalIds: lyricMoveTargets(
-                        history.present,
-                        session.lyricMove.syllableId,
-                      ),
-                    }
-                  : null
-              }
+              onPlaceDivision={handlePlaceDivision}
+              lyricMove={lyricMoveView}
               onMoveDestination={(neumeId) =>
                 dispatch({
                   type: 'lyric-move',
@@ -1026,18 +1119,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 syncNotationFocus();
                 dispatch({ type: 'focus-handled', request });
               }}
-              onSelectNote={(noteId) => {
-                if (noteId === selectedNoteId) noteToolbar.current?.show();
-                const note = findNote(history.present, noteId);
-                if (
-                  session.lyrics &&
-                  session.lyrics.kind !== 'recovery' &&
-                  note
-                )
-                  lyricAction({ type: 'navigate', neumeId: note.neume.id });
-                else
-                  dispatch({ type: 'select', selection: selectNote(noteId) });
-              }}
+              onSelectNote={handleActivateNote}
               rangeIds={range?.ids}
               onExtendSelection={
                 session.lyrics
@@ -1045,22 +1127,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                   : (noteId, direction) =>
                       dispatch({ type: 'extend-selection', noteId, direction })
               }
-              onSelectNeumeForNote={(noteId) => {
-                const note = findNote(history.present, noteId);
-                if (
-                  note &&
-                  session.lyrics &&
-                  session.lyrics.kind !== 'recovery'
-                ) {
-                  lyricAction({ type: 'navigate', neumeId: note.neume.id });
-                  return;
-                }
-                if (note)
-                  dispatch({
-                    type: 'extend-selection',
-                    noteId,
-                  });
-              }}
+              onSelectNeumeForNote={handleActivateNeumeForNote}
               onPlacementPointerMove={(point) =>
                 dispatch({ type: 'hover', point })
               }
@@ -1068,43 +1135,10 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 dispatch({ type: 'hover', point: null })
               }
               onPlaceNeume={handlePlaceNeume}
-              onMoveNote={(noteId, delta) =>
-                dispatch({
-                  type: 'edit',
-                  musicalSelectionEdit: true,
-                  edit: (document) =>
-                    moveNoteVerticallyResult(document, noteId, delta),
-                  focusNoteId: noteId,
-                  noteMoveId: noteId,
-                })
-              }
-              onMoveNeume={(neumeId, delta, invokingNoteId) =>
-                dispatch({
-                  type: 'edit',
-                  musicalSelectionEdit: true,
-                  edit: (document) =>
-                    moveNeumeVerticallyResult(document, neumeId, delta),
-                  focusNoteId: invokingNoteId,
-                })
-              }
-              onDeleteNote={(noteId) => {
-                noteToolbar.current?.show();
-                dispatch({
-                  type: 'edit',
-                  musicalSelectionEdit: true,
-                  formDeletionNoteId: noteId,
-                  edit: (document) => deleteNoteResult(document, noteId),
-                  clearSelection: true,
-                });
-              }}
-              onDeleteNeume={(neumeId) =>
-                dispatch({
-                  type: 'edit',
-                  musicalSelectionEdit: true,
-                  edit: (document) => deleteNeumeResult(document, neumeId),
-                  clearSelection: true,
-                })
-              }
+              onMoveNote={handleMoveNote}
+              onMoveNeume={handleMoveNeume}
+              onDeleteNote={handleDeleteNote}
+              onDeleteNeume={handleDeleteNeume}
               onClearSelection={() =>
                 !session.lyrics &&
                 dispatch({ type: 'select', selection: clearSelection() })

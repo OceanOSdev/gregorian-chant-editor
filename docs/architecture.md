@@ -146,6 +146,9 @@ semantic insertion intent. It also validates stable focus targets after
 document changes. `editor-shortcuts.ts` classifies keys for `ChantEditor`'s
 document and `<main>` listeners, which keep event phase, propagation and
 dispatch; see [keyboard event precedence](editor-interactions.md#keyboard-event-precedence).
+`score-note-activation.ts` decides what activating a score note means (lyric
+navigation, selection or extending the selection to its neume) for
+`ChantEditor`'s `ScoreSvg` handlers.
 See [editor interactions](editor-interactions.md).
 
 ### `src/editor/layout/`
@@ -257,6 +260,15 @@ within the editor's score workspace, into view with the shared
 derives layout and selection projections, binds semantic edits and history
 navigation, owns the global keyboard listeners and composes the score and
 controls. Component state is not a second score model.
+
+Non-trivial `ScoreSvg` callbacks are named `handle*` functions in the shell
+(readability M4B-4), for example `handleActivateNote`, `handlePlaceClef` and
+`handleDeleteClefChange`. They keep focus orchestration, toolbar `show()`
+calls and event-time ID allocation, and map the pure decisions of
+`interaction/score-note-activation.ts` to session actions. One-line dispatch
+bindings stay inline. The view models `ScoreSvg` receives (`lyricMoveView`,
+`clefEdit` and `clefDraftPreview`) are computed once before the JSX; the two
+clef projections share one editable-draft condition.
 
 The editor toolbar is split by ownership (readability M1):
 
