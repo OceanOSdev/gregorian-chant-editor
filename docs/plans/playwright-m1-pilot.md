@@ -2,7 +2,7 @@
 
 Branch: `test/playwright-m1-pilot`
 Target: `master`
-Status: Approved for implementation (2026-11-22); no implementation or verification claimed by this plan.
+Status: **Completed** (historical record). Implemented and merged in [PR #120](https://github.com/OceanOSdev/gregorian-chant-editor/pull/120) (merge `fb86711`); see [Closeout](#closeout). The PR and the [M1 verification record](../verification/playwright-m1/README.md) hold the actual verification, including checks not performed. The sections below record the plan as approved; the acceptance checklist is left as written.
 
 ## Motivation and user-visible goal
 
@@ -72,3 +72,37 @@ Not included: whole-suite migration; deletion/replacement of the old runner; rew
 ## Delivery
 
 Implement on this branch, commit and push, and open a PR against `master`. Do **not** merge. Report the implementation commit SHA, key design choices, exact commands and results, cross-browser and legacy comparisons, any gaps or failures, and work intentionally deferred to M2/M3. Follow `docs/ai-workflow.md` verification tiers.
+
+## Closeout
+
+Completed 2026-11-22. The owner reviewed and accepted PR #120 and merged it
+with a merge commit.
+
+| Item                | Reference                                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| PR                  | [#120](https://github.com/OceanOSdev/gregorian-chant-editor/pull/120)                                       |
+| Merge commit        | `fb86711`                                                                                                   |
+| Reviewed PR head    | `263c89d` (implementation `18f5364` and `c421a5f`; results `263c89d`)                                       |
+| Hosted CI           | Format, Lint, Test and Build passed on `263c89d` and on `fb86711`. No Playwright job exists in CI           |
+| Verification record | [`docs/verification/playwright-m1/README.md`](../verification/playwright-m1/README.md) (crosswalk, results) |
+
+The resulting contracts are owned by the
+[testing guide](../testing.md#playwright-end-to-end-tests-m1-pilot).
+
+### Outstanding, not resolved by M1
+
+- **Division pointer selection defect:**
+  [issue #121](https://github.com/OceanOSdev/gregorian-chant-editor/issues/121).
+  Found by the pilot and kept out of M1 by agreement. `divisions.spec.ts`
+  marks it `test.fail()`; the fix should remove that marker.
+- **Playwright Firefox file chooser:** a second or later picker in one page
+  was intermittently not reported. The specs open one native picker per page.
+  This has not been checked in a foreground, installed Firefox.
+- **Partial and legacy-only coverage:** listed in the
+  [crosswalk](../verification/playwright-m1/README.md#coverage-crosswalk). No
+  legacy driver is retired or claimed equivalent.
+- **Deferred to later milestones:** further migration (M2), a Playwright CI job,
+  relocating the runner's `vite-server.mjs` if the runner is ever retired, and
+  WebKit.
+- **Not performed:** foreground focus, OS zoom, native popup, IME and
+  screen-reader checks.
