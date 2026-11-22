@@ -181,6 +181,14 @@ Home/End focus the first/last tool. Focus browsing changes only the roving Tab
 stop. Native Enter/Space or click activates the focused button. `aria-pressed`
 and the filled style identify the active tool independently of focus.
 
+Plain palette buttons (Virga, Punctum inclinatum, Quilisma, C clef, F clef)
+show an aria-hidden icon from the shared engraving geometry before their
+visible label, which stays their accessible name. At 48rem and narrower, icons
+sit only beside labels: Inclinatum and Quilisma hide their icons where there is
+no room (26rem and narrower, and Inclinatum between 40rem and 45rem), so the
+icons never make the sticky toolbar taller than it would be without them.
+Wider layouts may stack an icon above a wrapped label.
+
 The remembered neume starts at Punctum and changes only when a neume tool is
 activated. Select, Escape, focus browsing, score selection, syllable changes,
 and Undo/Redo do not erase or replace it. It is transient state outside history.

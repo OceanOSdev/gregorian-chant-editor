@@ -7,7 +7,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from 'react';
-import { staffPosition } from '../domain/chant-document';
+import { staffPosition, type NoteForm } from '../domain/chant-document';
 import { buildNeumeBodyGeometry } from '../layout/neume-geometry';
 import {
   createNeumeEntryPitches,
@@ -15,7 +15,12 @@ import {
   type GraphicalNeumeKind,
 } from '../neume-entry-pitches';
 import { NeumeInk } from '../rendering/NeumeInk';
-import type { PunctumFamilyKind } from '../state/editor-tool';
+import { entryAppearance, type PunctumFamilyKind } from '../state/editor-tool';
+import {
+  centeredIconViewBox,
+  fittedIconSize,
+  inkWidthIconBox,
+} from './icon-view-box';
 import './NeumeFamilyMenu.css';
 
 // Icons are staffless silhouettes: body-only geometry, never ledger lines.
@@ -34,24 +39,67 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
   );
 }
 
-/** The exact default entry contour, drawn from the shared measured geometry. */
-export function EntryIcon({ kind }: { kind: GraphicalNeumeKind }) {
+/** The entry contour with an optional note form, drawn from shared measured geometry. */
+export function EntryIcon({
+  kind,
+  form,
+  inkWidth = false,
+}: {
+  kind: GraphicalNeumeKind;
+  form?: NoteForm;
+  /** Trim to the ink's width, as plain palette buttons do (see NoteFormIcon). */
+  inkWidth?: boolean;
+}) {
   const geometry = buildNeumeBodyGeometry(
     entryGeometryKind(kind),
     createNeumeEntryPitches(kind, staffPosition(0)).staffPositions,
     0,
     0,
+    entryAppearance(kind, form),
   );
-  const { x, y, width, height } = geometry.bounds;
-  const pad = 2;
-  const box = Math.max(width, height) + pad * 2;
+  const size = fittedIconSize(geometry.bounds);
   // A square box keeps every family member at one scale and 22px icon size.
+  const box = inkWidth
+    ? inkWidthIconBox(geometry.bounds, size)
+    : {
+        width: 22,
+        height: 22,
+        viewBox: centeredIconViewBox(geometry.bounds, size),
+      };
+  return (
+    <svg aria-hidden="true" {...box}>
+      <NeumeInk ink={geometry.ink} />
+    </svg>
+  );
+}
+
+type SingleNoteForm = Extract<NoteForm, 'virga' | 'inclinatum'>;
+
+function singleNoteGeometry(form: SingleNoteForm) {
+  return buildNeumeBodyGeometry('punctum', [staffPosition(0)], 0, 0, [
+    { form },
+  ]);
+}
+
+// One box fitted to the largest single-note form (the virga, with its stem),
+// so every form is drawn at the same scale and keeps its engraved proportions
+// relative to the others instead of each being stretched to fill the icon.
+const singleNoteIconSize = Math.max(
+  ...(['virga', 'inclinatum'] as const).map((form) =>
+    fittedIconSize(singleNoteGeometry(form).bounds),
+  ),
+);
+
+/**
+ * A one-note authored form (Virga, Punctum inclinatum) at a shared scale,
+ * trimmed to its ink's width for a plain palette button.
+ */
+export function NoteFormIcon({ form }: { form: SingleNoteForm }) {
+  const geometry = singleNoteGeometry(form);
   return (
     <svg
       aria-hidden="true"
-      width="22"
-      height="22"
-      viewBox={`${x + width / 2 - box / 2} ${y + height / 2 - box / 2} ${box} ${box}`}
+      {...inkWidthIconBox(geometry.bounds, singleNoteIconSize)}
     >
       <NeumeInk ink={geometry.ink} />
     </svg>
