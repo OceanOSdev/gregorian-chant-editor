@@ -3,6 +3,10 @@ import type { LyricAlignmentSegment } from '../domain/chant-document';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChantDocument } from '../domain/chant-document';
 import { isValidLyricText } from '../domain/lyrics';
+import {
+  isPressGivenFocus,
+  type PointerActivationHold,
+} from '../interaction/pointer-activation-hold';
 import { nextSyllableId } from '../interaction/syllable-navigation';
 import type { ChantLayout, ChantSystemLayout } from '../layout/layout-chant';
 import { lyricFontSize } from '../layout/lyric-text-metrics';
@@ -34,6 +38,8 @@ interface SyllableControlsProps {
   entry: LyricEntry | null;
   selectedSyllableId: string | null;
   focusedSyllableId: string | null;
+  /** Press-given focus is not revealed while its click is pending (#121). */
+  pointerHold: PointerActivationHold;
   selectedNeumeId: string | null;
   focusRequest: EditorFocusRequest | null;
   pendingHistory: boolean;
@@ -58,6 +64,7 @@ export function SyllableControls({
   entry,
   selectedSyllableId,
   focusedSyllableId,
+  pointerHold,
   selectedNeumeId,
   focusRequest,
   pendingHistory,
@@ -652,9 +659,12 @@ export function SyllableControls({
               tabIndex={s.id === tabStop ? 0 : -1}
               aria-pressed={s.id === selectedSyllableId}
               aria-label={`Syllable ${index + 1}: ${s.text}`}
-              onFocus={() => {
+              onFocus={(event) => {
                 setRovingId(s.id);
-                reveal(s.id);
+                // Scrolling the strip under a held press would move the
+                // button before release, and the click would miss it.
+                if (!isPressGivenFocus(pointerHold, event.currentTarget))
+                  reveal(s.id);
               }}
               onClick={() => onAction({ type: 'edit', syllableId: s.id })}
             >

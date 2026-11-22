@@ -69,9 +69,8 @@ the `click` goes to `.chant-editor`. Scrolling the division to the centre
 first does not help. The legacy driver asserts only focus after its click, so
 it has always passed.
 
-`divisions.spec.ts` records this as `test.fail()` with the full assertion. It
-will report an unexpected pass once the product is fixed, and should then lose
-the marker.
+`divisions.spec.ts` recorded this as `test.fail()` with the full assertion.
+The fix for issue #121 removed the marker once the test passed normally.
 
 ## Browser differences
 

@@ -65,7 +65,14 @@ import {
 import { lyricLanguage } from '../domain/lyric-alignment';
 import type { LyricAction } from '../state/lyric-entry';
 import { allowsNotePatch, findNeume, findNote } from '../domain/neume';
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 import { deleteNeumeResult } from '../commands/delete-neume';
 import { deleteNoteResult } from '../commands/delete-note';
 import { moveNeumeVerticallyResult } from '../commands/move-neume';
@@ -114,6 +121,7 @@ import {
   wholeNeumeToolbarAllowed,
 } from '../state/editor-availability';
 import { projectSelectedNoteAccidental } from '../state/selected-note-accidental';
+import { createPointerActivationHold } from '../interaction/pointer-activation-hold';
 import {
   clearSelection,
   resolveNeumeRange,
@@ -194,6 +202,32 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     null,
   );
   const [focusedLyricId, setFocusedLyricId] = useState<string | null>(null);
+  // Focus moves at a pointer press, before release. Presentation derived from
+  // that focus (the Divisions panel's target, the focused lyric) can mount or
+  // unmount layout around the pressed control, so it waits until the press's
+  // click has been dispatched and is then derived again from the actual focus
+  // (issue #121). Keyboard and programmatic focus apply at once.
+  const [pointerHold] = useState(createPointerActivationHold);
+  useLayoutEffect(() => pointerHold.connect(window), [pointerHold]);
+  const applyFocusPresentation = useCallback(
+    (target: EventTarget | null, leftEditor = false) => {
+      if (target instanceof Element && target.closest('.score'))
+        setFocusedDivisionId(target.getAttribute('data-division-id'));
+      setFocusedLyricId(
+        !leftEditor &&
+          target instanceof Element &&
+          target.matches('.score__lyric')
+          ? target.getAttribute('data-syllable-id')
+          : null,
+      );
+    },
+    [],
+  );
+  const reconcileFocusPresentation = useCallback(() => {
+    const active = globalThis.document.activeElement;
+    const editor = active?.closest('.chant-editor');
+    applyFocusPresentation(active, !editor);
+  }, [applyFocusPresentation]);
   function resetPresentationState() {
     notationPalette.current?.reset();
     setFocusedDivisionId(null);
@@ -877,21 +911,19 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             dispatch({ type: 'lyric-move', action: intent });
         }}
         onFocusCapture={(event) => {
-          const target = event.target;
-          if (target instanceof Element && target.closest('.score'))
-            setFocusedDivisionId(target.getAttribute('data-division-id'));
-          setFocusedLyricId(
-            target instanceof Element && target.matches('.score__lyric')
-              ? target.getAttribute('data-syllable-id')
-              : null,
-          );
+          if (pointerHold.isHeld())
+            pointerHold.afterSettle(reconcileFocusPresentation);
+          else applyFocusPresentation(event.target);
         }}
         onBlurCapture={(event) => {
           if (
             !(event.relatedTarget instanceof Node) ||
             !event.currentTarget.contains(event.relatedTarget)
-          )
-            setFocusedLyricId(null);
+          ) {
+            if (pointerHold.isHeld())
+              pointerHold.afterSettle(reconcileFocusPresentation);
+            else setFocusedLyricId(null);
+          }
         }}
       >
         <DocumentControls
@@ -1045,6 +1077,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             aria-label={layout.width > 720 ? 'Scrollable score' : undefined}
           >
             <ScoreSvg
+              pointerHold={pointerHold}
               onFocusAccidentalProperties={() =>
                 accidentalToolbar.current?.focus() ?? false
               }
@@ -1264,6 +1297,7 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             }
             selectedNeumeId={selectedNeume?.id ?? null}
             focusedSyllableId={focusedLyricId}
+            pointerHold={pointerHold}
             focusRequest={session.focusRequest}
             pendingHistory={Boolean(session.pendingHistory)}
             interactionBlocked={Boolean(session.accidentalTargetId)}

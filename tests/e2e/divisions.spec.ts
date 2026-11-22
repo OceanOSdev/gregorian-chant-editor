@@ -140,31 +140,20 @@ for (const width of [1440, 320]) {
   }
 }
 
-// KNOWN PRODUCT DEFECT, found by this pilot and escalated rather than fixed
-// (plan: no production changes). docs/editor-interactions.md says "In Select,
-// click or Enter/Space selects a division". In both browsers, on the dev
-// fixture and the production preview, the press focuses the division, the
-// Divisions controls mount above the score and push it down (~141 px at
-// 1440px), so the release lands elsewhere and no click reaches the division.
-// test.fail() keeps the full assertion: it reports an unexpected pass, and
-// should then lose this marker, once the product is fixed.
+// Issue #121 regression: the press focuses the division, and the Divisions
+// panel that follows focus must not mount (moving the score) before the click
+// is dispatched. See also pointer-activation.spec.ts.
 test('pointer click selects a division in Select mode', async ({ page }) => {
-  test.fail(
-    true,
-    'Known defect: press-time Divisions controls shift the score',
-  );
   await revealCentered(division(page));
   await division(page).click();
   await expect(division(page)).toBeFocused();
-  await expect(division(page)).toHaveAttribute('aria-pressed', 'true', {
-    timeout: 2_000,
-  });
+  await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('selected division changes kind with surviving identity and focus through Undo/Redo, then Delete and Undo', async ({
   page,
 }) => {
-  // Select with the keyboard (see the pointer-selection defect above).
+  // Keyboard selection; pointer selection is covered above.
   await division(page).focus();
   await page.keyboard.press('Enter');
   await expect(division(page)).toBeFocused();

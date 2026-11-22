@@ -33,6 +33,10 @@ import { isPlacementTool, type EditorTool } from '../state/editor-tool';
 import type { EditorSelection } from '../state/selection';
 import type { EditorFocusRequest } from '../state/editor-session';
 import { focusAndReveal } from './focus-visibility';
+import {
+  isPressGivenFocus,
+  type PointerActivationHold,
+} from '../interaction/pointer-activation-hold';
 import { wholeNeumeSelectionInstruction } from './note-accessible-label';
 import { getScoreAccessibleDescription } from './score-accessible-description';
 import { NeumeInk } from './NeumeInk';
@@ -91,6 +95,8 @@ interface ScoreSvgProps {
   activeTool: EditorTool;
   placementDescription: string;
   focusRequest: EditorFocusRequest | null;
+  /** The editor's press-activation hold; press-given focus is not revealed. */
+  pointerHold: PointerActivationHold;
   onFocusHandled: (request: EditorFocusRequest) => void;
   onSelectNote: (noteId: string) => void;
   onSelectNeumeForNote: (noteId: string) => void;
@@ -144,6 +150,7 @@ export function ScoreSvg({
   activeTool,
   placementDescription,
   focusRequest,
+  pointerHold,
   onFocusHandled,
   onSelectNote,
   onSelectNeumeForNote,
@@ -186,19 +193,10 @@ export function ScoreSvg({
     let revealFrame = 0;
     // A pointer press focuses its own visible target before release. Revealing
     // that focus would scroll the page under the held button, so the release
-    // misses and the click never activates the control. The pressed element is
-    // kept only until the input task that dispatches the press (and its focus)
-    // ends, so no state outlives it: cancellation, a lost release or touch focus
-    // after the tap never suppress a later keyboard or programmatic reveal.
-    let pressed: Node | null = null;
-    let pressTimer = 0;
-    const notePress = (event: Event) => {
-      pressed = event.target instanceof Node ? event.target : null;
-      clearTimeout(pressTimer);
-      pressTimer = window.setTimeout(() => {
-        pressed = null;
-      });
-    };
+    // misses and the click never activates the control. The shared
+    // press-activation hold keeps the pressed target until that press's click
+    // has been dispatched (or the press is interrupted), and never longer, so
+    // keyboard, programmatic and later focus always reveal (PR #107, #121).
     const track = (event: FocusEvent) => {
       cancelAnimationFrame(revealFrame);
       const target = event.target;
@@ -209,7 +207,7 @@ export function ScoreSvg({
         focusedEntity.current = null;
         return;
       }
-      const pointerFocus = pressed !== null && target.contains(pressed);
+      const pointerFocus = isPressGivenFocus(pointerHold, target);
       if (
         target instanceof SVGElement &&
         target !== scoreElement.current &&
@@ -239,15 +237,12 @@ export function ScoreSvg({
                 ? { kind: 'lyric', id: syllableId, element: target }
                 : null;
     };
-    document.addEventListener('pointerdown', notePress, true);
     document.addEventListener('focusin', track);
     return () => {
       cancelAnimationFrame(revealFrame);
-      clearTimeout(pressTimer);
-      document.removeEventListener('pointerdown', notePress, true);
       document.removeEventListener('focusin', track);
     };
-  }, []);
+  }, [pointerHold]);
   useLayoutEffect(() => {
     const target = focusedEntity.current;
     if (
