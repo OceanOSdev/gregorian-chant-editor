@@ -3,8 +3,7 @@
 Branch: `refactor/editor-readability-m4b-2`
 Target: `master`
 Base: `36adb0a` (PR #109, M4B-1, merged)
-Status: Implemented on this branch and in review. The PR records the actual
-verification.
+Status: Completed (historical record). Implemented and merged in [PR #110](https://github.com/OceanOSdev/gregorian-chant-editor/pull/110) (merge `ea27b0b`). The PR holds the actual verification, including any checks not performed. The branch and base above describe the milestone as implemented.
 
 This is milestone M4B-2 of the
 [M4B plan](editor-readability-m4b.md#m4b-2-keyboard-routing-and-documented-event-precedence).

@@ -3,8 +3,7 @@
 Branch: `refactor/editor-readability-m4b-4`
 Target: `master`
 Base: `f1850dd` (PR #114 merged)
-Status: Implemented on this branch and in review. The PR records the actual
-verification.
+Status: Completed (historical record). Implemented and merged in [PR #115](https://github.com/OceanOSdev/gregorian-chant-editor/pull/115) (merge `e155bf1`). The PR holds the actual verification, including any checks not performed. The branch and base above describe the milestone as implemented.
 
 This is milestone M4B-4, the last milestone of the
 [M4B plan](editor-readability-m4b.md#m4b-4-named-scoresvg-handlers-and-view-model-projections).

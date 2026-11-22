@@ -3,8 +3,7 @@
 Branch: `refactor/editor-readability-m4b-1`
 Target: `master`
 Base: `667d49f` (PR #108, maintenance task 0, merged)
-Status: Implemented on this branch and in review. The PR records the actual
-verification.
+Status: Completed (historical record). Implemented and merged in [PR #109](https://github.com/OceanOSdev/gregorian-chant-editor/pull/109) (merge `36adb0a`). The PR holds the actual verification, including any checks not performed. The branch and base above describe the milestone as implemented.
 
 This is milestone M4B-1 of the
 [M4B plan](editor-readability-m4b.md#m4b-1-pure-availability-rules-accidental-projection-explicit-toolbar-origin).
