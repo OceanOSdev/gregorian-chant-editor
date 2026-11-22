@@ -66,6 +66,12 @@ export const DRIVERS = [
     browsers: ['firefox'],
   },
   {
+    id: 'css-zoom-toolbars',
+    script: 'css-zoom-toolbars/browser-check.mjs',
+    server: 'dev',
+    browsers: ['chromium', 'firefox'],
+  },
+  {
     id: 'word-composition',
     script: 'word-composition/browser-check.mjs',
     server: 'dev',

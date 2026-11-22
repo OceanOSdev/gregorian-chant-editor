@@ -62,3 +62,37 @@ export function positionNoteToolbar(
     ? { left: x, top, width, maxHeight: above }
     : { left: x, top: note.bottom + gap, width, maxHeight: below };
 }
+
+/** The panel's preferred width in its own CSS pixels. */
+const preferredToolbarWidth = 320;
+
+/**
+ * Place a fixed contextual panel under an effective CSS `zoom` (`zoom`, 1
+ * without one). `note` and `viewport` are client pixels, which CSS `zoom`
+ * scales. `height` and the result are the panel's own CSS pixels, as its
+ * scroll/offset metrics report and its inline style expects. Dividing the
+ * client inputs by `zoom` puts every argument of `positionNoteToolbar` in
+ * those CSS pixels, so the result needs no conversion and is never scaled
+ * twice. Real browser zoom keeps client and CSS pixels equal (zoom 1); at 1
+ * the inputs and result are unchanged. A missing or invalid zoom (an engine
+ * without `Element.currentCSSZoom`) counts as 1, today's behavior.
+ */
+export function positionZoomedNoteToolbar(
+  note: NoteToolbarBounds,
+  viewport: NoteToolbarBounds,
+  height: number,
+  zoom: number,
+): NoteToolbarPosition | null {
+  const scale = Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
+  const own = (bounds: NoteToolbarBounds): NoteToolbarBounds => ({
+    left: bounds.left / scale,
+    right: bounds.right / scale,
+    top: bounds.top / scale,
+    bottom: bounds.bottom / scale,
+  });
+  const area = own(viewport);
+  return positionNoteToolbar(own(note), area, {
+    width: Math.min(preferredToolbarWidth, area.right - area.left - 16),
+    height,
+  });
+}

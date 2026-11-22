@@ -28,7 +28,7 @@ import {
   type NeumeLiquescence,
 } from '../domain/liquescence';
 import {
-  positionNoteToolbar,
+  positionZoomedNoteToolbar,
   type NoteToolbarPosition,
 } from '../interaction/position-note-toolbar';
 import type { ChantLayout } from '../layout/layout-chant';
@@ -178,13 +178,14 @@ export function NoteContextToolbar({
       const ownsFocus = surface.contains(document.activeElement);
       const next =
         visible || ownsFocus
-          ? positionNoteToolbar(noteBounds, viewport, {
-              width: Math.min(320, viewport.right - viewport.left - 16),
-              height:
-                surface.scrollHeight +
+          ? positionZoomedNoteToolbar(
+              noteBounds,
+              viewport,
+              surface.scrollHeight +
                 surface.offsetHeight -
                 surface.clientHeight,
-            })
+              surface.currentCSSZoom,
+            )
           : null;
       setPosition((previous) =>
         previous?.left === next?.left &&
