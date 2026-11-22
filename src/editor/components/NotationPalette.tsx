@@ -246,6 +246,9 @@ export function NotationPalette({
         {tool === 'quilisma' && (
           <EntryIcon kind={quilismaFigure} form="quilisma" />
         )}
+        {tool === 'inclinatum' && (
+          <EntryIcon kind="punctum" form="inclinatum" />
+        )}
         {tool === 'c-clef' && <ClefIcon type="c" />}
         {tool === 'f-clef' && <ClefIcon type="f" />}
         {paletteButtonLabel(tool)}
