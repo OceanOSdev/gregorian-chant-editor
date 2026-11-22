@@ -16,6 +16,7 @@ import {
 } from '../neume-entry-pitches';
 import { NeumeInk } from '../rendering/NeumeInk';
 import { entryAppearance, type PunctumFamilyKind } from '../state/editor-tool';
+import { centeredIconViewBox, fittedIconSize } from './icon-view-box';
 import './NeumeFamilyMenu.css';
 
 // Icons are staffless silhouettes: body-only geometry, never ledger lines.
@@ -49,16 +50,48 @@ export function EntryIcon({
     0,
     entryAppearance(kind, form),
   );
-  const { x, y, width, height } = geometry.bounds;
-  const pad = 2;
-  const box = Math.max(width, height) + pad * 2;
   // A square box keeps every family member at one scale and 22px icon size.
   return (
     <svg
       aria-hidden="true"
       width="22"
       height="22"
-      viewBox={`${x + width / 2 - box / 2} ${y + height / 2 - box / 2} ${box} ${box}`}
+      viewBox={centeredIconViewBox(
+        geometry.bounds,
+        fittedIconSize(geometry.bounds),
+      )}
+    >
+      <NeumeInk ink={geometry.ink} />
+    </svg>
+  );
+}
+
+type SingleNoteForm = Extract<NoteForm, 'virga' | 'inclinatum'>;
+
+function singleNoteGeometry(form: SingleNoteForm) {
+  return buildNeumeBodyGeometry('punctum', [staffPosition(0)], 0, 0, [
+    { form },
+  ]);
+}
+
+// One box fitted to the largest single-note form (the virga, with its stem),
+// so every form is drawn at the same scale and keeps its engraved proportions
+// relative to the others instead of each being stretched to fill the icon.
+const singleNoteIconSize = Math.max(
+  ...(['virga', 'inclinatum'] as const).map((form) =>
+    fittedIconSize(singleNoteGeometry(form).bounds),
+  ),
+);
+
+/** A one-note authored form (Virga, Punctum inclinatum) at a shared scale. */
+export function NoteFormIcon({ form }: { form: SingleNoteForm }) {
+  const geometry = singleNoteGeometry(form);
+  return (
+    <svg
+      aria-hidden="true"
+      width="22"
+      height="22"
+      viewBox={centeredIconViewBox(geometry.bounds, singleNoteIconSize)}
     >
       <NeumeInk ink={geometry.ink} />
     </svg>

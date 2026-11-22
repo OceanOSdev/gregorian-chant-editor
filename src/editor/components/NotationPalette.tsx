@@ -4,11 +4,18 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactElement,
   type ReactNode,
   type Ref,
 } from 'react';
+import { ClefIcon } from './ClefIcon';
 import { DivisionIcon } from './DivisionIcon';
-import { EntryIcon, NeumeFamilyMenu, PunctumIcon } from './NeumeFamilyMenu';
+import {
+  EntryIcon,
+  NeumeFamilyMenu,
+  NoteFormIcon,
+  PunctumIcon,
+} from './NeumeFamilyMenu';
 import {
   familyActiveKind,
   familyPrimaryTool,
@@ -41,7 +48,6 @@ import {
   type EditorTool,
   type NeumeFamily,
 } from '../state/editor-tool';
-import { ClefIcon } from './ClefIcon';
 
 const divisionKinds = ['minima', 'minor', 'maior', 'finalis'] as const;
 
@@ -226,6 +232,25 @@ export function NotationPalette({
     );
   }
 
+  // No default case: the non-undefined return type makes a new plain button a
+  // compile error here until it gets an explicit icon decision.
+  function renderButtonIcon(tool: ButtonPaletteTool): ReactElement | null {
+    switch (tool) {
+      case 'select':
+        return null;
+      case 'virga':
+        return <NoteFormIcon form="virga" />;
+      case 'inclinatum':
+        return <NoteFormIcon form="inclinatum" />;
+      case 'quilisma':
+        return <EntryIcon kind={quilismaFigure} form="quilisma" />;
+      case 'c-clef':
+        return <ClefIcon type="c" />;
+      case 'f-clef':
+        return <ClefIcon type="f" />;
+    }
+  }
+
   function renderButton(tool: ButtonPaletteTool) {
     return (
       <button
@@ -242,16 +267,8 @@ export function NotationPalette({
           else onArmTool(command.tool);
         }}
       >
-        {tool === 'virga' && <EntryIcon kind="punctum" form="virga" />}
-        {tool === 'quilisma' && (
-          <EntryIcon kind={quilismaFigure} form="quilisma" />
-        )}
-        {tool === 'inclinatum' && (
-          <EntryIcon kind="punctum" form="inclinatum" />
-        )}
-        {tool === 'c-clef' && <ClefIcon type="c" />}
-        {tool === 'f-clef' && <ClefIcon type="f" />}
-        {paletteButtonLabel(tool)}
+        {renderButtonIcon(tool)}
+        <span className="neume-palette__label">{paletteButtonLabel(tool)}</span>
       </button>
     );
   }

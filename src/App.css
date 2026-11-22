@@ -39,6 +39,24 @@
 .chant-editor button {
   cursor: pointer;
 }
+/*
+ * Icon beside its label, centered like the family primary buttons. A
+ * single-column button too narrow for the icon and the label's longest word
+ * wraps the label below the icon instead of overflowing the border.
+ */
+.neume-palette > button {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+.neume-palette > button > svg {
+  flex-shrink: 0;
+}
+.neume-palette__label {
+  flex: 1 1 min-content;
+}
 .neume-palette button[aria-pressed='true'] {
   color: white;
   background: #1e64d2;
