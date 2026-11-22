@@ -143,7 +143,10 @@ effective B and its source for the note properties toolbar.
 
 Contains pure bridges between tools, rendered systems, pointer positions, and
 semantic insertion intent. It also validates stable focus targets after
-document changes. See [editor interactions](editor-interactions.md).
+document changes. `editor-shortcuts.ts` classifies keys for `ChantEditor`'s
+document and `<main>` listeners, which keep event phase, propagation and
+dispatch; see [keyboard event precedence](editor-interactions.md#keyboard-event-precedence).
+See [editor interactions](editor-interactions.md).
 
 ### `src/editor/layout/`
 

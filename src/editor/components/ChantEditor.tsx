@@ -60,7 +60,6 @@ import {
   updateLyricAlignment,
 } from '../commands/update-lyric-alignment';
 import { lyricLanguage } from '../domain/lyric-alignment';
-import { isLyricEntryShortcut } from '../interaction/lyric-entry-keyboard';
 import type { LyricAction } from '../state/lyric-entry';
 import { allowsNotePatch, findNeume, findNote } from '../domain/neume';
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
@@ -72,12 +71,13 @@ import { SyllableControls } from './SyllableControls';
 import { type ChantDocument } from '../domain/chant-document';
 import { getGraphicalNeumeKind } from '../interaction/get-graphical-neume-kind';
 import { allocateInsertionIds } from '../interaction/allocate-insertion-ids';
-import {
-  allocatePasteIds,
-  getClipboardShortcut,
-} from '../interaction/clipboard-shortcuts';
+import { allocatePasteIds } from '../interaction/clipboard-shortcuts';
 import { copyableNeumeIndexes } from '../commands/musical-passage-clipboard';
-import { getNotationShortcut } from '../interaction/palette-navigation';
+import {
+  getDocumentShortcut,
+  getLyricMoveKeyIntent,
+  getPendingTransactionCancel,
+} from '../interaction/editor-shortcuts';
 import { resolveGraphicalNeumePlacement } from '../interaction/resolve-graphical-neume-placement';
 import {
   layoutChant,
@@ -529,65 +529,70 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
       selection.kind === 'neume' ||
       selection.kind === 'neume-range');
 
+  // Keyboard precedence: docs/editor-interactions.md#keyboard-event-precedence.
+  // The classifiers in editor-shortcuts.ts decide; these listeners keep the
+  // event phase, propagation, DOM reads and dispatch.
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.isComposing) return;
-      if (isEditableTarget(event.target)) return;
-      const notationFocused =
-        event.target instanceof Element &&
-        !!event.target.closest('[data-notation-shortcuts], .score');
-      const clipboardShortcut = getClipboardShortcut(
+      const target = event.target instanceof Element ? event.target : null;
+      const shortcut = getDocumentShortcut(
         event,
-        isClipboardScope(event.target),
-        hasNativeTextSelection(),
-      );
-      if (clipboardShortcut) {
-        // Claim the in-app command once; held-key repeats never paste again.
-        event.preventDefault();
-        if (event.repeat) return;
-        if (clipboardShortcut === 'copy') copyPassage();
-        else pasteClipboard();
-        return;
-      }
-      if (
-        isLyricEntryShortcut(
-          event,
-          event.target instanceof Element &&
-            Boolean(event.target.closest('.score')),
+        {
+          editableTarget: isEditableTarget(event.target),
+          clipboardScope: isClipboardScope(event.target),
+          nativeTextSelection: hasNativeTextSelection(),
+          scoreFocused: Boolean(target?.closest('.score')),
+          notationFocused: Boolean(
+            target?.closest('[data-notation-shortcuts], .score'),
+          ),
+        },
+        {
           placing,
-        )
-      ) {
-        event.preventDefault();
-        const target = event.target instanceof Element ? event.target : null;
-        const noteId =
-          target?.closest<SVGGElement>('[data-note-id]')?.dataset.noteId;
-        const syllableId = target?.closest<SVGTextElement>(
-          '.score__lyric[data-syllable-id]',
-        )?.dataset.syllableId;
-        if (noteId) {
-          dispatch({
-            type: 'start-lyrics-at-focus',
-            target: { kind: 'note', noteId },
-            newId: crypto.randomUUID(),
-          });
-        } else if (syllableId) {
-          dispatch({
-            type: 'start-lyrics-at-focus',
-            target: { kind: 'syllable', syllableId },
-            newId: crypto.randomUUID(),
-          });
-        } else {
-          // Without a focused note or lyric, L starts at the selection, as
-          // the Lyrics button does.
-          startLyricsAtSelection();
+          placingClef: activeTool.kind === 'place-clef',
+          lyricEntryOpen: Boolean(session.lyrics),
+          canUndo,
+          canRedo,
+        },
+      );
+      if (!shortcut) return;
+      // Every classified shortcut is claimed from the browser, including a
+      // held clipboard repeat, which never copies or pastes again.
+      event.preventDefault();
+      switch (shortcut.type) {
+        case 'held-repeat':
+          return;
+        case 'copy':
+          copyPassage();
+          return;
+        case 'paste':
+          pasteClipboard();
+          return;
+        case 'start-lyrics': {
+          const noteId =
+            target?.closest<SVGGElement>('[data-note-id]')?.dataset.noteId;
+          const syllableId = target?.closest<SVGTextElement>(
+            '.score__lyric[data-syllable-id]',
+          )?.dataset.syllableId;
+          if (noteId) {
+            dispatch({
+              type: 'start-lyrics-at-focus',
+              target: { kind: 'note', noteId },
+              newId: crypto.randomUUID(),
+            });
+          } else if (syllableId) {
+            dispatch({
+              type: 'start-lyrics-at-focus',
+              target: { kind: 'syllable', syllableId },
+              newId: crypto.randomUUID(),
+            });
+          } else {
+            // Without a focused note or lyric, L starts at the selection, as
+            // the Lyrics button does.
+            startLyricsAtSelection();
+          }
+          return;
         }
-        return;
-      }
-      const shortcut = getNotationShortcut(event, notationFocused);
-      if (shortcut) {
-        event.preventDefault();
-        if (shortcut === 'insert') {
-          const target = event.target instanceof Element ? event.target : null;
+        case 'insert': {
           const divisionId = target
             ?.closest('[data-division-id]')
             ?.getAttribute('data-division-id');
@@ -606,83 +611,71 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
             ids: allocateInsertionIds(),
             lyricCommitId: crypto.randomUUID(),
           });
-        } else dispatch({ type: 'focus-palette' });
-        return;
-      }
-      if (
-        event.key === 'Escape' &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey
-      ) {
-        event.preventDefault();
-        if (activeTool.kind === 'place-clef') {
-          dispatch({ type: 'select-tool' });
           return;
         }
-        if (session.lyrics) {
-          lyricAction({ type: 'cancel' });
+        case 'focus-palette':
+          dispatch({ type: 'focus-palette' });
           return;
+        case 'escape':
+          switch (shortcut.effect) {
+            case 'cancel-lyrics':
+              lyricAction({ type: 'cancel' });
+              return;
+            case 'select-tool':
+              dispatch({ type: 'select-tool' });
+              return;
+            case 'clear-selection':
+              dispatch({ type: 'select', selection: clearSelection() });
+              return;
+            default: {
+              // A new effect must be handled here, not swallowed.
+              const unhandled: never = shortcut.effect;
+              throw new Error(`Unhandled Escape effect: ${unhandled}`);
+            }
+          }
+        case 'undo':
+        case 'redo':
+          navigateHistory(shortcut.type);
+          return;
+        default: {
+          // preventDefault already ran; a new shortcut must be handled here.
+          const unhandled: never = shortcut;
+          throw new Error(
+            `Unhandled document shortcut: ${JSON.stringify(unhandled)}`,
+          );
         }
-        dispatch(
-          placing
-            ? { type: 'select-tool' }
-            : { type: 'select', selection: clearSelection() },
-        );
-        return;
-      }
-      const key = event.key.toLowerCase();
-      const command = event.ctrlKey || event.metaKey;
-      if (command && key === 'z' && !event.shiftKey && canUndo) {
-        event.preventDefault();
-        navigateHistory('undo');
-      } else if (
-        ((command && key === 'z' && event.shiftKey) ||
-          (event.ctrlKey && key === 'y')) &&
-        canRedo
-      ) {
-        event.preventDefault();
-        navigateHistory('redo');
       }
     }
-    // Pending clef cancellation owns Escape before native lyric/input handlers.
-    function cancelClefOnEscape(event: KeyboardEvent) {
-      if (
-        session.accidentalTargetId &&
-        event.key === 'Escape' &&
-        !event.isComposing &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        dispatch({ type: 'cancel-accidental-placement' });
-        return;
-      }
-      if (
-        session.clefTransaction &&
-        event.key === 'Escape' &&
-        !event.isComposing &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        dispatch({ type: 'cancel-clef-change' });
-      }
+    // Pending accidental/clef cancellation owns Escape before every editor
+    // handler, including native lyric and text inputs. Only the playback
+    // options' window-capture dismissal runs earlier.
+    function cancelPendingTransactionOnEscape(event: KeyboardEvent) {
+      const cancel = getPendingTransactionCancel(event, {
+        accidentalPlacement: Boolean(session.accidentalTargetId),
+        clefTransaction: Boolean(session.clefTransaction),
+      });
+      if (!cancel) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dispatch({ type: cancel });
     }
-    document.addEventListener('keydown', cancelClefOnEscape, true);
+    document.addEventListener(
+      'keydown',
+      cancelPendingTransactionOnEscape,
+      true,
+    );
     document.addEventListener('keydown', handleKey);
     return () => {
-      document.removeEventListener('keydown', cancelClefOnEscape, true);
+      document.removeEventListener(
+        'keydown',
+        cancelPendingTransactionOnEscape,
+        true,
+      );
       document.removeEventListener('keydown', handleKey);
     };
   }, [
     dispatch,
     lyricAction,
-    placementKind,
     activeTool.kind,
     navigateHistory,
     placing,
@@ -691,7 +684,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
     session.lyrics,
     session.clefTransaction,
     session.accidentalTargetId,
-    history.present,
     selection.kind,
     pasteClipboard,
     copyPassage,
@@ -704,40 +696,27 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
         className="chant-editor"
         onKeyUpCapture={syncNotationFocus}
         onKeyDownCapture={(event) => {
-          if (
-            !session.lyricMove ||
-            event.nativeEvent.isComposing ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.altKey
-          )
-            return;
-          const key = event.key;
-          const scoreFocused =
+          // React's normalized key and modifiers, as this handler always read;
+          // only composition comes from the native event.
+          const intent = getLyricMoveKeyIntent(
+            {
+              key: event.key,
+              ctrlKey: event.ctrlKey,
+              metaKey: event.metaKey,
+              altKey: event.altKey,
+              shiftKey: event.shiftKey,
+              repeat: event.repeat,
+              isComposing: event.nativeEvent.isComposing,
+            },
+            Boolean(session.lyricMove),
             event.target instanceof Element &&
-            Boolean(event.target.closest('.score'));
-          if (
-            key === 'Escape' ||
-            key === 'ArrowLeft' ||
-            key === 'ArrowRight' ||
-            (key === 'Enter' && scoreFocused)
-          ) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.repeat)
-              dispatch({
-                type: 'lyric-move',
-                action:
-                  key === 'Escape'
-                    ? { type: 'cancel' }
-                    : key === 'Enter'
-                      ? { type: 'commit' }
-                      : {
-                          type: 'browse',
-                          direction: key === 'ArrowLeft' ? -1 : 1,
-                        },
-              });
-          }
+              Boolean(event.target.closest('.score')),
+          );
+          if (!intent) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (intent.type !== 'held-repeat')
+            dispatch({ type: 'lyric-move', action: intent });
         }}
         onFocusCapture={(event) => {
           const target = event.target;
