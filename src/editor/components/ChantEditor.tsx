@@ -11,6 +11,7 @@ import {
   AccidentalContextToolbar,
   type AccidentalContextToolbarHandle,
 } from './AccidentalContextToolbar';
+import { AccidentalPropertiesControls } from './AccidentalPropertiesControls';
 import {
   NoteContextToolbar,
   type NoteContextToolbarHandle,
@@ -41,12 +42,13 @@ import {
   layoutClefDraftPreview,
 } from '../interaction/resolve-graphical-clef-placement';
 import { ClefChangeControls } from './ClefChangeControls';
+import { ClefPitchHandlingControls } from './ClefPitchHandlingControls';
+import { DivisionControls } from './DivisionControls';
 import { InitialClefControls } from './InitialClefControls';
 import { LyricLanguageControls } from './LyricLanguageControls';
 import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
-import { isDivisionKind } from '../domain/divisions';
 import type { Neume, NoteForm } from '../domain/chant-document';
 import {
   liquescenceRejection,
@@ -89,7 +91,6 @@ import { ScoreSvg, type SvgPoint } from '../rendering/ScoreSvg';
 import {
   clipboardBlocked,
   entryName,
-  neumeName,
   lyricMoveTargets,
   type EditorFocusRequest,
 } from '../state/editor-session';
@@ -180,7 +181,6 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   useFollowSoundingNote(soundingNotes, scoreWorkspace);
   const noteToolbar = useRef<NoteContextToolbarHandle>(null);
   const accidentalToolbar = useRef<AccidentalContextToolbarHandle>(null);
-  const accidentalAnchorList = useRef<HTMLSelectElement>(null);
   // Browser-only presentation memory, reset when the document is replaced.
   const notationPalette = useRef<NotationPaletteHandle>(null);
   const [focusedDivisionId, setFocusedDivisionId] = useState<string | null>(
@@ -814,52 +814,14 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           />
         </EditorStickyToolbar>
         {pitchHandlingShown(session) ? (
-          <fieldset
-            className="clef-insertion-behavior"
+          <ClefPitchHandlingControls
+            policy={session.clefInsertionPolicy}
+            error={session.clefInsertionError}
             disabled={pitchHandlingBlocked(session)}
-            aria-describedby="clef-insertion-description"
-          >
-            <legend>Pitch handling</legend>
-            <label>
-              <input
-                type="radio"
-                name="clef-insertion-policy"
-                value="melody"
-                checked={session.clefInsertionPolicy === 'melody'}
-                onChange={() =>
-                  dispatch({
-                    type: 'clef-insertion-policy',
-                    preserve: 'melody',
-                  })
-                }
-              />
-              Keep pitches (move existing notes)
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="clef-insertion-policy"
-                value="noteheads"
-                checked={session.clefInsertionPolicy === 'noteheads'}
-                onChange={() =>
-                  dispatch({
-                    type: 'clef-insertion-policy',
-                    preserve: 'noteheads',
-                  })
-                }
-              />
-              Keep note positions (change pitches)
-            </label>
-            <p id="clef-insertion-description">
-              Keep pitches shifts existing noteheads to preserve their pitches.
-              Keep note positions leaves noteheads in place and changes their
-              interpreted pitches. Used for insertion and Apply when editing a
-              clef.
-            </p>
-            {session.clefInsertionError ? (
-              <p role="status">{session.clefInsertionError}</p>
-            ) : null}
-          </fieldset>
+            onChangePolicy={(preserve) =>
+              dispatch({ type: 'clef-insertion-policy', preserve })
+            }
+          />
         ) : null}
         <p id="palette-instructions" className="editor-sr-only">
           Arrow keys browse tools; Enter or Space activates. I inserts the
@@ -868,79 +830,22 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           browses variants, Enter selects, Escape closes, Tab leaves.
         </p>
         {divisionTarget ? (
-          <fieldset
-            className="division-controls"
+          <DivisionControls
+            division={divisionTarget}
+            lastFocused={focusedDivisionId === divisionTarget.id}
             disabled={exclusiveModeActive(session)}
-          >
-            <legend>Divisions</legend>
-            <div data-notation-shortcuts>
-              <p>
-                Division target: {divisionTarget.kind}.{' '}
-                {focusedDivisionId === divisionTarget.id
-                  ? 'Last focused division'
-                  : 'Selected'}
-                .
-              </p>
-              <label>
-                Change division kind{' '}
-                <select
-                  aria-label="Change division kind"
-                  value={divisionTarget.kind}
-                  disabled={placing}
-                  onChange={(event) => {
-                    const kind = event.currentTarget.value;
-                    if (isDivisionKind(kind))
-                      dispatch({
-                        type: 'change-division',
-                        id: divisionTarget.id,
-                        kind,
-                      });
-                  }}
-                >
-                  {(['minima', 'minor', 'maior', 'finalis'] as const).map(
-                    (kind) => (
-                      <option key={kind} value={kind}>
-                        {neumeName(kind)}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-              <button
-                type="button"
-                disabled={placing}
-                onClick={() =>
-                  insertRememberedNeume({
-                    divisionId: divisionTarget.id,
-                    side: 'before',
-                  })
-                }
-              >
-                Insert {rememberedName} before division
-              </button>
-              <button
-                type="button"
-                disabled={placing}
-                onClick={() =>
-                  insertRememberedNeume({
-                    divisionId: divisionTarget.id,
-                    side: 'after',
-                  })
-                }
-              >
-                Insert {rememberedName} after division
-              </button>
-              <button
-                type="button"
-                disabled={placing}
-                onClick={() =>
-                  dispatch({ type: 'delete-division', id: divisionTarget.id })
-                }
-              >
-                Delete division
-              </button>
-            </div>
-          </fieldset>
+            placing={placing}
+            insertName={rememberedName}
+            onChangeKind={(kind) =>
+              dispatch({ type: 'change-division', id: divisionTarget.id, kind })
+            }
+            onInsert={(side) =>
+              insertRememberedNeume({ divisionId: divisionTarget.id, side })
+            }
+            onDelete={() =>
+              dispatch({ type: 'delete-division', id: divisionTarget.id })
+            }
+          />
         ) : null}
         <details className="editor-help">
           <summary>Keyboard help</summary>
@@ -1265,123 +1170,47 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
                 else dispatch({ type: 'select', selection: clearSelection() });
               }}
             >
-              <label>
-                Accidental kind
-                <select
-                  disabled={!!accidentalTarget}
-                  aria-label="Accidental kind"
-                  value={selectedAccidental.kind}
-                  onChange={(e) =>
-                    dispatch({
-                      type: 'engraving-edit',
-                      edit: (doc) =>
-                        updateAccidental(
-                          doc,
-                          selectedAccidental.ownerNoteId,
-                          e.target.value === 'flat' ? 'flat' : 'natural',
-                          selectedAccidental.id,
-                        ),
-                    })
-                  }
-                >
-                  <option value="flat">Flat</option>
-                  <option value="natural">Natural</option>
-                </select>
-              </label>
-              <p>
-                Placement:{' '}
-                {selectedAccidental.placement
-                  ? 'Above earlier note'
-                  : 'Before owning neume'}
-              </p>
-              <button
-                type="button"
-                disabled={!!accidentalTarget}
-                onClick={() =>
+              <AccidentalPropertiesControls
+                accidental={selectedAccidental}
+                document={history.present}
+                choosingPlacement={!!accidentalTarget}
+                anchorNoteIds={targetIds}
+                onChangeKind={(kind) =>
+                  dispatch({
+                    type: 'engraving-edit',
+                    edit: (doc) =>
+                      updateAccidental(
+                        doc,
+                        selectedAccidental.ownerNoteId,
+                        kind,
+                        selectedAccidental.id,
+                      ),
+                  })
+                }
+                onStartPlacement={() =>
                   dispatch({
                     type: 'start-accidental-placement',
                     id: selectedAccidental.id,
                   })
                 }
-              >
-                Place above earlier note
-              </button>
-              <button
-                type="button"
-                disabled={!!accidentalTarget || !selectedAccidental.placement}
-                onClick={() =>
+                onRestoreDefaultPlacement={() =>
                   dispatch({
                     type: 'engraving-edit',
                     edit: (doc) =>
                       placeAccidental(doc, selectedAccidental.id, null),
                   })
                 }
-              >
-                Restore default placement
-              </button>
-              <button
-                type="button"
-                disabled={!!accidentalTarget}
-                onClick={() =>
+                onDelete={() =>
                   dispatch({
                     type: 'delete-accidental',
                     id: selectedAccidental.id,
                   })
                 }
-              >
-                Delete accidental
-              </button>
-              {accidentalTarget ? (
-                <div role="group" aria-label="Choose accidental placement">
-                  <label>
-                    Earlier note
-                    <select
-                      aria-label="Earlier note"
-                      ref={accidentalAnchorList}
-                      defaultValue={
-                        selectedAccidental.placement?.noteId ?? targetIds[0]
-                      }
-                      size={Math.min(6, targetIds.length)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          if (e.nativeEvent.isComposing) return;
-                          e.preventDefault();
-                          finishAccidentalPlacement(e.currentTarget.value);
-                        }
-                      }}
-                    >
-                      {targetIds.map((id) => (
-                        <option key={id} value={id}>
-                          {(() => {
-                            const target = findNote(history.present, id);
-                            return target
-                              ? `Note ${target.noteIndex + 1} of ${target.neume.kind}, neume ${target.neumeIndex + 1}`
-                              : 'Unavailable note';
-                          })()}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    disabled={!targetIds.length}
-                    onClick={() => {
-                      const id = accidentalAnchorList.current?.value;
-                      if (id) finishAccidentalPlacement(id);
-                    }}
-                  >
-                    Use highlighted note
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      dispatch({ type: 'cancel-accidental-placement' });
-                    }}
-                  >
-                    Cancel placement
-                  </button>
-                </div>
-              ) : null}
+                onChoosePlacement={finishAccidentalPlacement}
+                onCancelPlacement={() => {
+                  dispatch({ type: 'cancel-accidental-placement' });
+                }}
+              />
             </AccidentalContextToolbar>
           ) : null}
           <SyllableControls
