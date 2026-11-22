@@ -284,6 +284,16 @@ session actions:
 | `InitialClefControls.tsx`   | The Initial clef fieldset: type and staff-line selects, which report only a valid candidate `Clef`         |
 | `LyricLanguageControls.tsx` | The Lyric language select, which reports a normalized `LyricLanguage`, and its alignment/spacing paragraph |
 
+Feature panels (readability M4B-3b) follow the same convention. `ChantEditor`
+still chooses their targets, decides when they are shown and disabled, and
+allocates any fresh IDs when an action happens:
+
+| Module                             | Owns                                                                                                                                                                                                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ClefPitchHandlingControls.tsx`    | The Pitch handling fieldset: the two `clef-insertion-policy` radios, their description and the clef-insertion error status                                                                                                                        |
+| `DivisionControls.tsx`             | The Divisions fieldset for the shell's division target: its "Last focused division" or "Selected" wording, the kind select (reports only a valid `DivisionKind`), and insert-before, insert-after and delete buttons                              |
+| `AccidentalPropertiesControls.tsx` | The content of `AccidentalContextToolbar`: kind, placement and delete controls and the uncontrolled earlier-note list (its own ref, `defaultValue`, `size` and Enter). `AccidentalContextToolbar` keeps positioning, focus, Escape and the portal |
+
 `ClefChangeControls` is an intentional exception to this narrow-props
 convention. It receives `session` and `dispatch`, because it owns a clef
 transaction's Apply, Cancel and deletion-confirmation flow and that flow's
