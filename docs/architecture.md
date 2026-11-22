@@ -128,6 +128,17 @@ A new action type belongs in the action group of the phase that owns it.
 Otherwise it is ordinary and must be handled by `reduceOrdinaryAction`'s
 exhaustive switch.
 
+`editor-availability.ts` names the editor shell's presentation-availability
+rules: whether a control is shown or enabled in the current session mode (for
+example `exclusiveModeActive`, `documentControlsBlocked`,
+`pitchHandlingBlocked` and `noteToolbarAllowed`). The rules are intentionally
+different, and each comment says why. Change whether a control is enabled
+there, not inline in `ChantEditor`. These rules never authorize a transition;
+the reducer keeps its own guards. `clipboardBlocked` stays in
+`editor-session.ts` because the reducer shares it.
+`selected-note-accidental.ts` projects the selected note's written sign,
+effective B and its source for the note properties toolbar.
+
 ### `src/editor/interaction/`
 
 Contains pure bridges between tools, rendered systems, pointer positions, and
@@ -259,6 +270,12 @@ they never dispatch arbitrary actions, hold document state or derive clipboard
 or history permissions. The session reducer stays the only transition
 authority. See [editor interactions](editor-interactions.md#palette-and-action-bar-ownership)
 for focus-request and replacement-reset behavior.
+
+`ClefChangeControls` is an intentional exception to this narrow-props
+convention. It receives `session` and `dispatch`, because it owns a clef
+transaction's Apply, Cancel and deletion-confirmation flow and that flow's
+focus management. Keep its API as it is. Do not copy the pattern for new
+panels.
 
 ## Why the boundaries matter
 
