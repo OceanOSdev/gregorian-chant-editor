@@ -41,6 +41,7 @@ import {
   type EditorTool,
   type NeumeFamily,
 } from '../state/editor-tool';
+import { ClefIcon } from './ClefIcon';
 
 const divisionKinds = ['minima', 'minor', 'maior', 'finalis'] as const;
 
@@ -245,6 +246,8 @@ export function NotationPalette({
         {tool === 'quilisma' && (
           <EntryIcon kind={quilismaFigure} form="quilisma" />
         )}
+        {tool === 'c-clef' && <ClefIcon type="c" />}
+        {tool === 'f-clef' && <ClefIcon type="f" />}
         {paletteButtonLabel(tool)}
       </button>
     );
