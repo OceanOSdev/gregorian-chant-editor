@@ -242,6 +242,9 @@ export function NotationPalette({
         }}
       >
         {tool === 'virga' && <EntryIcon kind="punctum" form="virga" />}
+        {tool === 'quilisma' && (
+          <EntryIcon kind={quilismaFigure} form="quilisma" />
+        )}
         {paletteButtonLabel(tool)}
       </button>
     );

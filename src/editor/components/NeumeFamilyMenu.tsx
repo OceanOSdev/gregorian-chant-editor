@@ -15,7 +15,7 @@ import {
   type GraphicalNeumeKind,
 } from '../neume-entry-pitches';
 import { NeumeInk } from '../rendering/NeumeInk';
-import type { PunctumFamilyKind } from '../state/editor-tool';
+import { entryAppearance, type PunctumFamilyKind } from '../state/editor-tool';
 import './NeumeFamilyMenu.css';
 
 // Icons are staffless silhouettes: body-only geometry, never ledger lines.
@@ -47,7 +47,7 @@ export function EntryIcon({
     createNeumeEntryPitches(kind, staffPosition(0)).staffPositions,
     0,
     0,
-    form ? [{ form }] : [],
+    entryAppearance(kind, form),
   );
   const { x, y, width, height } = geometry.bounds;
   const pad = 2;
