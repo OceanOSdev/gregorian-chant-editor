@@ -86,12 +86,22 @@ const pointerClick = async (point) => {
   });
   await pause();
 };
+// Real pointer input lands on whatever is topmost. Refuse to click when another
+// element (such as the floating note-properties panel) covers the target, so a
+// covered control fails here instead of silently clicking something else. A
+// hit elsewhere in the target's own neume group is allowed: during a lyric move,
+// that neume's destination rectangle owns pointer input by design.
+const uncoveredCenter = `(el)=>{const r=el.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2,hit=document.elementFromPoint(x,y);const neume=el.closest('[data-neume-id]');if(hit!==el&&!el.contains(hit)&&!(neume&&neume.contains(hit))){const owner=hit?.parentElement?.closest('[class]');return {covered:hit?(hit.tagName.toLowerCase()+(hit.getAttribute('aria-label')?' "'+hit.getAttribute('aria-label')+'"':'')+(owner?' in .'+owner.getAttribute('class').split(' ')[0]:'')):'nothing'}}return {x,y}}`;
+const clickUncovered = async (point, target) => {
+  assert(!point.covered, `${target} is covered by ${point.covered}`);
+  await pointerClick(point);
+};
 const button = async (text) => {
   const point = await ev(
-    `(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith(${JSON.stringify(text)}));if(!b)return null;b.scrollIntoView({block:'nearest'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+    `(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith(${JSON.stringify(text)}));if(!b)return null;b.scrollIntoView({block:'nearest'});return (${uncoveredCenter})(b)})()`,
   );
   assert(point, `Missing button ${text}`);
-  await pointerClick(point);
+  await clickUncovered(point, `Button ${text}`);
 };
 const key = async (key, text, modifiers = 0) => {
   await send('Input.dispatchKeyEvent', {
@@ -123,9 +133,9 @@ const type = async (text) => {
 };
 const click = async (selector) => {
   const point = await ev(
-    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});return (${uncoveredCenter})(el)})()`,
   );
-  await pointerClick(point);
+  await clickUncovered(point, selector);
 };
 const note = (id) => click(`[data-note-id="note${id}"]`);
 const lyric = (id = 'middle') =>
@@ -191,6 +201,20 @@ const originalLast = await position('last');
 // Normal clicks select and never begin moving.
 await note(3);
 assert.equal(await moving(), false);
+// Selecting a note opens its floating properties panel. Since the sticky
+// toolbar (7062268) it opens below the note here, over the neighbouring lyric.
+// Close it as a user would; the note stays selected.
+await click('[aria-label="Close note properties"]');
+assert.equal(
+  await ev("!!document.querySelector('.note-context-toolbar')"),
+  false,
+);
+assert.equal(
+  await ev(
+    "document.querySelector('[data-note-id=\"note3\"]').getAttribute('aria-pressed')",
+  ),
+  'true',
+);
 await startMove();
 assert.equal(await active(), 'note4');
 assert.equal(await selected(), 'middle');
