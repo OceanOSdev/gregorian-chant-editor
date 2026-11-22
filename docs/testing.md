@@ -281,6 +281,10 @@ and consult the owning record for feature-specific assertions and manual checks.
   placement, opposing extreme systems, the bundled Salve Regina) with the
   shared `vertical-clearance.test-cases.ts` invariants; runner driver
   `dynamic-vertical-layout`.
+- [CSS zoom contextual toolbars](verification/css-zoom-toolbars/README.md):
+  `position-note-toolbar.test.ts` (zoom conversion, identity at zoom 1,
+  in-viewport and target clearance at several zooms); runner driver
+  `css-zoom-toolbars` (issue #112).
 - [Score focus reparenting](verification/score-focus-reparenting/README.md):
   note and lyric focus across uncommanded reflow (readability M2); runner
   driver `score-focus-reparenting`.

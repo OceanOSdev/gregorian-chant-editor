@@ -724,6 +724,16 @@ Pitch handling and selected division/clef editing remain outside this region.
 `EditorStickyToolbar` owns the region and its `data-too-tall` ResizeObserver;
 the palette and action bar are its children.
 
+The note and accidental panels measure their target, the visible viewport and
+the occupied toolbar bounds in client pixels. Under CSS `zoom` those are
+scaled, while the fixed panel's inline position and its scroll/offset
+metrics are in its own CSS pixels. `positionZoomedNoteToolbar` divides the
+client inputs by the panel's `Element.currentCSSZoom` before applying the
+unchanged `positionNoteToolbar` policy, so the result is scaled exactly once
+(issue #112). Real browser zoom and engines without `currentCSSZoom` use
+factor 1, the unconverted placement. Score reveal makes the matching
+conversion; see the [CSS zoom note](playback.md#follow-scrolling).
+
 ## Stage 5B division controls
 
 The palette Division split button follows the clef tools. Its primary arms
