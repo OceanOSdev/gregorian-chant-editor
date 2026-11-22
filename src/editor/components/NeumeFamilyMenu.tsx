@@ -16,7 +16,11 @@ import {
 } from '../neume-entry-pitches';
 import { NeumeInk } from '../rendering/NeumeInk';
 import { entryAppearance, type PunctumFamilyKind } from '../state/editor-tool';
-import { centeredIconViewBox, fittedIconSize } from './icon-view-box';
+import {
+  centeredIconViewBox,
+  fittedIconSize,
+  inkWidthIconBox,
+} from './icon-view-box';
 import './NeumeFamilyMenu.css';
 
 // Icons are staffless silhouettes: body-only geometry, never ledger lines.
@@ -39,9 +43,12 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
 export function EntryIcon({
   kind,
   form,
+  inkWidth = false,
 }: {
   kind: GraphicalNeumeKind;
   form?: NoteForm;
+  /** Trim to the ink's width, as plain palette buttons do (see NoteFormIcon). */
+  inkWidth?: boolean;
 }) {
   const geometry = buildNeumeBodyGeometry(
     entryGeometryKind(kind),
@@ -50,17 +57,17 @@ export function EntryIcon({
     0,
     entryAppearance(kind, form),
   );
+  const size = fittedIconSize(geometry.bounds);
   // A square box keeps every family member at one scale and 22px icon size.
+  const box = inkWidth
+    ? inkWidthIconBox(geometry.bounds, size)
+    : {
+        width: 22,
+        height: 22,
+        viewBox: centeredIconViewBox(geometry.bounds, size),
+      };
   return (
-    <svg
-      aria-hidden="true"
-      width="22"
-      height="22"
-      viewBox={centeredIconViewBox(
-        geometry.bounds,
-        fittedIconSize(geometry.bounds),
-      )}
-    >
+    <svg aria-hidden="true" {...box}>
       <NeumeInk ink={geometry.ink} />
     </svg>
   );
@@ -83,15 +90,16 @@ const singleNoteIconSize = Math.max(
   ),
 );
 
-/** A one-note authored form (Virga, Punctum inclinatum) at a shared scale. */
+/**
+ * A one-note authored form (Virga, Punctum inclinatum) at a shared scale,
+ * trimmed to its ink's width for a plain palette button.
+ */
 export function NoteFormIcon({ form }: { form: SingleNoteForm }) {
   const geometry = singleNoteGeometry(form);
   return (
     <svg
       aria-hidden="true"
-      width="22"
-      height="22"
-      viewBox={centeredIconViewBox(geometry.bounds, singleNoteIconSize)}
+      {...inkWidthIconBox(geometry.bounds, singleNoteIconSize)}
     >
       <NeumeInk ink={geometry.ink} />
     </svg>

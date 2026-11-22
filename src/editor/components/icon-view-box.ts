@@ -15,3 +15,23 @@ export function centeredIconViewBox(
 ): string {
   return `${x + width / 2 - size / 2} ${y + height / 2 - size / 2} ${size} ${size}`;
 }
+
+const iconPixels = 22;
+
+/**
+ * SVG size and viewBox for a plain palette button icon: `size` units tall and
+ * rendered at 22px, so it has the same scale as a square icon of that `size`,
+ * but trimmed horizontally to the padded ink. Beside a label it then takes
+ * only the ink's width rather than a full 22px square.
+ */
+export function inkWidthIconBox(
+  { x, y, width, height }: LayoutBounds,
+  size: number,
+) {
+  const boxWidth = width + iconPad * 2;
+  return {
+    width: (iconPixels * boxWidth) / size,
+    height: iconPixels,
+    viewBox: `${x - iconPad} ${y + height / 2 - size / 2} ${boxWidth} ${size}`,
+  };
+}

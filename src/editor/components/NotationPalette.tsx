@@ -243,7 +243,7 @@ export function NotationPalette({
       case 'inclinatum':
         return <NoteFormIcon form="inclinatum" />;
       case 'quilisma':
-        return <EntryIcon kind={quilismaFigure} form="quilisma" />;
+        return <EntryIcon kind={quilismaFigure} form="quilisma" inkWidth />;
       case 'c-clef':
         return <ClefIcon type="c" />;
       case 'f-clef':
@@ -256,6 +256,7 @@ export function NotationPalette({
       <button
         key={tool}
         type="button"
+        className={`neume-palette__tool neume-palette__tool--${tool}`}
         data-tool={tool}
         disabled={disabled}
         ref={registerButton(tool)}

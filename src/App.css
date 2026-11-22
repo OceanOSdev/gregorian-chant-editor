@@ -40,18 +40,18 @@
   cursor: pointer;
 }
 /*
- * Icon beside its label, centered like the family primary buttons. A
- * single-column button too narrow for the icon and the label's longest word
- * wraps the label below the icon instead of overflowing the border.
+ * Icon beside its label, centered like the family primary buttons. On wide
+ * layouts a single-column button too narrow for the icon and the label's
+ * longest word wraps the label below the icon instead of overflowing.
  */
-.neume-palette > button {
+.neume-palette__tool {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
 }
-.neume-palette > button > svg {
+.neume-palette__tool > svg {
   flex-shrink: 0;
 }
 .neume-palette__label {
@@ -145,6 +145,35 @@ kbd {
 @media (max-width: 48rem) {
   .neume-palette {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /*
+   * Narrow layouts never stack an icon above its label: that extra line made
+   * the sticky toolbar too tall to stick in windows where it otherwise would.
+   */
+  .neume-palette__tool {
+    flex-wrap: nowrap;
+    gap: 0.2rem;
+  }
+  .neume-palette__label {
+    flex: 0 1 auto;
+  }
+}
+/*
+ * Where an icon cannot sit beside its label without overflowing the button or
+ * adding a line, it is hidden and the full label stays. Phone widths have no
+ * room beside the two long labels, so both hide together. Between 40rem and
+ * 45rem "Punctum inclinatum" just fits on one line without its icon.
+ * Breakpoints measured against master (PR #119); Virga and clefs always fit.
+ */
+@media (max-width: 26rem) {
+  .neume-palette__tool--inclinatum > svg,
+  .neume-palette__tool--quilisma > svg {
+    display: none;
+  }
+}
+@media (min-width: 40rem) and (max-width: 45rem) {
+  .neume-palette__tool--inclinatum > svg {
+    display: none;
   }
 }
 @media (max-width: 22rem) {
