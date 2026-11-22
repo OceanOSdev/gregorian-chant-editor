@@ -34,7 +34,7 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
   );
 }
 
-/** The exact default entry contour, drawn from the shared measured geometry. */
+/** The entry contour with an optional note form, drawn from shared measured geometry. */
 export function EntryIcon({
   kind,
   form,
