@@ -126,6 +126,8 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 - `npm run preview` serves the production build locally for a final smoke test.
 - `npm test` runs the Vitest suite once.
 - `npm run test:watch` runs Vitest in watch mode.
+- `npm run test:e2e` runs the Playwright end-to-end pilot in `tests/e2e/`
+  (Chromium and Firefox; see the [testing guide](docs/testing.md)).
 
 Follow the [testing guide](docs/testing.md) for authoritative setup, required
 verification commands, relevant tests, and manual browser responsibilities.
@@ -201,8 +203,9 @@ Prefer completing one small vertical slice over scaffolding many unfinished syst
 
 ## Testing Guidelines
 
-Vitest is configured for plain TypeScript unit tests. No browser environment,
-component testing library, or coverage requirement is currently configured.
+Vitest is configured for plain TypeScript unit tests. No DOM test environment,
+component testing library, or coverage requirement is configured. Playwright
+Test runs a small real-browser end-to-end pilot under `tests/e2e/`.
 
 - Use names such as `layoutChant.test.ts` or `ChantEditor.test.tsx`.
 - Prioritize tests for domain transformations, editing commands, parsers, serializers, and layout logic.
