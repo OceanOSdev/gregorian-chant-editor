@@ -241,6 +241,7 @@ export function NotationPalette({
           else onArmTool(command.tool);
         }}
       >
+        {tool === 'virga' && <EntryIcon kind="punctum" form="virga" />}
         {paletteButtonLabel(tool)}
       </button>
     );

@@ -7,7 +7,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from 'react';
-import { staffPosition } from '../domain/chant-document';
+import { staffPosition, type NoteForm } from '../domain/chant-document';
 import { buildNeumeBodyGeometry } from '../layout/neume-geometry';
 import {
   createNeumeEntryPitches,
@@ -35,12 +35,19 @@ export function PunctumIcon({ kind }: { kind: PunctumFamilyKind }) {
 }
 
 /** The exact default entry contour, drawn from the shared measured geometry. */
-export function EntryIcon({ kind }: { kind: GraphicalNeumeKind }) {
+export function EntryIcon({
+  kind,
+  form,
+}: {
+  kind: GraphicalNeumeKind;
+  form?: NoteForm;
+}) {
   const geometry = buildNeumeBodyGeometry(
     entryGeometryKind(kind),
     createNeumeEntryPitches(kind, staffPosition(0)).staffPositions,
     0,
     0,
+    form ? [{ form }] : [],
   );
   const { x, y, width, height } = geometry.bounds;
   const pad = 2;
