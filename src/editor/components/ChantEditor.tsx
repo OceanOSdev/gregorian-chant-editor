@@ -617,20 +617,38 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           dispatch({ type: 'focus-palette' });
           return;
         case 'escape':
-          if (shortcut.effect === 'cancel-lyrics')
-            lyricAction({ type: 'cancel' });
-          else if (shortcut.effect === 'select-tool')
-            dispatch({ type: 'select-tool' });
-          else dispatch({ type: 'select', selection: clearSelection() });
-          return;
+          switch (shortcut.effect) {
+            case 'cancel-lyrics':
+              lyricAction({ type: 'cancel' });
+              return;
+            case 'select-tool':
+              dispatch({ type: 'select-tool' });
+              return;
+            case 'clear-selection':
+              dispatch({ type: 'select', selection: clearSelection() });
+              return;
+            default: {
+              // A new effect must be handled here, not swallowed.
+              const unhandled: never = shortcut.effect;
+              throw new Error(`Unhandled Escape effect: ${unhandled}`);
+            }
+          }
         case 'undo':
         case 'redo':
           navigateHistory(shortcut.type);
           return;
+        default: {
+          // preventDefault already ran; a new shortcut must be handled here.
+          const unhandled: never = shortcut;
+          throw new Error(
+            `Unhandled document shortcut: ${JSON.stringify(unhandled)}`,
+          );
+        }
       }
     }
-    // Pending accidental/clef cancellation owns Escape before every other
-    // handler, including native lyric and text inputs.
+    // Pending accidental/clef cancellation owns Escape before every editor
+    // handler, including native lyric and text inputs. Only the playback
+    // options' window-capture dismissal runs earlier.
     function cancelPendingTransactionOnEscape(event: KeyboardEvent) {
       const cancel = getPendingTransactionCancel(event, {
         accidentalPlacement: Boolean(session.accidentalTargetId),

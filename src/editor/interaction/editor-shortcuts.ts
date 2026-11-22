@@ -51,9 +51,10 @@ export type PendingTransactionCancel =
 
 /**
  * Escape cancels a pending accidental placement, else a clef transaction,
- * before any element, lyric input or later listener sees the key. It
- * deliberately ignores `defaultPrevented` and editable targets, and accepts
- * held repeats, so a pending transaction can always be abandoned.
+ * before any element, lyric input or later editor listener sees the key. Only
+ * the playback options' window-capture dismissal runs earlier. It deliberately
+ * ignores `defaultPrevented` and editable targets, and accepts held repeats, so
+ * a pending transaction can be abandoned from any focus.
  */
 export function getPendingTransactionCancel(
   event: EditorKeyEvent,
