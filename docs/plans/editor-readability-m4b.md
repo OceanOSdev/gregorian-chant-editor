@@ -4,10 +4,11 @@ Branch: `docs/editor-readability-m4b-plan` (this plan only). Each milestone
 below uses its own branch and PR.
 Target: `master`
 Base: `1ba1de5ec3c58af1492dc07d2fb887fd154d9268` (M4A / PR #105 merged)
-Status: Owner-approved direction and milestone boundaries (Approach A). This
-plan is merged to `master` through a documentation-only PR before any
-milestone begins. **No milestone is authorized or implemented yet.** The
-lyric-move driver repair comes first.
+Status: **Completed** (historical record). Approach A and the milestone
+boundaries were owner-approved before any milestone began. Maintenance task 0
+and M4B-1 through M4B-4 were then authorized one at a time and merged; see
+[Closeout](#closeout). The sections below record the plan as approved. The
+starting inventory describes the base, not the current tree.
 
 ## Goal and rationale
 
@@ -415,3 +416,45 @@ After the merge, the owner authorizes tasks one at a time:
 Each task gets its own handoff plan, branch and PR against `master`, and the
 owner merges each PR. The M4A status-line correction is part of M4B-1's
 documentation work.
+
+## Closeout
+
+Completed 2026-11-22. The owner reviewed the resulting architecture and
+considers the planned architectural goals achieved. Each PR holds that task's
+actual verification.
+
+| Task                                                     | PR                                                                    | Merge     | Handoff plan                                               |
+| -------------------------------------------------------- | --------------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
+| Maintenance task 0: lyric-move driver repair             | [#108](https://github.com/OceanOSdev/gregorian-chant-editor/pull/108) | `667d49f` | [maintenance-d](maintenance-d-lyric-move-driver-repair.md) |
+| M4B-1: availability rules, accidental projection, origin | [#109](https://github.com/OceanOSdev/gregorian-chant-editor/pull/109) | `36adb0a` | [M4B-1](editor-readability-m4b-1.md)                       |
+| M4B-2: keyboard routing and event precedence             | [#110](https://github.com/OceanOSdev/gregorian-chant-editor/pull/110) | `ea27b0b` | [M4B-2](editor-readability-m4b-2.md)                       |
+| M4B-3a: initial clef and lyric-language panels           | [#111](https://github.com/OceanOSdev/gregorian-chant-editor/pull/111) | `d1439ed` | [M4B-3a](editor-readability-m4b-3a.md)                     |
+| M4B-3b: pitch handling, division, accidental properties  | [#114](https://github.com/OceanOSdev/gregorian-chant-editor/pull/114) | `f1850dd` | [M4B-3b](editor-readability-m4b-3b.md)                     |
+| M4B-4: named `ScoreSvg` handlers and view models         | [#115](https://github.com/OceanOSdev/gregorian-chant-editor/pull/115) | `e155bf1` | [M4B-4](editor-readability-m4b-4.md)                       |
+
+The resulting contracts are owned by
+[architecture](../architecture.md#srceditorcomponents) and
+[keyboard event precedence](../editor-interactions.md#keyboard-event-precedence),
+not by this plan.
+
+### Outstanding, not resolved by M4B
+
+These remain open or unverified. M4B did not fix or verify them:
+
+- **`word-composition` driver:** fails in Chromium and Firefox with `punctum
+selected whole-neume cue must be clipped`, as recorded in PR #108. It was
+  out of scope throughout M4B and is not fixed.
+- **Manual browser checks:** the hands-on keyboard focus and Escape checks
+  expected for M4B-2 were not performed and were left to the owner (PR #110).
+  No milestone records a separate manual browser session; browser evidence
+  comes from the drivers only.
+- **M4B-2 review items deferred by agreement** (PR #110): the classifier API
+  redesign, key-event type unification, deriving reducer types, the earlier
+  DOM reads and the remaining nits.
+- **Out-of-scope items still open:**
+  [issue #99](https://github.com/OceanOSdev/gregorian-chant-editor/issues/99) and merging the note and
+  accidental toolbars' positioning.
+
+The `lyric-spacing` failure found during M4B-3a (issue #112) was an unrelated
+application defect. It was fixed separately in PR #113 (merge `24265b8`), not
+as M4B work.

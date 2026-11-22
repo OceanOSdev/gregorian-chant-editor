@@ -3,8 +3,7 @@
 Branch: `refactor/editor-readability-m4b-3a`
 Target: `master`
 Base: `ea27b0b` (PR #110, M4B-2, merged)
-Status: Implemented on this branch and in review. The PR records the actual
-verification.
+Status: Completed (historical record). Implemented and merged in [PR #111](https://github.com/OceanOSdev/gregorian-chant-editor/pull/111) (merge `d1439ed`). The PR holds the actual verification, including any checks not performed. The branch and base above describe the milestone as implemented.
 
 This is milestone M4B-3a of the
 [M4B plan](editor-readability-m4b.md#m4b-3a-initial-clef-and-lyric-language-panels).
