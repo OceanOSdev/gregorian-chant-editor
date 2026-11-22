@@ -274,6 +274,16 @@ or history permissions. The session reducer stays the only transition
 authority. See [editor interactions](editor-interactions.md#palette-and-action-bar-ownership)
 for focus-request and replacement-reset behavior.
 
+Document-level settings panels (readability M4B-3a) follow the same
+convention. `ChantEditor` composes them, decides their availability with the
+named rules in `state/editor-availability.ts` and binds their callbacks to
+session actions:
+
+| Module                      | Owns                                                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `InitialClefControls.tsx`   | The Initial clef fieldset: type and staff-line selects, which report only a valid candidate `Clef`         |
+| `LyricLanguageControls.tsx` | The Lyric language select, which reports a normalized `LyricLanguage`, and its alignment/spacing paragraph |
+
 `ClefChangeControls` is an intentional exception to this narrow-props
 convention. It receives `session` and `dispatch`, because it owns a clef
 transaction's Apply, Cancel and deletion-confirmation flow and that flow's

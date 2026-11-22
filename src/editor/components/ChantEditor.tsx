@@ -41,7 +41,8 @@ import {
   layoutClefDraftPreview,
 } from '../interaction/resolve-graphical-clef-placement';
 import { ClefChangeControls } from './ClefChangeControls';
-import { isValidClef } from '../domain/clef';
+import { InitialClefControls } from './InitialClefControls';
+import { LyricLanguageControls } from './LyricLanguageControls';
 import { isPlacementTool } from '../state/editor-tool';
 import { buildDivisionGeometry } from '../layout/division-geometry';
 import { resolveScoreSlot } from '../interaction/resolve-score-slot';
@@ -758,76 +759,21 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
           replaceCache={persistence.replaceCache}
           recoverySource={persistence.recoverySource}
         />
-        <fieldset disabled={exclusiveModeActive(session)}>
-          <legend>Initial clef</legend>
-          <label>
-            Clef type{' '}
-            <select
-              aria-label="Initial clef type"
-              value={history.present.clef.type}
-              onChange={(event) => {
-                const clef = {
-                  ...history.present.clef,
-                  type: event.target.value,
-                };
-                if (isValidClef(clef)) dispatch({ type: 'change-clef', clef });
-              }}
-            >
-              <option value="c">C (do)</option>
-              <option value="f">F (fa)</option>
-            </select>
-          </label>{' '}
-          <label>
-            Staff line (bottom to top){' '}
-            <select
-              aria-label="Initial clef staff line"
-              value={history.present.clef.staffLine}
-              onChange={(event) => {
-                const clef = {
-                  ...history.present.clef,
-                  staffLine: Number(event.target.value),
-                };
-                if (isValidClef(clef)) dispatch({ type: 'change-clef', clef });
-              }}
-            >
-              {[1, 2, 3, 4].map((line) => (
-                <option key={line} value={line}>
-                  {line}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p>
-            Initial clef changes preserve the melody in the initial passage. In
-            Select mode, focus the first clef and use ↑/↓ to change its line.
-            Later systems repeat the effective clef at their semantic start.
-          </p>
-        </fieldset>
-        <label>
-          Lyric language{' '}
-          <select
-            aria-label="Lyric language"
-            value={lyricLanguage(history.present.lyricLanguage)}
-            disabled={lyricLanguageBlocked(session)}
-            onChange={(event) => {
-              const language = lyricLanguage(event.currentTarget.value);
-              dispatch({
-                type: 'engraving-edit',
-                edit: (doc) => updateLyricLanguage(doc, language),
-              });
-            }}
-          >
-            <option value="la">Latin</option>
-            <option value="en">English</option>
-            <option value="el">Greek</option>
-            <option value="und">Unspecified</option>
-          </select>
-        </label>
-        <p>
-          Alignment follows the lyric language. Manual segments take precedence.
-          Lyrics provide minimum spacing between neumes. Oversized syllables can
-          be viewed by scrolling the score.
-        </p>
+        <InitialClefControls
+          clef={history.present.clef}
+          disabled={exclusiveModeActive(session)}
+          onChangeClef={(clef) => dispatch({ type: 'change-clef', clef })}
+        />
+        <LyricLanguageControls
+          language={lyricLanguage(history.present.lyricLanguage)}
+          disabled={lyricLanguageBlocked(session)}
+          onChangeLanguage={(language) =>
+            dispatch({
+              type: 'engraving-edit',
+              edit: (doc) => updateLyricLanguage(doc, language),
+            })
+          }
+        />
         <EditorStickyToolbar>
           <NotationPalette
             ref={notationPalette}
