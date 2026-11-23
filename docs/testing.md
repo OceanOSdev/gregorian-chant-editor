@@ -272,8 +272,8 @@ in the [M1 verification record](verification/playwright-m1/README.md).
 The [M2 plan](plans/playwright-m2-migration.md) migrates the remaining drivers
 one group at a time. Each migration adds a "Playwright migration" crosswalk to
 the driver's own verification record. A driver is retired only after the
-owner accepts that crosswalk. M2.1 (divisions) has completed its coverage; see
-the [divisions record](verification/divisions/README.md#playwright-migration-m21).
+owner accepts that crosswalk. M2.1 retired the divisions driver; see the
+[divisions record](verification/divisions/README.md#playwright-migration-m21).
 
 ### Layout and division of labour
 
@@ -356,9 +356,9 @@ committed.
 
 ### Limits
 
-The specs cover the divisions driver completely and a subset of
-`local-persistence`. No driver is retired yet, and Playwright is not part of
-the standard gate or hosted CI. Like the drivers,
+The specs replace the retired divisions driver and cover a subset of
+`local-persistence`. Playwright is not part of the standard gate or hosted
+CI. Like the drivers,
 it is headless: it does not establish foreground window focus, OS zoom, native
 popups such as the select list, IME or spoken screen-reader output. WebKit,
 visual snapshots and routine CI are later milestones.

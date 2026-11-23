@@ -8,6 +8,13 @@ For current verification and qualitative owner acceptance, see the separate
 [Stage 5C record](stage-5c.md) and [owner checklist](owner-acceptance.md).
 The results below remain historical Stage 5B evidence.
 
+**The `browser-check.mjs` driver was retired in Playwright M2.1.** Its
+scenarios now run in the Playwright specs listed under
+[Playwright migration](#playwright-migration-m21). The commands below record
+how earlier results were produced. The script is no longer in the working
+tree; it is in git history, for example
+`git show 0716ade:docs/verification/divisions/browser-check.mjs`.
+
 ## Automated checks
 
 On 2026-11-02:
@@ -122,11 +129,11 @@ remain in temporary storage.
 
 ## Playwright migration (M2.1)
 
-Status: **coverage complete; retirement awaiting owner approval.** Under the
-[M2 plan](../../plans/playwright-m2-migration.md), this crosswalk maps each
-scenario in [`browser-check.mjs`](browser-check.mjs) to the Playwright test
-that now protects it. The driver stays in the runner manifest until the owner
-accepts this equivalence. It supersedes the divisions rows of the
+Status: **retired.** The owner approved this crosswalk and removals A–F on
+2026-11-23, and the driver was removed from the runner manifest and deleted.
+Under the [M2 plan](../../plans/playwright-m2-migration.md), this crosswalk
+maps each scenario of the former `browser-check.mjs` to the Playwright test
+that now protects it. It supersedes the divisions rows of the
 [M1 crosswalk](../playwright-m1/README.md#divisions-development-fixture).
 
 Specs, all on the development fixture, in Chromium and Firefox:

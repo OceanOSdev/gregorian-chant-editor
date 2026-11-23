@@ -73,6 +73,10 @@ Results are scoped to this branch on the date above:
 
 With `npm run dev -- --host 127.0.0.1` running, start Chromium headless with
 `--remote-debugging-port=9230` and a fresh temporary `--user-data-dir`.
+The `divisions/browser-check.mjs` commands below are historical: that driver
+was retired in Playwright M2.1 (see the
+[migration record](README.md#playwright-migration-m21)).
+
 Start Firefox headless with an initialized temporary `--profile` directory,
 `--no-remote --remote-debugging-port 9234`. Run each browser's commands sequentially.
 
