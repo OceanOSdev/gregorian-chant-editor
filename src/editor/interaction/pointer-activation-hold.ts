@@ -23,10 +23,16 @@
  *   derives presentation from the live `document.activeElement`, React
  *   applies state updates in order, and focus moved later by a committed
  *   focus request is applied directly because the hold has ended.
- * - At once when no click can follow: a `pointermove` without the primary
- *   button held (the release was not delivered, for example outside the
- *   window, or `mouseup` brought no click), `pointercancel`, `dragstart`,
- *   `contextmenu`, the window's own `blur`, or a new `mousedown`.
+ * - At once when no click can follow: a `pointermove` from the press's own
+ *   pointer without the primary button held (the release was not delivered,
+ *   for example outside the window, or `mouseup` brought no click),
+ *   `pointercancel`, `dragstart`, `contextmenu`, the window's own `blur`, or
+ *   a non-primary `mousedown`. Moves of other pointers (a hovering pen while
+ *   the mouse is held) never settle it.
+ * - A new primary `mousedown` supersedes an unresolved hold without running
+ *   its callbacks: they would change layout inside the new press (a fast
+ *   double-click can arrive before the first click's task). They carry over
+ *   to the new hold and run when it settles, reading the focus of that time.
  * - `keydown` settles only after `mouseup`. While the button is still down
  *   the press can still produce a click, so a key press does not end it.
  */
@@ -41,6 +47,8 @@ export type HoldEventSource = Pick<
 
 interface Press {
   pressed: EventTarget | null;
+  /** The primary `pointerdown` that produced this press, when one was seen. */
+  pointerId: number | undefined;
   released: boolean;
 }
 
@@ -55,7 +63,14 @@ export interface PointerActivationHold {
   connect(source: HoldEventSource): () => void;
 }
 
-const button = (event: Event) => (event as Event & { button?: number }).button;
+type PointerFields = Event & {
+  button?: number;
+  buttons?: number;
+  pointerId?: number;
+  isPrimary?: boolean;
+};
+const button = (event: Event) => (event as PointerFields).button;
+const pointerId = (event: Event) => (event as PointerFields).pointerId;
 const primaryHeld = (event: Event) =>
   (((event as Event & { buttons?: number }).buttons ?? 0) & 1) === 1;
 
@@ -65,6 +80,9 @@ export function createPointerActivationHold(
   },
 ): PointerActivationHold {
   let press: Press | null = null;
+  // The pointer whose primary `pointerdown` precedes its compatibility
+  // `mousedown` (for touch, the `pointerup` comes in between).
+  let lastPrimaryPointer: number | undefined;
   const waiting = new Set<() => void>();
 
   function settle() {
@@ -75,19 +93,33 @@ export function createPointerActivationHold(
     for (const callback of callbacks) callback();
   }
 
+  const onPointerDown: Listener = (event) => {
+    if ((event as PointerFields).isPrimary !== false && button(event) === 0)
+      lastPrimaryPointer = pointerId(event);
+  };
   const onMouseDown: Listener = (event) => {
-    settle();
-    if (button(event) !== 0) return;
+    if (button(event) !== 0) {
+      settle();
+      return;
+    }
+    // Supersede any unresolved press; `waiting` carries over unchanged.
     press = {
       pressed: event.composedPath?.()[0] ?? event.target,
+      pointerId: lastPrimaryPointer,
       released: false,
     };
+    lastPrimaryPointer = undefined;
   };
   const onMouseUp: Listener = (event) => {
     if (press && button(event) === 0) press.released = true;
   };
   const onPointerMove: Listener = (event) => {
-    if (press && !primaryHeld(event)) settle();
+    if (
+      press &&
+      !primaryHeld(event) &&
+      (press.pointerId === undefined || pointerId(event) === press.pointerId)
+    )
+      settle();
   };
   const onClick: Listener = () => {
     const held = press;
@@ -116,6 +148,7 @@ export function createPointerActivationHold(
         if (event.target === source) settle();
       };
       const listeners: [string, Listener, boolean][] = [
+        ['pointerdown', onPointerDown, true],
         ['mousedown', onMouseDown, true],
         ['mouseup', onMouseUp, true],
         ['pointermove', onPointerMove, true],

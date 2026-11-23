@@ -157,9 +157,14 @@ a task queued from that press's `click`. The event loop guarantees that task
 runs after the click dispatch (whatever stopped propagation) and its microtask
 checkpoint; React having committed is not assumed, because settling reads the
 live focus. It settles at once when no click can follow: a `pointermove`
-without the primary button (an undelivered release, or a `mouseup` with no
-click), `pointercancel`, `dragstart`, `contextmenu`, the window's own `blur`
-or a new `mousedown`. A `keydown` settles only after `mouseup`; while the
+from the press's own pointer (the one whose primary `pointerdown` preceded
+the `mousedown`) without the primary button (an undelivered release, or a
+`mouseup` with no click), `pointercancel`, `dragstart`, `contextmenu`, the
+window's own `blur` or a non-primary `mousedown`. Other pointers' moves never
+settle it. A new primary `mousedown` supersedes an unresolved hold instead of
+settling it: the earlier deferred presentation carries over and runs when the
+new press settles, so it never changes layout inside the new press (a fast
+double-click can arrive before the first click's settle task). A `keydown` settles only after `mouseup`; while the
 button is down the press can still click, so keys do not apply focus
 presentation (`syncNotationFocus` waits too). Keyboard and programmatic focus
 never start a hold, and no hold outlives its

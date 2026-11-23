@@ -54,11 +54,24 @@ Divisions panel may still appear and move the score after a successful click.
   `document.activeElement`, React applies state updates in order, and focus
   moved later by a committed focus request is applied directly. A stale click
   task cannot settle a newer press.
-- **Settle at once when no click can follow:** a `pointermove` without the
-  primary button held (the release was not delivered, as in Playwright
-  Firefox when releasing outside the window, or `mouseup` brought no click),
-  `pointercancel`, `dragstart`, `contextmenu`, the window's own `blur`, or a
-  new `mousedown`. `keydown` settles only after `mouseup`: while the button is
+- **Settle at once when no click can follow:** a `pointermove` from the
+  press's own pointer without the primary button held (the release was not
+  delivered, as in Playwright Firefox when releasing outside the window, or
+  `mouseup` brought no click), `pointercancel`, `dragstart`, `contextmenu`,
+  the window's own `blur`, or a non-primary `mousedown`. The press's pointer
+  is the one whose primary `pointerdown` preceded the `mousedown`; moves of
+  other pointers (a hovering pen while the mouse is held) never settle it.
+  Without a recorded pointer, any pointer's buttonless move settles. _(Added
+  in owner review.)_
+- **A new primary `mousedown` supersedes, it does not settle.** Running the
+  earlier press's deferred presentation inside the new `mousedown` would
+  change layout during the new press: in a fast double-click the second
+  press can arrive before the first click's settle task, and this reproduced
+  the original lost click (Chromium, and Firefox under load). The waiting
+  callbacks carry over to the new press and run when it settles, reading the
+  focus of that time. _(Revised in owner review: the previous revision
+  settled on every new `mousedown`.)_
+- **`keydown`** settles only after `mouseup`: while the button is
   down the press can still produce a click, so a key press neither settles
   the hold nor applies focus presentation (including `syncNotationFocus` on
   `keyup`). _(Revised in review: the first draft settled on every
@@ -67,12 +80,14 @@ Divisions panel may still appear and move the score after a successful click.
   in the same task as `mouseup` for mouse and touch, and React 19 had
   committed the click's updates before the queued task. Settling early would
   only reintroduce the original lost click; it never leaves stale state.
-- **Never outlives the press.** After `mouseup` the next input of any kind
-  (move, key, press) settles a hold that received no click; without a
-  delivered release, the first buttonless move or the window blur does.
-  Reveal suppression applies only to focus on, or containing, the pressed node
-  during the hold, as in #107. Keyboard and programmatic reveals are
-  unaffected, including a Tab while the button is held.
+- **Never outlives the press.** After `mouseup` a hold that received no click
+  ends at the next buttonless move of its pointer or the next key; a new
+  primary press takes it over (with its waiting callbacks) rather than
+  ending it. Without a delivered release, the first buttonless move of the
+  press's pointer or the window blur ends it. Reveal suppression applies only
+  to focus on, or containing, the pressed node during the hold, as in #107.
+  Keyboard and programmatic reveals are unaffected, including a Tab while
+  the button is held.
 - **Presentation reconciles, not replays.** A focus change during the hold
   marks presentation stale. On settle, `focusedDivisionId` and
   `focusedLyricId` are derived again from `document.activeElement` with the

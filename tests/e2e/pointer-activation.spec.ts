@@ -143,6 +143,43 @@ test('reverse: clicking a note while a division has keyboard focus selects the n
   await expect(divisionPanel(page)).toHaveCount(0);
 });
 
+test('a fast double-click never moves the score inside its second press', async ({
+  page,
+}) => {
+  // A keyboard-focused division shows its panel; the first click (on a
+  // lyric) leaves deferred presentation that would remove it. If the second
+  // press arrives before the first click's settle task (seen in Chromium),
+  // that presentation must wait for the second click instead of running
+  // inside the second mousedown. If the task runs first (seen in Firefox),
+  // the accepted post-click change lands between the clicks.
+  await mountDocument(page, score(2, 1));
+  await page.locator('[data-note-id="note1"]').focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(divisionPanel(page)).toBeVisible();
+  // Recording only: read the score position and targets around the press.
+  await page.evaluate(() => {
+    const record: string[] = [];
+    Object.assign(window, { pressRecord: record });
+    const y = () =>
+      document.querySelector('.score-workspace')?.getBoundingClientRect().y;
+    for (const type of ['mousedown', 'mouseup'])
+      window.addEventListener(type, (event) => {
+        const target = event.target as Element;
+        record.push(
+          `${type} ${y()} ${target.getAttribute('data-syllable-id') ?? target.className}`,
+        );
+      });
+  });
+  await page.locator('.score__lyric[data-syllable-id="s0"]').dblclick();
+  const record = await page.evaluate(
+    () => (window as unknown as { pressRecord: string[] }).pressRecord,
+  );
+  expect(record).toHaveLength(4);
+  const [, , down, up] = record.map((entry) => entry.split(' '));
+  // Same score position and same target from press to release.
+  expect(up.slice(1)).toEqual(down.slice(1));
+});
+
 test('a syllable-strip button clipped at the strip edge opens on click', async ({
   page,
 }) => {
