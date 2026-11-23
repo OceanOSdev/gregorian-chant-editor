@@ -145,46 +145,53 @@ test.beforeEach(async ({ page }) => {
 test.describe('pointer placement beside a division', () => {
   for (const width of widths) {
     for (const side of sides) {
-      test(`places a punctum ${side} a division at ${width}px, then Undo/Redo`, async ({
-        page,
-      }) => {
-        await mount(page, width);
-        await tools(page)
-          .getByRole('button', { name: 'Punctum', exact: true })
-          .click();
-        await expect(punctumTool(page)).toHaveAttribute('aria-pressed', 'true');
+      test(
+        `places a punctum ${side} a division at ${width}px, then Undo/Redo`,
+        // Hosted CI smoke: one pointer placement (see docs/testing.md).
+        { tag: width === 1440 && side === 'before' ? ['@smoke'] : [] },
+        async ({ page }) => {
+          await mount(page, width);
+          await tools(page)
+            .getByRole('button', { name: 'Punctum', exact: true })
+            .click();
+          await expect(punctumTool(page)).toHaveAttribute(
+            'aria-pressed',
+            'true',
+          );
 
-        await placePunctumBeside(page, side);
-        const placed = await scoreOrder(page);
-        expect(placed.filter((id) => ['n0', 'D', 'n1'].includes(id))).toEqual([
-          'n0',
-          'D',
-          'n1',
-        ]);
-        // Lyrics stay anchored to their original neumes.
-        expect(
-          await page
-            .locator('.score__lyric')
-            .evaluateAll((elements) =>
-              elements.map((element) =>
-                element.getAttribute('data-syllable-id'),
+          await placePunctumBeside(page, side);
+          const placed = await scoreOrder(page);
+          expect(placed.filter((id) => ['n0', 'D', 'n1'].includes(id))).toEqual(
+            ['n0', 'D', 'n1'],
+          );
+          // Lyrics stay anchored to their original neumes.
+          expect(
+            await page
+              .locator('.score__lyric')
+              .evaluateAll((elements) =>
+                elements.map((element) =>
+                  element.getAttribute('data-syllable-id'),
+                ),
               ),
-            ),
-        ).toEqual(['s0', 's1']);
-        // The placement tool persists after a commit.
-        await expect(punctumTool(page)).toHaveAttribute('aria-pressed', 'true');
-        expect(await pageIsContained(page)).toBe(true);
+          ).toEqual(['s0', 's1']);
+          // The placement tool persists after a commit.
+          await expect(punctumTool(page)).toHaveAttribute(
+            'aria-pressed',
+            'true',
+          );
+          expect(await pageIsContained(page)).toBe(true);
 
-        await page.keyboard.press('Escape');
-        await expect(punctumTool(page)).toHaveAttribute(
-          'aria-pressed',
-          'false',
-        );
-        await undo(page).click();
-        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
-        await redo(page).click();
-        await expect.poll(() => scoreOrder(page)).toEqual(placed);
-      });
+          await page.keyboard.press('Escape');
+          await expect(punctumTool(page)).toHaveAttribute(
+            'aria-pressed',
+            'false',
+          );
+          await undo(page).click();
+          await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+          await redo(page).click();
+          await expect.poll(() => scoreOrder(page)).toEqual(placed);
+        },
+      );
 
       // PR #48: the oversized syllable's extended staff still exposes both
       // insertion slots beside its following bar.
@@ -300,31 +307,34 @@ test.describe('selection, kind, deletion and history', () => {
       );
     });
 
-    test(`keyboard: Tab traverses note → division → note, Enter selects, Backspace deletes at ${width}px`, async ({
-      page,
-    }) => {
-      await mount(page, width);
-      // Fixture setup: start traversal from the first note without selecting it.
-      await page.locator('[data-note-id="note0"]').focus();
-      await page.keyboard.press('Tab');
-      await expect(division(page)).toBeFocused();
-      await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
+    test(
+      `keyboard: Tab traverses note → division → note, Enter selects, Backspace deletes at ${width}px`,
+      // Hosted CI smoke: the representative keyboard workflow.
+      { tag: width === 1440 ? ['@smoke'] : [] },
+      async ({ page }) => {
+        await mount(page, width);
+        // Fixture setup: start traversal from the first note without selecting it.
+        await page.locator('[data-note-id="note0"]').focus();
+        await page.keyboard.press('Tab');
+        await expect(division(page)).toBeFocused();
+        await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
 
-      await page.keyboard.press('Enter');
-      await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+        await page.keyboard.press('Enter');
+        await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
 
-      await page.keyboard.press('Tab');
-      await expect(page.locator('[data-note-id="note1"]')).toBeFocused();
-      // Tab moves focus without changing the semantic selection.
-      await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+        await page.keyboard.press('Tab');
+        await expect(page.locator('[data-note-id="note1"]')).toBeFocused();
+        // Tab moves focus without changing the semantic selection.
+        await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
 
-      await page.keyboard.press('Shift+Tab');
-      await expect(division(page)).toBeFocused();
-      await page.keyboard.press('Backspace');
-      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
-      await undo(page).click();
-      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
-    });
+        await page.keyboard.press('Shift+Tab');
+        await expect(division(page)).toBeFocused();
+        await page.keyboard.press('Backspace');
+        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
+        await undo(page).click();
+        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+      },
+    );
   }
 });
 

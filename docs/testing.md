@@ -159,6 +159,58 @@ execution. After pushing, confirm the workflow runs successfully and that a
 newer push cancels an obsolete run for the same branch or pull request before
 requiring all four CI checks in branch protection.
 
+### E2E smoke (Playwright)
+
+A fifth job, `CI / E2E smoke` (Playwright M2.3), runs a small tagged
+Playwright selection on every CI run. It is **not required** in branch
+protection. The owner decides when to require it, based on its record across
+real PR runs.
+
+The job:
+
+1. Installs locked dependencies with `npm ci`.
+2. Restores the Playwright browser cache. Its key includes the exact locked
+   `@playwright/test` version, so a version change never reuses old browser
+   builds. On a cache miss it runs
+   `npx playwright install --with-deps chromium firefox`; on a hit it runs
+   `npx playwright install-deps chromium firefox` for the system libraries.
+3. Lists the selection and fails if either browser project has fewer than
+   four `@smoke` tests, so a project cannot be dropped silently.
+4. Runs `npm run test:e2e:smoke` (`playwright test --grep @smoke
+--project=chromium --project=firefox --retries=0`). Both web servers start
+   as in local runs: the dev fixture and a fresh production build served by
+   `vite preview`.
+5. Fails if any Playwright web server (`.playwright/` paths) or browser process
+   is still running after the tests, whether they passed or failed.
+6. On failure, uploads the HTML report (`.playwright/report/`) and the failing
+   tests' traces and screenshots (`.playwright/test-results/`) as the
+   `e2e-smoke-report` artifact, kept for 14 days. Open the report with
+   `npx playwright show-report <dir>` and a trace with
+   `npx playwright show-trace <trace.zip>`.
+
+The `@smoke` tests, each in Chromium and Firefox:
+
+- `divisions.spec.ts`: pointer placement of a punctum before a division at
+  1440px, with Undo/Redo.
+- `divisions.spec.ts`: keyboard Tab traversal note → division → note, Enter
+  selection and Backspace deletion at 1440px.
+- `pointer-activation.spec.ts`: the #121 division click at 1440px (the press
+  must not move the score before the click).
+- `local-persistence.spec.ts`: nothing saved on first load; a committed edit
+  survives refresh with fresh history; Undo/Redo persist.
+
+Selection rules: tag with `{ tag: '@smoke' }` only representative, fast tests
+that are not sensitive to fonts or to large geometry matrices, and none with a
+known open intermittent failure. The #121 double-click test (issue #127) is
+excluded for that reason.
+
+**Interpreting results.** There are no retries, so any failure is a real
+signal: a regression, an environment difference on the hosted runner, or an
+intermittent defect. Investigate it from the artifact. Do not rerun until
+green, and do not add retries or weaken the test. Record intermittent hosted
+failures in an issue. A green smoke run is not the full suite: run
+`npm run test:e2e` locally for complete coverage.
+
 ### GitHub Pages deployment
 
 The separate `Deploy to GitHub Pages` workflow runs on every push to `master`,
@@ -339,6 +391,7 @@ npm run test:e2e -- --project=firefox             # one browser
 npm run test:e2e -- divisions                     # one spec file
 npm run test:e2e -- -g "Tab traverses"            # tests matching a title
 npm run test:e2e -- --repeat-each=5               # local stability check
+npm run test:e2e:smoke                            # the hosted CI smoke selection
 npx playwright show-report .playwright/report     # HTML report
 npx playwright show-trace <trace.zip>             # failure trace
 ```
@@ -368,11 +421,12 @@ committed.
 ### Limits
 
 The specs replace the retired divisions and local-persistence drivers.
-Playwright is not part of the standard gate or hosted CI. Like the drivers,
+Playwright is not part of the standard local gate. Hosted CI runs only the
+non-required [`@smoke` selection](#e2e-smoke-playwright). Like the drivers,
 it is headless: it does not establish foreground window focus, OS zoom, native
 popups such as the select list, an OS IME (Chromium's input-method
 composition is exercised through CDP) or spoken screen-reader output. WebKit,
-visual snapshots and routine CI are later milestones.
+visual snapshots and the full suite in hosted CI are later milestones.
 
 ## Feature-specific verification index
 

@@ -45,39 +45,42 @@ test.describe('autosave', () => {
     await expect(page.getByRole('region', { name: 'Document' })).toBeVisible();
   });
 
-  test('first load saves nothing; a committed edit saves and survives refresh with fresh history, then Undo/Redo persist', async ({
-    page,
-  }) => {
-    await expect(page.locator('[data-note-id]')).toHaveCount(4);
-    expect(await cachedText(page)).toBeNull();
+  test(
+    'first load saves nothing; a committed edit saves and survives refresh with fresh history, then Undo/Redo persist',
+    // Hosted CI smoke: persistence across a refresh.
+    { tag: '@smoke' },
+    async ({ page }) => {
+      await expect(page.locator('[data-note-id]')).toHaveCount(4);
+      expect(await cachedText(page)).toBeNull();
 
-    await lyricLanguage(page).selectOption('el');
-    await expect
-      .poll(() => cached(page))
-      .toMatchObject({ document: { lyricLanguage: 'el' } });
+      await lyricLanguage(page).selectOption('el');
+      await expect
+        .poll(() => cached(page))
+        .toMatchObject({ document: { lyricLanguage: 'el' } });
 
-    await page.reload();
-    await expect(lyricLanguage(page)).toHaveValue('el');
-    await expect(saveStatus(page)).toContainText('Saved locally');
-    await expect(undo(page)).toBeDisabled();
+      await page.reload();
+      await expect(lyricLanguage(page)).toHaveValue('el');
+      await expect(saveStatus(page)).toContainText('Saved locally');
+      await expect(undo(page)).toBeDisabled();
 
-    await lyricLanguage(page).selectOption('en');
-    await expect
-      .poll(() => cached(page))
-      .toMatchObject({ document: { lyricLanguage: 'en' } });
-    await undo(page).click();
-    await expect(lyricLanguage(page)).toHaveValue('el');
-    await expect
-      .poll(() => cached(page))
-      .toMatchObject({ document: { lyricLanguage: 'el' } });
-    await redo(page).click();
-    await expect
-      .poll(() => cached(page))
-      .toMatchObject({ document: { lyricLanguage: 'en' } });
+      await lyricLanguage(page).selectOption('en');
+      await expect
+        .poll(() => cached(page))
+        .toMatchObject({ document: { lyricLanguage: 'en' } });
+      await undo(page).click();
+      await expect(lyricLanguage(page)).toHaveValue('el');
+      await expect
+        .poll(() => cached(page))
+        .toMatchObject({ document: { lyricLanguage: 'el' } });
+      await redo(page).click();
+      await expect
+        .poll(() => cached(page))
+        .toMatchObject({ document: { lyricLanguage: 'en' } });
 
-    await page.reload();
-    await expect(lyricLanguage(page)).toHaveValue('en');
-  });
+      await page.reload();
+      await expect(lyricLanguage(page)).toHaveValue('en');
+    },
+  );
 
   // The save runs synchronously while the input event that caused the edit is
   // still being dispatched (docs/persistence.md: "synchronously saves when

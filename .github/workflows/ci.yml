@@ -113,3 +113,83 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e-smoke:
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Browser builds are pinned to the exact locked @playwright/test version,
+      # so the cache key includes it and a version change never reuses them.
+      - name: Read locked Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium-firefox
+
+      - name: Install Playwright browsers and system dependencies
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Install Playwright system dependencies
+        if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium firefox
+
+      # Fails if either browser project would run no smoke tests.
+      - name: Verify smoke selection
+        run: |
+          list="$(npx playwright test --grep @smoke --project=chromium --project=firefox --list)"
+          echo "$list"
+          for project in chromium firefox; do
+            count="$(grep -c "\[$project\] ›" <<< "$list" || true)"
+            if [ "$count" -lt 4 ]; then
+              echo "::error::Expected at least 4 @smoke tests in $project, found $count"
+              exit 1
+            fi
+          done
+
+      # Zero retries: an intermittent failure fails the job.
+      - name: Run Playwright smoke tests
+        run: npm run test:e2e:smoke
+
+      - name: Check that the Playwright web servers stopped
+        if: ${{ !cancelled() }}
+        run: |
+          # The config's servers use .playwright/ paths; browsers run from
+          # the ms-playwright cache.
+          if pgrep -af '\.playwright/(vite-cache|preview-dist)|ms-playwright/'; then
+            echo "::error::Playwright web server or browser processes remain"
+            exit 1
+          fi
+
+      - name: Upload Playwright report and traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-smoke-report
+          path: |
+            .playwright/report/
+            .playwright/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
