@@ -180,8 +180,12 @@ The job:
 --project=chromium --project=firefox --retries=0`). Both web servers start
    as in local runs: the dev fixture and a fresh production build served by
    `vite preview`.
-5. Fails if any Playwright web server (`.playwright/` paths) or browser process
-   is still running after the tests, whether they passed or failed.
+5. Runs whether the tests passed or failed, and fails if any process still
+   matches the expected Playwright command patterns: the web servers' private
+   `.playwright/` paths or a browser from the `ms-playwright` cache. This is
+   an additional safeguard that relies on those command lines, not an
+   exhaustive guarantee that no test process survives. Playwright's own
+   `webServer` teardown is what stops the servers.
 6. On failure, uploads the HTML report (`.playwright/report/`) and the failing
    tests' traces and screenshots (`.playwright/test-results/`) as the
    `e2e-smoke-report` artifact, kept for 14 days. Open the report with
@@ -328,6 +332,9 @@ owner accepts that crosswalk. M2.1 retired the divisions driver; see the
 [divisions record](verification/divisions/README.md#playwright-migration-m21).
 M2.2 retired the local-persistence driver; see the
 [local persistence record](verification/local-persistence/README.md#playwright-migration-m22).
+M2.4 investigated the issue #123 driver failures with focused specs
+(`extended-scandicus-climacus`, `word-composition`, `note-modifiers`); see the
+[investigation record](verification/issue-123/README.md).
 
 ### Layout and division of labour
 
