@@ -384,9 +384,12 @@ accepted by the owner as non-required with a reason. Then:
       is an explicit owner decision.
 - [ ] Each diagnostic script is classified, and kept tools are relocated
       with usage notes.
-- [ ] The runner is removed only after its precondition holds. No CDP/BiDi
-      transport code remains in routine coverage, and the historical
-      records under `docs/verification/` are intact.
+- [ ] The runner is removed only after its precondition holds. No custom
+      CDP/BiDi transport infrastructure (hand-written WebSocket clients,
+      protocol message plumbing or input synthesis) remains in routine
+      coverage. A justified, documented use of Playwright's own protocol
+      access, such as a `CDPSession` for IME testing, is acceptable. The
+      historical records under `docs/verification/` are intact.
 - [ ] Every PR records actual results of `format:check`, `lint`, `test`,
       `build`, `git diff --check` and `test:e2e`, plus
       `test:verify-runner` and the relevant legacy drivers while the runner
