@@ -472,8 +472,10 @@ remain regression gates. See the Stage 6B verification record for actual runs.
 
 The codec/adapter unit suites cover full-document round trips, malformed payloads,
 size limits, IDs/anchors/contours, corrupt cache protection, unavailable storage,
-conflicts and undo/redo saves. The standalone [browser driver](../verification/local-persistence/browser-check.mjs)
-checks the actual production subpath editor in Chromium/CDP and Firefox/BiDi.
+conflicts and undo/redo saves. The standalone browser driver
+(`local-persistence/browser-check.mjs`, retired to Playwright in M2.2; see its
+[migration record](../verification/local-persistence/README.md#playwright-migration-m22))
+checked the actual production subpath editor in Chromium/CDP and Firefox/BiDi.
 See its [record and manual checklist](../verification/local-persistence/README.md)
 for commands, scope and limits. Browser drivers remain outside CI/Vitest.
 

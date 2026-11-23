@@ -1,15 +1,16 @@
 # Bundled example verification
 
-The example driver mounts the real editor on a disposable origin/profile. Run
-sequentially with the persistence driver (they share a browser tab). Use the
-[local persistence setup](../local-persistence/README.md) for Chromium/CDP on
-9230, Firefox/BiDi on 9231 and production preview on 4173.
+The example driver mounts the real editor on a disposable origin/profile. Use
+the [local persistence setup](../local-persistence/README.md#reproduce) for
+Chromium/CDP on 9230, Firefox/BiDi on 9231 and production preview on 4173, or
+run it through the runner (`npm run verify:browser -- --driver
+bundled-example --browser both`). The persistence driver it was originally run
+beside was retired to Playwright in M2.2
+([migration record](../local-persistence/README.md#playwright-migration-m22)).
 
 ```sh
 node docs/verification/bundled-example/browser-check.mjs
 CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session node docs/verification/bundled-example/browser-check.mjs
-node docs/verification/local-persistence/browser-check.mjs
-CHANT_FIREFOX_URL=ws://127.0.0.1:9231/session node docs/verification/local-persistence/browser-check.mjs
 ```
 
 Set `CHANT_PREVIEW_URL=http://127.0.0.1:5173/` for Vite development mode.

@@ -4,6 +4,12 @@ Date: 2026-11-08. Implementation follows Accepted ADR 0016 and the
 [committed plan](../../plans/stage-7a-local-document-persistence.md).
 The [persistence guide](../../persistence.md) owns the implemented contract.
 
+**The `browser-check.mjs` driver was retired in Playwright M2.2.** Its
+scenarios now run in the Playwright specs listed under
+[Playwright migration](#playwright-migration-m22). The commands below record
+how earlier results were produced. The script is in git history, for example
+`git show 793fa79:docs/verification/local-persistence/browser-check.mjs`.
+
 ## Automated results
 
 Passed locally: `npm run format:check`, `npm run lint` (no warnings), `npm test`
@@ -205,11 +211,12 @@ Retained screenshots: [desktop Chromium](compact-header-chromium.png),
 
 ## Playwright migration (M2.2)
 
-Status: **coverage complete; retirement awaiting owner approval.** Under the
+Status: **accepted and retired.** The owner approved this crosswalk and
+removals A–E on 2026-11-23. The driver was removed from the runner manifest
+and smoke preset (replaced there by `bundled-example`) and deleted. Under the
 [M2 plan](../../plans/playwright-m2-migration.md), this crosswalk maps each
-scenario in [`browser-check.mjs`](browser-check.mjs) to the test that now
-protects it. The driver stays in the runner manifest and smoke preset until
-the owner accepts this equivalence. It supersedes the local-persistence rows
+scenario of the former `browser-check.mjs` to the test that now protects it.
+It supersedes the local-persistence rows
 of the [M1 crosswalk](../playwright-m1/README.md#local-persistence-production-preview).
 
 Specs, all on the production preview, in Chromium and Firefox:
