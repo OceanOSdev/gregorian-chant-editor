@@ -9,11 +9,12 @@ Specs: [`tests/e2e/divisions.spec.ts`](../../../tests/e2e/divisions.spec.ts)
 (production preview).
 
 The pilot ports a **subset** of two legacy drivers. Neither
-`divisions/browser-check.mjs` nor
-[`local-persistence/browser-check.mjs`](../local-persistence/browser-check.mjs)
+`divisions/browser-check.mjs` nor `local-persistence/browser-check.mjs`
 is retired, disabled or claimed equivalent; both stay in the runner manifest
-and smoke preset. (M2.1 later retired the divisions driver; see its
-[migration record](../divisions/README.md#playwright-migration-m21).)
+and smoke preset. (Both were retired later: divisions in M2.1, see its
+[migration record](../divisions/README.md#playwright-migration-m21), and
+local persistence in M2.2, see its
+[migration record](../local-persistence/README.md#playwright-migration-m22).)
 
 ## Coverage crosswalk
 

@@ -83,7 +83,7 @@ describe('selectJobs', () => {
     const selection = selectJobs(
       parseCliArgs([
         '--driver',
-        'contiguous-selection,local-persistence',
+        'contiguous-selection,bundled-example',
         '--browser',
         'both',
       ]),
@@ -91,8 +91,8 @@ describe('selectJobs', () => {
     assert.deepEqual(pairs(selection), [
       'contiguous-selection:chromium',
       'contiguous-selection:firefox',
-      'local-persistence:chromium',
-      'local-persistence:firefox',
+      'bundled-example:chromium',
+      'bundled-example:firefox',
     ]);
     assert.deepEqual(selection.unsupported, []);
   });
@@ -170,11 +170,11 @@ describe('selectJobs', () => {
         .map((browser) => `${driver.id}:${browser}`),
     );
     assert.deepEqual(pairs(selection), expected);
-    assert.equal(selection.runnable.length, 54);
+    assert.equal(selection.runnable.length, 52);
     assert.equal(selection.unsupported.length, 6);
   });
 
-  it('smoke covers dev lyrics and preview persistence in each browser', () => {
+  it('smoke covers dev lyrics and preview storage in each browser', () => {
     for (const browser of ['chromium', 'firefox']) {
       const selection = selectJobs(parseCliArgs(['--browser', browser]));
       const servers = selection.runnable.map(({ driver }) => driver.server);
@@ -182,15 +182,15 @@ describe('selectJobs', () => {
         servers.includes('dev') && servers.includes('preview'),
         browser,
       );
-      assert.ok(pairs(selection).includes(`local-persistence:${browser}`));
+      assert.ok(pairs(selection).includes(`bundled-example:${browser}`));
     }
     const both = selectJobs(parseCliArgs(['--browser', 'both']));
     assert.deepEqual(pairs(both), [
       'vowel-alignment:chromium',
       'contiguous-selection:chromium',
       'contiguous-selection:firefox',
-      'local-persistence:chromium',
-      'local-persistence:firefox',
+      'bundled-example:chromium',
+      'bundled-example:firefox',
     ]);
     // The CDP-only lyric driver is reported, not invented for Firefox.
     assert.deepEqual(

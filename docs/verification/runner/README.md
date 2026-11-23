@@ -34,11 +34,12 @@ both` for a final regression run.
   runs once per requested browser it implements; other combinations are
   reported as `unsupported`. CDP-only drivers never run in Firefox.
 - `smoke`: `vowel-alignment` (dev-fixture lyrics, Chromium only),
-  `contiguous-selection` (dev fixture, both) and `local-persistence`
+  `contiguous-selection` (dev fixture, both) and `bundled-example`
   (production preview, storage-clearing, both). `full`: every manifest
-  driver. `contiguous-selection` replaced the `divisions` driver, which was
-  retired to Playwright in M2.1; it keeps a Firefox dev-fixture job in the
-  smoke preset until the Playwright smoke CI job of M2.3.
+  driver. `contiguous-selection` replaced the `divisions` driver (retired to
+  Playwright in M2.1) and `bundled-example` replaced the `local-persistence`
+  driver (retired in M2.2). They keep a dev-fixture and a preview job in each
+  browser in the smoke preset until the Playwright smoke CI job of M2.3.
 - An unknown ID or preset, a driver with no requested browser (for example
   `--driver continuous-lyrics --browser firefox`), or an empty selection exits
   with status 2 before launching anything.

@@ -274,6 +274,8 @@ one group at a time. Each migration adds a "Playwright migration" crosswalk to
 the driver's own verification record. A driver is retired only after the
 owner accepts that crosswalk. M2.1 retired the divisions driver; see the
 [divisions record](verification/divisions/README.md#playwright-migration-m21).
+M2.2 retired the local-persistence driver; see the
+[local persistence record](verification/local-persistence/README.md#playwright-migration-m22).
 
 ### Layout and division of labour
 
@@ -293,8 +295,11 @@ owner accepts that crosswalk. M2.1 retired the divisions driver; see the
   names the contract it breaks, rather than weakening or skipping the
   assertion.
 - Shared helpers: `dev-fixture.ts` (open the fixture, mount a document),
-  `punctum-score.ts` (plain punctum scores with divisions and lyrics) and
-  `score.ts` (rendered order, centring, waiting two frames, page containment).
+  `punctum-score.ts` (plain punctum scores with divisions and lyrics),
+  `score.ts` (rendered order, centring, waiting two frames, page containment)
+  and `preview-document.ts` (the production preview's Document header: cache
+  reads, `openWithCache` setup, native dialogs, file input/chooser and
+  downloads).
   The helper `revealCentered` also centres the horizontally scrolled score
   viewport, because Firefox's `scrollIntoView` does not scroll it for an SVG
   group.
@@ -304,6 +309,12 @@ owner accepts that crosswalk. M2.1 retired the divisions driver; see the
   pixel or more. To show that something does _not_ happen after an
   animation-frame reveal, wait two frames (`frames`) rather than a fixed
   delay.
+- Fault injection and other browser-internal setup (a throwing
+  `Storage.prototype.setItem`, a corrupt cache) are controlled setup through
+  `page.evaluate`; say so in a comment. Synthetic events stand in for user
+  input only when no native path exists, and the test name says so (for
+  example the `isComposing` guard check). Real IME composition uses Chromium's
+  CDP input-method commands through `CDPSession`, and only in Chromium.
 
 ### Setup
 
@@ -356,11 +367,11 @@ committed.
 
 ### Limits
 
-The specs replace the retired divisions driver and cover a subset of
-`local-persistence`. Playwright is not part of the standard gate or hosted
-CI. Like the drivers,
+The specs replace the retired divisions and local-persistence drivers.
+Playwright is not part of the standard gate or hosted CI. Like the drivers,
 it is headless: it does not establish foreground window focus, OS zoom, native
-popups such as the select list, IME or spoken screen-reader output. WebKit,
+popups such as the select list, an OS IME (Chromium's input-method
+composition is exercised through CDP) or spoken screen-reader output. WebKit,
 visual snapshots and routine CI are later milestones.
 
 ## Feature-specific verification index

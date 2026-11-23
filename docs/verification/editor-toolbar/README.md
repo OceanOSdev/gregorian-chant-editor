@@ -69,7 +69,8 @@ Linux, Node 24.12.0, Chromium 157.0.8103.38, Firefox 146.0.
 
 - Foreground focus rings, real browser zoom (as opposed to CSS zoom), IME and
   screen-reader output: headless runs cannot check these.
-- Reload through a genuine second tab: `local-persistence` covers that
-  conflict path; this driver uses the in-page focus check.
+- Reload through a genuine second tab: `tests/e2e/local-persistence.spec.ts`
+  covers that conflict path (the former `local-persistence` driver did before
+  M2.2); this driver uses the in-page focus check.
 
 The full-matrix comparison is recorded in the M1 pull request.

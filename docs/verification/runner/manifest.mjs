@@ -171,12 +171,6 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
-    id: 'local-persistence',
-    script: 'local-persistence/browser-check.mjs',
-    server: 'preview',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
     id: 'bundled-example',
     script: 'bundled-example/browser-check.mjs',
     server: 'preview',
@@ -214,10 +208,12 @@ export const DRIVERS = [
 // driver exists), a dev-fixture driver for both browsers (contiguous-
 // selection: native pointer/keyboard range selection, replacing the divisions
 // driver retired to Playwright in M2.1 until the Playwright smoke CI job of
-// M2.3) and real production preview editing/persistence with storage
-// clearing (local-persistence) in each requested browser.
+// M2.3) and a real production preview driver with storage clearing in each
+// requested browser (bundled-example: loading a bundled score and protecting
+// foreign cache bytes, replacing the local-persistence driver retired to
+// Playwright in M2.2, also until M2.3).
 export const PRESETS = {
-  smoke: ['vowel-alignment', 'contiguous-selection', 'local-persistence'],
+  smoke: ['vowel-alignment', 'contiguous-selection', 'bundled-example'],
   full: DRIVERS.map((driver) => driver.id),
 };
 
