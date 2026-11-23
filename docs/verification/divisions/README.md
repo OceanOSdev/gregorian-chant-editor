@@ -249,3 +249,37 @@ matches the earlier PR #107 fix. The worktree was removed afterwards.
 
 Not run: hosted CI, WebKit, and foreground window focus, OS zoom, native
 popups and screen readers (as in M1).
+
+### Retirement verification (2026-11-23)
+
+Retirement commit `7f7161a` with a clean tree, in the same environment as
+above. It removes the driver from the manifest and deletes the script. The
+smoke preset uses `contiguous-selection` for its Firefox dev-fixture job until
+M2.3.
+
+| Check                                                                                                              | Result                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`                              | All passed                                                                                                                               |
+| `npm run test:verify-runner`                                                                                       | 28/28 passed (selection tests updated for the new smoke preset; 54 runnable and 6 unsupported pairs in `full`)                           |
+| `npm run verify:browser -- --list`                                                                                 | 30 drivers; smoke = `vowel-alignment`, `contiguous-selection`, `local-persistence`                                                       |
+| `npm run verify:browser -- --browser both` (legacy smoke)                                                          | 5 passed, 1 expected unsupported (`vowel-alignment` Firefox); 75.0 s wall clock                                                          |
+| `npm run verify:browser -- --driver contiguous-selection --browser both -j 2`, twice more                          | 2/2 passed each time (Chromium about 45.7 s, Firefox about 51.2 s)                                                                       |
+| `npm run test:e2e`                                                                                                 | 132 passed (37.0 s)                                                                                                                      |
+| `npm run test:e2e -- divisions division-layout focus-reveal pointer-activation --repeat-each=10` (default workers) | 1,218 passed, **2 failed**: both the pre-existing #121 test "a fast double-click never moves the score inside its second press", Firefox |
+
+The failing test is unchanged by M2.1, and the branch has no production or
+configuration difference from `master`. Isolated, it passed 30/30 in Firefox
+on both `master` (`2ed580e`) and this branch, and 30/30 in Chromium on this
+branch. Under load (`pointer-activation`, Firefox, `--repeat-each=20
+--workers=16`), `master` passed 240/240 twice. This branch passed 278/280
+and then 280/280; the failures were the same double-click test. The branch's
+spec set adds the two 100-neume edge-press tests to that file, which raises
+concurrent load.
+
+The failing assertion is the #121 contract: the score moved 144 px between
+the second press and its release (the target changed from the lyric `s0` to
+`.score-viewport`). The test's own comment expects that, in Firefox, the
+deferred presentation usually lands between the two clicks. Under load it
+landed inside the second press. This is reported as an open caveat; it may be
+a Firefox product race in the #121 hold. It was not investigated further, and
+the test was not changed or weakened in M2.1.
