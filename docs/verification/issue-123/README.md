@@ -290,8 +290,10 @@ Firefox 146.0. Results for the committed revision are in the PR.
 - **Legacy reproduction on `9b49bad`:** `word-composition` and
   `extended-scandicus-climacus` failed in both browsers. `note-modifiers`
   passed in one both-browser run and failed 4 of 8 Chromium runs.
-- **The three new specs (38 tests across both browsers):** all passed;
-  `--repeat-each=10` gave 380 passed, 0 failed, 0 flaky.
+- **The three new specs (42 tests across both browsers: 8 + 32 + 2):** all
+  passed; `--repeat-each=10` on the committed revision `016b8ba` gave 420
+  passed, 0 failed, 0 flaky. (An earlier 10× run, before the four Kyrie XI
+  tests were added, gave 380 of 380.)
 - **Cross-revision checks:** `word-composition.spec.ts` at `6baa5e3` had 28 of
   28 compact tests fail on "outline is not clipped".
   `extended-scandicus-climacus.spec.ts` at `710aaf7` passed 8 of 8.
