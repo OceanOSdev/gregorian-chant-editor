@@ -389,6 +389,11 @@ and consult the owning record for feature-specific assertions and manual checks.
   and `follow-sounding-note.test.ts`; runner drivers `audio-playback` and
   `audio-follow-along`. Automated checks never prove what is heard or that
   the cue looks in sync; record actual listening separately.
+- Pointer activation (issue #121): `pointer-activation-hold.test.ts`
+  (settle ordering, interruption signals, secondary buttons, stale click
+  tasks) and `tests/e2e/pointer-activation.spec.ts` (both directions, syllable
+  strip, touch, narrow, scrolled and interrupted presses); contract in
+  [editor interactions](editor-interactions.md#focus).
 - [Sticky editor toolbar](verification/sticky-editor-toolbar.md): focused Kyrie XI,
   division split menu, focus visibility and contextual-toolbar regression evidence.
 

@@ -133,15 +133,46 @@ shrinkage can still cause native scroll-range clamping. Native score focus
 traversal settles, accounting for the sticky tools without changing selection
 or intercepting traversal.
 
-A pointer press is the exception. The focus it gives the pressed control is not
-revealed, because the control is already visible under the pointer, and
-scrolling it before release would make the click miss. `ScoreSvg` keeps the
-pressed element only until the end of the input task in which the press moves
-focus. Keyboard, programmatic and later focus therefore always reveal, and
-neither pointer cancellation nor a missing release can leave stale state. A
-selection made by that click can still request its own focus and reveal after
-release. The `divisions` driver covers the top and bottom window edges with
-real press and release timing.
+A pointer press is the exception. Focus moves at the press, before release,
+but nothing derived from that focus may change layout or scroll until the
+press's activation has been dispatched; otherwise the pressed control moves
+and the click goes to a common ancestor (PR #107,
+[issue #121](https://github.com/OceanOSdev/gregorian-chant-editor/issues/121)).
+`ChantEditor` owns one press-activation hold
+(`src/editor/interaction/pointer-activation-hold.ts`) and passes it to its
+consumers:
+
+- `ScoreSvg` does not reveal focus given by the held press, because the
+  control is already visible under the pointer.
+- `SyllableControls` does not scroll the syllable strip for such focus.
+- `ChantEditor` defers focus-derived presentation (the Divisions group's
+  focused division and the focused lyric). When the press settles it derives
+  them again from the actual focus, so a click's own selection is never
+  overwritten. Selection updates made by click handlers are not held.
+
+The hold starts at a primary `mousedown`, the event whose default action
+moves focus; for touch that is the compatibility `mousedown` after the touch
+`pointerup`, so the hold never races touch compatibility events. It settles in
+a task queued from that press's `click`. The event loop guarantees that task
+runs after the click dispatch (whatever stopped propagation) and its microtask
+checkpoint; React having committed is not assumed, because settling reads the
+live focus. It settles at once when no click can follow: a `pointermove`
+from the press's own pointer (the one whose primary `pointerdown` preceded
+the `mousedown`) without the primary button (an undelivered release, or a
+`mouseup` with no click), `pointercancel`, `dragstart`, `contextmenu`, the
+window's own `blur` or a non-primary `mousedown`. Other pointers' moves never
+settle it. A new primary `mousedown` supersedes an unresolved hold instead of
+settling it: the earlier deferred presentation carries over and runs when the
+new press settles, so it never changes layout inside the new press (a fast
+double-click can arrive before the first click's settle task). A `keydown` settles only after `mouseup`; while the
+button is down the press can still click, so keys do not apply focus
+presentation (`syncNotationFocus` waits too). Keyboard and programmatic focus
+never start a hold, and no hold outlives its
+press. After a successful click, the Divisions group may appear and move the
+score. A selection made by that click can still request its own focus and
+reveal. The `divisions` driver covers the top and bottom window edges with
+real press and release timing; `tests/e2e/pointer-activation.spec.ts` covers
+both directions, the syllable strip, touch and interrupted presses.
 
 Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
 while armed), never a disabled constituent note. Its concise accessible name is
