@@ -5,11 +5,8 @@ import {
 } from './pointer-activation-hold';
 
 interface Fields {
-  isPrimary?: boolean;
   button?: number;
   buttons?: number;
-  pointerId?: number;
-  pointerType?: string;
 }
 
 function setup() {
@@ -22,10 +19,10 @@ function setup() {
   const runTasks = () => {
     while (tasks.length) tasks.shift()?.();
   };
-  const mouse = { pointerId: 1, pointerType: 'mouse', isPrimary: true };
-  const press = (fields: Fields = mouse) =>
-    fire('pointerdown', { button: 0, buttons: 1, ...fields });
-  return { source, hold, tasks, fire, runTasks, press, mouse, disconnect };
+  const press = (fields: Fields = {}) =>
+    fire('mousedown', { button: 0, buttons: 1, ...fields });
+  const release = () => fire('mouseup', { button: 0, buttons: 0 });
+  return { source, hold, tasks, fire, runTasks, press, release, disconnect };
 }
 
 function settledCount(hold: PointerActivationHold) {
@@ -38,21 +35,22 @@ describe('pointer activation hold', () => {
   it('runs afterSettle at once when nothing is held', () => {
     const { hold } = setup();
     expect(hold.isHeld()).toBe(false);
-    const count = settledCount(hold);
-    expect(count()).toBe(1);
+    expect(settledCount(hold)()).toBe(1);
   });
 
-  it('holds from a primary press through pointerup and settles only after the click task', () => {
-    const { hold, fire, runTasks, press, mouse, source, tasks } = setup();
+  it('holds from a primary mousedown through mouseup and settles only in the task queued by the click', () => {
+    const { hold, fire, runTasks, press, release, source, tasks } = setup();
     press();
     expect(hold.isHeld()).toBe(true);
     expect(hold.pressedTarget()).toBe(source);
     const count = settledCount(hold);
 
-    fire('pointerup', { ...mouse, buttons: 0 });
+    // Moves with the button held never settle.
+    fire('pointermove', { buttons: 1 });
+    release();
     expect(hold.isHeld()).toBe(true);
     fire('click');
-    // Click handlers are still running: nothing has settled yet.
+    // Click listeners are still running: nothing has settled.
     expect(hold.isHeld()).toBe(true);
     expect(count()).toBe(0);
     expect(tasks).toHaveLength(1);
@@ -63,80 +61,100 @@ describe('pointer activation hold', () => {
     expect(count()).toBe(1);
   });
 
-  it('keeps holding after a touch pointerup until the later compatibility click', () => {
-    const { hold, fire, runTasks, press } = setup();
-    const touch = { pointerId: 7, pointerType: 'touch', isPrimary: true };
-    press(touch);
-    fire('pointerup', { ...touch, buttons: 0 });
-    // Touch never hovers; a stray hover-like move must not settle.
-    fire('pointermove', { ...touch, buttons: 0 });
-    expect(hold.isHeld()).toBe(true);
+  it('does not start on pointerdown, so a touch hold begins at the compatibility mousedown', () => {
+    const { hold, fire, runTasks, press, release } = setup();
+    fire('pointerdown', { button: 0, buttons: 1 });
+    fire('pointerup', { button: 0, buttons: 0 });
+    expect(hold.isHeld()).toBe(false);
+    // Compatibility mouse events and the click follow within the tap.
+    press();
+    release();
     fire('click');
+    expect(hold.isHeld()).toBe(true);
     runTasks();
     expect(hold.isHeld()).toBe(false);
   });
 
-  it.each(['pointercancel', 'contextmenu', 'keydown'])(
-    'settles at once on %s',
-    (type) => {
+  describe('a press that cannot produce a click settles at once', () => {
+    it.each(['pointercancel', 'dragstart', 'contextmenu'])('%s', (type) => {
       const { hold, fire, press } = setup();
       press();
       const count = settledCount(hold);
       fire(type);
       expect(hold.isHeld()).toBe(false);
       expect(count()).toBe(1);
-    },
-  );
-
-  it('settles on the window’s own blur but not on element blur events', () => {
-    const { hold, press, source } = setup();
-    press();
-    // An element's blur reaching a window capture listener has the element
-    // as its target.
-    const element = new EventTarget();
-    const elementBlur = Object.defineProperty(new Event('blur'), 'target', {
-      value: element,
     });
-    source.dispatchEvent(elementBlur);
-    expect(hold.isHeld()).toBe(true);
-    source.dispatchEvent(new Event('blur'));
-    expect(hold.isHeld()).toBe(false);
+
+    it('a move without the primary button and no mouseup (release outside the window)', () => {
+      const { hold, fire, press } = setup();
+      press();
+      fire('pointermove', { buttons: 0 });
+      expect(hold.isHeld()).toBe(false);
+    });
+
+    it('a move without the primary button after a mouseup that brought no click', () => {
+      const { hold, fire, press, release } = setup();
+      press();
+      release();
+      expect(hold.isHeld()).toBe(true);
+      fire('pointermove', { buttons: 0 });
+      expect(hold.isHeld()).toBe(false);
+    });
+
+    it('a move holding only another button', () => {
+      const { hold, fire, press } = setup();
+      press();
+      fire('pointermove', { buttons: 2 });
+      expect(hold.isHeld()).toBe(false);
+    });
+
+    it('the window’s own blur, but not element blur events', () => {
+      const { hold, press, source } = setup();
+      press();
+      const elementBlur = Object.defineProperty(new Event('blur'), 'target', {
+        value: new EventTarget(),
+      });
+      source.dispatchEvent(elementBlur);
+      expect(hold.isHeld()).toBe(true);
+      source.dispatchEvent(new Event('blur'));
+      expect(hold.isHeld()).toBe(false);
+    });
   });
 
-  it('settles on a hover move of the same mouse pointer after a release with no click', () => {
-    const { hold, fire, press, mouse } = setup();
+  it('keydown while the button is down keeps the hold; the click can still come', () => {
+    const { hold, fire, runTasks, press, release } = setup();
     press();
-    // While pressed, moves (buttons held) never settle.
-    fire('pointermove', { ...mouse, buttons: 1 });
-    // Another pointer's hover does not settle this press.
-    fire('pointermove', { ...mouse, pointerId: 2, buttons: 0 });
+    fire('keydown');
     expect(hold.isHeld()).toBe(true);
-    fire('pointerup', { ...mouse, buttons: 0 });
-    fire('pointermove', { ...mouse, buttons: 0 });
+    release();
+    fire('click');
+    runTasks();
     expect(hold.isHeld()).toBe(false);
   });
 
-  it('does not settle on a hover move before the release', () => {
-    const { hold, fire, press, mouse } = setup();
+  it('keydown after a mouseup with no click settles before the key acts', () => {
+    const { hold, fire, press, release } = setup();
     press();
-    fire('pointermove', { ...mouse, buttons: 0 });
-    expect(hold.isHeld()).toBe(true);
-  });
-
-  it('ignores secondary buttons and non-primary pointers', () => {
-    const { hold, press, mouse } = setup();
-    press({ ...mouse, button: 2 });
-    expect(hold.isHeld()).toBe(false);
-    press({ ...mouse, isPrimary: false });
+    release();
+    fire('keydown');
     expect(hold.isHeld()).toBe(false);
   });
 
-  it('settles an earlier press when a new press starts, and a stale click task cannot end the new one', () => {
-    const { hold, fire, runTasks, press, mouse } = setup();
+  it('ignores non-primary buttons', () => {
+    const { hold, press } = setup();
+    press({ button: 2, buttons: 2 });
+    expect(hold.isHeld()).toBe(false);
+    press({ button: 1, buttons: 4 });
+    expect(hold.isHeld()).toBe(false);
+  });
+
+  it('a new mousedown settles the earlier press, and a stale click task cannot end the new one', () => {
+    const { hold, fire, runTasks, press, release } = setup();
     press();
     const first = settledCount(hold);
+    release();
     fire('click');
-    press({ ...mouse, pointerId: 3 });
+    press();
     expect(first()).toBe(1);
     expect(hold.isHeld()).toBe(true);
     const second = settledCount(hold);
@@ -153,12 +171,13 @@ describe('pointer activation hold', () => {
   });
 
   it('notifies each waiting callback once', () => {
-    const { hold, fire, runTasks, press } = setup();
+    const { hold, fire, runTasks, press, release } = setup();
     press();
     let calls = 0;
     const callback = () => calls++;
     hold.afterSettle(callback);
     hold.afterSettle(callback);
+    release();
     fire('click');
     runTasks();
     fire('keydown');
@@ -166,12 +185,11 @@ describe('pointer activation hold', () => {
   });
 
   it('stops listening and drops a press on disconnect', () => {
-    const { hold, press, disconnect, fire } = setup();
+    const { hold, press, disconnect } = setup();
     press();
     disconnect();
     expect(hold.isHeld()).toBe(false);
     press();
-    fire('pointerdown', { button: 0, isPrimary: true });
     expect(hold.isHeld()).toBe(false);
   });
 });

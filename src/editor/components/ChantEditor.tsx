@@ -511,6 +511,11 @@ export function ChantEditor({ document: initialDocument }: ChantEditorProps) {
   // Some background Firefox sessions expose activeElement changes without
   // focus events. Reconcile presentation after our focus requests and keyup too.
   function syncNotationFocus() {
+    // A pending pointer activation reconciles once its press settles.
+    if (pointerHold.isHeld()) {
+      pointerHold.afterSettle(reconcileFocusPresentation);
+      return;
+    }
     const target = globalThis.document.activeElement;
     if (target instanceof Element && target.closest('.score'))
       setFocusedDivisionId(

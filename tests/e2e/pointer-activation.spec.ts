@@ -215,13 +215,33 @@ test.describe('interrupted presses leave no held presentation', () => {
     await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('a key press during the press settles it at once', async ({ page }) => {
+  test('a key press while the button is down keeps the hold, and the click still selects', async ({
+    page,
+  }) => {
+    const before = await workspaceY(page);
     await pressAndHold(page, division(page));
-    await expect(divisionPanel(page)).toHaveCount(0);
     await page.keyboard.press('Shift');
-    await expect(divisionPanel(page)).toBeVisible();
+    await frames(page);
+    await expect(divisionPanel(page)).toHaveCount(0);
+    expect(await workspaceY(page)).toBe(before);
     await page.mouse.up();
+    await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(divisionPanel(page)).toBeVisible();
+  });
+
+  test('release outside the window, then return: no click, hold settled', async ({
+    page,
+  }) => {
+    // Chromium still delivers pointerup/mouseup/click (to a common
+    // ancestor); Playwright Firefox delivers none and reports the pointer
+    // without buttons on leaving the window. Either way the hold settles.
+    await pressAndHold(page, division(page));
+    await page.mouse.move(-20, -20);
+    await page.mouse.up();
+    await page.mouse.move(10, 10);
+    await expect(divisionPanel(page)).toBeVisible();
     await expect(division(page)).toBeFocused();
+    await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('pointercancel settles at once', async ({ page }) => {

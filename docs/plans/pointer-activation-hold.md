@@ -38,25 +38,41 @@ Divisions panel may still appear and move the score after a successful click.
   (replacing PR #107's local `pressed` tracking), `ChantEditor`'s
   focus-derived presentation and the syllable-strip focus reveal. No general
   interaction framework.
-- **Start.** A primary-button `pointerdown` (`isPrimary`, `button === 0`) on
-  `window`, in capture, for any pointer type. Secondary buttons do not hold.
-- **Settle (end).** Settling must never happen before click activation, and
-  must never depend on an unguaranteed timer:
-  - `click` (captured on `window`): settle in a task queued from that click
-    dispatch. The event loop runs it after the dispatch completes, including
-    React handlers that call `stopPropagation`, and after React's
-    synchronous commit of the click's updates.
-  - Immediately, when no activation can follow: `pointercancel` (for example
-    a touch scroll), `contextmenu` (long press), `keydown`, window `blur`, a
-    new primary `pointerdown` (which settles the previous press first) and a
-    `pointermove` with no buttons from the same mouse or pen pointer after
-    its `pointerup` (release outside the window with no click).
-  - `pointerup` alone never settles, because Chromium touch focus and click
-    come after it.
-- **Never outlives the press.** Every input that could start keyboard,
-  programmatic or new pointer focus settles first. Reveal suppression applies
-  only to focus on, or containing, the pressed node during the hold, as in
-  #107; keyboard and programmatic reveals are unaffected.
+- **Start.** A primary-button `mousedown` (`button === 0`), captured on
+  `window`. Its default action is the focus change, for mouse, pen and touch
+  alike. For touch it is the compatibility `mousedown` that follows the touch
+  `pointerup` within the tap, so the hold cannot race touch compatibility
+  events. A press whose `pointerdown` is prevented (the dismissal-only presses
+  of the open neume-family menu and playback options) fires no `mousedown`
+  and moves no focus. Other buttons do not hold. _(Revised in review: the
+  first draft started on `pointerdown`.)_
+- **Settle after activation.** In a task queued from inside that press's
+  `click` dispatch (captured on `window`). Guaranteed by the event loop: it
+  runs after the dispatch has finished, whatever listeners stopped
+  propagation, and after the following microtask checkpoint. Not assumed:
+  that React has committed. Settling derives presentation from the live
+  `document.activeElement`, React applies state updates in order, and focus
+  moved later by a committed focus request is applied directly. A stale click
+  task cannot settle a newer press.
+- **Settle at once when no click can follow:** a `pointermove` without the
+  primary button held (the release was not delivered, as in Playwright
+  Firefox when releasing outside the window, or `mouseup` brought no click),
+  `pointercancel`, `dragstart`, `contextmenu`, the window's own `blur`, or a
+  new `mousedown`. `keydown` settles only after `mouseup`: while the button is
+  down the press can still produce a click, so a key press neither settles
+  the hold nor applies focus presentation (including `syncNotationFocus` on
+  `keyup`). _(Revised in review: the first draft settled on every
+  `keydown`.)_
+- **Observed, not relied on.** In Chromium and Firefox, `click` was dispatched
+  in the same task as `mouseup` for mouse and touch, and React 19 had
+  committed the click's updates before the queued task. Settling early would
+  only reintroduce the original lost click; it never leaves stale state.
+- **Never outlives the press.** After `mouseup` the next input of any kind
+  (move, key, press) settles a hold that received no click; without a
+  delivered release, the first buttonless move or the window blur does.
+  Reveal suppression applies only to focus on, or containing, the pressed node
+  during the hold, as in #107. Keyboard and programmatic reveals are
+  unaffected, including a Tab while the button is held.
 - **Presentation reconciles, not replays.** A focus change during the hold
   marks presentation stale. On settle, `focusedDivisionId` and
   `focusedLyricId` are derived again from `document.activeElement` with the
@@ -86,8 +102,9 @@ from focus, and Playwright M2.
       click selects (desktop, 320px, scrolled, near the sticky tools); the
       reverse note click selects; the syllable-strip edge press opens the
       syllable; a touch tap selects; keyboard Tab/Enter/Delete unchanged;
-      interrupted presses (release outside the target, `pointercancel` from
-      a touch scroll, Escape during a press) leave no held presentation.
+      interrupted presses (release away from the target, release outside the
+      window, `pointercancel`) leave no held presentation, and a key press
+      while the button is down keeps the hold so the click still selects.
 - [ ] The legacy `divisions` driver (including #107's edge-press checks) and
       `score-focus-reparenting`, `contiguous-selection`, `editor-toolbar` and
       `continuous-lyrics` pass in each supported browser.

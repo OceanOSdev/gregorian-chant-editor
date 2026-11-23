@@ -150,14 +150,19 @@ consumers:
   them again from the actual focus, so a click's own selection is never
   overwritten. Selection updates made by click handlers are not held.
 
-A primary press holds from `pointerdown`. The hold settles in a task queued
-from that press's `click`, which runs after the click dispatch (including
-handlers that stop propagation) and React's commit. It settles at once when
-no activation can follow: `pointercancel`, `contextmenu`, `keydown`, window
-`blur`, a new press, or a hover move of the same mouse or pen pointer after
-its release. `pointerup` alone never settles, because touch focus and click
-arrive after it in Chromium. Keyboard and programmatic focus never hold, and
-every input that could start them settles first, so no hold outlives its
+The hold starts at a primary `mousedown`, the event whose default action
+moves focus; for touch that is the compatibility `mousedown` after the touch
+`pointerup`, so the hold never races touch compatibility events. It settles in
+a task queued from that press's `click`. The event loop guarantees that task
+runs after the click dispatch (whatever stopped propagation) and its microtask
+checkpoint; React having committed is not assumed, because settling reads the
+live focus. It settles at once when no click can follow: a `pointermove`
+without the primary button (an undelivered release, or a `mouseup` with no
+click), `pointercancel`, `dragstart`, `contextmenu`, the window's own `blur`
+or a new `mousedown`. A `keydown` settles only after `mouseup`; while the
+button is down the press can still click, so keys do not apply focus
+presentation (`syncNotationFocus` waits too). Keyboard and programmatic focus
+never start a hold, and no hold outlives its
 press. After a successful click, the Divisions group may appear and move the
 score. A selection made by that click can still request its own focus and
 reveal. The `divisions` driver covers the top and bottom window edges with
