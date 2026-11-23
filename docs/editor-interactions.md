@@ -170,9 +170,9 @@ presentation (`syncNotationFocus` waits too). Keyboard and programmatic focus
 never start a hold, and no hold outlives its
 press. After a successful click, the Divisions group may appear and move the
 score. A selection made by that click can still request its own focus and
-reveal. The `divisions` driver covers the top and bottom window edges with
-real press and release timing; `tests/e2e/pointer-activation.spec.ts` covers
-both directions, the syllable strip, touch and interrupted presses.
+reveal. `tests/e2e/pointer-activation.spec.ts` covers the top and bottom
+window edges with separate native press and release, both directions, the
+syllable strip, touch and interrupted presses.
 
 Successful graphical placement focuses the existing SVG root (`tabIndex=-1`
 while armed), never a disabled constituent note. Its concise accessible name is

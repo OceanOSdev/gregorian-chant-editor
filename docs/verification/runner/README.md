@@ -18,7 +18,7 @@ npm run verify:browser -- --help
 npm run verify:browser -- --list                 # launches nothing
 npm run verify:browser                           # smoke, Chromium, -j 2
 npm run verify:browser -- --browser both         # smoke in both browsers
-npm run verify:browser -- --driver clefs,divisions --browser both
+npm run verify:browser -- --driver clefs,contiguous-selection --browser both
 npm run verify:browser -- --preset full --browser both -j 2
 npm run test:verify-runner                       # runner tests, no browser needed
 ```
@@ -34,8 +34,11 @@ both` for a final regression run.
   runs once per requested browser it implements; other combinations are
   reported as `unsupported`. CDP-only drivers never run in Firefox.
 - `smoke`: `vowel-alignment` (dev-fixture lyrics, Chromium only),
-  `divisions` (dev fixture, both) and `local-persistence` (production preview,
-  storage-clearing, both). `full`: every manifest driver.
+  `contiguous-selection` (dev fixture, both) and `local-persistence`
+  (production preview, storage-clearing, both). `full`: every manifest
+  driver. `contiguous-selection` replaced the `divisions` driver, which was
+  retired to Playwright in M2.1; it keeps a Firefox dev-fixture job in the
+  smoke preset until the Playwright smoke CI job of M2.3.
 - An unknown ID or preset, a driver with no requested browser (for example
   `--driver continuous-lyrics --browser firefox`), or an empty selection exits
   with status 2 before launching anything.

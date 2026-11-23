@@ -269,6 +269,12 @@ drivers and the runner above; all of them stay in use. Results, the
 scenario-by-scenario crosswalk to the legacy drivers and known differences are
 in the [M1 verification record](verification/playwright-m1/README.md).
 
+The [M2 plan](plans/playwright-m2-migration.md) migrates the remaining drivers
+one group at a time. Each migration adds a "Playwright migration" crosswalk to
+the driver's own verification record. A driver is retired only after the
+owner accepts that crosswalk. M2.1 retired the divisions driver; see the
+[divisions record](verification/divisions/README.md#playwright-migration-m21).
+
 ### Layout and division of labour
 
 - Vitest keeps pure domain, state, layout and geometry tests. Playwright is
@@ -286,6 +292,18 @@ in the [M1 verification record](verification/playwright-m1/README.md).
 - A known product defect is recorded with `test.fail()` and a comment that
   names the contract it breaks, rather than weakening or skipping the
   assertion.
+- Shared helpers: `dev-fixture.ts` (open the fixture, mount a document),
+  `punctum-score.ts` (plain punctum scores with divisions and lyrics) and
+  `score.ts` (rendered order, centring, waiting two frames, page containment).
+  The helper `revealCentered` also centres the horizontally scrolled score
+  viewport, because Firefox's `scrollIntoView` does not scroll it for an SVG
+  group.
+- When comparing with the app's own geometry, measure with
+  `getBoundingClientRect()`, as the app does. For SVG elements in Chromium,
+  `locator.boundingBox()` reads CDP box quads, which can differ by about a
+  pixel or more. To show that something does _not_ happen after an
+  animation-frame reveal, wait two frames (`frames`) rather than a fixed
+  delay.
 
 ### Setup
 
@@ -338,8 +356,9 @@ committed.
 
 ### Limits
 
-The pilot covers a subset of two drivers (see the crosswalk); it retires no
-driver and is not part of the standard gate or hosted CI. Like the drivers,
+The specs replace the retired divisions driver and cover a subset of
+`local-persistence`. Playwright is not part of the standard gate or hosted
+CI. Like the drivers,
 it is headless: it does not establish foreground window focus, OS zoom, native
 popups such as the select list, IME or spoken screen-reader output. WebKit,
 visual snapshots and routine CI are later milestones.

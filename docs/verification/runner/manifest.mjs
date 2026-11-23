@@ -93,12 +93,6 @@ export const DRIVERS = [
       '(Stage 9B-2 investigation). Run unchanged; a failure is reported, not waived.',
   },
   {
-    id: 'divisions',
-    script: 'divisions/browser-check.mjs',
-    server: 'dev',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
     id: 'liquescent-notation',
     script: 'liquescent-notation/browser-check.mjs',
     server: 'preview',
@@ -217,11 +211,13 @@ export const DRIVERS = [
 // Presets name driver IDs; each is paired with every requested browser it
 // supports. The smoke preset is small and fast: dev-fixture lyric editing
 // (vowel-alignment, Chromium/CDP only; no current passing Firefox lyric
-// driver exists, so Firefox gets the dev-fixture divisions driver as its dev
-// counterpart) and real production preview editing/persistence with storage
+// driver exists), a dev-fixture driver for both browsers (contiguous-
+// selection: native pointer/keyboard range selection, replacing the divisions
+// driver retired to Playwright in M2.1 until the Playwright smoke CI job of
+// M2.3) and real production preview editing/persistence with storage
 // clearing (local-persistence) in each requested browser.
 export const PRESETS = {
-  smoke: ['vowel-alignment', 'divisions', 'local-persistence'],
+  smoke: ['vowel-alignment', 'contiguous-selection', 'local-persistence'],
   full: DRIVERS.map((driver) => driver.id),
 };
 

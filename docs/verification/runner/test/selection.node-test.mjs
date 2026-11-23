@@ -35,14 +35,18 @@ describe('parseCliArgs', () => {
       '--browser',
       'both',
       '--driver',
-      'clefs,divisions',
+      'clefs,contiguous-selection',
       '--driver',
       'lyric-move',
       '-j',
       '1',
     ]);
     assert.deepEqual(options.browsers, ['chromium', 'firefox']);
-    assert.deepEqual(options.driverIds, ['clefs', 'divisions', 'lyric-move']);
+    assert.deepEqual(options.driverIds, [
+      'clefs',
+      'contiguous-selection',
+      'lyric-move',
+    ]);
     assert.equal(options.preset, null);
     assert.equal(options.concurrency, 1);
   });
@@ -79,14 +83,14 @@ describe('selectJobs', () => {
     const selection = selectJobs(
       parseCliArgs([
         '--driver',
-        'divisions,local-persistence',
+        'contiguous-selection,local-persistence',
         '--browser',
         'both',
       ]),
     );
     assert.deepEqual(pairs(selection), [
-      'divisions:chromium',
-      'divisions:firefox',
+      'contiguous-selection:chromium',
+      'contiguous-selection:firefox',
       'local-persistence:chromium',
       'local-persistence:firefox',
     ]);
@@ -126,15 +130,15 @@ describe('selectJobs', () => {
     const selection = selectJobs(
       parseCliArgs([
         '--driver',
-        'continuous-lyrics,divisions',
+        'continuous-lyrics,contiguous-selection',
         '--browser',
         'both',
       ]),
     );
     assert.deepEqual(pairs(selection), [
       'continuous-lyrics:chromium',
-      'divisions:chromium',
-      'divisions:firefox',
+      'contiguous-selection:chromium',
+      'contiguous-selection:firefox',
     ]);
     assert.deepEqual(
       selection.unsupported.map(
@@ -166,7 +170,7 @@ describe('selectJobs', () => {
         .map((browser) => `${driver.id}:${browser}`),
     );
     assert.deepEqual(pairs(selection), expected);
-    assert.equal(selection.runnable.length, 56);
+    assert.equal(selection.runnable.length, 54);
     assert.equal(selection.unsupported.length, 6);
   });
 
@@ -183,8 +187,8 @@ describe('selectJobs', () => {
     const both = selectJobs(parseCliArgs(['--browser', 'both']));
     assert.deepEqual(pairs(both), [
       'vowel-alignment:chromium',
-      'divisions:chromium',
-      'divisions:firefox',
+      'contiguous-selection:chromium',
+      'contiguous-selection:firefox',
       'local-persistence:chromium',
       'local-persistence:firefox',
     ]);

@@ -1,238 +1,452 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
-import {
-  mountDocument,
-  openDevFixture,
-  scoreOrder,
-} from './helpers/dev-fixture.ts';
+import { expect, test, type Page } from '@playwright/test';
+import { mountDocument, openDevFixture } from './helpers/dev-fixture.ts';
 import { devOrigin } from './helpers/origins.ts';
+import { punctumScore, type PunctumScore } from './helpers/punctum-score.ts';
+import {
+  pageIsContained,
+  revealCentered,
+  scoreOrder,
+} from './helpers/score.ts';
 
-// Pilot subset of docs/verification/divisions/browser-check.mjs on the
-// development fixture. See docs/testing.md for what remains legacy-only.
+// Division placement, selection, editing and Division-menu workflows on the
+// development fixture. Contract: docs/editor-interactions.md, "Stage 5B
+// division controls". Layout and clearance: division-layout.spec.ts.
 test.use({ baseURL: devOrigin });
 
-// Two punctums ("Al-le") separated by one Minima division `D`.
-const twoNeumesWithMinima = {
-  title: 'Playwright pilot — divisions',
-  lyricLanguage: 'la',
-  clef: { type: 'c', staffLine: 3 },
-  neumes: [0, 1].map((i) => ({
-    id: `n${i}`,
-    kind: 'punctum',
-    notes: [{ id: `note${i}`, staffPosition: 2 }],
-  })),
-  clefChanges: [],
-  divisions: [{ id: 'D', kind: 'minima', beforeNeumeId: 'n1' }],
-  syllables: [
-    { id: 's0', text: 'Al', startsAtNeumeId: 'n0', boundaryBefore: 'word' },
-    {
-      id: 's1',
-      text: 'le',
-      startsAtNeumeId: 'n1',
-      boundaryBefore: 'continuation',
-    },
-  ],
-};
+const widths = [1440, 320] as const;
+const sides = ['before', 'after'] as const;
+type Side = (typeof sides)[number];
 
-// Fixture setup: centre the target in the viewport (below the sticky tools)
-// before native pointer input, as the legacy driver does.
-const revealCentered = (locator: Locator) =>
-  locator.evaluate((element) =>
-    element.scrollIntoView({ block: 'center', inline: 'center' }),
-  );
-
-const division = (page: Page) => page.locator('[data-division-id="D"]');
+const division = (page: Page, id = 'D') =>
+  page.locator(`[data-division-id="${id}"]`);
+const tools = (page: Page) =>
+  page.getByRole('toolbar', { name: 'Notation tools' });
+const punctumTool = (page: Page) =>
+  tools(page).locator('button[data-tool="punctum"]');
+// The Division split control: its primary arms Minima, its arrow opens the
+// four-kind menu and exposes the armed kind as data-active-variant.
+const divisionPrimary = (page: Page) =>
+  tools(page).locator('button[data-tool="minima"]');
+const divisionArrow = (page: Page) =>
+  tools(page).getByRole('button', { name: /^Division family variants/ });
+const divisionMenu = (page: Page) =>
+  page.getByRole('menu', { name: 'Division family' });
+const kindNames = {
+  minima: 'Minima',
+  minor: 'Minor',
+  maior: 'Maior',
+  finalis: 'Finalis',
+} as const;
 const undo = (page: Page) =>
   page.getByRole('button', { name: 'Undo last edit' });
 const redo = (page: Page) =>
   page.getByRole('button', { name: 'Redo last undone edit' });
+const indexOfD = async (page: Page) => (await scoreOrder(page)).indexOf('D');
 
-test.beforeEach(async ({ page }) => {
-  await openDevFixture(page);
-  await mountDocument(page, twoNeumesWithMinima);
-  await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
-});
-
-for (const width of [1440, 320]) {
-  for (const side of ['before', 'after'] as const) {
-    test(`pointer places a punctum ${side} a division at ${width}px, then Undo/Redo`, async ({
-      page,
-    }) => {
-      await page.setViewportSize({ width, height: 1100 });
-      await page
-        .getByRole('toolbar', { name: 'Notation tools' })
-        .getByRole('button', { name: 'Punctum', exact: true })
-        .click();
-      const punctumTool = page.locator('button[data-tool="punctum"]');
-      await expect(punctumTool).toHaveAttribute('aria-pressed', 'true');
-
-      await revealCentered(division(page));
-      const target = await division(page)
-        .locator('.score__division-target')
-        .boundingBox();
-      expect(target).not.toBeNull();
-      if (!target) return;
-      // Just outside the division's padded hit target, on the chosen side.
-      const x = side === 'before' ? target.x - 2 : target.x + target.width + 2;
-      const y = target.y + target.height / 2;
-      await page.mouse.move(x + 3, y + 3);
-      await page.mouse.move(x, y);
-
-      // Before commit, the caret is drawn between the division's ink and the
-      // neighbour on the chosen side. It is a zero-width vertical line, so
-      // read its client position rather than Playwright visibility.
-      const caret = page.locator('.score__placement-caret line').first();
-      await expect(caret).toBeAttached();
-      const caretX = await caret.evaluate(
-        (element) => element.getBoundingClientRect().x,
-      );
-      const neighbour = await page
-        .locator(`[data-neume-id="${side === 'before' ? 'n0' : 'n1'}"]`)
-        .boundingBox();
-      const ink = await division(page)
-        .locator('.score__division-ink')
-        .boundingBox();
-      expect(neighbour && ink).toBeTruthy();
-      if (!neighbour || !ink) return;
-      if (side === 'before') {
-        expect(caretX).toBeGreaterThanOrEqual(neighbour.x + neighbour.width);
-        expect(caretX).toBeLessThanOrEqual(ink.x);
-      } else {
-        expect(caretX).toBeGreaterThanOrEqual(ink.x + ink.width);
-        expect(caretX).toBeLessThanOrEqual(neighbour.x);
-      }
-
-      await page.mouse.down();
-      await page.mouse.up();
-
-      await expect.poll(() => scoreOrder(page)).toHaveLength(4);
-      const placed = await scoreOrder(page);
-      expect(placed.indexOf('D')).toBe(side === 'before' ? 2 : 1);
-      expect(placed.filter((id) => ['n0', 'D', 'n1'].includes(id))).toEqual([
-        'n0',
-        'D',
-        'n1',
-      ]);
-      // Lyrics stay anchored to their original neumes.
-      await expect(page.locator('.score__lyric')).toHaveCount(2);
-      expect(
-        await page
-          .locator('.score__lyric')
-          .evaluateAll((elements) =>
-            elements.map((element) => element.getAttribute('data-syllable-id')),
-          ),
-      ).toEqual(['s0', 's1']);
-      // The placement tool persists after a commit.
-      await expect(punctumTool).toHaveAttribute('aria-pressed', 'true');
-      // The page itself never scrolls horizontally, including at 320px.
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= window.innerWidth,
-        ),
-      ).toBe(true);
-
-      await page.keyboard.press('Escape');
-      await expect(punctumTool).toHaveAttribute('aria-pressed', 'false');
-      await undo(page).click();
-      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
-      await redo(page).click();
-      await expect.poll(() => scoreOrder(page)).toEqual(placed);
-    });
-  }
+async function mount(page: Page, width: number, chant?: PunctumScore) {
+  await page.setViewportSize({ width, height: 1100 });
+  await mountDocument(page, chant ?? punctumScore());
 }
 
-// Issue #121 regression: the press focuses the division, and the Divisions
-// panel that follows focus must not mount (moving the score) before the click
-// is dispatched. See also pointer-activation.spec.ts.
-test('pointer click selects a division in Select mode', async ({ page }) => {
+async function selectDivisionByPointer(page: Page) {
   await revealCentered(division(page));
   await division(page).click();
   await expect(division(page)).toBeFocused();
   await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+}
+
+const systemOf = (page: Page, selector: string) =>
+  page
+    .locator(selector)
+    .evaluate(
+      (element) =>
+        element
+          .closest('[data-system-index]')
+          ?.getAttribute('data-system-index') ?? null,
+    );
+
+// Hovers just outside the division's padded hit target on one side, checks
+// the caret is drawn on the division's system between its ink and that side's
+// neighbour (when the neighbour shares the system), then commits with a
+// native click.
+async function placePunctumBeside(page: Page, side: Side) {
+  await revealCentered(division(page));
+  const target = await division(page)
+    .locator('.score__division-target')
+    .boundingBox();
+  expect(target).not.toBeNull();
+  if (!target) return;
+  const x = side === 'before' ? target.x - 2 : target.x + target.width + 2;
+  const y = target.y + target.height / 2;
+  await page.mouse.move(x + 3, y + 3);
+  await page.mouse.move(x, y);
+
+  // The caret is a zero-width vertical line, so read its client position
+  // rather than Playwright visibility.
+  const caret = page.locator('.score__placement-caret line').first();
+  await expect(caret).toBeAttached();
+  const caretBox = await caret.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return { x: box.x, top: box.top, bottom: box.bottom };
+  });
+  const neighbourSelector = `[data-neume-id="${side === 'before' ? 'n0' : 'n1'}"]`;
+  const neighbour = await page.locator(neighbourSelector).boundingBox();
+  const ink = await division(page)
+    .locator('.score__division-ink')
+    .boundingBox();
+  expect(neighbour && ink).toBeTruthy();
+  if (!neighbour || !ink) return;
+  // Same system: the caret spans the division's ink vertically.
+  expect(caretBox.top).toBeLessThanOrEqual(ink.y + ink.height);
+  expect(caretBox.bottom).toBeGreaterThanOrEqual(ink.y);
+  const sameSystem =
+    (await systemOf(page, neighbourSelector)) ===
+    (await systemOf(page, '[data-division-id="D"]'));
+  if (side === 'before') {
+    if (sameSystem)
+      expect(caretBox.x).toBeGreaterThanOrEqual(neighbour.x + neighbour.width);
+    expect(caretBox.x).toBeLessThanOrEqual(ink.x);
+  } else {
+    expect(caretBox.x).toBeGreaterThanOrEqual(ink.x + ink.width);
+    if (sameSystem) expect(caretBox.x).toBeLessThanOrEqual(neighbour.x);
+  }
+
+  await page.mouse.down();
+  await page.mouse.up();
+  await expect.poll(() => scoreOrder(page)).toHaveLength(4);
+  expect(await indexOfD(page)).toBe(side === 'before' ? 2 : 1);
+}
+
+// A point on the first system's staff, past the last rendered item, where
+// hovering with a placement tool armed previews an insertion at the end.
+async function pointPastLastItem(page: Page) {
+  await revealCentered(page.locator('.score__staff-line').first());
+  const last = await page
+    .locator('[data-neume-id], [data-division-id]')
+    .last()
+    .boundingBox();
+  const lines = await page
+    .locator('.score__staff-line')
+    .evaluateAll((elements) =>
+      elements.slice(0, 4).map((element) => {
+        const box = element.getBoundingClientRect();
+        return box.y + box.height / 2;
+      }),
+    );
+  expect(last).not.toBeNull();
+  if (!last) throw Error('No rendered score item');
+  return { x: last.x + last.width + 20, y: (lines[1] + lines[2]) / 2 };
+}
+
+test.beforeEach(async ({ page }) => {
+  await openDevFixture(page);
 });
 
-test('selected division changes kind with surviving identity and focus through Undo/Redo, then Delete and Undo', async ({
-  page,
-}) => {
-  // Keyboard selection; pointer selection is covered above.
-  await division(page).focus();
-  await page.keyboard.press('Enter');
-  await expect(division(page)).toBeFocused();
-  await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+test.describe('pointer placement beside a division', () => {
+  for (const width of widths) {
+    for (const side of sides) {
+      test(`places a punctum ${side} a division at ${width}px, then Undo/Redo`, async ({
+        page,
+      }) => {
+        await mount(page, width);
+        await tools(page)
+          .getByRole('button', { name: 'Punctum', exact: true })
+          .click();
+        await expect(punctumTool(page)).toHaveAttribute('aria-pressed', 'true');
 
-  await page
-    .getByRole('combobox', { name: 'Change division kind' })
-    .selectOption('finalis');
-  await expect(division(page)).toHaveAttribute('data-division-kind', 'finalis');
-  await expect(division(page).locator('.score__division-ink line')).toHaveCount(
-    2,
-  );
+        await placePunctumBeside(page, side);
+        const placed = await scoreOrder(page);
+        expect(placed.filter((id) => ['n0', 'D', 'n1'].includes(id))).toEqual([
+          'n0',
+          'D',
+          'n1',
+        ]);
+        // Lyrics stay anchored to their original neumes.
+        expect(
+          await page
+            .locator('.score__lyric')
+            .evaluateAll((elements) =>
+              elements.map((element) =>
+                element.getAttribute('data-syllable-id'),
+              ),
+            ),
+        ).toEqual(['s0', 's1']);
+        // The placement tool persists after a commit.
+        await expect(punctumTool(page)).toHaveAttribute('aria-pressed', 'true');
+        expect(await pageIsContained(page)).toBe(true);
 
-  await undo(page).click();
-  await expect(division(page)).toHaveAttribute('data-division-kind', 'minima');
-  await expect(division(page).locator('.score__division-ink line')).toHaveCount(
-    1,
-  );
-  await expect(division(page)).toBeFocused();
+        await page.keyboard.press('Escape');
+        await expect(punctumTool(page)).toHaveAttribute(
+          'aria-pressed',
+          'false',
+        );
+        await undo(page).click();
+        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+        await redo(page).click();
+        await expect.poll(() => scoreOrder(page)).toEqual(placed);
+      });
 
-  await redo(page).click();
-  await expect(division(page)).toHaveAttribute('data-division-kind', 'finalis');
-  await expect(division(page)).toBeFocused();
-
-  await page.keyboard.press('Delete');
-  await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
-  await undo(page).click();
-  // The restored division keeps its original ID and its redone kind.
-  await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
-  await expect(division(page)).toHaveAttribute('data-division-kind', 'finalis');
+      // PR #48: the oversized syllable's extended staff still exposes both
+      // insertion slots beside its following bar.
+      test(`places a punctum ${side} a division beside an oversized lyric at ${width}px`, async ({
+        page,
+      }) => {
+        const chant = punctumScore();
+        chant.syllables[0].text = 'a'.repeat(180);
+        await mount(page, width, chant);
+        await tools(page)
+          .getByRole('button', { name: 'Punctum', exact: true })
+          .click();
+        await placePunctumBeside(page, side);
+      });
+    }
+  }
 });
 
-test('keyboard: Tab traverses note → division → note, Enter selects, Backspace deletes', async ({
-  page,
-}) => {
-  // Fixture setup: start traversal from the first note without selecting it.
-  await page.locator('[data-note-id="note0"]').focus();
-  await page.keyboard.press('Tab');
-  await expect(division(page)).toBeFocused();
-  await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
+test.describe('explicit insertion beside a selected division', () => {
+  for (const width of widths) {
+    for (const side of sides) {
+      test(`pointer: "Insert Punctum ${side} division" at ${width}px`, async ({
+        page,
+      }) => {
+        await mount(page, width);
+        await selectDivisionByPointer(page);
+        await page
+          .getByRole('button', { name: `Insert Punctum ${side} division` })
+          .click();
+        await expect.poll(() => scoreOrder(page)).toHaveLength(4);
+        expect(await indexOfD(page)).toBe(side === 'before' ? 2 : 1);
+        await undo(page).click();
+        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+      });
 
-  await page.keyboard.press('Enter');
-  await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+      test(`keyboard: Tab reaches "Insert Punctum ${side} division" and Enter inserts it at ${width}px`, async ({
+        page,
+      }) => {
+        await mount(page, width);
+        await division(page).focus();
+        await page.keyboard.press('Enter');
+        const kind = page.getByRole('combobox', {
+          name: 'Change division kind',
+        });
+        await expect(kind).toBeVisible();
+        await kind.focus();
+        await page.keyboard.press('Tab');
+        if (side === 'after') await page.keyboard.press('Tab');
+        const insert = page.getByRole('button', {
+          name: `Insert Punctum ${side} division`,
+        });
+        await expect(insert).toBeFocused();
 
-  await page.keyboard.press('Tab');
-  await expect(page.locator('[data-note-id="note1"]')).toBeFocused();
-  // Tab moves focus without changing the semantic selection.
-  await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
-
-  await page.keyboard.press('Shift+Tab');
-  await expect(division(page)).toBeFocused();
-  await page.keyboard.press('Backspace');
-  await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
-  await undo(page).click();
-  await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+        await page.keyboard.press('Enter');
+        await expect.poll(() => scoreOrder(page)).toHaveLength(4);
+        expect(await indexOfD(page)).toBe(side === 'before' ? 2 : 1);
+        await undo(page).click();
+        await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+      });
+    }
+  }
 });
 
-for (const side of ['before', 'after'] as const) {
-  test(`keyboard: Tab reaches "Insert Punctum ${side} division" and Enter inserts it`, async ({
+test.describe('selection, kind, deletion and history', () => {
+  for (const width of widths) {
+    test(`pointer selects a division; kind change keeps identity and focus through Undo/Redo; Delete and Undo at ${width}px`, async ({
+      page,
+    }) => {
+      await mount(page, width);
+      // Issue #121: the press focuses the division, and the Divisions panel
+      // that follows focus must not move the score before the click.
+      await selectDivisionByPointer(page);
+      await expect(division(page)).toHaveAttribute('role', 'button');
+
+      // selectOption is programmatic, like the legacy DOM change; neither
+      // opens the native popup.
+      await page
+        .getByRole('combobox', { name: 'Change division kind' })
+        .selectOption('finalis');
+      await expect(division(page)).toHaveAttribute(
+        'data-division-kind',
+        'finalis',
+      );
+      await expect(
+        division(page).locator('.score__division-ink line'),
+      ).toHaveCount(2);
+
+      await undo(page).click();
+      await expect(division(page)).toHaveAttribute(
+        'data-division-kind',
+        'minima',
+      );
+      await expect(
+        division(page).locator('.score__division-ink line'),
+      ).toHaveCount(1);
+      await expect(division(page)).toBeFocused();
+
+      await redo(page).click();
+      await expect(division(page)).toHaveAttribute(
+        'data-division-kind',
+        'finalis',
+      );
+      await expect(division(page)).toBeFocused();
+
+      await page.keyboard.press('Delete');
+      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
+      await undo(page).click();
+      // The restored division keeps its original ID and its redone kind.
+      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+      await expect(division(page)).toHaveAttribute(
+        'data-division-kind',
+        'finalis',
+      );
+    });
+
+    test(`keyboard: Tab traverses note → division → note, Enter selects, Backspace deletes at ${width}px`, async ({
+      page,
+    }) => {
+      await mount(page, width);
+      // Fixture setup: start traversal from the first note without selecting it.
+      await page.locator('[data-note-id="note0"]').focus();
+      await page.keyboard.press('Tab');
+      await expect(division(page)).toBeFocused();
+      await expect(division(page)).toHaveAttribute('aria-pressed', 'false');
+
+      await page.keyboard.press('Enter');
+      await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+
+      await page.keyboard.press('Tab');
+      await expect(page.locator('[data-note-id="note1"]')).toBeFocused();
+      // Tab moves focus without changing the semantic selection.
+      await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+
+      await page.keyboard.press('Shift+Tab');
+      await expect(division(page)).toBeFocused();
+      await page.keyboard.press('Backspace');
+      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'n1']);
+      await undo(page).click();
+      await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+    });
+  }
+});
+
+test.describe('Division menu', () => {
+  for (const width of widths) {
+    test(`places all four kinds with their ghost ink; placement stays armed and Escape returns to Select at ${width}px`, async ({
+      page,
+    }) => {
+      await mount(page, width);
+      for (const kind of ['minima', 'minor', 'maior', 'finalis'] as const) {
+        await divisionArrow(page).click();
+        await divisionMenu(page)
+          .getByRole('menuitemradio', { name: kindNames[kind] })
+          .click();
+        await expect(divisionMenu(page)).toHaveCount(0);
+        await expect(divisionArrow(page)).toHaveAttribute(
+          'data-active-variant',
+          kind,
+        );
+
+        const point = await pointPastLastItem(page);
+        await page.mouse.move(point.x + 2, point.y + 2);
+        await page.mouse.move(point.x, point.y);
+        await expect(
+          page.locator('.score__placement-ghost .score__division-ink line'),
+        ).toHaveCount(kind === 'finalis' ? 2 : 1);
+        // The preview is neither focusable nor a pointer target.
+        await expect(
+          page.locator('.score__placement-preview [tabindex]'),
+        ).toHaveCount(0);
+        expect(
+          await page.evaluate(
+            ({ x, y }) =>
+              document
+                .elementFromPoint(x, y)
+                ?.closest('.score__placement-preview') ?? null,
+            point,
+          ),
+        ).toBeNull();
+
+        const before = (await scoreOrder(page)).length;
+        await page.mouse.down();
+        await page.mouse.up();
+        await expect
+          .poll(async () => (await scoreOrder(page)).length)
+          .toBe(before + 1);
+        // Placement stays armed with this kind; no neume tool is armed.
+        await expect(divisionArrow(page)).toHaveAttribute(
+          'data-active-variant',
+          kind,
+        );
+        await expect(punctumTool(page)).toHaveAttribute(
+          'aria-pressed',
+          'false',
+        );
+        await page.keyboard.press('Escape');
+        await expect(divisionArrow(page)).not.toHaveAttribute(
+          'data-active-variant',
+        );
+      }
+
+      expect(await scoreOrder(page)).toHaveLength(7);
+      const added = await page
+        .locator('[data-division-id]:not([data-division-id="D"])')
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getAttribute('data-division-kind')),
+        );
+      expect(added.sort()).toEqual(['finalis', 'maior', 'minima', 'minor']);
+      // Division tools do not change the remembered neume kind.
+      await expect(page.locator('button.editor-insert')).toContainText(
+        'Insert Punctum',
+      );
+      expect(await pageIsContained(page)).toBe(true);
+    });
+  }
+
+  test('keyboard: End and Enter choose Finalis, Escape returns focus, and primary and menu both remember the armed kind', async ({
     page,
   }) => {
-    await division(page).focus();
-    await page.keyboard.press('Enter');
-    const kind = page.getByRole('combobox', { name: 'Change division kind' });
-    await expect(kind).toBeVisible();
-    await kind.focus();
-    await page.keyboard.press('Tab');
-    if (side === 'after') await page.keyboard.press('Tab');
-    const insert = page.getByRole('button', {
-      name: `Insert Punctum ${side} division`,
-    });
-    await expect(insert).toBeFocused();
+    await mount(page, 1440);
+    await divisionPrimary(page).click();
+    await expect(divisionPrimary(page)).toHaveAttribute('aria-pressed', 'true');
 
+    // Fixture setup: start from the arrow without arming anything else.
+    await divisionArrow(page).focus();
     await page.keyboard.press('Enter');
-    await expect.poll(() => scoreOrder(page)).toHaveLength(4);
-    expect((await scoreOrder(page)).indexOf('D')).toBe(
-      side === 'before' ? 2 : 1,
+    const item = (kind: keyof typeof kindNames) =>
+      divisionMenu(page).getByRole('menuitemradio', { name: kindNames[kind] });
+    await expect(item('minima')).toBeFocused();
+    await page.keyboard.press('End');
+    await expect(item('finalis')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(divisionMenu(page)).toHaveCount(0);
+    await expect(divisionArrow(page)).toBeFocused();
+    await expect(divisionArrow(page)).toHaveAttribute(
+      'data-active-variant',
+      'finalis',
     );
-    await undo(page).click();
-    await expect.poll(() => scoreOrder(page)).toEqual(['n0', 'D', 'n1']);
+
+    // Menu activation is remembered for the next opening.
+    await page.keyboard.press('Enter');
+    await expect(item('finalis')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(divisionMenu(page)).toHaveCount(0);
+    await expect(divisionArrow(page)).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(divisionArrow(page)).not.toHaveAttribute(
+      'data-active-variant',
+    );
+
+    // Primary activation is remembered too: Minima after Finalis.
+    await divisionPrimary(page).click();
+    await page.keyboard.press('Escape');
+    await divisionArrow(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(item('minima')).toBeFocused();
+    await page.keyboard.press('Escape');
+
+    await expect(page.locator('button.editor-insert')).toContainText(
+      'Insert Punctum',
+    );
+    // With no division focused or selected there is no empty Divisions group.
+    await expect(page.locator('.division-controls')).toHaveCount(0);
   });
-}
+});
