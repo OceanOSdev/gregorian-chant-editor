@@ -1,6 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { mountDocument, openDevFixture } from './helpers/dev-fixture.ts';
 import { devOrigin } from './helpers/origins.ts';
+import { punctumScore } from './helpers/punctum-score.ts';
+import { centre, frames, revealCentered } from './helpers/score.ts';
 
 // Issue #121: focus moves at a pointer press, but nothing derived from that
 // focus may change layout or scroll before the press's click is dispatched.
@@ -33,29 +35,6 @@ const division = (page: Page) => page.locator('[data-division-id="D"]');
 const divisionPanel = (page: Page) => page.locator('.division-controls');
 const workspaceY = async (page: Page) =>
   (await page.locator('.score-workspace').boundingBox())?.y ?? Number.NaN;
-
-// Wait for rendering, not time: two frames let React commit and run any
-// requestAnimationFrame reveal that the press-time focus scheduled.
-const frames = (page: Page) =>
-  page.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  );
-
-async function centre(locator: Locator) {
-  const box = await locator.boundingBox();
-  expect(box).not.toBeNull();
-  if (!box) throw Error('No bounding box');
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-
-// Fixture setup: put the target at the centre of the window.
-const revealCentered = (locator: Locator) =>
-  locator.evaluate((element) =>
-    element.scrollIntoView({ block: 'center', inline: 'center' }),
-  );
 
 async function pressAndHold(page: Page, target: Locator) {
   const point = await centre(target.locator('.score__division-target'));
@@ -217,6 +196,72 @@ test('a syllable-strip button clipped at the strip edge opens on click', async (
   await page.mouse.up();
   await expect(page.locator('#lyric-input')).toBeVisible();
 });
+
+// A press 2 px inside a small lyric's edge, within the 8 px reveal margin at
+// the bottom of the window and just below the sticky tools: any scroll during
+// the press moves the lyric from under the pointer. The 700 px window leaves
+// scroll range for both edges and keeps the tools sticky (above 600 px).
+for (const edge of ['bottom', 'top'] as const) {
+  test(`a lyric press inside the ${edge} reveal margin does not scroll, and its click selects the lyric`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 700 });
+    const chant = punctumScore(100);
+    chant.syllables.push({
+      id: 'edge',
+      text: 'ta',
+      startsAtNeumeId: 'n50',
+      boundaryBefore: 'word',
+    });
+    await mountDocument(page, chant);
+    const lyric = page.locator('.score__lyric[data-syllable-id="edge"]');
+
+    // Fixture setup: place the lyric at the edge. The sticky tools pin once
+    // the page scrolls, so settle twice.
+    const press = await lyric.evaluate(async (element, edgeName) => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      const toolsBottom = () =>
+        window.document
+          .querySelector('.editor-sticky-toolbar')
+          ?.getBoundingClientRect().bottom ?? Number.NaN;
+      for (let pass = 0; pass < 2; pass++) {
+        const box = element.getBoundingClientRect();
+        window.scrollTo(
+          0,
+          edgeName === 'bottom'
+            ? box.bottom + window.scrollY - window.innerHeight + 3
+            : box.top + window.scrollY - toolsBottom() - 3,
+        );
+        await new Promise(requestAnimationFrame);
+      }
+      const box = element.getBoundingClientRect();
+      const x = box.x + box.width / 2;
+      const y = edgeName === 'bottom' ? box.bottom - 2 : box.top + 2;
+      const hit = document.elementFromPoint(x, y);
+      return {
+        x,
+        y,
+        onTarget: hit !== null && element.contains(hit),
+        inMargin:
+          edgeName === 'bottom'
+            ? window.innerHeight - box.bottom < 8
+            : box.top - toolsBottom() < 8,
+        scrollY: window.scrollY,
+      };
+    }, edge);
+    expect(press.onTarget, 'the lyric is the pointer target').toBe(true);
+    expect(press.inMargin, 'the lyric is inside the reveal margin').toBe(true);
+
+    await page.mouse.move(press.x, press.y);
+    await page.mouse.down();
+    await expect(lyric).toBeFocused();
+    await frames(page);
+    expect(await page.evaluate(() => window.scrollY)).toBe(press.scrollY);
+    await page.mouse.up();
+    // The click selects the lyric, not only focuses it.
+    await expect(lyric).toHaveAttribute('aria-pressed', 'true');
+  });
+}
 
 test.describe('touch', () => {
   test.use({ hasTouch: true });

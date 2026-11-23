@@ -28,17 +28,3 @@ export async function mountDocument(
     page.getByRole('toolbar', { name: 'Notation tools' }),
   ).toBeVisible();
 }
-
-// Rendered semantic order of neumes and divisions, by their stable IDs.
-export function scoreOrder(page: Page): Promise<string[]> {
-  return page
-    .locator('[data-neume-id], [data-division-id]')
-    .evaluateAll((elements) =>
-      elements.map(
-        (element) =>
-          element.getAttribute('data-neume-id') ??
-          element.getAttribute('data-division-id') ??
-          '',
-      ),
-    );
-}
