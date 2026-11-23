@@ -128,6 +128,8 @@ Keep transient pointer state, such as an in-progress drag position, separate fro
 - `npm run test:watch` runs Vitest in watch mode.
 - `npm run test:e2e` runs the Playwright end-to-end pilot in `tests/e2e/`
   (Chromium and Firefox; see the [testing guide](docs/testing.md)).
+- `npm run test:e2e:smoke` runs the `@smoke`-tagged Playwright selection that
+  the non-required hosted `CI / E2E smoke` job runs.
 
 Follow the [testing guide](docs/testing.md) for authoritative setup, required
 verification commands, relevant tests, and manual browser responsibilities.

@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke --project=chromium --project=firefox --retries=0",
     "verify:browser": "node docs/verification/runner/cli.mjs",
     "test:verify-runner": "node --test docs/verification/runner/test/*.node-test.mjs"
   },

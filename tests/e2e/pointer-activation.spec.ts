@@ -49,25 +49,28 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const width of [1440, 320]) {
-  test(`division click selects without moving the score during the press at ${width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width, height: 1100 });
-    await mountDocument(page, score(2, 1));
-    await revealCentered(division(page));
-    const before = await workspaceY(page);
+  test(
+    `division click selects without moving the score during the press at ${width}px`,
+    // Hosted CI smoke: the #121 pointer-activation click.
+    { tag: width === 1440 ? ['@smoke'] : [] },
+    async ({ page }) => {
+      await page.setViewportSize({ width, height: 1100 });
+      await mountDocument(page, score(2, 1));
+      await revealCentered(division(page));
+      const before = await workspaceY(page);
 
-    await pressAndHold(page, division(page));
-    // Focus moved, but the focus-derived panel has not mounted yet.
-    await expect(divisionPanel(page)).toHaveCount(0);
-    expect(await workspaceY(page)).toBe(before);
+      await pressAndHold(page, division(page));
+      // Focus moved, but the focus-derived panel has not mounted yet.
+      await expect(divisionPanel(page)).toHaveCount(0);
+      expect(await workspaceY(page)).toBe(before);
 
-    await page.mouse.up();
-    await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
-    await expect(division(page)).toBeFocused();
-    // After the click, the panel appears and may move the score.
-    await expect(divisionPanel(page)).toBeVisible();
-  });
+      await page.mouse.up();
+      await expect(division(page)).toHaveAttribute('aria-pressed', 'true');
+      await expect(division(page)).toBeFocused();
+      // After the click, the panel appears and may move the score.
+      await expect(divisionPanel(page)).toBeVisible();
+    },
+  );
 }
 
 test('division click just below the sticky tools on a scrolled page', async ({
