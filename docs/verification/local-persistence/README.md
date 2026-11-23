@@ -353,3 +353,21 @@ Legacy run directory: `.verification-runs/run-2026-11-23T08-42-09-404Z-S0sUxt/`
 
 Not run: hosted CI, WebKit, a real OS IME, foreground window focus, native
 `<select>` popups and screen readers.
+
+### Retirement verification (2026-11-23)
+
+Retirement commit `11bff9f` with a clean tree, in the same environment as
+above. Before switching, `bundled-example` was run three times in each browser
+to check that it suits the smoke preset: 3/3 passed in Chromium (about 5.4 s)
+and 3/3 in Firefox (about 7.1 s).
+
+| Check                                                                                   | Result                                                                                |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`   | All passed                                                                            |
+| `npm run test:verify-runner`                                                            | 28/28 passed (selection tests updated; 52 runnable and 6 unsupported pairs in `full`) |
+| `npm run verify:browser -- --list`                                                      | 29 drivers; smoke = `vowel-alignment`, `contiguous-selection`, `bundled-example`      |
+| `npm run verify:browser -- --browser both` (legacy smoke)                               | 5 passed, 1 expected unsupported (`vowel-alignment` Firefox); 62.5 s wall clock       |
+| `npm run test:e2e`                                                                      | 169 passed, 1 skipped (the Chromium-only IME test in Firefox), 44.1 s                 |
+| `npx playwright test local-persistence document-title document-header --repeat-each=10` | 470 passed, 10 skipped (the same test), 0 failed, 0 flaky (2.4 min)                   |
+
+No intermittent failure appeared in these runs.
