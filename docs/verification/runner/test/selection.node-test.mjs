@@ -83,7 +83,7 @@ describe('selectJobs', () => {
     const selection = selectJobs(
       parseCliArgs([
         '--driver',
-        'contiguous-selection,bundled-example',
+        'contiguous-selection,audio-playback',
         '--browser',
         'both',
       ]),
@@ -91,8 +91,8 @@ describe('selectJobs', () => {
     assert.deepEqual(pairs(selection), [
       'contiguous-selection:chromium',
       'contiguous-selection:firefox',
-      'bundled-example:chromium',
-      'bundled-example:firefox',
+      'audio-playback:chromium',
+      'audio-playback:firefox',
     ]);
     assert.deepEqual(selection.unsupported, []);
   });
@@ -170,7 +170,7 @@ describe('selectJobs', () => {
         .map((browser) => `${driver.id}:${browser}`),
     );
     assert.deepEqual(pairs(selection), expected);
-    assert.equal(selection.runnable.length, 52);
+    assert.equal(selection.runnable.length, 44);
     assert.equal(selection.unsupported.length, 6);
   });
 
@@ -182,15 +182,15 @@ describe('selectJobs', () => {
         servers.includes('dev') && servers.includes('preview'),
         browser,
       );
-      assert.ok(pairs(selection).includes(`bundled-example:${browser}`));
+      assert.ok(pairs(selection).includes(`audio-playback:${browser}`));
     }
     const both = selectJobs(parseCliArgs(['--browser', 'both']));
     assert.deepEqual(pairs(both), [
       'vowel-alignment:chromium',
       'contiguous-selection:chromium',
       'contiguous-selection:firefox',
-      'bundled-example:chromium',
-      'bundled-example:firefox',
+      'audio-playback:chromium',
+      'audio-playback:firefox',
     ]);
     // The CDP-only lyric driver is reported, not invented for Firefox.
     assert.deepEqual(

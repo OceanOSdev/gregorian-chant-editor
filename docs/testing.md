@@ -332,7 +332,9 @@ owner accepts that crosswalk. M2.1 retired the divisions driver; see the
 [divisions record](verification/divisions/README.md#playwright-migration-m21).
 M2.2 retired the local-persistence driver; see the
 [local persistence record](verification/local-persistence/README.md#playwright-migration-m22).
-M2.4 investigated the issue #123 driver failures with focused specs
+M2.5 retired the `bundled-example`, `editor-toolbar`,
+`score-focus-reparenting` and `css-zoom-toolbars` drivers; see each driver's
+record. M2.4 investigated the issue #123 driver failures with focused specs
 (`extended-scandicus-climacus`, `word-composition`, `note-modifiers`); see the
 [investigation record](verification/issue-123/README.md).
 
@@ -466,11 +468,13 @@ and consult the owning record for feature-specific assertions and manual checks.
   `dynamic-vertical-layout`.
 - [CSS zoom contextual toolbars](verification/css-zoom-toolbars/README.md):
   `position-note-toolbar.test.ts` (zoom conversion, identity at zoom 1,
-  in-viewport and target clearance at several zooms); runner driver
-  `css-zoom-toolbars` (issue #112).
+  in-viewport and target clearance at several zooms);
+  `tests/e2e/css-zoom-toolbars.spec.ts` (issue #112; the legacy driver was
+  retired in M2.5).
 - [Score focus reparenting](verification/score-focus-reparenting/README.md):
-  note and lyric focus across uncommanded reflow (readability M2); runner
-  driver `score-focus-reparenting`.
+  note and lyric focus across uncommanded reflow (readability M2);
+  `tests/e2e/score-focus-reparenting.spec.ts` (the legacy driver was retired in
+  M2.5).
 - [Audio playback](verification/audio-playback/README.md):
   `proofreading-performance.test.ts` (register, order, clefs, accidentals, mora,
   invalid scores, bundled examples), `web-audio-synth.test.ts` and

@@ -1,5 +1,10 @@
 # Score focus reparenting verification (readability M2)
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/score-focus-reparenting/browser-check.mjs`.
+
 The [interaction guide](../../editor-interactions.md#focus) owns the focus
 contract. The [M2 plan](../../plans/editor-readability-m2.md) owns scope. M2
 moved note and lyric controls into `NeumeControl` and `LyricControl`. Focus
@@ -82,3 +87,87 @@ Linux, Node 24.12.0, Chromium 157.0.8103.38, Firefox 146.0.
   and reported the known lyric redirection.
 - Exact base `9b9d2af` (driver copied into a base worktree): identical outcomes
   and identical diagnostic output.
+
+## Playwright migration (M2.5)
+
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/score-focus-reparenting/browser-check.mjs`). This
+crosswalk maps each scenario in the former `browser-check.mjs` to
+[`tests/e2e/score-focus-reparenting.spec.ts`](../../../tests/e2e/score-focus-reparenting.spec.ts)
+(production preview, Chromium and Firefox, 1440 × 1100) under the
+[M2 plan](../../plans/playwright-m2-migration.md).
+
+Setup in every test matches the driver: load the bundled "Salve Regina
+Dominican" (through **Load example**; the driver imported the same file), wait
+for `document.fonts.ready` and a settled measured layout, then use FontFaceSet
+`loading`/`loadingdone` events to force the measurement fallback and back.
+That event dispatch is controlled setup; no native path exists.
+
+| #   | Legacy scenario (lines)                                                                                                                                                    | Playwright                                                                                                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Preconditions: the fallback moves at least two notes and one lyric to another system; `loadingdone` restores the measured layout (244–251)                                 | `beforeEach` (`movingControls`), asserted in every test.                                                                                                                                                                             |
+| 2   | A note reached by native Tab keeps focus by ID through the fallback reparent (moving to another system) and the measured one (returning to its system) (253–256)           | "a note reached by native Tab keeps focus through both reparents".                                                                                                                                                                   |
+| 3   | A note focused by script does the same (257–264)                                                                                                                           | "a note focused by script keeps focus through both reparents".                                                                                                                                                                       |
+| 4   | A lyric reached by native Tab, after a script-focused note is the tracked focus: strict in Chromium; in Firefox the exact redirection to that note was tolerated (265–322) | "a lyric reached by native Tab keeps focus through both reparents, even after another note had focus". **Strict in both browsers.** The same preceding script focus is reproduced inside the test, so the stale tracked note exists. |
+| 5   | Focus on a palette button outside the score is not taken by either reflow (323–339)                                                                                        | "reflow never takes focus from a palette button outside the score" (also with a previously focused, reparented note tracked).                                                                                                        |
+
+### Firefox: the tolerated redirection does not occur under Playwright
+
+On the same revision (`d5603ec`), the legacy driver in headless Firefox (WebDriver BiDi)
+again logged "KNOWN BASELINE BEHAVIOR … lyric focus redirected to the stale
+tracked note". Under Playwright Firefox 159.0 the lyric **keeps** focus through
+both reparents, and the strict assertion passed in every run, including
+`--repeat-each=10`. A probe on the production preview found that Playwright
+Firefox delivers `focusin` for SVG notes and for an HTML palette button and
+reports `document.hasFocus()` as true. The BiDi session saw no `focusin` at
+all. That is consistent with this record's inference that the redirection
+belonged to a headless session without window focus, so the M2.5 test is
+strict rather than tolerant. Foreground headed Firefox is still not checked.
+Issue #96 tracks the observation.
+
+### Proposed removals
+
+- **A. The Firefox tolerance branch** (lines 297–321). It is replaced by the
+  strict assertion, which now passes in Firefox.
+- **B. Diagnostic logging** of `focusin` targets and active elements, which
+  was evidence, not assertions.
+- **C. File import through `DataTransfer` and a stubbed `confirm`.** The score
+  is loaded through **Load example** with a real confirm; the document is the
+  same bundled file.
+
+### Negative control
+
+In a temporary worktree of `222ea05`, the `ScoreSvg` restore effect was made to
+return immediately. All three focus-retention tests failed in both browsers on
+"focus survives the fallback reparent", and the palette test still passed. The
+worktree was removed.
+
+### Results (M2.5, 2026-11-24)
+
+Implementation commit `d5603ec` with a clean tree. Linux x64, Node 24.12.0,
+Playwright 1.65.1 (Chromium `chromium-1255`, Firefox 159.0 `firefox-1572`).
+The runner used installed Chromium 157.0.8103.38 and Firefox 146.0.
+
+| Check                                                                                                                                    | Result                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Legacy `npm run verify:browser -- --driver bundled-example,editor-toolbar,score-focus-reparenting,css-zoom-toolbars --browser both -j 4` | 8 of 8 passed (50.7 s wall clock)                                                                                   |
+| `npm run test:e2e` (all specs, both browsers)                                                                                            | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                       |
+| The four M2.5 specs (66 tests across both browsers), `--repeat-each=10`                                                                  | 660 passed, 0 failed, 0 flaky                                                                                       |
+| Negative controls (temporary worktrees, removed)                                                                                         | #112 fix parent: 8 CSS-zoom failures; restore effect disabled: 6 focus failures; palette reset disabled: 2 failures |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`, `test:verify-runner` (28/28)                      | All passed                                                                                                          |
+
+### Retirement verification (M2.5, 2026-11-24)
+
+Retirement commit `3b6588e` with a clean tree, in the same environment as
+above.
+
+| Check                                                                                 | Result                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check` | All passed                                                                                                                                                                                                                                                         |
+| `npm run test:verify-runner`                                                          | 28/28 passed (selection tests updated; 44 runnable and 6 unsupported pairs in `full`)                                                                                                                                                                              |
+| `npm run verify:browser -- --list`                                                    | 25 drivers; smoke = `vowel-alignment`, `contiguous-selection`, `audio-playback`                                                                                                                                                                                    |
+| `audio-playback` alone, 3 runs before the switch                                      | 3/3 passed in each browser                                                                                                                                                                                                                                         |
+| Legacy smoke `--browser both`, 3 runs                                                 | `audio-playback` passed every time in both browsers. `contiguous-selection` failed in Chromium in 2 of 3 runs on a fixed-timing wait in that driver ([#131](https://github.com/OceanOSdev/gregorian-chant-editor/issues/131)); alone it passed 3/3 in each browser |
+| `npm run test:e2e`                                                                    | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                                                                                                                                                                      |
+| The four M2.5 specs, `--repeat-each=10`                                               | 660 passed, 0 failed, 0 flaky                                                                                                                                                                                                                                      |

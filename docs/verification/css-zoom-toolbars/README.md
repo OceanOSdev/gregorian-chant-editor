@@ -1,5 +1,10 @@
 # CSS zoom contextual toolbars (issue #112)
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/css-zoom-toolbars/browser-check.mjs`.
+
 The [interaction guide](../../editor-interactions.md#sticky-editing-tools) owns
 the placement contract. Issue #112 found that the note and accidental
 properties panels were scaled twice under CSS `zoom`. They were placed from
@@ -78,3 +83,79 @@ the viewport`). The note panel was rendered from y≈857 to y≈1190 in a
   `word-composition` in Chromium and Firefox (`punctum selected whole-neume
 cue must be clipped`). They fail identically on the base `d1439ed`, which
   makes them pre-existing and unrelated to toolbar placement.
+
+## Playwright migration (M2.5)
+
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/css-zoom-toolbars/browser-check.mjs`). This
+crosswalk maps the driver (the former `browser-check.mjs`) to
+[`tests/e2e/css-zoom-toolbars.spec.ts`](../../../tests/e2e/css-zoom-toolbars.spec.ts)
+(development fixture, Chromium and Firefox) under the
+[M2 plan](../../plans/playwright-m2-migration.md).
+
+The spec keeps the driver's matrix: four modes (1440 × 1100; 320 × 1100;
+480 × 1100 at 150% CSS `zoom`; 320 × 733 at device pixel ratio 1.5 with no
+CSS zoom), two panels (note `note6`, accidental `flat`), two target heights
+(50% and 85%) and three dismissals. The page-zoom mode **emulates** the
+conditions 150% browser zoom produces (CSS viewport and device pixel ratio);
+it does not exercise real foreground browser zoom. That is 16 tests per browser, each running
+all three dismissals.
+
+| #   | Legacy assertion (lines)                                                                                                                          | Playwright                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | A native click on the target opens its panel (211–220)                                                                                            | Every test (`open`).                                                                                                                                   |
+| 2   | An internally scrolling panel reaches Close without scrolling the page (266–276)                                                                  | "page scrolled" check.                                                                                                                                 |
+| 3   | `currentCSSZoom` equals the CSS zoom, 1 under page zoom (280)                                                                                     | "effective zoom". Page-zoom tests also assert `devicePixelRatio === 1.5`, so the mode is real.                                                         |
+| 4   | Inline left/top × zoom equal the rendered position, ±0.5 px (282–286)                                                                             | **Removed** (item A; approved).                                                                                                                        |
+| 5   | Inside the visual viewport; below the sticky tools' visible bottom; clear of the target (287–302)                                                 | Same checks, in client pixels.                                                                                                                         |
+| 6   | `elementFromPoint` at Close's centre is Close (304)                                                                                               | "Close is the hit target".                                                                                                                             |
+| 7   | Dismissal by native pointer on Close; by native Tab into the panel then Escape; by keyboard Enter on Close — **Chromium only** (254–258, 306–321) | All three dismissals **in both browsers**. Playwright Firefox activates Close with Enter; the driver skipped it because headless BiDi Firefox did not. |
+| 8   | The panel is dismissed and focus returns to its target (322–323)                                                                                  | "dismissed" and "focus returns".                                                                                                                       |
+
+### Proposed removals
+
+- **A. The inline-style arithmetic (row 4), removed.** It checked the
+  implementation's CSS-pixel bookkeeping rather than placement. The negative
+  control below shows the rendered checks alone catch the #112 defect.
+- **B. Review screenshots** (`*-open`), never asserted.
+- **C. Script `focus()` on Close before Enter** is kept, as in the driver: it
+  isolates Enter activation from Tab order, which row 7's Escape path already
+  covers.
+
+### Negative control
+
+The spec was run at `1ffffbc^`, the parent of the #112 fix, in a temporary
+worktree. All four CSS-zoom tests failed in both browsers (8 failures), and the
+desktop, narrow and page-zoom tests passed. With the inline-style check removed
+from that copy, the same 8 tests still failed, on "right" (the panel leaves the
+viewport). The worktree was removed.
+
+### Results (M2.5, 2026-11-24)
+
+Implementation commit `d5603ec` with a clean tree. Linux x64, Node 24.12.0,
+Playwright 1.65.1 (Chromium `chromium-1255`, Firefox 159.0 `firefox-1572`).
+The runner used installed Chromium 157.0.8103.38 and Firefox 146.0.
+
+| Check                                                                                                                                    | Result                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Legacy `npm run verify:browser -- --driver bundled-example,editor-toolbar,score-focus-reparenting,css-zoom-toolbars --browser both -j 4` | 8 of 8 passed (50.7 s wall clock)                                                                                   |
+| `npm run test:e2e` (all specs, both browsers)                                                                                            | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                       |
+| The four M2.5 specs (66 tests across both browsers), `--repeat-each=10`                                                                  | 660 passed, 0 failed, 0 flaky                                                                                       |
+| Negative controls (temporary worktrees, removed)                                                                                         | #112 fix parent: 8 CSS-zoom failures; restore effect disabled: 6 focus failures; palette reset disabled: 2 failures |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`, `test:verify-runner` (28/28)                      | All passed                                                                                                          |
+
+### Retirement verification (M2.5, 2026-11-24)
+
+Retirement commit `3b6588e` with a clean tree, in the same environment as
+above.
+
+| Check                                                                                 | Result                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check` | All passed                                                                                                                                                                                                                                                         |
+| `npm run test:verify-runner`                                                          | 28/28 passed (selection tests updated; 44 runnable and 6 unsupported pairs in `full`)                                                                                                                                                                              |
+| `npm run verify:browser -- --list`                                                    | 25 drivers; smoke = `vowel-alignment`, `contiguous-selection`, `audio-playback`                                                                                                                                                                                    |
+| `audio-playback` alone, 3 runs before the switch                                      | 3/3 passed in each browser                                                                                                                                                                                                                                         |
+| Legacy smoke `--browser both`, 3 runs                                                 | `audio-playback` passed every time in both browsers. `contiguous-selection` failed in Chromium in 2 of 3 runs on a fixed-timing wait in that driver ([#131](https://github.com/OceanOSdev/gregorian-chant-editor/issues/131)); alone it passed 3/3 in each browser |
+| `npm run test:e2e`                                                                    | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                                                                                                                                                                      |
+| The four M2.5 specs, `--repeat-each=10`                                               | 660 passed, 0 failed, 0 flaky                                                                                                                                                                                                                                      |

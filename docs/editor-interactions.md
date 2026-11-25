@@ -112,8 +112,12 @@ Observed in headless Firefox under WebDriver BiDi only: the driver saw no
 `focusin` at all, for SVG controls or for an HTML button. The note record is
 then the only restoration path. A Tab-focused lyric reparented by reflow had its
 focus redirected to the note the tracker last recorded, not left on the lyric.
-The exact pre-M2 base behaves the same. The cause is inferred, not proven, and
-headed Firefox with window focus has not been checked. See the
+The exact pre-M2 base behaves the same. Under Playwright Firefox (M2.5),
+`focusin` is delivered for SVG controls and HTML buttons, `document.hasFocus()`
+is true, and the same lyric keeps focus through both reparents; the Playwright
+test asserts that strictly. The BiDi observation is therefore attributed to a
+headless session without window focus, which is inferred, not proven. Headed
+Firefox with window focus has not been checked. See the
 [reparenting record](verification/score-focus-reparenting/README.md).
 
 `ChantEditor` uses a pure session reducer; history contains semantic documents

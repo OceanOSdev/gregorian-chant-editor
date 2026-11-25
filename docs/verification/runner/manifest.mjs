@@ -66,12 +66,6 @@ export const DRIVERS = [
     browsers: ['firefox'],
   },
   {
-    id: 'css-zoom-toolbars',
-    script: 'css-zoom-toolbars/browser-check.mjs',
-    server: 'dev',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
     id: 'word-composition',
     script: 'word-composition/browser-check.mjs',
     server: 'dev',
@@ -159,24 +153,6 @@ export const DRIVERS = [
     browsers: ['chromium', 'firefox'],
   },
   {
-    id: 'editor-toolbar',
-    script: 'editor-toolbar/browser-check.mjs',
-    server: 'preview',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
-    id: 'score-focus-reparenting',
-    script: 'score-focus-reparenting/browser-check.mjs',
-    server: 'preview',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
-    id: 'bundled-example',
-    script: 'bundled-example/browser-check.mjs',
-    server: 'preview',
-    browsers: ['chromium', 'firefox'],
-  },
-  {
     id: 'audio-playback',
     script: 'audio-playback/browser-check.mjs',
     server: 'preview',
@@ -209,11 +185,11 @@ export const DRIVERS = [
 // selection: native pointer/keyboard range selection, replacing the divisions
 // driver retired to Playwright in M2.1 until the Playwright smoke CI job of
 // M2.3) and a real production preview driver with storage clearing in each
-// requested browser (bundled-example: loading a bundled score and protecting
-// foreign cache bytes, replacing the local-persistence driver retired to
-// Playwright in M2.2, also until M2.3).
+// requested browser (audio-playback: Audio 1 playback on a bundled score, the
+// last preview driver scheduled to retire (M2.15); it replaced bundled-example,
+// which replaced local-persistence, both retired to Playwright).
 export const PRESETS = {
-  smoke: ['vowel-alignment', 'contiguous-selection', 'bundled-example'],
+  smoke: ['vowel-alignment', 'contiguous-selection', 'audio-playback'],
   full: DRIVERS.map((driver) => driver.id),
 };
 
