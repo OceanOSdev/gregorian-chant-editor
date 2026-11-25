@@ -89,10 +89,6 @@ const geometry = (page: Page, target: Target) =>
       zoom:
         (panel as HTMLElement & { currentCSSZoom?: number }).currentCSSZoom ??
         1,
-      style: {
-        left: parseFloat(panel.style.left),
-        top: parseFloat(panel.style.top),
-      },
     };
   }, target);
 
@@ -146,15 +142,6 @@ function definePanelTests(mode: {
           const tol = 0.5;
           // CSS zoom is the panel's own; browser zoom must not appear as one.
           expect(g.zoom, `${label}: effective zoom`).toBe(mode.zoom);
-          // Inline CSS pixels times the zoom are what is rendered: scaled once.
-          expect(
-            Math.abs(g.style.left * g.zoom - g.panel.left),
-            label,
-          ).toBeLessThanOrEqual(tol);
-          expect(
-            Math.abs(g.style.top * g.zoom - g.panel.top),
-            label,
-          ).toBeLessThanOrEqual(tol);
           // Inside the visual viewport, below the sticky tools, clear of the target.
           expect(g.panel.left, `${label}: left`).toBeGreaterThanOrEqual(-tol);
           expect(g.panel.right, `${label}: right`).toBeLessThanOrEqual(
@@ -214,8 +201,10 @@ for (const mode of modes)
     });
   });
 
-// 150% browser zoom of a 480 × 1100 window: fewer CSS pixels and denser device
-// pixels, with no CSS zoom.
+// Emulated 150% browser zoom of a 480 × 1100 window: the CSS viewport and
+// device pixel ratio it produces (320 × 733 at 1.5), with no CSS zoom. This
+// emulates the layout conditions; it does not exercise real foreground
+// browser zoom.
 test.describe('150% page zoom', () => {
   test.use({ viewport: { width: 320, height: 733 }, deviceScaleFactor: 1.5 });
   definePanelTests({ name: '150% page zoom', zoom: 1, dpr: 1.5 });

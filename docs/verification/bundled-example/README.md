@@ -1,10 +1,14 @@
 # Bundled example verification
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/bundled-example/browser-check.mjs`.
+
 The example driver mounts the real editor on a disposable origin/profile. Use
 the [local persistence setup](../local-persistence/README.md#reproduce) for
-Chromium/CDP on 9230, Firefox/BiDi on 9231 and production preview on 4173, or
-run it through the runner (`npm run verify:browser -- --driver
-bundled-example --browser both`). The persistence driver it was originally run
+Chromium/CDP on 9230, Firefox/BiDi on 9231 and production preview on 4173
+(historical; the runner no longer lists this driver). The persistence driver it was originally run
 beside was retired to Playwright in M2.2
 ([migration record](../local-persistence/README.md#playwright-migration-m22)).
 
@@ -66,14 +70,14 @@ event; it does not claim atomic simultaneous writes or a real two-tab race.
 
 ## Playwright migration (M2.5)
 
-Status: **coverage complete; retirement awaiting owner approval.** Under the
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/bundled-example/browser-check.mjs`). Under the
 [M2 plan](../../plans/playwright-m2-migration.md), this crosswalk maps each
-scenario in [`browser-check.mjs`](browser-check.mjs) to the Playwright test
+scenario in the former `browser-check.mjs` to the Playwright test
 that now protects it:
 [`tests/e2e/bundled-example.spec.ts`](../../../tests/e2e/bundled-example.spec.ts),
-on the production preview in Chromium and Firefox. The driver stays in the
-runner manifest and smoke preset until the owner accepts this equivalence and
-the smoke-preset decision.
+on the production preview in Chromium and Firefox.
 
 | #   | Legacy scenario (lines)                                                                                                                                                                                            | Playwright                                                                                                                                                                                                                                                                                         |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

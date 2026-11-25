@@ -34,12 +34,14 @@ both` for a final regression run.
   runs once per requested browser it implements; other combinations are
   reported as `unsupported`. CDP-only drivers never run in Firefox.
 - `smoke`: `vowel-alignment` (dev-fixture lyrics, Chromium only),
-  `contiguous-selection` (dev fixture, both) and `bundled-example`
+  `contiguous-selection` (dev fixture, both) and `audio-playback`
   (production preview, storage-clearing, both). `full`: every manifest
   driver. `contiguous-selection` replaced the `divisions` driver (retired to
-  Playwright in M2.1) and `bundled-example` replaced the `local-persistence`
-  driver (retired in M2.2). They keep a dev-fixture and a preview job in each
-  browser in the smoke preset until the Playwright smoke CI job of M2.3.
+  Playwright in M2.1). The preview job was `local-persistence` (retired in
+  M2.2), then `bundled-example` (retired in M2.5), and is now
+  `audio-playback`, the last preview driver scheduled to retire (M2.15). The
+  preset keeps a dev-fixture and a preview job in each browser; hosted
+  cross-browser smoke coverage is `npm run test:e2e:smoke` (M2.3).
 - An unknown ID or preset, a driver with no requested browser (for example
   `--driver continuous-lyrics --browser firefox`), or an empty selection exits
   with status 2 before launching anything.

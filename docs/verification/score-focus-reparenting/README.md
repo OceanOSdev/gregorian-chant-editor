@@ -1,5 +1,10 @@
 # Score focus reparenting verification (readability M2)
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/score-focus-reparenting/browser-check.mjs`.
+
 The [interaction guide](../../editor-interactions.md#focus) owns the focus
 contract. The [M2 plan](../../plans/editor-readability-m2.md) owns scope. M2
 moved note and lyric controls into `NeumeControl` and `LyricControl`. Focus
@@ -85,12 +90,13 @@ Linux, Node 24.12.0, Chromium 157.0.8103.38, Firefox 146.0.
 
 ## Playwright migration (M2.5)
 
-Status: **coverage complete; retirement awaiting owner approval.** This
-crosswalk maps each scenario in [`browser-check.mjs`](browser-check.mjs) to
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/score-focus-reparenting/browser-check.mjs`). This
+crosswalk maps each scenario in the former `browser-check.mjs` to
 [`tests/e2e/score-focus-reparenting.spec.ts`](../../../tests/e2e/score-focus-reparenting.spec.ts)
 (production preview, Chromium and Firefox, 1440 × 1100) under the
-[M2 plan](../../plans/playwright-m2-migration.md). The driver stays in the
-runner manifest until the owner accepts this equivalence.
+[M2 plan](../../plans/playwright-m2-migration.md).
 
 Setup in every test matches the driver: load the bundled "Salve Regina
 Dominican" (through **Load example**; the driver imported the same file), wait

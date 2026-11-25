@@ -1,5 +1,10 @@
 # Editor toolbar verification (readability M1)
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/editor-toolbar/browser-check.mjs`.
+
 The [interaction guide](../../editor-interactions.md#palette-and-action-bar-ownership)
 owns the behavior; the [M1 plan](../../plans/editor-readability-m1.md) owns
 scope. M1 is a behavior-preserving ownership refactor; this driver checks the
@@ -77,12 +82,13 @@ The full-matrix comparison is recorded in the M1 pull request.
 
 ## Playwright migration (M2.5)
 
-Status: **coverage complete; retirement awaiting owner approval.** This
-crosswalk maps each scenario in [`browser-check.mjs`](browser-check.mjs) to
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/editor-toolbar/browser-check.mjs`). This
+crosswalk maps each scenario in the former `browser-check.mjs` to
 [`tests/e2e/editor-toolbar.spec.ts`](../../../tests/e2e/editor-toolbar.spec.ts)
 (production preview, Chromium and Firefox) under the
-[M2 plan](../../plans/playwright-m2-migration.md). The driver stays in the
-runner manifest until the owner accepts this equivalence.
+[M2 plan](../../plans/playwright-m2-migration.md).
 
 | #   | Legacy scenario (lines)                                                                                                                                                                                  | Playwright                                                                                                                                                                                                       |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

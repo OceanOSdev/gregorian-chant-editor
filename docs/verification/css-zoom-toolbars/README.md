@@ -1,5 +1,10 @@
 # CSS zoom contextual toolbars (issue #112)
 
+> **Retired in Playwright M2.5.** `browser-check.mjs` was deleted after the owner
+> accepted its [crosswalk](#playwright-migration-m25). Commands and results
+> below are historical; recover the script with
+> `git show 7cb61ba:docs/verification/css-zoom-toolbars/browser-check.mjs`.
+
 The [interaction guide](../../editor-interactions.md#sticky-editing-tools) owns
 the placement contract. Issue #112 found that the note and accidental
 properties panels were scaled twice under CSS `zoom`. They were placed from
@@ -81,17 +86,20 @@ cue must be clipped`). They fail identically on the base `d1439ed`, which
 
 ## Playwright migration (M2.5)
 
-Status: **coverage complete; retirement awaiting owner approval.** This
-crosswalk maps the driver ([`browser-check.mjs`](browser-check.mjs)) to
+Status: **accepted and retired.** The owner approved this crosswalk and its
+removals on 2026-11-24; the driver was removed from the runner manifest and
+deleted (recover it with `git show 7cb61ba:docs/verification/css-zoom-toolbars/browser-check.mjs`). This
+crosswalk maps the driver (the former `browser-check.mjs`) to
 [`tests/e2e/css-zoom-toolbars.spec.ts`](../../../tests/e2e/css-zoom-toolbars.spec.ts)
 (development fixture, Chromium and Firefox) under the
-[M2 plan](../../plans/playwright-m2-migration.md). The driver stays in the
-runner manifest until the owner accepts this equivalence.
+[M2 plan](../../plans/playwright-m2-migration.md).
 
 The spec keeps the driver's matrix: four modes (1440 × 1100; 320 × 1100;
 480 × 1100 at 150% CSS `zoom`; 320 × 733 at device pixel ratio 1.5 with no
 CSS zoom), two panels (note `note6`, accidental `flat`), two target heights
-(50% and 85%) and three dismissals. That is 16 tests per browser, each running
+(50% and 85%) and three dismissals. The page-zoom mode **emulates** the
+conditions 150% browser zoom produces (CSS viewport and device pixel ratio);
+it does not exercise real foreground browser zoom. That is 16 tests per browser, each running
 all three dismissals.
 
 | #   | Legacy assertion (lines)                                                                                                                          | Playwright                                                                                                                                             |
@@ -99,7 +107,7 @@ all three dismissals.
 | 1   | A native click on the target opens its panel (211–220)                                                                                            | Every test (`open`).                                                                                                                                   |
 | 2   | An internally scrolling panel reaches Close without scrolling the page (266–276)                                                                  | "page scrolled" check.                                                                                                                                 |
 | 3   | `currentCSSZoom` equals the CSS zoom, 1 under page zoom (280)                                                                                     | "effective zoom". Page-zoom tests also assert `devicePixelRatio === 1.5`, so the mode is real.                                                         |
-| 4   | Inline left/top × zoom equal the rendered position, ±0.5 px (282–286)                                                                             | Kept for now; proposed for removal (item A).                                                                                                           |
+| 4   | Inline left/top × zoom equal the rendered position, ±0.5 px (282–286)                                                                             | **Removed** (item A; approved).                                                                                                                        |
 | 5   | Inside the visual viewport; below the sticky tools' visible bottom; clear of the target (287–302)                                                 | Same checks, in client pixels.                                                                                                                         |
 | 6   | `elementFromPoint` at Close's centre is Close (304)                                                                                               | "Close is the hit target".                                                                                                                             |
 | 7   | Dismissal by native pointer on Close; by native Tab into the panel then Escape; by keyboard Enter on Close — **Chromium only** (254–258, 306–321) | All three dismissals **in both browsers**. Playwright Firefox activates Close with Enter; the driver skipped it because headless BiDi Firefox did not. |
@@ -107,10 +115,9 @@ all three dismissals.
 
 ### Proposed removals
 
-- **A. The inline-style arithmetic (row 4).** It checks the implementation's
-  CSS-pixel bookkeeping rather than placement. The negative control below shows
-  the rendered checks alone catch the #112 defect, so I propose dropping it at
-  retirement. If you prefer to keep it as a cheap diagnostic, it stays as is.
+- **A. The inline-style arithmetic (row 4), removed.** It checked the
+  implementation's CSS-pixel bookkeeping rather than placement. The negative
+  control below shows the rendered checks alone catch the #112 defect.
 - **B. Review screenshots** (`*-open`), never asserted.
 - **C. Script `focus()` on Close before Enter** is kept, as in the driver: it
   isolates Enter activation from Tab order, which row 7's Escape path already
