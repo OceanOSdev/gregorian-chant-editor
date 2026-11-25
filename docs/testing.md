@@ -332,7 +332,9 @@ owner accepts that crosswalk. M2.1 retired the divisions driver; see the
 [divisions record](verification/divisions/README.md#playwright-migration-m21).
 M2.2 retired the local-persistence driver; see the
 [local persistence record](verification/local-persistence/README.md#playwright-migration-m22).
-M2.4 investigated the issue #123 driver failures with focused specs
+M2.5 has completed coverage of `bundled-example`, `editor-toolbar`,
+`score-focus-reparenting` and `css-zoom-toolbars` and awaits retirement; see
+each driver's record. M2.4 investigated the issue #123 driver failures with focused specs
 (`extended-scandicus-climacus`, `word-composition`, `note-modifiers`); see the
 [investigation record](verification/issue-123/README.md).
 

@@ -78,3 +78,62 @@ the viewport`). The note panel was rendered from y≈857 to y≈1190 in a
   `word-composition` in Chromium and Firefox (`punctum selected whole-neume
 cue must be clipped`). They fail identically on the base `d1439ed`, which
   makes them pre-existing and unrelated to toolbar placement.
+
+## Playwright migration (M2.5)
+
+Status: **coverage complete; retirement awaiting owner approval.** This
+crosswalk maps the driver ([`browser-check.mjs`](browser-check.mjs)) to
+[`tests/e2e/css-zoom-toolbars.spec.ts`](../../../tests/e2e/css-zoom-toolbars.spec.ts)
+(development fixture, Chromium and Firefox) under the
+[M2 plan](../../plans/playwright-m2-migration.md). The driver stays in the
+runner manifest until the owner accepts this equivalence.
+
+The spec keeps the driver's matrix: four modes (1440 × 1100; 320 × 1100;
+480 × 1100 at 150% CSS `zoom`; 320 × 733 at device pixel ratio 1.5 with no
+CSS zoom), two panels (note `note6`, accidental `flat`), two target heights
+(50% and 85%) and three dismissals. That is 16 tests per browser, each running
+all three dismissals.
+
+| #   | Legacy assertion (lines)                                                                                                                          | Playwright                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | A native click on the target opens its panel (211–220)                                                                                            | Every test (`open`).                                                                                                                                   |
+| 2   | An internally scrolling panel reaches Close without scrolling the page (266–276)                                                                  | "page scrolled" check.                                                                                                                                 |
+| 3   | `currentCSSZoom` equals the CSS zoom, 1 under page zoom (280)                                                                                     | "effective zoom". Page-zoom tests also assert `devicePixelRatio === 1.5`, so the mode is real.                                                         |
+| 4   | Inline left/top × zoom equal the rendered position, ±0.5 px (282–286)                                                                             | Kept for now; proposed for removal (item A).                                                                                                           |
+| 5   | Inside the visual viewport; below the sticky tools' visible bottom; clear of the target (287–302)                                                 | Same checks, in client pixels.                                                                                                                         |
+| 6   | `elementFromPoint` at Close's centre is Close (304)                                                                                               | "Close is the hit target".                                                                                                                             |
+| 7   | Dismissal by native pointer on Close; by native Tab into the panel then Escape; by keyboard Enter on Close — **Chromium only** (254–258, 306–321) | All three dismissals **in both browsers**. Playwright Firefox activates Close with Enter; the driver skipped it because headless BiDi Firefox did not. |
+| 8   | The panel is dismissed and focus returns to its target (322–323)                                                                                  | "dismissed" and "focus returns".                                                                                                                       |
+
+### Proposed removals
+
+- **A. The inline-style arithmetic (row 4).** It checks the implementation's
+  CSS-pixel bookkeeping rather than placement. The negative control below shows
+  the rendered checks alone catch the #112 defect, so I propose dropping it at
+  retirement. If you prefer to keep it as a cheap diagnostic, it stays as is.
+- **B. Review screenshots** (`*-open`), never asserted.
+- **C. Script `focus()` on Close before Enter** is kept, as in the driver: it
+  isolates Enter activation from Tab order, which row 7's Escape path already
+  covers.
+
+### Negative control
+
+The spec was run at `1ffffbc^`, the parent of the #112 fix, in a temporary
+worktree. All four CSS-zoom tests failed in both browsers (8 failures), and the
+desktop, narrow and page-zoom tests passed. With the inline-style check removed
+from that copy, the same 8 tests still failed, on "right" (the panel leaves the
+viewport). The worktree was removed.
+
+### Results (M2.5, 2026-11-24)
+
+Implementation commit `d5603ec` with a clean tree. Linux x64, Node 24.12.0,
+Playwright 1.65.1 (Chromium `chromium-1255`, Firefox 159.0 `firefox-1572`).
+The runner used installed Chromium 157.0.8103.38 and Firefox 146.0.
+
+| Check                                                                                                                                    | Result                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Legacy `npm run verify:browser -- --driver bundled-example,editor-toolbar,score-focus-reparenting,css-zoom-toolbars --browser both -j 4` | 8 of 8 passed (50.7 s wall clock)                                                                                   |
+| `npm run test:e2e` (all specs, both browsers)                                                                                            | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                       |
+| The four M2.5 specs (66 tests across both browsers), `--repeat-each=10`                                                                  | 660 passed, 0 failed, 0 flaky                                                                                       |
+| Negative controls (temporary worktrees, removed)                                                                                         | #112 fix parent: 8 CSS-zoom failures; restore effect disabled: 6 focus failures; palette reset disabled: 2 failures |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`, `test:verify-runner` (28/28)                      | All passed                                                                                                          |

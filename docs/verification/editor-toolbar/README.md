@@ -74,3 +74,55 @@ Linux, Node 24.12.0, Chromium 157.0.8103.38, Firefox 146.0.
   M2.2); this driver uses the in-page focus check.
 
 The full-matrix comparison is recorded in the M1 pull request.
+
+## Playwright migration (M2.5)
+
+Status: **coverage complete; retirement awaiting owner approval.** This
+crosswalk maps each scenario in [`browser-check.mjs`](browser-check.mjs) to
+[`tests/e2e/editor-toolbar.spec.ts`](../../../tests/e2e/editor-toolbar.spec.ts)
+(production preview, Chromium and Firefox) under the
+[M2 plan](../../plans/playwright-m2-migration.md). The driver stays in the
+runner manifest until the owner accepts this equivalence.
+
+| #   | Legacy scenario (lines)                                                                                                                                                                                  | Playwright                                                                                                                                                                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | One roving stop; ArrowRight, End, Home and ArrowLeft browse and wrap; browsing never arms (359–376)                                                                                                      | "one roving stop; Arrow, Home and End browse and wrap without arming a tool".                                                                                                                                    |
+| 2   | Remembered Division kind (Minor) reopens the menu there; Escape closes it and returns to Select; **New** resets the roving stop and the kind; button refs stay live (377–392)                            | "New, Import and recovery reload each reset the roving stop and the remembered Division kind", **New** part. A native click on **New** with a real confirm (the driver tagged the button and stubbed `confirm`). |
+| 3   | **Import** resets the same state (393–402)                                                                                                                                                               | Same test, **Import** part (real file input; real confirm).                                                                                                                                                      |
+| 4   | **Recovery reload**: a foreign autosave and a window `focus` show **Load cached score**; loading resets the same state (403–429)                                                                         | Same test, **Reload** part. The foreign write and `focus` event are controlled setup, as in the driver; the click and confirm are native.                                                                        |
+| 5   | **T** from a focused note focuses the remembered tool without changing selection; the handled palette request is cleared; a following Arrow is not undone (430–455)                                      | "T focuses the remembered tool without changing selection, and later browsing is not undone". The fiber check is replaced by the behavioural check (item A).                                                     |
+| 6   | After arming Epiphonus by pointer and Escape, **T** reaches the Podatus menu (456–464)                                                                                                                   | Same test (native clicks on the arrow and the menu item).                                                                                                                                                        |
+| 7   | The Quilisma figure select arms Quilisma and is remembered (465–479)                                                                                                                                     | "the Quilisma figure select arms Quilisma and remembers the figure". Also asserts the figure is still remembered after Escape.                                                                                   |
+| 8   | Action bar: Copy disabled without a selection; Paste labelled empty; a two-neume passage (Shift+Enter, Shift+ArrowRight); Lyrics and Insert describe it; Copy, Paste, Undo, Redo; Insert label (480–528) | "action bar Copy, Paste, Undo and Redo use the session commands and describe the passage". Native clicks; counts neumes' notes as the driver did, on the same six-punctum score (restored from the cache).       |
+| 9   | Sticky `data-too-tall` tracks a height above half the window at 1440 × 1100, 320 × 1100, 320 × 500 (flag true, static) and 1440 × 1100 at 150% CSS zoom and after (529–553)                              | "the sticky toolbar observer tracks its height at 1440px, 320px, a short window and 150% CSS zoom". Uses `expect.poll` instead of a fixed 300 ms wait.                                                           |
+
+### Proposed removals
+
+- **A. React fiber introspection** (`paletteFocusRequest`, lines 235–239). The
+  driver read `NotationPalette`'s `focusRequest` prop from React's internal
+  fiber to show the handled request was cleared. That depends on React
+  internals and the component tree. The reducer contract (only the matching
+  request clears) is covered by Vitest: `editor-session.test.ts`, "selects
+  without an edit, remembers kind, and restores focus by stable ID"
+  (`focus-handled`). The browser-visible consequence — the effect does not
+  refocus, so Arrow browsing after **T** stays put, and a second **T**
+  resolves a new request — is asserted in rows 5 and 6.
+- **B. Review screenshots** (`t-focus-variant`, `sticky-320`, `sticky-zoom`),
+  never asserted.
+- **C. Tagging buttons with `data-toolbar-check`** and script `focus()` to
+  reach controls. Role locators and native clicks replace them. Script focus
+  remains only as fixture setup for the starting stop, as in the driver.
+
+### Results (M2.5, 2026-11-24)
+
+Implementation commit `d5603ec` with a clean tree. Linux x64, Node 24.12.0,
+Playwright 1.65.1 (Chromium `chromium-1255`, Firefox 159.0 `firefox-1572`).
+The runner used installed Chromium 157.0.8103.38 and Firefox 146.0.
+
+| Check                                                                                                                                    | Result                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Legacy `npm run verify:browser -- --driver bundled-example,editor-toolbar,score-focus-reparenting,css-zoom-toolbars --browser both -j 4` | 8 of 8 passed (50.7 s wall clock)                                                                                   |
+| `npm run test:e2e` (all specs, both browsers)                                                                                            | 277 passed, 1 skipped (the Chromium-only IME test in Firefox)                                                       |
+| The four M2.5 specs (66 tests across both browsers), `--repeat-each=10`                                                                  | 660 passed, 0 failed, 0 flaky                                                                                       |
+| Negative controls (temporary worktrees, removed)                                                                                         | #112 fix parent: 8 CSS-zoom failures; restore effect disabled: 6 focus failures; palette reset disabled: 2 failures |
+| `format:check`, `lint`, `test` (118 files / 2,703 tests), `build`, `git diff --check`, `test:verify-runner` (28/28)                      | All passed                                                                                                          |
