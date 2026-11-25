@@ -42,6 +42,11 @@ both` for a final regression run.
   `audio-playback`, the last preview driver scheduled to retire (M2.15). The
   preset keeps a dev-fixture and a preview job in each browser; hosted
   cross-browser smoke coverage is `npm run test:e2e:smoke` (M2.3).
+  Known issue: `contiguous-selection` can fail in Chromium inside the smoke
+  preset on a fixed 200 ms wait after navigation (`TypeError … reading
+'options'`, line 612); see
+  [#131](https://github.com/OceanOSdev/gregorian-chant-editor/issues/131). It
+  is due for migration in M2.6.
 - An unknown ID or preset, a driver with no requested browser (for example
   `--driver continuous-lyrics --browser firefox`), or an empty selection exits
   with status 2 before launching anything.
